@@ -1,8 +1,9 @@
 // frontend/src/pages/Profile.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { supabase } from '../supabaseClient';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -63,18 +64,19 @@ const Profile = () => {
   const fetchProfile = async (email) => {
     try {
       console.log('📧 Dohvatam profil za:', email);
-      const res = await axios.get(`http://localhost:5000/api/profil/${encodeURIComponent(email)}`);
-      console.log('📊 Profil dohvaćen:', res.data);
+      const res = await fetch(`${API_URL}/profil/${encodeURIComponent(email)}`);
+      const data = await res.json();
+      console.log('📊 Profil dohvaćen:', data);
       
-      if (res.data.success) {
-        setProfile(res.data.data);
+      if (data.success) {
+        setProfile(data.data);
       } else {
         console.error('❌ Profil nije pronađen');
         await createProfile(email);
       }
     } catch (error) {
       console.error('❌ Greška pri dohvatu profila:', error);
-      if (error.response?.status === 404) {
+      if (error.message.includes('404')) {
         await createProfile(email);
       }
     } finally {
@@ -88,19 +90,24 @@ const Profile = () => {
   const createProfile = async (email) => {
     try {
       console.log('🆕 Kreiram profil za:', email);
-      const res = await axios.post('http://localhost:5000/api/profil', {
-        email: email,
-        ime: user?.ime || user?.user_metadata?.ime || 'Korisnik',
-        premium: false,
-        kviz_zavrsen: false,
-        vrsta: [],
-        izbjegava: [],
-        preferencije: []
+      const res = await fetch(`${API_URL}/profil`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          ime: user?.ime || user?.user_metadata?.ime || 'Korisnik',
+          premium: false,
+          kviz_zavrsen: false,
+          vrsta: [],
+          izbjegava: [],
+          preferencije: []
+        })
       });
+      const data = await res.json();
       
-      if (res.data.success) {
-        console.log('✅ Profil kreiran:', res.data.data);
-        setProfile(res.data.data);
+      if (data.success) {
+        console.log('✅ Profil kreiran:', data.data);
+        setProfile(data.data);
       }
     } catch (error) {
       console.error('❌ Greška pri kreiranju profila:', error);
@@ -116,7 +123,7 @@ const Profile = () => {
     setDeleting(true);
     try {
       const email = user?.email || localStorage.getItem('userEmail');
-      await axios.delete(`http://localhost:5000/api/profil/${email}/delete`);
+      await fetch(`${API_URL}/profil/${email}/delete`, { method: 'DELETE' });
       localStorage.clear();
       navigate('/login');
     } catch (error) {
@@ -130,7 +137,6 @@ const Profile = () => {
   // ============================================================
   const handleLogout = async () => {
     try {
-      await axios.post('http://localhost:5000/api/auth/logout');
       await supabase.auth.signOut();
     } catch (error) {
       console.error('❌ Greška pri odjavi:', error);
