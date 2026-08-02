@@ -1,6 +1,6 @@
-echo { > vercel.json
-echo   "installCommand": "npm install", >> vercel.json
-echo   "buildCommand": "cd frontend && npm install && npm run build", >> vercel.json
-echo   "outputDirectory": "frontend/dist", >> vercel.json
-echo   "framework": "vite" >> vercel.json
-echo } >> vercel.json
+{
+  "installCommand": "npm install",
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "framework": "vite"
+}
