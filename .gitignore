@@ -1,0 +1,63 @@
+# ====================
+# ROOT .gitignore
+# ====================
+
+# Environment variables (NAJVAŽNIJE!)
+.env
+.env.local
+.env.production
+.env.development
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Build directories
+dist/
+build/
+client/build/
+server/dist/
+
+# Backend uploads
+backend/uploads/
+uploads/
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Vercel
+.vercel/
+vercel.json
+
+# Railway / Render
+.railway/
+.render/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Misc
+*.pem
+*.key
+*.crt

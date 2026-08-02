@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="hr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="description" content="OS Zdravlja – Operativni sistem za tvoje zdravlje. Recepti, AI, personalizacija i zdravlje na jednom mjestu." />
+    <title>OS Zdravlja – Operativni sistem za tvoje zdravlje</title>
+    
+    <!-- ⚡ ZAŠTITA – Onemogući desni klik i prečice -->
+    <script>
+      // 1. Onemogući desni klik
+      document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        return false;
+      });
+
+      // 2. Onemogući F12, Ctrl+U, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+S
+      document.addEventListener('keydown', (e) => {
+        // F12
+        if (e.key === 'F12') {
+          e.preventDefault();
+          return false;
+        }
+        // Ctrl+U (View Source)
+        if (e.ctrlKey && e.key === 'u') {
+          e.preventDefault();
+          return false;
+        }
+        // Ctrl+Shift+I (DevTools)
+        if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+          e.preventDefault();
+          return false;
+        }
+        // Ctrl+Shift+J (Console)
+        if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+          e.preventDefault();
+          return false;
+        }
+        // Ctrl+S (Save)
+        if (e.ctrlKey && e.key === 's') {
+          e.preventDefault();
+          return false;
+        }
+        // Ctrl+Shift+C (Inspect)
+        if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+          e.preventDefault();
+          return false;
+        }
+      });
+
+      // 3. Detekcija DevTools – ako je otvoren, preusmjeri na blank stranicu
+      (function detectDevTools() {
+        const element = new Image();
+        Object.defineProperty(element, 'id', {
+          get: function() {
+            // DevTools je otvoren!
+            document.body.innerHTML = '';
+            document.body.style.backgroundColor = '#000';
+            document.body.innerHTML = `
+              <div style="display:flex;justify-content:center;align-items:center;height:100vh;color:#fff;font-family:sans-serif;flex-direction:column;text-align:center;padding:20px;">
+                <h1 style="font-size:48px;">🔒</h1>
+                <h2>Pristup onemogućen</h2>
+                <p style="color:#888;max-width:400px;">Molimo zatvorite Developer Tools za nastavak korištenja aplikacije.</p>
+              </div>
+            `;
+            document.title = 'Pristup onemogućen';
+          }
+        });
+        console.log('%c', element);
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Service Worker registracija -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(() => console.log('✅ Service Worker registrovan'))
+          .catch(err => console.log('❌ Greška pri registraciji Service Worker-a:', err));
+      }
+    </script>
+  </body>
+</html>

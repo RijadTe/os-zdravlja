@@ -1,0 +1,173 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Dark mode stilovi */
+.dark {
+  background-color: #1a1a2e;
+  color: #e0e0e0;
+}
+
+.dark .bg-white {
+  background-color: #1a1a2e;
+}
+
+.dark .bg-gray-50 {
+  background-color: #16213e;
+}
+
+.dark .bg-gray-100 {
+  background-color: #1a1a2e;
+}
+
+/* Naslov i podnaslov - svijetli u dark modu */
+.dark .text-gray-800 {
+  color: #f0f0f0;
+}
+
+.dark .text-gray-700 {
+  color: #d0d0d0;
+}
+
+.dark .text-gray-600 {
+  color: #b0b0b0;
+}
+
+.dark .border-gray-200 {
+  border-color: #2a2a4e;
+}
+
+.dark .shadow-md {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+.dark .shadow-lg {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* HealthyChef sekcija - drugačija pozadina u dark modu */
+.dark .bg-gradient-to-b {
+  background-image: linear-gradient(to bottom, #1a2a3e, #0d1b2a);
+}
+
+.dark .bg-gradient-to-r {
+  background-image: linear-gradient(to right, #1a2a3e, #0d1b2a);
+}
+
+.dark .bg-teal-50 {
+  background-color: #0d2a2a;
+}
+
+.dark .bg-blue-50 {
+  background-color: #0d1a3e;
+}
+
+.dark .bg-yellow-200 {
+  background-color: #4a3a1a;
+}
+
+.dark .text-yellow-800 {
+  color: #e0b040;
+}
+
+.dark .text-blue-800 {
+  color: #80b0ff;
+}
+
+.dark .bg-gray-50 {
+  background-color: #16213e;
+}
+
+.dark .bg-gray-200 {
+  background-color: #2a2a4e;
+}
+
+.dark .text-gray-500 {
+  color: #8888aa;
+}
+
+.dark .border-gray-100 {
+  border-color: #2a2a4e;
+}
+
+.dark .bg-purple-50 {
+  background-color: #2a1a4e;
+}
+
+.dark .border-purple-200 {
+  border-color: #4a2a6e;
+}
+
+.dark .text-purple-700 {
+  color: #b080e0;
+}
+
+.dark .bg-blue-100 {
+  background-color: #1a2a5e;
+}
+
+.dark .text-blue-700 {
+  color: #60a0e0;
+}
+
+.dark .bg-red-100 {
+  background-color: #4a1a1a;
+}
+
+.dark .text-red-700 {
+  color: #e06060;
+}
+
+.dark .bg-green-100 {
+  background-color: #1a4a1a;
+}
+
+.dark .text-green-700 {
+  color: #60e060;
+}
+
+.dark .bg-purple-600 {
+  background-color: #4a2a6e;
+}
+
+.dark .bg-purple-700 {
+  background-color: #3a1a5e;
+}
+
+.dark .bg-blue-600 {
+  background-color: #1a3a6e;
+}
+
+.dark .bg-blue-700 {
+  background-color: #1a2a5e;
+}
+
+.dark .bg-green-600 {
+  background-color: #1a4a2a;
+}
+
+.dark .bg-green-700 {
+  background-color: #1a3a2a;
+}
+
+/* HealthyChef - posebna pozadina */
+.dark .healthy-chef-bg {
+  background: linear-gradient(135deg, #0d1a2a 0%, #1a2a3e 100%);
+  border-color: #2a4a6e;
+}
+
+.dark .healthy-chef-bg .text-gray-600 {
+  color: #a0c0e0;
+}
+
+.dark .healthy-chef-bg .text-gray-700 {
+  color: #c0d0e0;
+}
+
+.dark .healthy-chef-bg .bg-white {
+  background-color: #1a2a3e;
+}
+
+.dark .healthy-chef-bg .border-gray-200 {
+  border-color: #2a4a6e;
+}
