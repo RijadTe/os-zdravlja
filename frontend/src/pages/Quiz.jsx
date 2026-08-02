@@ -428,8 +428,20 @@ const Quiz = () => {
             : 'Odgovorite na 8 pitanja i mi ćemo prilagoditi recepte vašim potrebama!'}
         </p>
 
-        {/* Forma */}
-        <form onSubmit={handleSubmit}>
+        {/* 
+          ============================================================
+          🔥 FORMA SA ZAŠTITOM OD AUTOMATSKOG SUBMITA
+          ============================================================
+        */}
+        <form 
+          onSubmit={handleSubmit}
+          onKeyDown={(e) => {
+            // 🔥 SPRIJEČI ENTER NA CIJELOJ FORMI
+            if (e.key === 'Enter') {
+              e.preventDefault();
+            }
+          }}
+        >
           <div className="mb-4 sm:mb-6">
             <label className="block font-semibold text-gray-700 dark:text-gray-200 mb-2 text-sm sm:text-base">
               {activeQuestions[currentStep].label}
