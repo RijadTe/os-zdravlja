@@ -51,7 +51,6 @@ function App() {
         setLoading(true);
         console.log('🔍 Provjera korisnika...');
 
-        // 1. Prvo provjeri localStorage (brže)
         const userData = JSON.parse(localStorage.getItem('user'));
         if (userData?.email) {
           console.log('✅ Korisnik iz localStorage:', userData.email);
@@ -60,7 +59,6 @@ function App() {
           return;
         }
 
-        // 2. Ako nema u localStorage, pitaj Supabase
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -70,7 +68,6 @@ function App() {
         if (session?.user) {
           console.log('✅ Korisnik prijavljen preko Supabase:', session.user.email);
           
-          // 🔥 KREIRAJ KOMPLETAN USER OBJEKAT
           const userObj = {
             id: session.user.id,
             email: session.user.email,
@@ -83,7 +80,6 @@ function App() {
           localStorage.setItem('userEmail', session.user.email);
           localStorage.setItem('userName', session.user.user_metadata?.ime || '');
           
-          // 🔥 DOHVATI I PROFIL IZ BAZE
           try {
             const { data: profile } = await supabase
               .from('profili')
@@ -125,7 +121,6 @@ function App() {
 
     checkUser();
 
-    // 🔥 OSLUŠKUJ PROMJENE U AUTENTIFIKACIJI
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 Auth event:', event);
       
@@ -144,7 +139,6 @@ function App() {
         localStorage.setItem('userEmail', session.user.email);
         localStorage.setItem('userName', session.user.user_metadata?.ime || '');
         
-        // Dohvati profil
         try {
           const { data: profile } = await supabase
             .from('profili')
@@ -196,40 +190,7 @@ function App() {
   }, []);
 
   // ============================================================
-  // 🛡️ SIGURNOSNA ZAŠTITA (15 NIVOA)
-  // ============================================================
-  useEffect(() => {
-    // 1. Onemogući desni klik
-    const disableRightClick = (e) => {
-      e.preventDefault();
-      return false;
-    };
-    document.addEventListener('contextmenu', disableRightClick);
-
-    // 2. Onemogući tipke za developer alate
-    const disableKeys = (e) => {
-      if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.key === 'u') ||
-        (e.ctrlKey && e.shiftKey && e.key === 'I') ||
-        (e.ctrlKey && e.shiftKey && e.key === 'J') ||
-        (e.ctrlKey && e.key === 's') ||
-        (e.ctrlKey && e.shiftKey && e.key === 'C')
-      ) {
-        e.preventDefault();
-        return false;
-      }
-    };
-    document.addEventListener('keydown', disableKeys);
-
-    return () => {
-      document.removeEventListener('contextmenu', disableRightClick);
-      document.removeEventListener('keydown', disableKeys);
-    };
-  }, []);
-
-  // ============================================================
-  // 🔄 OSVJEŽAVANJE KORISNIKA (poziv iz drugih komponenti)
+  // 🔄 OSVJEŽAVANJE KORISNIKA
   // ============================================================
   const refreshUser = async () => {
     try {
