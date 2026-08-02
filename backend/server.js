@@ -64,7 +64,7 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 // ============================================================
-// MIDDLEWARE
+// MIDDLEWARE - CORS (SA SVIM DOZVOLJENIM DOMENAMA)
 // ============================================================
 app.use(cors({
   origin: [
@@ -77,6 +77,9 @@ app.use(cors({
     'http://127.0.0.1:5174',
     'http://10.129.62.121:5173',
     'http://10.129.62.121:5174',
+    'https://os-zdravlja.vercel.app',        // ← DODANO!
+    'https://os-zdravlja-backend.onrender.com',
+    'https://os-zdravlja.vercel.app/',
     process.env.CLIENT_URL
   ].filter(Boolean),
   credentials: true,
@@ -451,7 +454,7 @@ app.post('/api/auth/logout', async (req, res) => {
 });
 
 // ============================================================
-// 6. QUIZ ENDPOINT
+// 6. QUIZ ENDPOINT - SA FILTERIMA
 // ============================================================
 app.post('/api/quiz', async (req, res) => {
   console.log('\n📥 === QUIZ ENDPOINT ===');
@@ -484,18 +487,19 @@ app.post('/api/quiz', async (req, res) => {
     let error;
 
     if (existingUser) {
-      console.log(`📝 Ažuriranje: ${email}`);
+      console.log(`📝 Ažuriranje profila za: ${email}`);
       const { data, error: updateError } = await supabase
         .from('profili')
         .update({
-          ime,
+          ime: ime || existingUser.ime,
           vrsta: vrsta || [],
           izbjegava: restrikcije || [],
           preferencije: preferencije || [],
-          vrijeme,
-          tezina,
-          kalorije,
-          kviz_zavrsen: true
+          vrijeme: vrijeme || '',
+          tezina: tezina || '',
+          kalorije: kalorije || '',
+          kviz_zavrsen: true,
+          updated_at: new Date().toISOString()
         })
         .eq('email', email)
         .select();
@@ -503,21 +507,23 @@ app.post('/api/quiz', async (req, res) => {
       error = updateError;
       result = data;
     } else {
-      console.log(`🆕 Kreiranje: ${email}`);
+      console.log(`🆕 Kreiranje novog profila za: ${email}`);
       const { data, error: insertError } = await supabase
         .from('profili')
         .insert([{
           email,
-          ime,
+          ime: ime || 'Korisnik',
           vrsta: vrsta || [],
           izbjegava: restrikcije || [],
           preferencije: preferencije || [],
-          vrijeme,
-          tezina,
-          kalorije,
+          vrijeme: vrijeme || '',
+          tezina: tezina || '',
+          kalorije: kalorije || '',
           kviz_zavrsen: true,
+          premium: false,
           ai_chef_pretrage: 0,
-          ai_chef_datum: null
+          ai_chef_datum: null,
+          created_at: new Date().toISOString()
         }])
         .select();
 
@@ -536,10 +542,18 @@ app.post('/api/quiz', async (req, res) => {
     }
 
     console.log('✅ Kviz uspješno sačuvan!');
+    
+    // Vrati ažurirani profil
+    const { data: updatedProfile } = await supabase
+      .from('profili')
+      .select('*')
+      .eq('email', email)
+      .maybeSingle();
+
     res.json({ 
       success: true, 
       message: 'Kviz uspješno sačuvan!',
-      data: result ? result[0] : null
+      data: updatedProfile || (result ? result[0] : null)
     });
 
   } catch (error) {
@@ -552,16 +566,54 @@ app.post('/api/quiz', async (req, res) => {
 });
 
 // ============================================================
-// 7. DOHVATI RECEPTE
+// 7. DOHVATI RECEPTE SA FILTERIMA
 // ============================================================
 app.get('/api/recepti', async (req, res) => {
   try {
-    const { data, error } = await supabase
+    const { 
+      email, 
+      vrsta, 
+      restrikcije, 
+      preferencije, 
+      vrijeme, 
+      tezina, 
+      kalorije 
+    } = req.query;
+    
+    console.log('📊 Dohvatam recepte sa filterima:', { email, vrsta, restrikcije, preferencije, vrijeme, tezina, kalorije });
+    
+    let query = supabase
       .from('recepti')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('*');
+
+    // Prvo primijeni filtere iz kviza (ako postoje)
+    if (vrsta) {
+      const vrstaArray = Array.isArray(vrsta) ? vrsta : [vrsta];
+      query = query.in('vrsta', vrstaArray);
+    }
+
+    if (vrijeme) {
+      query = query.eq('vrijeme', vrijeme);
+    }
+
+    if (tezina) {
+      query = query.eq('tezina', tezina);
+    }
+
+    // Restrikcije - izbaci recepte koji sadrže te sastojke
+    if (restrikcije) {
+      const restrikcijeArray = Array.isArray(restrikcije) ? restrikcije : [restrikcije];
+      for (let r of restrikcijeArray) {
+        // Ovo je pojednostavljeno - u pravoj implementaciji bi trebalo
+        // provjeravati sastojke recepta
+        query = query.not('sastojci', 'cs', `{${r}}`);
+      }
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
+    console.log(`✅ Dohvaćeno ${data?.length || 0} recepata`);
     res.json(data || []);
   } catch (error) {
     console.error('❌ Greška:', error);
@@ -570,7 +622,66 @@ app.get('/api/recepti', async (req, res) => {
 });
 
 // ============================================================
-// 8. DOHVATI JEDAN RECEPT
+// 8. DOHVATI RECEPTE ZA KORISNIKA (SA NJEGOVIM FILTERIMA)
+// ============================================================
+app.get('/api/recepti/korisnik/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    console.log(`👤 Dohvatam recepte za korisnika: ${email}`);
+    
+    // Prvo dohvati profil korisnika
+    const { data: profil, error: profilError } = await supabase
+      .from('profili')
+      .select('vrsta, izbjegava, preferencije, vrijeme, tezina, kalorije')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (profilError) throw profilError;
+    if (!profil) {
+      return res.status(404).json({ error: 'Korisnik nije pronađen.' });
+    }
+
+    console.log('📋 Korisnički filteri:', profil);
+
+    let query = supabase
+      .from('recepti')
+      .select('*');
+
+    // Primijeni filtere iz profila
+    if (profil.vrsta && profil.vrsta.length > 0) {
+      query = query.in('vrsta', profil.vrsta);
+    }
+
+    if (profil.vrijeme) {
+      query = query.eq('vrijeme', profil.vrijeme);
+    }
+
+    if (profil.tezina) {
+      query = query.eq('tezina', profil.tezina);
+    }
+
+    // Restrikcije
+    if (profil.izbjegava && profil.izbjegava.length > 0) {
+      for (let r of profil.izbjegava) {
+        // Ovo je pojednostavljeno - u pravoj implementaciji bi trebalo
+        // provjeravati sastojke recepta
+        query = query.not('sastojci', 'cs', `{${r}}`);
+      }
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    console.log(`✅ Dohvaćeno ${data?.length || 0} recepata za korisnika`);
+    res.json(data || []);
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// 9. DOHVATI JEDAN RECEPT
 // ============================================================
 app.get('/api/recepti/:id', async (req, res) => {
   try {
@@ -595,7 +706,7 @@ app.get('/api/recepti/:id', async (req, res) => {
 });
 
 // ============================================================
-// 9. DOHVATI PROFIL
+// 10. DOHVATI PROFIL
 // ============================================================
 app.get('/api/profil/:email', async (req, res) => {
   try {
@@ -620,7 +731,7 @@ app.get('/api/profil/:email', async (req, res) => {
 });
 
 // ============================================================
-// 10. AŽURIRAJ PROFIL
+// 11. AŽURIRAJ PROFIL
 // ============================================================
 app.put('/api/profil/:email', async (req, res) => {
   try {
@@ -647,7 +758,7 @@ app.put('/api/profil/:email', async (req, res) => {
 });
 
 // ============================================================
-// 11. KREIRAJ PROFIL
+// 12. KREIRAJ PROFIL
 // ============================================================
 app.post('/api/profil', async (req, res) => {
   try {
@@ -694,7 +805,7 @@ app.post('/api/profil', async (req, res) => {
 });
 
 // ============================================================
-// 12. IZBRIŠI PROFIL
+// 13. IZBRIŠI PROFIL
 // ============================================================
 app.delete('/api/profil/:email/delete', async (req, res) => {
   try {
@@ -720,7 +831,7 @@ app.delete('/api/profil/:email/delete', async (req, res) => {
 });
 
 // ============================================================
-// 13. HEALTHY CHEF - KATEGORIJE
+// 14. HEALTHY CHEF - KATEGORIJE
 // ============================================================
 app.get('/api/healthy-chef/kategorije', async (req, res) => {
   try {
@@ -741,7 +852,7 @@ app.get('/api/healthy-chef/kategorije', async (req, res) => {
 });
 
 // ============================================================
-// 14. HEALTHY CHEF - FAZE PO KATEGORIJI
+// 15. HEALTHY CHEF - FAZE PO KATEGORIJI
 // ============================================================
 app.get('/api/healthy-chef/faze/:kategorijaId', async (req, res) => {
   try {
@@ -764,7 +875,7 @@ app.get('/api/healthy-chef/faze/:kategorijaId', async (req, res) => {
 });
 
 // ============================================================
-// 15. HEALTHY CHEF - RECEPTI ZA FAZU
+// 16. HEALTHY CHEF - RECEPTI ZA FAZU
 // ============================================================
 app.get('/api/healthy-chef/recepti', async (req, res) => {
   try {
@@ -797,7 +908,7 @@ app.get('/api/healthy-chef/recepti', async (req, res) => {
 });
 
 // ============================================================
-// 16. AI WEEKLY PLAN (FoodPlanner)
+// 17. AI WEEKLY PLAN (FoodPlanner)
 // ============================================================
 app.post('/api/ai-weekly-plan', async (req, res) => {
   try {
@@ -825,7 +936,7 @@ app.post('/api/ai-weekly-plan', async (req, res) => {
 });
 
 // ============================================================
-// 17. TAJNI RECEPT
+// 18. TAJNI RECEPT
 // ============================================================
 app.get('/api/tajni-recept', async (req, res) => {
   try {
@@ -947,7 +1058,7 @@ app.get('/api/tajni-recept', async (req, res) => {
 });
 
 // ============================================================
-// 18. AI CHEF - DOHVATI LIMIT
+// 19. AI CHEF - DOHVATI LIMIT
 // ============================================================
 app.get('/api/ai-chef/limit/:email', async (req, res) => {
   try {
@@ -1006,7 +1117,7 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
 });
 
 // ============================================================
-// 19. AI CHEF - OTKLJUČAJ PRETRAGU (VIDEO)
+// 20. AI CHEF - OTKLJUČAJ PRETRAGU (VIDEO)
 // ============================================================
 app.post('/api/ai-chef/unlock', async (req, res) => {
   try {
@@ -1073,7 +1184,7 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
 });
 
 // ============================================================
-// 20. AI CHEF - PRETRAGA (SA SLIKOM + OCR + KEŠ)
+// 21. AI CHEF - PRETRAGA (SA SLIKOM + OCR + KEŠ)
 // ============================================================
 app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
   try {
@@ -1161,7 +1272,7 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
 });
 
 // ============================================================
-// 21. AI CHEF - OČISTI STARI KEŠ
+// 22. AI CHEF - OČISTI STARI KEŠ
 // ============================================================
 app.delete('/api/ai-chef/cache/clean', async (req, res) => {
   try {
@@ -1182,7 +1293,7 @@ app.delete('/api/ai-chef/cache/clean', async (req, res) => {
 });
 
 // ============================================================
-// 22. PDF IZVJEŠTAJ
+// 23. PDF IZVJEŠTAJ
 // ============================================================
 app.get('/api/pdf/izvjestaj/:email', async (req, res) => {
   try {
@@ -1345,7 +1456,7 @@ app.get('/api/pdf/izvjestaj/:email', async (req, res) => {
 });
 
 // ============================================================
-// 23. ZDRAVSTVENI PODACI - SAČUVAJ
+// 24. ZDRAVSTVENI PODACI - SAČUVAJ
 // ============================================================
 app.post('/api/zdravstveni-podaci', async (req, res) => {
   try {
@@ -1375,7 +1486,7 @@ app.post('/api/zdravstveni-podaci', async (req, res) => {
 });
 
 // ============================================================
-// 24. ZDRAVSTVENI PODACI - DOHVATI
+// 25. ZDRAVSTVENI PODACI - DOHVATI
 // ============================================================
 app.get('/api/zdravstveni-podaci/:email', async (req, res) => {
   try {
@@ -1398,7 +1509,7 @@ app.get('/api/zdravstveni-podaci/:email', async (req, res) => {
 });
 
 // ============================================================
-// 25. NOTIFIKACIJE - GENERIŠI PREPORUKE
+// 26. NOTIFIKACIJE - GENERIŠI PREPORUKE
 // ============================================================
 app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
   try {
@@ -1545,7 +1656,7 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
 });
 
 // ============================================================
-// 26. NOTIFIKACIJE - DOHVATI
+// 27. NOTIFIKACIJE - DOHVATI
 // ============================================================
 app.get('/api/notifikacije/:email', async (req, res) => {
   try {
@@ -1567,7 +1678,7 @@ app.get('/api/notifikacije/:email', async (req, res) => {
 });
 
 // ============================================================
-// 27. NOTIFIKACIJE - OZNAČI KAO PROČITANO
+// 28. NOTIFIKACIJE - OZNAČI KAO PROČITANO
 // ============================================================
 app.put('/api/notifikacije/:id/read', async (req, res) => {
   try {
@@ -1588,7 +1699,7 @@ app.put('/api/notifikacije/:id/read', async (req, res) => {
 });
 
 // ============================================================
-// 28. NOTIFIKACIJE - IZBRIŠI
+// 29. NOTIFIKACIJE - IZBRIŠI
 // ============================================================
 app.delete('/api/notifikacije/:id', async (req, res) => {
   try {
@@ -1609,7 +1720,7 @@ app.delete('/api/notifikacije/:id', async (req, res) => {
 });
 
 // ============================================================
-// 29. OBROCI - DOHVATI OBROKE ZA KORISNIKA
+// 30. OBROCI - DOHVATI OBROKE ZA KORISNIKA
 // ============================================================
 app.get('/api/obroci/:email', async (req, res) => {
   try {
@@ -1640,7 +1751,7 @@ app.get('/api/obroci/:email', async (req, res) => {
 });
 
 // ============================================================
-// 30. OBROCI - KREIRAJ OBROK
+// 31. OBROCI - KREIRAJ OBROK
 // ============================================================
 app.post('/api/obroci', async (req, res) => {
   try {
@@ -1688,7 +1799,7 @@ app.post('/api/obroci', async (req, res) => {
 });
 
 // ============================================================
-// 31. OBROCI - IZBRIŠI OBROK
+// 32. OBROCI - IZBRIŠI OBROK
 // ============================================================
 app.delete('/api/obroci/:id', async (req, res) => {
   try {
@@ -1709,7 +1820,7 @@ app.delete('/api/obroci/:id', async (req, res) => {
 });
 
 // ============================================================
-// 32. COMMUNITY - DOHVATI SVE OBJAVE
+// 33. COMMUNITY - DOHVATI SVE OBJAVE
 // ============================================================
 app.get('/api/community/objave', async (req, res) => {
   try {
@@ -1729,7 +1840,7 @@ app.get('/api/community/objave', async (req, res) => {
 });
 
 // ============================================================
-// 33. COMMUNITY - KREIRAJ OBJAVU
+// 34. COMMUNITY - KREIRAJ OBJAVU
 // ============================================================
 app.post('/api/community/objave', upload.single('slika'), async (req, res) => {
   try {
@@ -1781,7 +1892,7 @@ app.post('/api/community/objave', upload.single('slika'), async (req, res) => {
 });
 
 // ============================================================
-// 34. COMMUNITY - LAJKUJ OBJAVU
+// 35. COMMUNITY - LAJKUJ OBJAVU
 // ============================================================
 app.post('/api/community/objave/:id/like', async (req, res) => {
   try {
@@ -1857,7 +1968,7 @@ app.post('/api/community/objave/:id/like', async (req, res) => {
 });
 
 // ============================================================
-// 35. COMMUNITY - IZBRIŠI OBJAVU
+// 36. COMMUNITY - IZBRIŠI OBJAVU
 // ============================================================
 app.delete('/api/community/objave/:id', async (req, res) => {
   try {
@@ -1878,7 +1989,7 @@ app.delete('/api/community/objave/:id', async (req, res) => {
 });
 
 // ============================================================
-// 36. ZABORAVLJENA LOZINKA - POŠALJI LINK
+// 37. ZABORAVLJENA LOZINKA - POŠALJI LINK
 // ============================================================
 app.post('/api/auth/forgot-password', async (req, res) => {
   try {
@@ -1906,7 +2017,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 });
 
 // ============================================================
-// 37. RESET LOZINKE
+// 38. RESET LOZINKE
 // ============================================================
 app.post('/api/auth/reset-password', async (req, res) => {
   try {
@@ -1921,7 +2032,6 @@ app.post('/api/auth/reset-password', async (req, res) => {
       return res.status(400).json({ error: 'Lozinka mora imati najmanje 6 karaktera.' });
     }
 
-    // Verifikuj token i ažuriraj lozinku
     const { error } = await supabase.auth.updateUser({
       password: lozinka
     }, {
@@ -1943,7 +2053,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
 });
 
 // ============================================================
-// 38. TEST QUIZ ENDPOINT
+// 39. TEST QUIZ ENDPOINT
 // ============================================================
 app.post('/api/test-quiz', (req, res) => {
   console.log('\n📥 TEST ENDPOINT - Primljen zahtjev');
@@ -1957,7 +2067,7 @@ app.post('/api/test-quiz', (req, res) => {
 });
 
 // ============================================================
-// 39. FALLBACK RUTA
+// 40. FALLBACK RUTA
 // ============================================================
 app.use('/*path', (req, res) => {
   res.status(404).json({ 
