@@ -210,7 +210,7 @@ const Quiz = () => {
   };
 
   // ============================================================
-  // 📤 SLANJE KVIZA (🔴 OVDJE JE JEDINA PROMJENA!)
+  // 📤 SLANJE KVIZA
   // ============================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -238,7 +238,6 @@ const Quiz = () => {
       // Ako nema emaila, koristi onaj iz forme
       const email = user?.email || formData.email;
       
-      // 🔥 PROMJENA: Koristi VITE_API_URL umjesto localhost
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
       
       const res = await fetch(`${API_URL}/quiz`, {
@@ -284,6 +283,12 @@ const Quiz = () => {
           type={q.type}
           value={formData[q.id] || ''}
           onChange={(e) => handleChange(q.id, e.target.value)}
+          onKeyDown={(e) => {
+            // 🔥 SPRIJEČI ENTER DA SUBMIT-UJE FORMU
+            if (e.key === 'Enter') {
+              e.preventDefault();
+            }
+          }}
           placeholder={q.placeholder}
           className="w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
           required={q.required}
