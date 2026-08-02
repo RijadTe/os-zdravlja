@@ -1,10 +1,11 @@
 // frontend/src/pages/HomeKonacno.jsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
 import RecipeCard from '../components/RecipeCard';
 import ScanReceipt from '../components/ScanReceipt';
 import AdBanner from '../components/AdBanner';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const HomeKonacno = () => {
   const [recepti, setRecepti] = useState([]);
@@ -54,7 +55,7 @@ const HomeKonacno = () => {
         setProfilLoading(true);
         console.log('📧 Dohvatam profil za email:', email);
         
-        const response = await fetch(`http://localhost:5000/api/profil/${encodeURIComponent(email)}`);
+        const response = await fetch(`${API_URL}/profil/${encodeURIComponent(email)}`);
         const data = await response.json();
         
         if (data.success && data.data) {
@@ -122,7 +123,7 @@ const HomeKonacno = () => {
   // ============================================================
   const fetchRecipes = useCallback(async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/recepti');
+      const res = await fetch(`${API_URL}/recepti`);
       const data = await res.json();
       setRecepti(data);
       setLoading(false);
@@ -252,17 +253,20 @@ const HomeKonacno = () => {
       return;
     }
 
-    // 🆕 SAČUVAJ ZDRAVSTVENE PODATKE U BAZU
     try {
       const email = user?.email || localStorage.getItem('userEmail');
       if (email) {
-        await axios.post('http://localhost:5000/api/zdravstveni-podaci', {
-          email: email,
-          san_sati: sleep === 'Odlično' ? 8 : sleep === 'Dobro' ? 6 : 4,
-          kvalitet_sna: sleep === 'Odlično' ? 9 : sleep === 'Dobro' ? 7 : 4,
-          nivo_stresa: stress === 'Nizak' ? 2 : stress === 'Srednji' ? 5 : 8,
-          energija: energy === 'Pun/a' ? 9 : energy === 'Osrednje' ? 5 : 3,
-          raspolozenje: '😊'
+        await fetch(`${API_URL}/zdravstveni-podaci`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email,
+            san_sati: sleep === 'Odlično' ? 8 : sleep === 'Dobro' ? 6 : 4,
+            kvalitet_sna: sleep === 'Odlično' ? 9 : sleep === 'Dobro' ? 7 : 4,
+            nivo_stresa: stress === 'Nizak' ? 2 : stress === 'Srednji' ? 5 : 8,
+            energija: energy === 'Pun/a' ? 9 : energy === 'Osrednje' ? 5 : 3,
+            raspolozenje: '😊'
+          })
         });
         console.log('✅ Zdravstveni podaci sačuvani!');
       }
@@ -468,7 +472,7 @@ const HomeKonacno = () => {
         </div>
       </section>
 
-      {/* ===== LIFESTYLE COACH - SA ČUVANJEM PODATAKA ===== */}
+      {/* ===== LIFESTYLE COACH ===== */}
       <section className="py-12 md:py-20 px-4 flex justify-center bg-gray-50 dark:bg-gray-800">
         <div className="w-full max-w-3xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-gray-800 dark:text-white flex items-center justify-center gap-2 flex-wrap">
