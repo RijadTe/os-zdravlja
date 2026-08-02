@@ -210,7 +210,7 @@ const Quiz = () => {
   };
 
   // ============================================================
-  // 📤 SLANJE KVIZA
+  // 📤 SLANJE KVIZA (🔴 OVDJE JE JEDINA PROMJENA!)
   // ============================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -238,7 +238,10 @@ const Quiz = () => {
       // Ako nema emaila, koristi onaj iz forme
       const email = user?.email || formData.email;
       
-      const res = await fetch('http://localhost:5000/api/quiz', {
+      // 🔥 PROMJENA: Koristi VITE_API_URL umjesto localhost
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      
+      const res = await fetch(`${API_URL}/quiz`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -257,8 +260,9 @@ const Quiz = () => {
         navigate('/');
       }, 2000);
     } catch (error) {
+      console.error('❌ Greška pri slanju kviza:', error);
       setToast({ 
-        message: '❌ Greška pri slanju kviza.', 
+        message: '❌ Greška pri slanju kviza. Pokušajte ponovo.', 
         type: 'error' 
       });
       setTimeout(() => setToast(null), 3000);
