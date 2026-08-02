@@ -34,6 +34,7 @@ const Quiz = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [forceShowEmail, setForceShowEmail] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     ime: '',
@@ -62,6 +63,7 @@ const Quiz = () => {
         if (session?.user) {
           console.log('✅ Korisnik prijavljen:', session.user.email);
           setUser(session.user);
+          setForceShowEmail(false);
           
           // Automatski popuni email i ime
           setFormData(prev => ({
@@ -85,19 +87,20 @@ const Quiz = () => {
             setTimeout(() => setToast(null), 3000);
           }
         } else {
-          // 2. Provjeri localStorage (fallback)
-          const userData = JSON.parse(localStorage.getItem('user'));
-          const email = localStorage.getItem('userEmail');
-          const ime = localStorage.getItem('userName');
+          // 🔥 NEMA PRIJAVE - RESETUJ FORM DATA!
+          console.log('ℹ️ Nema prijavljenog korisnika');
+          setUser(null);
+          setForceShowEmail(true);
+          setFormData(prev => ({
+            ...prev,
+            email: '',
+            ime: ''
+          }));
           
-          if (userData || email) {
-            console.log('✅ Korisnik iz localStorage:', email);
-            setFormData(prev => ({
-              ...prev,
-              email: email || userData?.email || '',
-              ime: ime || userData?.user_metadata?.ime || ''
-            }));
-          }
+          // Očisti i localStorage (da ne bude konflikta)
+          localStorage.removeItem('user');
+          localStorage.removeItem('userEmail');
+          localStorage.removeItem('userName');
         }
       } catch (error) {
         console.error('❌ Greška:', error);
@@ -155,11 +158,11 @@ const Quiz = () => {
   ];
 
   // ============================================================
-  // 🎯 UKLONI EMAIL I IME IZ PITANJA (ako je korisnik prijavljen)
+  // 🎯 UKLONI EMAIL I IME IZ PITANJA (samo ako je korisnik prijavljen)
   // ============================================================
   const getQuestions = () => {
-    // Ako je korisnik prijavljen, preskoči email i ime
-    if (user || formData.email) {
+    // 🔥 SAMO AKO JE KORISNIK PRIJAVLJEN (NE gledamo formData.email!)
+    if (user && !forceShowEmail) {
       return questions;
     }
     
@@ -219,7 +222,7 @@ const Quiz = () => {
     const requiredFields = ['vrsta', 'restrikcije', 'preferencije', 'vrijeme', 'tezina', 'kalorije'];
     
     // Ako nije prijavljen, dodaj email i ime
-    if (!user && !formData.email) {
+    if (!user || forceShowEmail) {
       requiredFields.unshift('email', 'ime');
     }
     
@@ -248,6 +251,11 @@ const Quiz = () => {
           email: email
         }),
       });
+      
+      if (!res.ok) {
+        throw new Error(`Server error: ${res.status}`);
+      }
+      
       const data = await res.json();
       
       setToast({ 
@@ -261,7 +269,7 @@ const Quiz = () => {
     } catch (error) {
       console.error('❌ Greška pri slanju kviza:', error);
       setToast({ 
-        message: '❌ Greška pri slanju kviza. Pokušajte ponovo.', 
+        message: `❌ Greška pri slanju kviza: ${error.message}`, 
         type: 'error' 
       });
       setTimeout(() => setToast(null), 3000);
@@ -284,7 +292,6 @@ const Quiz = () => {
           value={formData[q.id] || ''}
           onChange={(e) => handleChange(q.id, e.target.value)}
           onKeyDown={(e) => {
-            // 🔥 SPRIJEČI ENTER DA SUBMIT-UJE FORMU
             if (e.key === 'Enter') {
               e.preventDefault();
             }
@@ -368,7 +375,7 @@ const Quiz = () => {
   // ============================================================
   // 🔐 CONSENT (samo za neprijavljene korisnike)
   // ============================================================
-  if (!consentGiven && !user && !formData.email) {
+  if (!consentGiven && !user && !forceShowEmail) {
     return (
       <div className="flex justify-center items-start min-h-screen bg-white dark:bg-gray-900 p-4">
         <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 mt-6 text-center">
@@ -420,23 +427,17 @@ const Quiz = () => {
 
         {/* Naslov */}
         <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 dark:text-white mb-1">
-          {user || formData.email ? '✏️ Izmjena filtera' : '👋 HAJDE DA VAS UPOZNAMO'}
+          {user && !forceShowEmail ? '✏️ Izmjena filtera' : '👋 HAJDE DA VAS UPOZNAMO'}
         </h1>
         <p className="text-sm sm:text-base text-center text-gray-500 dark:text-gray-300 mb-4 sm:mb-6">
-          {user || formData.email 
+          {user && !forceShowEmail 
             ? 'Prilagodite svoje preferencije i uživajte u savršenim receptima!' 
             : 'Odgovorite na 8 pitanja i mi ćemo prilagoditi recepte vašim potrebama!'}
         </p>
 
-        {/* 
-          ============================================================
-          🔥 FORMA SA ZAŠTITOM OD AUTOMATSKOG SUBMITA
-          ============================================================
-        */}
         <form 
           onSubmit={handleSubmit}
           onKeyDown={(e) => {
-            // 🔥 SPRIJEČI ENTER NA CIJELOJ FORMI
             if (e.key === 'Enter') {
               e.preventDefault();
             }
@@ -469,7 +470,7 @@ const Quiz = () => {
                 type="submit"
                 className="px-4 sm:px-6 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition shadow-md hover:shadow-lg text-sm sm:text-base"
               >
-                {user || formData.email ? '✅ Sačuvaj izmjene' : '✅ Započnimo'}
+                {user && !forceShowEmail ? '✅ Sačuvaj izmjene' : '✅ Započnimo'}
               </button>
             ) : (
               <button
