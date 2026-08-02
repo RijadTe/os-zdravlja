@@ -1,10 +1,11 @@
 // frontend/src/pages/AIChef.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // ============================================================
-// CUSTOM HOOK - DEBOUNCE (UBACEN DIREKTNO)
+// CUSTOM HOOK - DEBOUNCE
 // ============================================================
 const useDebounce = (value, delay) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -97,14 +98,12 @@ const AIChef = () => {
   // DOHVATI KORISNIKA I ČESTE PRETRAGE
   // ============================================================
   useEffect(() => {
-    // ✅ DOHVATI KORISNIKA IZ LOCALSTORAGE
     const userData = JSON.parse(localStorage.getItem('user'));
     const email = localStorage.getItem('userEmail');
     
     console.log('👤 User data:', userData);
     console.log('📧 Email iz localStorage:', email);
     
-    // ✅ Ako userData nema email, dodaj ga iz localStorage
     let finalUserData = userData;
     if (userData && !userData.email && email) {
       finalUserData = { ...userData, email: email };
@@ -132,12 +131,13 @@ const AIChef = () => {
     if (!email) return;
     
     try {
-      const res = await axios.get(`http://localhost:5000/api/ai-chef/limit/${email}`);
+      const res = await fetch(`${API_URL}/ai-chef/limit/${email}`);
+      const data = await res.json();
       setDailyLimit({
-        broj_pretraga: res.data.broj_pretraga || 0,
-        max_pretraga: res.data.max_pretraga || 3,
-        preostalo: res.data.preostalo || 3,
-        moze: (res.data.preostalo || 0) > 0
+        broj_pretraga: data.broj_pretraga || 0,
+        max_pretraga: data.max_pretraga || 3,
+        preostalo: data.preostalo || 3,
+        moze: (data.preostalo || 0) > 0
       });
     } catch (error) {
       console.error('❌ Greška pri dohvatanju limita:', error);
@@ -170,24 +170,26 @@ const AIChef = () => {
     setLoadingLimit(true);
     try {
       console.log('📤 Šaljem zahtjev na /api/ai-chef/unlock');
-      const res = await axios.post('http://localhost:5000/api/ai-chef/unlock', {
-        email: email
+      const res = await fetch(`${API_URL}/ai-chef/unlock`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
       });
-      console.log('📥 Odgovor:', res.data);
+      const data = await res.json();
+      console.log('📥 Odgovor:', data);
       
       setDailyLimit({
-        broj_pretraga: res.data.broj_pretraga || 0,
-        max_pretraga: res.data.max_pretraga || 3,
-        preostalo: res.data.preostalo || 1,
-        moze: (res.data.preostalo || 0) > 0
+        broj_pretraga: data.broj_pretraga || 0,
+        max_pretraga: data.max_pretraga || 3,
+        preostalo: data.preostalo || 1,
+        moze: (data.preostalo || 0) > 0
       });
       setVideoWatched(true);
       setPoruka('🎉 Otključali ste 1 pretragu! Sada možete uslikati frižider.');
       setTimeout(() => setPoruka(''), 3000);
     } catch (error) {
       console.error('❌ Greška:', error);
-      console.error('❌ Response:', error.response?.data);
-      setPoruka(error.response?.data?.error || '❌ Došlo je do greške.');
+      setPoruka('❌ Došlo je do greške. Pokušajte ponovo.');
       setTimeout(() => setPoruka(''), 3000);
     } finally {
       setLoadingLimit(false);
@@ -254,16 +256,17 @@ const AIChef = () => {
       setProgress(30);
       setStatus('⏳ AI analizira sastojke...');
 
-      const res = await axios.post('http://localhost:5000/api/ai-chef', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 30000
+      const res = await fetch(`${API_URL}/ai-chef`, {
+        method: 'POST',
+        body: formData
       });
 
       setProgress(100);
       setStatus('✅ Gotovo!');
-      setRezultati(res.data);
-      setFilteredRezultati(res.data);
-      setPoruka(`✅ Pronađeno ${res.data.length} recepata!`);
+      const data = await res.json();
+      setRezultati(data);
+      setFilteredRezultati(data);
+      setPoruka(`✅ Pronađeno ${data.length} recepata!`);
 
       setSlika(null);
       
@@ -272,11 +275,11 @@ const AIChef = () => {
         await fetchDailyLimit();
       }
 
-      if (tekst.trim() && res.data.length > 0) {
+      if (tekst.trim() && data.length > 0) {
         const novaPretraga = {
           tekst: tekst.trim(),
           datum: new Date().toLocaleDateString('hr'),
-          rezultati: res.data.length
+          rezultati: data.length
         };
         const nove = [novaPretraga, ...cestePretrage.filter(p => p.tekst !== tekst.trim())].slice(0, 5);
         setCestePretrage(nove);
@@ -284,11 +287,7 @@ const AIChef = () => {
       }
     } catch (error) {
       console.error('❌ Greška:', error);
-      if (error.code === 'ECONNABORTED') {
-        setPoruka('⏰ Pretraga traje duže od očekivanog. Pokušajte ponovo.');
-      } else {
-        setPoruka(error.response?.data?.error || '❌ Greška pri pretrazi. Pokušajte ponovo.');
-      }
+      setPoruka('❌ Greška pri pretrazi. Pokušajte ponovo.');
       setStatus('❌ Greška');
     } finally {
       setLoading(false);

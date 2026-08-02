@@ -1,7 +1,8 @@
 // frontend/src/pages/Community.jsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const Community = () => {
   const [objave, setObjave] = useState([]);
@@ -22,8 +23,9 @@ const Community = () => {
 
   const fetchObjave = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/objave');
-      setObjave(res.data);
+      const res = await fetch(`${API_URL}/community/objave`);
+      const data = await res.json();
+      setObjave(data);
     } catch (error) {
       console.error('Greška:', error);
     } finally {
@@ -33,7 +35,12 @@ const Community = () => {
 
   const handleLike = async (id) => {
     try {
-      await axios.post(`http://localhost:5000/api/objave/${id}/like`);
+      const email = user?.email || localStorage.getItem('userEmail');
+      await fetch(`${API_URL}/community/objave/${id}/like`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      });
       fetchObjave();
     } catch (error) {
       console.error('Greška:', error);
@@ -49,15 +56,16 @@ const Community = () => {
 
     try {
       const formData = new FormData();
-      formData.append('korisnik_id', user.id);
-      formData.append('korisnik_ime', user.ime);
+      const email = user?.email || localStorage.getItem('userEmail');
+      formData.append('email', email);
       formData.append('naziv', novaObjava.naziv);
       formData.append('opis', novaObjava.opis);
-      formData.append('sastojci', JSON.stringify(novaObjava.sastojci.split(',').map(s => s.trim())));
+      formData.append('sastojci', novaObjava.sastojci);
       if (novaObjava.slika) formData.append('slika', novaObjava.slika);
 
-      await axios.post('http://localhost:5000/api/objave', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      await fetch(`${API_URL}/community/objave`, {
+        method: 'POST',
+        body: formData
       });
 
       setNovaObjava({ naziv: '', opis: '', sastojci: '', slika: null });

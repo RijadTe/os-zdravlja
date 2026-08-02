@@ -1,7 +1,8 @@
 // frontend/src/pages/Premium.jsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const Premium = () => {
   const [loading, setLoading] = useState(false);
@@ -12,12 +13,17 @@ const Premium = () => {
       const user = JSON.parse(localStorage.getItem('user'));
       if (!user) {
         alert('Molimo prijavite se prvo.');
+        setLoading(false);
         return;
       }
-      const res = await axios.post('http://localhost:5000/api/create-checkout-session', {
-        email: user.email
+      
+      const res = await fetch(`${API_URL}/create-checkout-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email })
       });
-      window.location.href = res.data.url;
+      const data = await res.json();
+      window.location.href = data.url;
     } catch (error) {
       console.error('Greška:', error);
       alert('❌ Greška pri pokretanju plaćanja. Pokušajte ponovo.');
@@ -169,7 +175,7 @@ const Premium = () => {
         </div>
       </div>
 
-      {/* ===== DETALJAN OPIS PREMIUM FUNKCIONALNOSTI (BEZ AI) ===== */}
+      {/* ===== DETALJAN OPIS PREMIUM FUNKCIONALNOSTI ===== */}
       <div className="mt-12">
         <h2 className="text-3xl font-bold text-center mb-2 dark:text-white">
           🎁 Šta dobijate uz Premium?

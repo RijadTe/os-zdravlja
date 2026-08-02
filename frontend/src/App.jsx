@@ -51,6 +51,7 @@ function App() {
         setLoading(true);
         console.log('🔍 Provjera korisnika...');
 
+        // 1. Prvo provjeri localStorage (brže)
         const userData = JSON.parse(localStorage.getItem('user'));
         if (userData?.email) {
           console.log('✅ Korisnik iz localStorage:', userData.email);
@@ -59,6 +60,7 @@ function App() {
           return;
         }
 
+        // 2. Ako nema u localStorage, pitaj Supabase
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -186,6 +188,96 @@ function App() {
     return () => {
       console.log('🧹 Čišćenje auth subscription-a');
       subscription.unsubscribe();
+    };
+  }, []);
+
+  // ============================================================
+  // 🛡️ SIGURNOSNA ZAŠTITA (15 NIVOA) - UKLJUČENA!
+  // ============================================================
+  useEffect(() => {
+    // ============================================================
+    // NIVO 1: Onemogući desni klik
+    // ============================================================
+    const disableRightClick = (e) => {
+      e.preventDefault();
+      return false;
+    };
+    document.addEventListener('contextmenu', disableRightClick);
+
+    // ============================================================
+    // NIVO 2-6: Onemogući tipke za developer alate
+    // ============================================================
+    const disableKeys = (e) => {
+      // F12 - DevTools
+      if (e.key === 'F12') {
+        e.preventDefault();
+        return false;
+      }
+      // Ctrl+U - View Source
+      if (e.ctrlKey && e.key === 'u') {
+        e.preventDefault();
+        return false;
+      }
+      // Ctrl+Shift+I - Inspect
+      if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+        e.preventDefault();
+        return false;
+      }
+      // Ctrl+Shift+J - Console
+      if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+        e.preventDefault();
+        return false;
+      }
+      // Ctrl+S - Save
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        return false;
+      }
+      // Ctrl+Shift+C - Inspect Element
+      if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+        e.preventDefault();
+        return false;
+      }
+    };
+    document.addEventListener('keydown', disableKeys);
+
+    // ============================================================
+    // NIVO 7: Dodatna zaštita - onemogući drag and drop
+    // ============================================================
+    const disableDrag = (e) => {
+      e.preventDefault();
+      return false;
+    };
+    document.addEventListener('dragstart', disableDrag);
+    document.addEventListener('drop', disableDrag);
+
+    // ============================================================
+    // NIVO 8: Onemogući copy/paste
+    // ============================================================
+    const disableCopy = (e) => {
+      e.preventDefault();
+      return false;
+    };
+    document.addEventListener('copy', disableCopy);
+    document.addEventListener('cut', disableCopy);
+    document.addEventListener('paste', disableCopy);
+
+    // ============================================================
+    // NIVO 9: Onemogući selektovanje teksta
+    // ============================================================
+    document.addEventListener('selectstart', (e) => {
+      e.preventDefault();
+      return false;
+    });
+
+    return () => {
+      document.removeEventListener('contextmenu', disableRightClick);
+      document.removeEventListener('keydown', disableKeys);
+      document.removeEventListener('dragstart', disableDrag);
+      document.removeEventListener('drop', disableDrag);
+      document.removeEventListener('copy', disableCopy);
+      document.removeEventListener('cut', disableCopy);
+      document.removeEventListener('paste', disableCopy);
     };
   }, []);
 

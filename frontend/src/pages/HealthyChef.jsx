@@ -1,16 +1,16 @@
 // frontend/src/pages/HealthyChef.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // ============================================================
-// BREADCRUMB KOMPONENTA (UBACENA DIREKTNO)
+// BREADCRUMB KOMPONENTA
 // ============================================================
 const Breadcrumb = ({ customLabels = {} }) => {
   const location = window.location;
   const pathnames = location.pathname.split('/').filter(x => x);
   
-  // Mapa za prikaz imena
   const nameMap = {
     'healthy-chef': '🌿 HealthyChef',
     ...customLabels
@@ -111,26 +111,24 @@ const HealthyChef = () => {
       try {
         console.log(`🔄 Dohvatam podatke (pokušaj ${retry + 1})...`);
         
-        // Dohvati kategorije
-        const katRes = await axios.get('http://localhost:5000/api/healthy-chef/kategorije');
-        console.log('📊 Kategorije dohvaćene:', katRes.data?.length || 0);
-        setKategorije(katRes.data);
+        const katRes = await fetch(`${API_URL}/healthy-chef/kategorije`);
+        const katData = await katRes.json();
+        console.log('📊 Kategorije dohvaćene:', katData?.length || 0);
+        setKategorije(katData);
         
-        // Ako postoji kategorijaId, dohvati faze
         if (kategorijaId) {
           setLoadingFaze(true);
           try {
-            const fazeRes = await axios.get(`http://localhost:5000/api/healthy-chef/faze/${kategorijaId}`);
-            console.log('📊 Faze dohvaćene:', fazeRes.data?.length || 0);
-            setFaze(fazeRes.data);
+            const fazeRes = await fetch(`${API_URL}/healthy-chef/faze/${kategorijaId}`);
+            const fazeData = await fazeRes.json();
+            console.log('📊 Faze dohvaćene:', fazeData?.length || 0);
+            setFaze(fazeData);
             
-            // Pronađi naziv kategorije
-            const kat = katRes.data.find(k => k.id === kategorijaId);
+            const kat = katData.find(k => k.id === kategorijaId);
             if (kat) setCategoryName(kat.naziv);
             
-            // Ako postoji fazaId, pronađi naziv faze
             if (fazaId) {
-              const faza = fazeRes.data.find(f => f.id === fazaId);
+              const faza = fazeData.find(f => f.id === fazaId);
               if (faza) setPhaseName(faza.naziv);
             }
           } catch (fazeError) {
@@ -172,9 +170,10 @@ const HealthyChef = () => {
             email: user.email,
             ...filters
           });
-          const res = await axios.get(`http://localhost:5000/api/healthy-chef/recepti?${params}`);
-          console.log('📊 Recepti dohvaćeni:', res.data?.length || 0);
-          setRecepti(res.data);
+          const res = await fetch(`${API_URL}/healthy-chef/recepti?${params}`);
+          const data = await res.json();
+          console.log('📊 Recepti dohvaćeni:', data?.length || 0);
+          setRecepti(data);
         } catch (error) {
           console.error('❌ Greška pri dohvatu recepata:', error);
           setRecepti([]);
