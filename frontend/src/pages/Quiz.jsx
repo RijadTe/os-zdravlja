@@ -34,7 +34,6 @@ const Quiz = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [forceShowEmail, setForceShowEmail] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     ime: '',
@@ -63,7 +62,6 @@ const Quiz = () => {
         if (session?.user) {
           console.log('✅ Korisnik prijavljen:', session.user.email);
           setUser(session.user);
-          setForceShowEmail(false);
           
           // Automatski popuni email i ime
           setFormData(prev => ({
@@ -90,12 +88,16 @@ const Quiz = () => {
           // 🔥 NEMA PRIJAVE - RESETUJ FORM DATA!
           console.log('ℹ️ Nema prijavljenog korisnika');
           setUser(null);
-          setForceShowEmail(true);
-          setFormData(prev => ({
-            ...prev,
+          setFormData({
             email: '',
-            ime: ''
-          }));
+            ime: '',
+            vrsta: [],
+            restrikcije: [],
+            preferencije: [],
+            vrijeme: '',
+            tezina: '',
+            kalorije: ''
+          });
           
           // Očisti i localStorage (da ne bude konflikta)
           localStorage.removeItem('user');
@@ -158,11 +160,11 @@ const Quiz = () => {
   ];
 
   // ============================================================
-  // 🎯 UKLONI EMAIL I IME IZ PITANJA (samo ako je korisnik prijavljen)
+  // 🎯 UKLONI EMAIL I IME IZ PITANJA (SAMO ako je korisnik prijavljen)
   // ============================================================
   const getQuestions = () => {
     // 🔥 SAMO AKO JE KORISNIK PRIJAVLJEN (NE gledamo formData.email!)
-    if (user && !forceShowEmail) {
+    if (user) {
       return questions;
     }
     
@@ -222,7 +224,7 @@ const Quiz = () => {
     const requiredFields = ['vrsta', 'restrikcije', 'preferencije', 'vrijeme', 'tezina', 'kalorije'];
     
     // Ako nije prijavljen, dodaj email i ime
-    if (!user || forceShowEmail) {
+    if (!user) {
       requiredFields.unshift('email', 'ime');
     }
     
@@ -243,6 +245,9 @@ const Quiz = () => {
       
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
       
+      console.log('📤 Šaljem kviz na:', `${API_URL}/quiz`);
+      console.log('📦 Podaci:', { ...formData, email });
+      
       const res = await fetch(`${API_URL}/quiz`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -253,10 +258,12 @@ const Quiz = () => {
       });
       
       if (!res.ok) {
-        throw new Error(`Server error: ${res.status}`);
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server error: ${res.status}`);
       }
       
       const data = await res.json();
+      console.log('✅ Kviz uspješno poslan:', data);
       
       setToast({ 
         message: '✅ Kviz završen! Filteri su sačuvani.', 
@@ -375,7 +382,7 @@ const Quiz = () => {
   // ============================================================
   // 🔐 CONSENT (samo za neprijavljene korisnike)
   // ============================================================
-  if (!consentGiven && !user && !forceShowEmail) {
+  if (!consentGiven && !user) {
     return (
       <div className="flex justify-center items-start min-h-screen bg-white dark:bg-gray-900 p-4">
         <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 mt-6 text-center">
@@ -427,10 +434,10 @@ const Quiz = () => {
 
         {/* Naslov */}
         <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 dark:text-white mb-1">
-          {user && !forceShowEmail ? '✏️ Izmjena filtera' : '👋 HAJDE DA VAS UPOZNAMO'}
+          {user ? '✏️ Izmjena filtera' : '👋 HAJDE DA VAS UPOZNAMO'}
         </h1>
         <p className="text-sm sm:text-base text-center text-gray-500 dark:text-gray-300 mb-4 sm:mb-6">
-          {user && !forceShowEmail 
+          {user 
             ? 'Prilagodite svoje preferencije i uživajte u savršenim receptima!' 
             : 'Odgovorite na 8 pitanja i mi ćemo prilagoditi recepte vašim potrebama!'}
         </p>
@@ -470,7 +477,7 @@ const Quiz = () => {
                 type="submit"
                 className="px-4 sm:px-6 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition shadow-md hover:shadow-lg text-sm sm:text-base"
               >
-                {user && !forceShowEmail ? '✅ Sačuvaj izmjene' : '✅ Započnimo'}
+                {user ? '✅ Sačuvaj izmjene' : '✅ Započnimo'}
               </button>
             ) : (
               <button
