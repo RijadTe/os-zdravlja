@@ -32,7 +32,6 @@ const Login = () => {
     try {
       console.log('🔐 Prijava sa Supabase...');
       
-      // 🔥 KORISTI SUPABASE ZA PRIJAVU (NE axios!)
       const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.lozinka
@@ -51,7 +50,6 @@ const Login = () => {
 
       console.log('✅ Prijava uspješna:', data.user?.id);
 
-      // ✅ SAČUVAJ KORISNIKA U LOCALSTORAGE
       const userData = {
         id: data.user?.id || '',
         email: data.user?.email || formData.email,
@@ -63,14 +61,12 @@ const Login = () => {
       localStorage.setItem('userEmail', formData.email);
       localStorage.setItem('userName', userData.ime || '');
       
-      // Sačuvaj i Supabase session
       if (data.session) {
         localStorage.setItem('supabase_session', JSON.stringify(data.session));
       }
 
       console.log('👤 Sačuvan user:', userData);
 
-      // 🔥 DOHVATI PROFIL IZ BAZE
       const { data: profile, error: profileError } = await supabase
         .from('profili')
         .select('*')
@@ -83,7 +79,6 @@ const Login = () => {
 
       if (profile) {
         console.log('📋 Profil dohvaćen:', profile);
-        // Ažuriraj localStorage sa premium statusom
         const updatedUser = { ...userData, premium: profile.premium || false };
         localStorage.setItem('user', JSON.stringify(updatedUser));
       }

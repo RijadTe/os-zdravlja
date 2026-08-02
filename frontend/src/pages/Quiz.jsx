@@ -4,6 +4,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import Toast from '../components/Toast';
 import { supabase } from '../supabaseClient';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 const ICONS = {
   'Deserti': '🍰',
   'Slano': '🍕',
@@ -61,14 +63,12 @@ const Quiz = () => {
           console.log('✅ Korisnik prijavljen:', session.user.email);
           setUser(session.user);
           
-          // Automatski popuni email i ime
           setFormData(prev => ({
             ...prev,
             email: session.user.email,
             ime: session.user.user_metadata?.ime || ''
           }));
           
-          // Ako je kviz već završen, obavijesti korisnika
           const { data: profile } = await supabase
             .from('profili')
             .select('kviz_zavrsen')
@@ -83,7 +83,6 @@ const Quiz = () => {
             setTimeout(() => setToast(null), 3000);
           }
         } else {
-          // 🔥 KORISNIK NIJE PRIJAVLJEN - PREUSMJERI NA LOGIN
           console.log('🔒 Korisnik nije prijavljen, preusmjeravam na login...');
           setToast({
             message: '🔒 Molimo prijavite se za pristup kvizu.',
@@ -104,7 +103,7 @@ const Quiz = () => {
   }, [navigate]);
 
   // ============================================================
-  // 📋 PITANJA ZA KVIZ (BEZ EMAILA I IMENA!)
+  // 📋 PITANJA ZA KVIZ
   // ============================================================
   const questions = [
     {
@@ -178,7 +177,6 @@ const Quiz = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Provjeri da li su sva polja popunjena
     const requiredFields = ['vrsta', 'restrikcije', 'preferencije', 'vrijeme', 'tezina', 'kalorije'];
     
     for (let field of requiredFields) {
@@ -193,7 +191,6 @@ const Quiz = () => {
     }
 
     try {
-      // Koristi email od prijavljenog korisnika
       const email = user?.email;
       
       if (!email) {
@@ -204,8 +201,6 @@ const Quiz = () => {
         navigate('/login');
         return;
       }
-      
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
       
       console.log('📤 Šaljem kviz na:', `${API_URL}/quiz`);
       console.log('📦 Podaci:', { ...formData, email });
@@ -324,14 +319,13 @@ const Quiz = () => {
   }
 
   // ============================================================
-  // 🖥️ GLAVNI RENDER (samo za prijavljene korisnike)
+  // 🖥️ GLAVNI RENDER
   // ============================================================
   return (
     <div className="flex justify-center items-start min-h-screen bg-white dark:bg-gray-900 p-3 sm:p-4">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       
       <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 mt-4 sm:mt-6">
-        {/* Progress bar */}
         <div className="mb-4 sm:mb-6">
           <div className="flex justify-between text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1">
             <span>Korak {currentStep + 1} od {questions.length}</span>
@@ -345,7 +339,6 @@ const Quiz = () => {
           </div>
         </div>
 
-        {/* Naslov */}
         <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 dark:text-white mb-1">
           {user?.kviz_zavrsen ? '✏️ Izmjena filtera' : '👋 HAJDE DA VAS UPOZNAMO'}
         </h1>
@@ -355,7 +348,6 @@ const Quiz = () => {
             : 'Odgovorite na 6 pitanja i mi ćemo prilagoditi recepte vašim potrebama!'}
         </p>
 
-        {/* Prikaz imena prijavljenog korisnika */}
         {user && (
           <div className="mb-4 text-center text-sm text-gray-600 dark:text-gray-400">
             👋 Prijavljeni ste kao <span className="font-semibold text-blue-600 dark:text-blue-400">{user.email}</span>

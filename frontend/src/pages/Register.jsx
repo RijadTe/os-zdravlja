@@ -25,7 +25,6 @@ const Register = () => {
     setSuccess('');
     setLoading(true);
 
-    // Validacija
     if (!formData.email || !formData.ime || !formData.lozinka || !formData.lozinkaPotvrda) {
       setError('❌ Sva polja su obavezna.');
       setLoading(false);
@@ -47,9 +46,6 @@ const Register = () => {
     try {
       console.log('📝 Registracija sa Supabase...');
 
-      // 🔍 1. PROVJERI DA LI EMAIL VEĆ POSTOJI
-      console.log('🔍 Provjeravam email:', formData.email);
-      
       const { data: existingUser, error: checkError } = await supabase
         .from('profili')
         .select('email')
@@ -69,7 +65,6 @@ const Register = () => {
 
       console.log('✅ Email slobodan:', formData.email);
 
-      // 📝 2. KREIRAJ KORISNIKA U SUPABASE AUTH
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.lozinka,
@@ -93,7 +88,6 @@ const Register = () => {
 
       console.log('✅ Auth korisnik kreiran:', authData.user?.id);
 
-      // 📊 3. KREIRAJ PROFIL U TABELI "profili"
       const { data: profileData, error: profileError } = await supabase
         .from('profili')
         .insert([{
@@ -122,7 +116,6 @@ const Register = () => {
 
       console.log('✅ Profil kreiran:', profileData);
 
-      // 💾 4. SAČUVAJ KORISNIKA U LOCALSTORAGE
       const userData = {
         id: authData.user?.id || '',
         email: formData.email,
