@@ -46,7 +46,6 @@ const Quiz = () => {
   });
   const [toast, setToast] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
-  const [consentGiven, setConsentGiven] = useState(false);
 
   // ============================================================
   // 🔍 PROVJERI DA LI JE KORISNIK PRIJAVLJEN
@@ -56,7 +55,6 @@ const Quiz = () => {
       try {
         setLoading(true);
         
-        // 1. Provjeri Supabase session
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
@@ -70,7 +68,7 @@ const Quiz = () => {
             ime: session.user.user_metadata?.ime || ''
           }));
           
-          // Ako je kviz već završen, pitaj korisnika
+          // Ako je kviz već završen, obavijesti korisnika
           const { data: profile } = await supabase
             .from('profili')
             .select('kviz_zavrsen')
@@ -85,24 +83,15 @@ const Quiz = () => {
             setTimeout(() => setToast(null), 3000);
           }
         } else {
-          // 🔥 NEMA PRIJAVE - RESETUJ FORM DATA!
-          console.log('ℹ️ Nema prijavljenog korisnika');
-          setUser(null);
-          setFormData({
-            email: '',
-            ime: '',
-            vrsta: [],
-            restrikcije: [],
-            preferencije: [],
-            vrijeme: '',
-            tezina: '',
-            kalorije: ''
+          // 🔥 KORISNIK NIJE PRIJAVLJEN - PREUSMJERI NA LOGIN
+          console.log('🔒 Korisnik nije prijavljen, preusmjeravam na login...');
+          setToast({
+            message: '🔒 Molimo prijavite se za pristup kvizu.',
+            type: 'info'
           });
-          
-          // Očisti i localStorage (da ne bude konflikta)
-          localStorage.removeItem('user');
-          localStorage.removeItem('userEmail');
-          localStorage.removeItem('userName');
+          setTimeout(() => {
+            navigate('/login', { state: { from: '/quiz' } });
+          }, 1500);
         }
       } catch (error) {
         console.error('❌ Greška:', error);
@@ -112,10 +101,10 @@ const Quiz = () => {
     };
 
     checkUser();
-  }, []);
+  }, [navigate]);
 
   // ============================================================
-  // 📋 PITANJA ZA KVIZ
+  // 📋 PITANJA ZA KVIZ (BEZ EMAILA I IMENA!)
   // ============================================================
   const questions = [
     {
@@ -160,37 +149,6 @@ const Quiz = () => {
   ];
 
   // ============================================================
-  // 🎯 UKLONI EMAIL I IME IZ PITANJA (SAMO ako je korisnik prijavljen)
-  // ============================================================
-  const getQuestions = () => {
-    // 🔥 SAMO AKO JE KORISNIK PRIJAVLJEN (NE gledamo formData.email!)
-    if (user) {
-      return questions;
-    }
-    
-    // Ako nije prijavljen, dodaj email i ime na početak
-    return [
-      {
-        id: 'email',
-        label: '📧 Email *',
-        type: 'email',
-        placeholder: 'Unesite vaš email',
-        required: true
-      },
-      {
-        id: 'ime',
-        label: '👤 Ime *',
-        type: 'text',
-        placeholder: 'Unesite vaše ime',
-        required: true
-      },
-      ...questions
-    ];
-  };
-
-  const activeQuestions = getQuestions();
-
-  // ============================================================
   // 📝 HANDLERI
   // ============================================================
   const handleChange = (field, value) => {
@@ -199,7 +157,7 @@ const Quiz = () => {
 
   const handleMultiSelect = (field, option) => {
     const current = formData[field] || [];
-    const max = activeQuestions.find(q => q.id === field)?.maxSelect || 3;
+    const max = questions.find(q => q.id === field)?.maxSelect || 3;
     
     if (current.includes(option)) {
       handleChange(field, current.filter(item => item !== option));
@@ -223,11 +181,6 @@ const Quiz = () => {
     // Provjeri da li su sva polja popunjena
     const requiredFields = ['vrsta', 'restrikcije', 'preferencije', 'vrijeme', 'tezina', 'kalorije'];
     
-    // Ako nije prijavljen, dodaj email i ime
-    if (!user) {
-      requiredFields.unshift('email', 'ime');
-    }
-    
     for (let field of requiredFields) {
       if (!formData[field] || (Array.isArray(formData[field]) && formData[field].length === 0)) {
         setToast({ 
@@ -240,8 +193,17 @@ const Quiz = () => {
     }
 
     try {
-      // Ako nema emaila, koristi onaj iz forme
-      const email = user?.email || formData.email;
+      // Koristi email od prijavljenog korisnika
+      const email = user?.email;
+      
+      if (!email) {
+        setToast({ 
+          message: '❌ Niste prijavljeni. Molimo prijavite se.', 
+          type: 'error' 
+        });
+        navigate('/login');
+        return;
+      }
       
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
       
@@ -287,28 +249,10 @@ const Quiz = () => {
   // 🖥️ RENDER PITANJA
   // ============================================================
   const renderQuestion = () => {
-    const q = activeQuestions[currentStep];
+    const q = questions[currentStep];
     const getIcon = (option) => ICONS[option] || '📌';
     
     if (!q) return null;
-    
-    if (q.type === 'email' || q.type === 'text') {
-      return (
-        <input
-          type={q.type}
-          value={formData[q.id] || ''}
-          onChange={(e) => handleChange(q.id, e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-            }
-          }}
-          placeholder={q.placeholder}
-          className="w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
-          required={q.required}
-        />
-      );
-    }
     
     if (q.type === 'checkbox') {
       return (
@@ -363,7 +307,7 @@ const Quiz = () => {
   // ============================================================
   // 🔄 PROGRESS
   // ============================================================
-  const progress = ((currentStep + 1) / activeQuestions.length) * 100;
+  const progress = ((currentStep + 1) / questions.length) * 100;
 
   // ============================================================
   // 🖥️ LOADING
@@ -380,38 +324,7 @@ const Quiz = () => {
   }
 
   // ============================================================
-  // 🔐 CONSENT (samo za neprijavljene korisnike)
-  // ============================================================
-  if (!consentGiven && !user) {
-    return (
-      <div className="flex justify-center items-start min-h-screen bg-white dark:bg-gray-900 p-4">
-        <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 mt-6 text-center">
-          <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">🔐 Prije nego počnemo...</h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
-            Vaši odgovori će biti sačuvani kako bismo vam prilagodili recepte.
-            Podaci se čuvaju sigurno i ne dijele se s trećim stranama.
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-            Više informacija potražite u <Link to="/privacy" className="text-blue-500 hover:underline">Pravilima privatnosti</Link>.
-          </p>
-          <div className="flex flex-col gap-3 max-w-md mx-auto">
-            <button
-              onClick={() => setConsentGiven(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition"
-            >
-              ✅ Slažem se – nastavi
-            </button>
-            <Link to="/" className="text-sm text-gray-500 hover:underline">
-              ⬅️ Ne želim, vrati me na početnu
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ============================================================
-  // 🖥️ GLAVNI RENDER
+  // 🖥️ GLAVNI RENDER (samo za prijavljene korisnike)
   // ============================================================
   return (
     <div className="flex justify-center items-start min-h-screen bg-white dark:bg-gray-900 p-3 sm:p-4">
@@ -421,7 +334,7 @@ const Quiz = () => {
         {/* Progress bar */}
         <div className="mb-4 sm:mb-6">
           <div className="flex justify-between text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1">
-            <span>Korak {currentStep + 1} od {activeQuestions.length}</span>
+            <span>Korak {currentStep + 1} od {questions.length}</span>
             <span>{Math.round(progress)}%</span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -434,13 +347,20 @@ const Quiz = () => {
 
         {/* Naslov */}
         <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 dark:text-white mb-1">
-          {user ? '✏️ Izmjena filtera' : '👋 HAJDE DA VAS UPOZNAMO'}
+          {user?.kviz_zavrsen ? '✏️ Izmjena filtera' : '👋 HAJDE DA VAS UPOZNAMO'}
         </h1>
         <p className="text-sm sm:text-base text-center text-gray-500 dark:text-gray-300 mb-4 sm:mb-6">
-          {user 
+          {user?.kviz_zavrsen 
             ? 'Prilagodite svoje preferencije i uživajte u savršenim receptima!' 
-            : 'Odgovorite na 8 pitanja i mi ćemo prilagoditi recepte vašim potrebama!'}
+            : 'Odgovorite na 6 pitanja i mi ćemo prilagoditi recepte vašim potrebama!'}
         </p>
+
+        {/* Prikaz imena prijavljenog korisnika */}
+        {user && (
+          <div className="mb-4 text-center text-sm text-gray-600 dark:text-gray-400">
+            👋 Prijavljeni ste kao <span className="font-semibold text-blue-600 dark:text-blue-400">{user.email}</span>
+          </div>
+        )}
 
         <form 
           onSubmit={handleSubmit}
@@ -452,12 +372,12 @@ const Quiz = () => {
         >
           <div className="mb-4 sm:mb-6">
             <label className="block font-semibold text-gray-700 dark:text-gray-200 mb-2 text-sm sm:text-base">
-              {activeQuestions[currentStep].label}
+              {questions[currentStep].label}
             </label>
             {renderQuestion()}
-            {activeQuestions[currentStep].maxSelect && (
+            {questions[currentStep].maxSelect && (
               <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-500 mt-1">
-                Odabrano: {(formData[activeQuestions[currentStep].id] || []).length}/{activeQuestions[currentStep].maxSelect}
+                Odabrano: {(formData[questions[currentStep].id] || []).length}/{questions[currentStep].maxSelect}
               </p>
             )}
           </div>
@@ -472,17 +392,17 @@ const Quiz = () => {
               Nazad
             </button>
             
-            {currentStep === activeQuestions.length - 1 ? (
+            {currentStep === questions.length - 1 ? (
               <button
                 type="submit"
                 className="px-4 sm:px-6 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition shadow-md hover:shadow-lg text-sm sm:text-base"
               >
-                {user ? '✅ Sačuvaj izmjene' : '✅ Započnimo'}
+                {user?.kviz_zavrsen ? '✅ Sačuvaj izmjene' : '✅ Započnimo'}
               </button>
             ) : (
               <button
                 type="button"
-                onClick={() => setCurrentStep(prev => Math.min(activeQuestions.length - 1, prev + 1))}
+                onClick={() => setCurrentStep(prev => Math.min(questions.length - 1, prev + 1))}
                 className="px-4 sm:px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition shadow-md hover:shadow-lg text-sm sm:text-base"
               >
                 Dalje →
