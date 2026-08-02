@@ -3,10 +3,11 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Line, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
-import axios from 'axios';
 import { supabase } from '../supabaseClient';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const FoodPlanner = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -80,8 +81,9 @@ const FoodPlanner = () => {
     try {
       setLoadingObroci(true);
       const danas = new Date().toISOString().split('T')[0];
-      const res = await axios.get(`http://localhost:5000/api/obroci/${email}?datum=${danas}`);
-      setObroci(res.data || []);
+      const res = await fetch(`${API_URL}/obroci/${email}?datum=${danas}`);
+      const data = await res.json();
+      setObroci(data || []);
     } catch (error) {
       console.error('❌ Greška pri dohvatu obroka:', error);
       setObroci([]);
@@ -115,20 +117,25 @@ const FoodPlanner = () => {
 
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:5000/api/obroci', {
-        email: email,
-        naziv: noviObrok.naziv,
-        kalorije: parseFloat(noviObrok.kalorije) || 0,
-        proteini: parseFloat(noviObrok.proteini) || 0,
-        ugljikohidrati: parseFloat(noviObrok.ugljikohidrati) || 0,
-        masti: parseFloat(noviObrok.masti) || 0,
-        tip: noviObrok.tip || 'Ručak',
-        mood_before: moodBefore || '😐',
-        mood_after: moodAfter || '😐',
-        mood_note: moodNote || ''
+      const res = await fetch(`${API_URL}/obroci`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          naziv: noviObrok.naziv,
+          kalorije: parseFloat(noviObrok.kalorije) || 0,
+          proteini: parseFloat(noviObrok.proteini) || 0,
+          ugljikohidrati: parseFloat(noviObrok.ugljikohidrati) || 0,
+          masti: parseFloat(noviObrok.masti) || 0,
+          tip: noviObrok.tip || 'Ručak',
+          mood_before: moodBefore || '😐',
+          mood_after: moodAfter || '😐',
+          mood_note: moodNote || ''
+        })
       });
+      const data = await res.json();
 
-      setObroci(prev => [res.data, ...prev]);
+      setObroci(prev => [data, ...prev]);
       setNoviObrok({ naziv: '', kalorije: '', proteini: '', ugljikohidrati: '', masti: '', tip: 'Ručak' });
       setMoodBefore('');
       setMoodAfter('');
@@ -148,7 +155,7 @@ const FoodPlanner = () => {
     if (!window.confirm('Jeste li sigurni da želite obrisati ovaj obrok?')) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/obroci/${id}`);
+      await fetch(`${API_URL}/obroci/${id}`, { method: 'DELETE' });
       setObroci(prev => prev.filter(o => o.id !== id));
     } catch (error) {
       console.error('❌ Greška:', error);
@@ -181,11 +188,16 @@ const FoodPlanner = () => {
     setLoadingPlan(true);
     try {
       const email = user?.email || localStorage.getItem('userEmail');
-      const res = await axios.post('http://localhost:5000/api/ai-weekly-plan', {
-        email: email,
-        sastojci: fridgeItems
+      const res = await fetch(`${API_URL}/ai-weekly-plan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          sastojci: fridgeItems
+        })
       });
-      setWeeklyPlan(res.data);
+      const data = await res.json();
+      setWeeklyPlan(data);
     } catch (error) {
       console.error('❌ Greška:', error);
       alert('❌ Greška pri generisanju plana. Pokušajte ponovo.');
@@ -243,7 +255,7 @@ const FoodPlanner = () => {
   }), [ukupno]);
 
   // ============================================================
-  // PDF IZVJEŠTAJ - POPRAVLJEN SA API POZIVOM
+  // PDF IZVJEŠTAJ
   // ============================================================
   const generatePDF = async () => {
     const email = user?.email || localStorage.getItem('userEmail');
@@ -260,8 +272,7 @@ const FoodPlanner = () => {
     try {
       setLoading(true);
       const danas = new Date().toISOString().split('T')[0];
-      // Otvori PDF u novom tabu
-      window.open(`http://localhost:5000/api/pdf/izvjestaj/${encodeURIComponent(email)}?datum=${danas}`, '_blank');
+      window.open(`${API_URL}/pdf/izvjestaj/${encodeURIComponent(email)}?datum=${danas}`, '_blank');
     } catch (error) {
       console.error('❌ Greška:', error);
       alert('❌ Greška pri generisanju PDF-a.');
