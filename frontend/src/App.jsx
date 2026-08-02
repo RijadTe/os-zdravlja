@@ -43,7 +43,7 @@ function App() {
   }, [darkMode]);
 
   // ============================================================
-  // 🔐 SUPABASE AUTH - PROVJERA KORISNIKA
+  // 🔐 SUPABASE AUTH - PROVJERA KORISNIKA (POPRAVLJENO!)
   // ============================================================
   useEffect(() => {
     const checkUser = async () => {
@@ -51,6 +51,16 @@ function App() {
         setLoading(true);
         console.log('🔍 Provjera korisnika...');
 
+        // 1. Prvo provjeri localStorage (brže)
+        const userData = JSON.parse(localStorage.getItem('user'));
+        if (userData?.email) {
+          console.log('✅ Korisnik iz localStorage:', userData.email);
+          setUser(userData);
+          setLoading(false);
+          return;
+        }
+
+        // 2. Ako nema u localStorage, pitaj Supabase
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -59,19 +69,44 @@ function App() {
 
         if (session?.user) {
           console.log('✅ Korisnik prijavljen preko Supabase:', session.user.email);
-          setUser(session.user);
-          localStorage.setItem('user', JSON.stringify(session.user));
+          
+          // 🔥 KREIRAJ KOMPLETAN USER OBJEKAT
+          const userObj = {
+            id: session.user.id,
+            email: session.user.email,
+            ime: session.user.user_metadata?.ime || '',
+            premium: session.user.user_metadata?.premium || false
+          };
+          
+          setUser(userObj);
+          localStorage.setItem('user', JSON.stringify(userObj));
           localStorage.setItem('userEmail', session.user.email);
           localStorage.setItem('userName', session.user.user_metadata?.ime || '');
-        } else {
-          const userData = JSON.parse(localStorage.getItem('user'));
-          if (userData?.email) {
-            console.log('✅ Korisnik iz localStorage:', userData.email);
-            setUser(userData);
-          } else {
-            console.log('ℹ️ Nema prijavljenog korisnika');
-            setUser(null);
+          
+          // 🔥 DOHVATI I PROFIL IZ BAZE
+          try {
+            const { data: profile } = await supabase
+              .from('profili')
+              .select('*')
+              .eq('email', session.user.email)
+              .maybeSingle();
+            
+            if (profile) {
+              console.log('📋 Profil dohvaćen:', profile);
+              const updatedUser = { ...userObj, premium: profile.premium || false };
+              setUser(updatedUser);
+              localStorage.setItem('user', JSON.stringify(updatedUser));
+            }
+          } catch (profileError) {
+            console.warn('⚠️ Greška pri dohvatu profila:', profileError);
           }
+          
+        } else {
+          console.log('ℹ️ Nema prijavljenog korisnika');
+          setUser(null);
+          localStorage.removeItem('user');
+          localStorage.removeItem('userEmail');
+          localStorage.removeItem('userName');
         }
       } catch (error) {
         console.error('❌ Greška pri provjeri korisnika:', error);
@@ -83,26 +118,60 @@ function App() {
 
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    // 🔥 OSLUŠKUJ PROMJENE U AUTENTIFIKACIJI
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 Auth event:', event);
       
       if (event === 'SIGNED_IN' && session?.user) {
         console.log('✅ Korisnik se prijavio:', session.user.email);
-        setUser(session.user);
-        localStorage.setItem('user', JSON.stringify(session.user));
+        
+        const userObj = {
+          id: session.user.id,
+          email: session.user.email,
+          ime: session.user.user_metadata?.ime || '',
+          premium: session.user.user_metadata?.premium || false
+        };
+        
+        setUser(userObj);
+        localStorage.setItem('user', JSON.stringify(userObj));
         localStorage.setItem('userEmail', session.user.email);
         localStorage.setItem('userName', session.user.user_metadata?.ime || '');
+        
+        // Dohvati profil
+        try {
+          const { data: profile } = await supabase
+            .from('profili')
+            .select('*')
+            .eq('email', session.user.email)
+            .maybeSingle();
+          
+          if (profile) {
+            const updatedUser = { ...userObj, premium: profile.premium || false };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+          }
+        } catch (error) {
+          console.warn('⚠️ Greška pri dohvatu profila:', error);
+        }
+        
       } else if (event === 'SIGNED_OUT') {
         console.log('🚪 Korisnik se odjavio');
         setUser(null);
         localStorage.removeItem('user');
         localStorage.removeItem('userEmail');
         localStorage.removeItem('userName');
+        localStorage.removeItem('supabase_session');
       } else if (event === 'USER_UPDATED') {
         console.log('📝 Korisnik ažuriran');
         if (session?.user) {
-          setUser(session.user);
-          localStorage.setItem('user', JSON.stringify(session.user));
+          const userObj = {
+            id: session.user.id,
+            email: session.user.email,
+            ime: session.user.user_metadata?.ime || '',
+            premium: session.user.user_metadata?.premium || false
+          };
+          setUser(userObj);
+          localStorage.setItem('user', JSON.stringify(userObj));
           localStorage.setItem('userEmail', session.user.email);
           localStorage.setItem('userName', session.user.user_metadata?.ime || '');
         }
@@ -147,6 +216,31 @@ function App() {
       document.removeEventListener('keydown', disableKeys);
     };
   }, []);
+
+  // ============================================================
+  // 🔄 OSVJEŽAVANJE KORISNIKA NAKON REGISTRACIJE
+  // ============================================================
+  const refreshUser = async () => {
+    try {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      if (userData?.email) {
+        const { data: profile } = await supabase
+          .from('profili')
+          .select('*')
+          .eq('email', userData.email)
+          .maybeSingle();
+        
+        if (profile) {
+          const updatedUser = { ...userData, premium: profile.premium || false };
+          setUser(updatedUser);
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+        setUser(userData);
+      }
+    } catch (error) {
+      console.error('❌ Greška pri osvježavanju korisnika:', error);
+    }
+  };
 
   // ============================================================
   // 🖥️ RENDER

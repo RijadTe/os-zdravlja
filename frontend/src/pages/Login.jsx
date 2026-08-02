@@ -1,7 +1,6 @@
 // frontend/src/pages/Login.jsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { supabase } from '../supabaseClient';
 
 const Login = () => {
@@ -31,33 +30,63 @@ const Login = () => {
     }
 
     try {
-      console.log('🔐 Slanje prijave...');
+      console.log('🔐 Prijava sa Supabase...');
       
-      const res = await axios.post('http://localhost:5000/api/auth/login', {
+      // 🔥 KORISTI SUPABASE ZA PRIJAVU (NE axios!)
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
-        lozinka: formData.lozinka
+        password: formData.lozinka
       });
 
-      console.log('✅ Odgovor:', res.data);
-
-      if (res.data.session) {
-        localStorage.setItem('supabase_session', JSON.stringify(res.data.session));
+      if (error) {
+        console.error('❌ Auth greška:', error);
+        if (error.message.includes('Invalid login credentials')) {
+          setError('❌ Pogrešan email ili lozinka.');
+        } else {
+          setError('❌ ' + error.message);
+        }
+        setLoading(false);
+        return;
       }
-      
-      // ✅ KREIRAJ KORISNIČKI OBJEKAT SA EMAILOM
+
+      console.log('✅ Prijava uspješna:', data.user?.id);
+
+      // ✅ SAČUVAJ KORISNIKA U LOCALSTORAGE
       const userData = {
-        id: res.data.user?.id || '',
-        email: formData.email,
-        ime: res.data.user?.ime || '',
-        premium: res.data.user?.profile?.premium || false,
-        profile: res.data.user?.profile || null
+        id: data.user?.id || '',
+        email: data.user?.email || formData.email,
+        ime: data.user?.user_metadata?.ime || '',
+        premium: false
       };
       
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('userEmail', formData.email);
       localStorage.setItem('userName', userData.ime || '');
+      
+      // Sačuvaj i Supabase session
+      if (data.session) {
+        localStorage.setItem('supabase_session', JSON.stringify(data.session));
+      }
 
       console.log('👤 Sačuvan user:', userData);
+
+      // 🔥 DOHVATI PROFIL IZ BAZE
+      const { data: profile, error: profileError } = await supabase
+        .from('profili')
+        .select('*')
+        .eq('email', formData.email)
+        .maybeSingle();
+
+      if (profileError) {
+        console.warn('⚠️ Greška pri dohvatu profila:', profileError);
+      }
+
+      if (profile) {
+        console.log('📋 Profil dohvaćen:', profile);
+        // Ažuriraj localStorage sa premium statusom
+        const updatedUser = { ...userData, premium: profile.premium || false };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
 
       setSuccess('✅ Prijava uspješna! Preusmjeravam...');
 
@@ -67,7 +96,7 @@ const Login = () => {
 
     } catch (err) {
       console.error('❌ Greška:', err);
-      setError(err.response?.data?.error || '❌ Pogrešan email ili lozinka.');
+      setError('❌ Došlo je do greške. Pokušajte ponovo.');
     } finally {
       setLoading(false);
     }

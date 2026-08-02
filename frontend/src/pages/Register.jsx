@@ -1,7 +1,6 @@
 // frontend/src/pages/Register.jsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { supabase } from '../supabaseClient';
 
 const Register = () => {
@@ -46,11 +45,9 @@ const Register = () => {
     }
 
     try {
-      console.log('📝 Slanje registracije...');
+      console.log('📝 Registracija sa Supabase...');
 
-      // ============================================================
-      // 🔍 1. PRVO PROVJERI DA LI EMAIL VEĆ POSTOJI U BAZI
-      // ============================================================
+      // 🔍 1. PROVJERI DA LI EMAIL VEĆ POSTOJI
       console.log('🔍 Provjeravam email:', formData.email);
       
       const { data: existingUser, error: checkError } = await supabase
@@ -72,9 +69,7 @@ const Register = () => {
 
       console.log('✅ Email slobodan:', formData.email);
 
-      // ============================================================
       // 📝 2. KREIRAJ KORISNIKA U SUPABASE AUTH
-      // ============================================================
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.lozinka,
@@ -98,9 +93,7 @@ const Register = () => {
 
       console.log('✅ Auth korisnik kreiran:', authData.user?.id);
 
-      // ============================================================
       // 📊 3. KREIRAJ PROFIL U TABELI "profili"
-      // ============================================================
       const { data: profileData, error: profileError } = await supabase
         .from('profili')
         .insert([{
@@ -118,7 +111,6 @@ const Register = () => {
 
       if (profileError) {
         console.error('❌ Greška pri kreiranju profila:', profileError);
-        // Ako je greška duplikat (23505), to znači da profil već postoji
         if (profileError.code === '23505') {
           console.log('ℹ️ Profil već postoji, nastavljam...');
         } else {
@@ -130,15 +122,23 @@ const Register = () => {
 
       console.log('✅ Profil kreiran:', profileData);
 
-      // ============================================================
-      // 💾 4. SAČUVAJ PODATKE
-      // ============================================================
+      // 💾 4. SAČUVAJ KORISNIKA U LOCALSTORAGE
+      const userData = {
+        id: authData.user?.id || '',
+        email: formData.email,
+        ime: formData.ime,
+        premium: false
+      };
+      
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('userEmail', formData.email);
+      localStorage.setItem('userName', formData.ime);
+      
       if (authData.session) {
         localStorage.setItem('supabase_session', JSON.stringify(authData.session));
       }
-      localStorage.setItem('user', JSON.stringify(authData.user));
-      localStorage.setItem('userEmail', formData.email);
-      localStorage.setItem('userName', formData.ime);
+
+      console.log('👤 Sačuvan user:', userData);
 
       setSuccess('✅ Registracija uspješna! Preusmjeravam...');
 
