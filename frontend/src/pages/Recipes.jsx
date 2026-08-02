@@ -1,8 +1,9 @@
 // frontend/src/pages/Recipes.jsx
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import axios from 'axios';
 import RecipeCard from '../components/RecipeCard';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const Recipes = () => {
   const location = useLocation();
@@ -27,7 +28,7 @@ const Recipes = () => {
       if (!email) return;
 
       try {
-        const response = await fetch(`http://localhost:5000/api/profil/${encodeURIComponent(email)}`);
+        const response = await fetch(`${API_URL}/profil/${encodeURIComponent(email)}`);
         const data = await response.json();
         
         if (data.success && data.data) {
@@ -82,9 +83,10 @@ const Recipes = () => {
       try {
         setLoading(true);
         console.log('🔍 Dohvatam recepte...');
-        const res = await axios.get('http://localhost:5000/api/recepti');
-        console.log('📊 Dohvaćeno recepata:', res.data?.length || 0);
-        setRecepti(res.data || []);
+        const res = await fetch(`${API_URL}/recepti`);
+        const data = await res.json();
+        console.log('📊 Dohvaćeno recepata:', data?.length || 0);
+        setRecepti(data || []);
         setLoading(false);
       } catch (error) {
         console.error('❌ Greška pri dohvatu recepata:', error);
@@ -223,7 +225,7 @@ const Recipes = () => {
   // ============================================================
   return (
     <div className="max-w-6xl mx-auto py-8 px-4">
-      {/* ===== BREADCRUMB NAVIGACIJA ===== */}
+      {/* BREADCRUMB NAVIGACIJA */}
       <nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4 flex-wrap">
         <Link to="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition flex items-center gap-1">
           <span>🏠</span> Početna

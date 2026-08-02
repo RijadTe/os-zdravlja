@@ -1,7 +1,8 @@
 // frontend/src/pages/RecipeDetails.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // --- VOICE RECIPE READER KOMPONENTA ---
 const VoiceRecipeReader = ({ recipe }) => {
@@ -255,7 +256,6 @@ const RecipeDetails = () => {
     const faktor = noveOsobe / originalneOsobe;
     
     return sastojci.map(sastojak => {
-      // Pokušaj pronaći broj u sastojku (npr. "200g brašna" → 200)
       const match = sastojak.match(/^(\d+\.?\d*)\s*(g|kg|ml|l|kom|šolja|kašika|kafena kašika|prstohvat|dcl|dl)?/i);
       
       if (match) {
@@ -269,7 +269,6 @@ const RecipeDetails = () => {
         return `${prikazKolicine}${jedinica ? ' ' + jedinica : ''}${ostatak ? ' ' + ostatak : ''}`;
       }
       
-      // Ako nema broja, vrati original
       return sastojak;
     });
   };
@@ -333,31 +332,26 @@ const RecipeDetails = () => {
         setLoading(true);
         console.log('🔍 Dohvatam recept ID:', id);
         
-        const res = await axios.get(`http://localhost:5000/api/recepti/${id}`);
-        console.log('📊 Recept dohvaćen:', res.data);
+        const res = await fetch(`${API_URL}/recepti/${id}`);
+        const data = await res.json();
+        console.log('📊 Recept dohvaćen:', data);
         
-        // Sačuvaj originalne podatke
-        setOriginalRecipe(res.data);
+        setOriginalRecipe(data);
         setOriginalneOsobe(4);
-        
-        // Inicijalno postavi recept
         setRecipe({
-          ...res.data,
-          sastojci: res.data.sastojci || []
+          ...data,
+          sastojci: data.sastojci || []
         });
 
         // Dohvati slične recepte
-        if (res.data?.vrsta) {
-          const slicniRes = await axios.get(`http://localhost:5000/api/recepti?vrsta=${encodeURIComponent(res.data.vrsta)}`);
-          setSlicniRecepti(slicniRes.data.filter(r => r.id !== id).slice(0, 3));
+        if (data?.vrsta) {
+          const slicniRes = await fetch(`${API_URL}/recepti?vrsta=${encodeURIComponent(data.vrsta)}`);
+          const slicniData = await slicniRes.json();
+          setSlicniRecepti(slicniData.filter(r => r.id !== id).slice(0, 3));
         }
         setLoading(false);
       } catch (error) {
         console.error('❌ Greška:', error);
-        if (error.response?.status === 404) {
-          setRecipe(null);
-          setOriginalRecipe(null);
-        }
         setLoading(false);
       }
     };
@@ -406,11 +400,16 @@ const RecipeDetails = () => {
     setLoadingSommelier(true);
     setSommelierError(null);
     try {
-      const res = await axios.post('http://localhost:5000/api/ai-sommelier', {
-        naziv: recipe?.naziv,
-        sastojci: recipe?.sastojci
+      const res = await fetch(`${API_URL}/ai-sommelier`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          naziv: recipe?.naziv,
+          sastojci: recipe?.sastojci
+        })
       });
-      setSommelierData(res.data);
+      const data = await res.json();
+      setSommelierData(data);
     } catch (error) {
       console.error('Greška:', error);
       setSommelierError('❌ Došlo je do greške. Pokušajte ponovo.');

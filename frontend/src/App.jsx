@@ -43,7 +43,7 @@ function App() {
   }, [darkMode]);
 
   // ============================================================
-  // 🔐 SUPABASE AUTH - PROVJERA KORISNIKA (POPRAVLJENO!)
+  // 🔐 SUPABASE AUTH - PROVJERA KORISNIKA
   // ============================================================
   useEffect(() => {
     const checkUser = async () => {
@@ -93,7 +93,14 @@ function App() {
             
             if (profile) {
               console.log('📋 Profil dohvaćen:', profile);
-              const updatedUser = { ...userObj, premium: profile.premium || false };
+              const updatedUser = { 
+                ...userObj, 
+                premium: profile.premium || false,
+                kviz_zavrsen: profile.kviz_zavrsen || false,
+                vrsta: profile.vrsta || [],
+                izbjegava: profile.izbjegava || [],
+                preferencije: profile.preferencije || []
+              };
               setUser(updatedUser);
               localStorage.setItem('user', JSON.stringify(updatedUser));
             }
@@ -146,7 +153,11 @@ function App() {
             .maybeSingle();
           
           if (profile) {
-            const updatedUser = { ...userObj, premium: profile.premium || false };
+            const updatedUser = { 
+              ...userObj, 
+              premium: profile.premium || false,
+              kviz_zavrsen: profile.kviz_zavrsen || false
+            };
             setUser(updatedUser);
             localStorage.setItem('user', JSON.stringify(updatedUser));
           }
@@ -218,7 +229,7 @@ function App() {
   }, []);
 
   // ============================================================
-  // 🔄 OSVJEŽAVANJE KORISNIKA NAKON REGISTRACIJE
+  // 🔄 OSVJEŽAVANJE KORISNIKA (poziv iz drugih komponenti)
   // ============================================================
   const refreshUser = async () => {
     try {
@@ -231,11 +242,16 @@ function App() {
           .maybeSingle();
         
         if (profile) {
-          const updatedUser = { ...userData, premium: profile.premium || false };
+          const updatedUser = { 
+            ...userData, 
+            premium: profile.premium || false,
+            kviz_zavrsen: profile.kviz_zavrsen || false
+          };
           setUser(updatedUser);
           localStorage.setItem('user', JSON.stringify(updatedUser));
+        } else {
+          setUser(userData);
         }
-        setUser(userData);
       }
     } catch (error) {
       console.error('❌ Greška pri osvježavanju korisnika:', error);
