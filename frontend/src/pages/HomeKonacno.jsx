@@ -593,7 +593,7 @@ const HomeKonacno = () => {
         </section>
       )}
 
-      {/* ===== KATEGORIJE - 2 KOLONE NA MOBITELU ===== */}
+      {/* ===== KATEGORIJE ===== */}
       <section className="py-12 md:py-20 px-4 flex justify-center bg-white dark:bg-gray-900">
         <div className="w-full max-w-4xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 md:mb-12 text-gray-800 dark:text-white">
@@ -741,7 +741,7 @@ const HomeKonacno = () => {
         </section>
       )}
 
-      {/* ===== FOOD PLANNER - 2 KOLONE NA MOBITELU ===== */}
+      {/* ===== FOOD PLANNER - 2 U REDU NA MOBITELU ===== */}
       <section className="py-16 md:py-20 px-4 flex justify-center bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900">
         <div className="w-full max-w-5xl">
           <div className="relative bg-white dark:bg-gray-800 rounded-3xl p-6 md:p-10 shadow-2xl border-2 border-blue-300 dark:border-blue-600 overflow-hidden">
@@ -763,11 +763,11 @@ const HomeKonacno = () => {
               </div>
               <p className="text-gray-600 dark:text-gray-300 text-sm md:text-xl mb-6">Pratite svoje obroke, analizirajte ishranu i planirajte sedmicu uz AI asistenta.</p>
               
-              {/* FOOD PLANNER - 2 KOLONE NA MOBITELU */}
+              {/* FOOD PLANNER FEATURES - 2 U REDU NA MOBITELU */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6">
                 {foodPlannerFeatures.map((feature, index) => (
                   <div key={index} className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-4 md:p-5 text-center border border-gray-200 dark:border-gray-600 hover:shadow-lg transition hover:scale-105">
-                    <span className="text-5xl md:text-6xl block mb-2">{feature.icon}</span>
+                    <span className="text-4xl md:text-6xl block mb-2">{feature.icon}</span>
                     <h4 className="font-bold text-sm md:text-lg text-gray-700 dark:text-gray-200">{feature.label}</h4>
                     <p className="text-[10px] md:text-sm text-gray-400 dark:text-gray-300">{feature.desc}</p>
                   </div>
@@ -808,7 +808,7 @@ const HomeKonacno = () => {
         </section>
       )}
 
-      {/* ===== HEALTHYCHEF - 2 KOLONE NA MOBITELU ===== */}
+      {/* ===== HEALTHYCHEF ===== */}
       <section className="py-12 md:py-20 px-4 flex justify-center bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
         <div className="w-full max-w-4xl">
           <div className="text-center">
