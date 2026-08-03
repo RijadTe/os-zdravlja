@@ -440,6 +440,15 @@ const HomeKonacno = () => {
     { id: 'pcos', icon: '💉', label: 'PCOS', link: '/healthy-chef/pcos' },
   ];
 
+  const foodPlannerFeatures = [
+    { icon: '😊', label: 'Emocionalni unos', desc: 'Biraj emoji prije/poslije' },
+    { icon: '🤖', label: 'AI preporuke', desc: 'Na osnovu raspoloženja' },
+    { icon: '📈', label: 'Grafikon', desc: 'Vizuelni prikaz kroz sedmicu' },
+    { icon: '⌚', label: 'Smartwatch', desc: 'Apple Health, Google Fit' },
+    { icon: '📄', label: 'PDF izvještaj', desc: 'Sedmični/mjesečni' },
+    { icon: '📅', label: 'Plan obroka', desc: 'AI plan po raspoloženju' },
+  ];
+
   const vrstaOptions = [
     { value: 'Slano', label: '🍕 Slano' },
     { value: 'Deserti', label: '🍰 Deserti' },
@@ -464,7 +473,7 @@ const HomeKonacno = () => {
   // ============================================================
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* ===== HERO SEKCIJA - SA VEĆIM PODNASLOVOM ===== */}
+      {/* ===== HERO SEKCIJA ===== */}
       <section className="text-center py-12 md:py-20 px-4 bg-gradient-to-b from-blue-50 to-white dark:from-gray-800 dark:to-gray-900">
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-800 dark:text-white mb-2 leading-tight">
           OS Zdravlja
@@ -475,11 +484,11 @@ const HomeKonacno = () => {
         <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-6">
           Otkrivajte recepte prilagođene vašim potrebama, dijetama i ukusu.
         </p>
-        <div className="flex flex-row justify-center gap-3 sm:gap-4 md:gap-6">
-          <Link to="/quiz" className="bg-blue-600 hover:bg-blue-700 text-white px-5 sm:px-8 md:px-12 py-3 sm:py-4 rounded-2xl text-sm sm:text-base md:text-xl font-bold transition shadow-lg hover:shadow-xl flex items-center gap-2 whitespace-nowrap">
+        <div className="flex flex-row justify-center gap-3 sm:gap-4 md:gap-6 flex-wrap">
+          <Link to="/quiz" className="bg-blue-600 hover:bg-blue-700 text-white px-5 sm:px-8 md:px-12 py-3 sm:py-4 rounded-2xl text-sm sm:text-base md:text-xl font-bold transition shadow-lg hover:shadow-xl flex items-center gap-2">
             🧠 Započni kviz
           </Link>
-          <Link to="/ai-chef" className="bg-blue-600 hover:bg-blue-700 text-white px-5 sm:px-8 md:px-12 py-3 sm:py-4 rounded-2xl text-sm sm:text-base md:text-xl font-bold transition shadow-lg hover:shadow-xl flex items-center gap-2 whitespace-nowrap">
+          <Link to="/ai-chef" className="bg-blue-600 hover:bg-blue-700 text-white px-5 sm:px-8 md:px-12 py-3 sm:py-4 rounded-2xl text-sm sm:text-base md:text-xl font-bold transition shadow-lg hover:shadow-xl flex items-center gap-2">
             🤖 AI Chef pretraga
           </Link>
         </div>
@@ -584,7 +593,7 @@ const HomeKonacno = () => {
         </section>
       )}
 
-      {/* ===== KATEGORIJE - 2 U REDU, VEĆE IKONE ===== */}
+      {/* ===== KATEGORIJE - 2 KOLONE NA MOBITELU ===== */}
       <section className="py-12 md:py-20 px-4 flex justify-center bg-white dark:bg-gray-900">
         <div className="w-full max-w-4xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 md:mb-12 text-gray-800 dark:text-white">
@@ -595,17 +604,17 @@ const HomeKonacno = () => {
               <Link 
                 key={cat.id} 
                 to={cat.link} 
-                className="flex flex-col items-center justify-center hover:scale-105 transition transform p-6 sm:p-8 bg-gray-50 dark:bg-gray-800 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-700 shadow-md hover:shadow-xl border border-gray-100 dark:border-gray-700"
+                className="flex flex-col items-center justify-center hover:scale-105 transition transform p-4 sm:p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-700 shadow-md hover:shadow-xl border border-gray-100 dark:border-gray-700"
               >
-                <span className="text-7xl sm:text-8xl md:text-9xl mb-3">{cat.icon}</span>
-                <span className="font-bold text-center text-sm sm:text-base md:text-lg text-gray-700 dark:text-gray-300">{cat.label}</span>
+                <span className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl mb-2 sm:mb-3">{cat.icon}</span>
+                <span className="font-bold text-center text-xs sm:text-sm md:text-base lg:text-lg text-gray-700 dark:text-gray-300">{cat.label}</span>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ===== LIFESTYLE COACH - SA AI PREPORUKAMA ===== */}
+      {/* ===== LIFESTYLE COACH ===== */}
       <section className="py-12 md:py-20 px-4 flex justify-center bg-gray-50 dark:bg-gray-800">
         <div className="w-full max-w-3xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-gray-800 dark:text-white flex items-center justify-center gap-2 flex-wrap">
@@ -637,14 +646,12 @@ const HomeKonacno = () => {
               </button>
             </div>
             
-            {/* PRIKAZ SAVJETA */}
             {coachAdvice && (
               <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-xl border border-blue-200 dark:border-blue-700">
                 <p className="text-gray-700 dark:text-gray-300 text-base">{coachAdvice}</p>
               </div>
             )}
 
-            {/* PRIKAZ PREPORUČENIH RECEPATA */}
             {coachRecipes.length > 0 && (
               <div className="mt-4">
                 <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">🍽️ Preporučeni recepti za vas:</h4>
@@ -734,76 +741,56 @@ const HomeKonacno = () => {
         </section>
       )}
 
-      {/* ===== FOOD PLANNER ===== */}
+      {/* ===== FOOD PLANNER - 2 KOLONE NA MOBITELU ===== */}
       <section className="py-16 md:py-20 px-4 flex justify-center bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900">
         <div className="w-full max-w-5xl">
-          <div className="relative bg-white dark:bg-gray-800 rounded-3xl p-8 md:p-10 shadow-2xl border-2 border-blue-300 dark:border-blue-600 overflow-hidden">
+          <div className="relative bg-white dark:bg-gray-800 rounded-3xl p-6 md:p-10 shadow-2xl border-2 border-blue-300 dark:border-blue-600 overflow-hidden">
             {!user?.premium && (
               <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-3xl">
                 <span className="text-6xl mb-4">🔒</span>
-                <h3 className="text-3xl md:text-4xl font-extrabold text-white mb-2">Premium sadržaj</h3>
-                <p className="text-white/80 text-center px-4 mb-4 max-w-md text-base">Otključajte Potpuni Food Planner i sve Premium funkcionalnosti!</p>
-                <Link to="/premium" className="bg-yellow-500 hover:bg-yellow-600 text-white px-10 py-4 rounded-full font-bold transition shadow-lg hover:shadow-xl text-base md:text-lg">⭐ Postani Premium</Link>
+                <h3 className="text-2xl md:text-4xl font-extrabold text-white mb-2 text-center px-4">Premium sadržaj</h3>
+                <p className="text-white/80 text-center px-4 mb-4 max-w-md text-sm md:text-base">Otključajte Potpuni Food Planner i sve Premium funkcionalnosti!</p>
+                <Link to="/premium" className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 md:px-10 py-3 md:py-4 rounded-full font-bold transition shadow-lg hover:shadow-xl text-sm md:text-lg">⭐ Postani Premium</Link>
               </div>
             )}
             <div className={`${!user?.premium ? 'opacity-50' : ''}`}>
               <div className="flex flex-wrap items-center justify-between mb-4">
-                <h2 className="text-3xl md:text-5xl font-extrabold text-gray-800 dark:text-white flex items-center gap-3">📊 Potpuni Food Planner
-                  {user?.premium && <span className="inline-block bg-green-200 dark:bg-green-600 text-green-800 dark:text-green-200 px-4 py-1 rounded-full text-sm font-bold">✅ Otključano</span>}
-                  {!user?.premium && <span className="inline-block bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 px-4 py-1 rounded-full text-sm font-bold">⭐ PREMIUM</span>}
+                <h2 className="text-2xl sm:text-3xl md:text-5xl font-extrabold text-gray-800 dark:text-white flex items-center gap-2 md:gap-3">
+                  📊 Potpuni Food Planner
+                  {user?.premium && <span className="inline-block bg-green-200 dark:bg-green-600 text-green-800 dark:text-green-200 px-2 md:px-4 py-0.5 md:py-1 rounded-full text-[10px] md:text-sm font-bold">✅ Otključano</span>}
+                  {!user?.premium && <span className="inline-block bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 px-2 md:px-4 py-0.5 md:py-1 rounded-full text-[10px] md:text-sm font-bold">⭐ PREMIUM</span>}
                 </h2>
               </div>
-              <p className="text-gray-600 dark:text-gray-300 text-base md:text-xl mb-6">Pratite svoje obroke, analizirajte ishranu i planirajte sedmicu uz AI asistenta.</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-6">
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-4 md:p-5 text-center border border-gray-200 dark:border-gray-600 hover:shadow-lg transition hover:scale-105">
-                  <span className="text-4xl md:text-6xl block mb-2">😊</span>
-                  <h4 className="font-bold text-sm md:text-lg text-gray-700 dark:text-gray-200">Emocionalni unos</h4>
-                  <p className="text-xs md:text-sm text-gray-400 dark:text-gray-300">Biraj emoji prije/poslije</p>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-4 md:p-5 text-center border border-gray-200 dark:border-gray-600 hover:shadow-lg transition hover:scale-105">
-                  <span className="text-4xl md:text-6xl block mb-2">🤖</span>
-                  <h4 className="font-bold text-sm md:text-lg text-gray-700 dark:text-gray-200">AI preporuke</h4>
-                  <p className="text-xs md:text-sm text-gray-400 dark:text-gray-300">Na osnovu raspoloženja</p>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-4 md:p-5 text-center border border-gray-200 dark:border-gray-600 hover:shadow-lg transition hover:scale-105">
-                  <span className="text-4xl md:text-6xl block mb-2">📈</span>
-                  <h4 className="font-bold text-sm md:text-lg text-gray-700 dark:text-gray-200">Grafikon</h4>
-                  <p className="text-xs md:text-sm text-gray-400 dark:text-gray-300">Vizuelni prikaz kroz sedmicu</p>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-4 md:p-5 text-center border border-gray-200 dark:border-gray-600 hover:shadow-lg transition hover:scale-105">
-                  <span className="text-4xl md:text-6xl block mb-2">⌚</span>
-                  <h4 className="font-bold text-sm md:text-lg text-gray-700 dark:text-gray-200">Smartwatch</h4>
-                  <p className="text-xs md:text-sm text-gray-400 dark:text-gray-300">Apple Health, Google Fit</p>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-4 md:p-5 text-center border border-gray-200 dark:border-gray-600 hover:shadow-lg transition hover:scale-105">
-                  <span className="text-4xl md:text-6xl block mb-2">📄</span>
-                  <h4 className="font-bold text-sm md:text-lg text-gray-700 dark:text-gray-200">PDF izvještaj</h4>
-                  <p className="text-xs md:text-sm text-gray-400 dark:text-gray-300">Sedmični/mjesečni</p>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-4 md:p-5 text-center border border-gray-200 dark:border-gray-600 hover:shadow-lg transition hover:scale-105">
-                  <span className="text-4xl md:text-6xl block mb-2">📅</span>
-                  <h4 className="font-bold text-sm md:text-lg text-gray-700 dark:text-gray-200">Plan obroka</h4>
-                  <p className="text-xs md:text-sm text-gray-400 dark:text-gray-300">AI plan po raspoloženju</p>
-                </div>
+              <p className="text-gray-600 dark:text-gray-300 text-sm md:text-xl mb-6">Pratite svoje obroke, analizirajte ishranu i planirajte sedmicu uz AI asistenta.</p>
+              
+              {/* FOOD PLANNER - 2 KOLONE NA MOBITELU */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6">
+                {foodPlannerFeatures.map((feature, index) => (
+                  <div key={index} className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-4 md:p-5 text-center border border-gray-200 dark:border-gray-600 hover:shadow-lg transition hover:scale-105">
+                    <span className="text-5xl md:text-6xl block mb-2">{feature.icon}</span>
+                    <h4 className="font-bold text-sm md:text-lg text-gray-700 dark:text-gray-200">{feature.label}</h4>
+                    <p className="text-[10px] md:text-sm text-gray-400 dark:text-gray-300">{feature.desc}</p>
+                  </div>
+                ))}
               </div>
 
-              <div className="bg-purple-50 dark:bg-purple-900 rounded-2xl p-4 md:p-6 border-2 border-purple-200 dark:border-purple-600 mb-6">
-                <div className="flex items-center gap-3 md:gap-4">
-                  <span className="text-3xl md:text-4xl">🧘</span>
+              <div className="bg-purple-50 dark:bg-purple-900 rounded-2xl p-3 md:p-6 border-2 border-purple-200 dark:border-purple-600 mb-6">
+                <div className="flex items-center gap-2 md:gap-4">
+                  <span className="text-2xl md:text-4xl">🧘</span>
                   <div>
                     <h4 className="font-bold text-sm md:text-xl text-gray-700 dark:text-gray-200">Povezano sa Lifestyle Coach-om</h4>
-                    <p className="text-xs md:text-sm text-gray-500 dark:text-gray-300">Preporuke se automatski dodaju u Dnevnik</p>
+                    <p className="text-[10px] md:text-sm text-gray-500 dark:text-gray-300">Preporuke se automatski dodaju u Dnevnik</p>
                   </div>
                 </div>
               </div>
 
               <div className="text-center">
                 {user?.premium ? (
-                  <Link to="/food-planner" className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-10 md:px-14 py-4 md:py-5 rounded-full text-base md:text-xl font-bold transition shadow-md hover:shadow-lg">📊 Otvori Dnevnik ishrane</Link>
+                  <Link to="/food-planner" className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 md:px-14 py-3 md:py-5 rounded-full text-sm md:text-xl font-bold transition shadow-md hover:shadow-lg">📊 Otvori Dnevnik ishrane</Link>
                 ) : (
-                  <Link to="/premium" className="inline-block bg-yellow-500 hover:bg-yellow-600 text-white px-10 md:px-14 py-4 md:py-5 rounded-full text-base md:text-xl font-bold transition shadow-md hover:shadow-lg">⭐ Postani Premium i otključaj sve</Link>
+                  <Link to="/premium" className="inline-block bg-yellow-500 hover:bg-yellow-600 text-white px-8 md:px-14 py-3 md:py-5 rounded-full text-sm md:text-xl font-bold transition shadow-md hover:shadow-lg">⭐ Postani Premium i otključaj sve</Link>
                 )}
-                <p className="text-xs md:text-sm text-gray-400 dark:text-gray-400 mt-3">
+                <p className="text-[10px] md:text-sm text-gray-400 dark:text-gray-400 mt-3">
                   {user?.premium ? '✅ Sve funkcionalnosti su dostupne!' : '🔒 Sve funkcionalnosti su zaključane. Postanite Premium da ih koristite.'}
                 </p>
               </div>
@@ -821,7 +808,7 @@ const HomeKonacno = () => {
         </section>
       )}
 
-      {/* ===== HEALTHYCHEF - 2 U REDU, VEĆE IKONE ===== */}
+      {/* ===== HEALTHYCHEF - 2 KOLONE NA MOBITELU ===== */}
       <section className="py-12 md:py-20 px-4 flex justify-center bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
         <div className="w-full max-w-4xl">
           <div className="text-center">
@@ -835,10 +822,10 @@ const HomeKonacno = () => {
                 <Link 
                   key={cat.id} 
                   to={cat.link} 
-                  className="flex flex-col items-center justify-center hover:scale-105 transition transform p-6 sm:p-8 bg-white dark:bg-gray-800 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 shadow-md hover:shadow-xl border border-gray-100 dark:border-gray-700"
+                  className="flex flex-col items-center justify-center hover:scale-105 transition transform p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 shadow-md hover:shadow-xl border border-gray-100 dark:border-gray-700"
                 >
-                  <span className="text-7xl sm:text-8xl md:text-9xl mb-3">{cat.icon}</span>
-                  <span className="font-bold text-gray-700 dark:text-gray-300 text-sm sm:text-base md:text-lg text-center">{cat.label}</span>
+                  <span className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl mb-2 sm:mb-3">{cat.icon}</span>
+                  <span className="font-bold text-gray-700 dark:text-gray-300 text-xs sm:text-sm md:text-base lg:text-lg text-center">{cat.label}</span>
                 </Link>
               ))}
             </div>
