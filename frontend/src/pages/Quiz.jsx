@@ -23,7 +23,7 @@ const ICONS = {
   'Bogat ugljikohidratima': '🍞',
   'Kratko (15-30 min)': '⚡',
   'Srednje (30-45 min)': '⏳',
-  'Duže (45-60 min)': '🐢',
+  'Duže (45-60+ min)': '🐢',
   'Početnik': '👶',
   'Srednji': '👨‍🍳',
   'Profesionalac': '👨‍🍳⭐',

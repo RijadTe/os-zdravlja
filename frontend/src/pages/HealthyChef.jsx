@@ -359,7 +359,7 @@ const HealthyChef = () => {
           <option value="">⏱️ Svo vrijeme</option>
           <option value="Kratko (15-30 min)">⚡ Kratko</option>
           <option value="Srednje (30-45 min)">⏳ Srednje</option>
-          <option value="Duže (45-60 min)">🐢 Duže</option>
+          <option value="Duže (45-60+ min)">🐢 Duže</option>
         </select>
         
         <select 

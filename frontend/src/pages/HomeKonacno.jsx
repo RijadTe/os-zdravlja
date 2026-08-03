@@ -323,7 +323,7 @@ const HomeKonacno = () => {
   const vrijemeOptions = [
     { value: 'Kratko (15-30 min)', label: '⚡ Kratko' },
     { value: 'Srednje (30-45 min)', label: '⏳ Srednje' },
-    { value: 'Duže (45-60 min)', label: '🐢 Duže' }
+    { value: 'Duže (45-60+ min)', label: '🐢 Duže' }
   ];
   const tezinaOptions = [
     { value: 'Početnik', label: '👶 Početnik' },
