@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient';
-import './i18n'; // ← DODANO!
+import './i18n';
 
 // Komponente
 import HomeKonacno from './pages/HomeKonacno';
@@ -26,10 +26,10 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import Footer from './components/Footer';
 import NotificationBell from './components/NotificationBell';
-import LanguageSwitcher from './components/LanguageSwitcher'; // ← DODANO!
+import LanguageSwitcher from './components/LanguageSwitcher';
 
 function App() {
-  const { t, i18n } = useTranslation(); // ← DODANO!
+  const { t, i18n } = useTranslation();
   
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -302,62 +302,98 @@ function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-white dark:bg-gray-900">
+        {/* ============================================================
+            HEADER - POTPUNO RESPONZIVAN
+            ============================================================ */}
         <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16 md:h-20">
-              <Link to="/" className="text-2xl md:text-3xl font-extrabold text-blue-600 dark:text-blue-400">
-                🏥 {t('app.title')}
+          <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+            <div className="flex items-center justify-between h-14 sm:h-16 md:h-20">
+              
+              {/* LOGO - manji na mobitelu */}
+              <Link 
+                to="/" 
+                className="flex-shrink-0 text-base sm:text-xl md:text-3xl font-extrabold text-blue-600 dark:text-blue-400"
+              >
+                🏥 <span className="hidden xs:inline">{t('app.title')}</span>
+                <span className="inline xs:hidden">OS</span>
               </Link>
 
-              <nav className="flex items-center gap-4 sm:gap-6 md:gap-10 text-sm font-semibold">
-                <Link to="/" className="flex flex-col items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
-                  <span className="text-xl md:text-3xl">🏠</span>
-                  <span className="text-[10px] md:text-xs">{t('nav.home')}</span>
+              {/* NAVIGACIJA - manji razmak na mobitelu */}
+              <nav className="flex items-center gap-1 sm:gap-2 md:gap-6 text-xs sm:text-sm font-semibold">
+                
+                {/* POČETNA */}
+                <Link 
+                  to="/" 
+                  className="flex flex-col items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition flex-shrink-0"
+                >
+                  <span className="text-base sm:text-xl md:text-3xl">🏠</span>
+                  <span className="text-[8px] sm:text-[10px] md:text-xs">{t('nav.home')}</span>
                 </Link>
 
-                <Link to="/community" className="flex flex-col items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
-                  <span className="text-xl md:text-3xl">📝</span>
-                  <span className="text-[10px] md:text-xs">{t('nav.community')}</span>
+                {/* ZAJEDNICA */}
+                <Link 
+                  to="/community" 
+                  className="flex flex-col items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition flex-shrink-0"
+                >
+                  <span className="text-base sm:text-xl md:text-3xl">📝</span>
+                  <span className="text-[8px] sm:text-[10px] md:text-xs">{t('nav.community')}</span>
                 </Link>
 
+                {/* PROFIL / LOGIN */}
                 {currentUser ? (
-                  <Link to="/profile" className="flex flex-col items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
-                    <span className="text-xl md:text-3xl">👤</span>
-                    <span className="text-[10px] md:text-xs flex items-center gap-1">
-                      {t('nav.profile')} {currentUser.premium && <span className="text-yellow-500 text-[8px] md:text-[10px]">⭐</span>}
+                  <Link 
+                    to="/profile" 
+                    className="flex flex-col items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition flex-shrink-0"
+                  >
+                    <span className="text-base sm:text-xl md:text-3xl">👤</span>
+                    <span className="text-[8px] sm:text-[10px] md:text-xs flex items-center gap-0.5">
+                      {t('nav.profile')} {currentUser.premium && <span className="text-yellow-500 text-[6px] sm:text-[8px] md:text-[10px]">⭐</span>}
                     </span>
                   </Link>
                 ) : (
-                  <Link to="/login" className="flex flex-col items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
-                    <span className="text-xl md:text-3xl">🔑</span>
-                    <span className="text-[10px] md:text-xs">{t('nav.login')}</span>
+                  <Link 
+                    to="/login" 
+                    className="flex flex-col items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition flex-shrink-0"
+                  >
+                    <span className="text-base sm:text-xl md:text-3xl">🔑</span>
+                    <span className="text-[8px] sm:text-[10px] md:text-xs">{t('nav.login')}</span>
                   </Link>
                 )}
 
-                <Link to="/quiz" className="flex flex-col items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
-                  <span className="text-xl md:text-3xl">🧠</span>
-                  <span className="text-[10px] md:text-xs">{t('nav.quiz')}</span>
+                {/* KVIZ */}
+                <Link 
+                  to="/quiz" 
+                  className="flex flex-col items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition flex-shrink-0"
+                >
+                  <span className="text-base sm:text-xl md:text-3xl">🧠</span>
+                  <span className="text-[8px] sm:text-[10px] md:text-xs">{t('nav.quiz')}</span>
                 </Link>
 
-                {/* 🔔 NOTIFIKACIJE */}
-                {currentUser && <NotificationBell />}
+                {/* 🔔 NOTIFIKACIJE - sakrij na najmanjim ekranima */}
+                <div className="hidden xs:flex">
+                  {currentUser && <NotificationBell />}
+                </div>
 
-                {/* 🌍 LANGUAGE SWITCHER - DODANO! */}
+                {/* 🌍 JEZIK */}
                 <LanguageSwitcher />
 
+                {/* 🌙 TAMNA TEMA */}
                 <button
                   onClick={() => setDarkMode(!darkMode)}
-                  className="flex flex-col items-center p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                  className="flex flex-col items-center p-1.5 sm:p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition flex-shrink-0"
                 >
-                  <span className="text-xl md:text-3xl">{darkMode ? '☀️' : '🌙'}</span>
-                  <span className="text-[10px] md:text-xs">{darkMode ? t('common.light') : t('common.dark')}</span>
+                  <span className="text-base sm:text-xl md:text-3xl">{darkMode ? '☀️' : '🌙'}</span>
+                  <span className="text-[8px] sm:text-[10px] md:text-xs">{darkMode ? t('common.light') : t('common.dark')}</span>
                 </button>
               </nav>
             </div>
           </div>
         </header>
 
-        <div className="container mx-auto max-w-7xl p-4 md:p-6">
+        {/* ============================================================
+            GLAVNI SADRŽAJ
+            ============================================================ */}
+        <div className="container mx-auto max-w-7xl px-3 sm:px-4 md:px-6 py-4 md:py-6">
           <Routes>
             <Route path="/" element={<HomeKonacno />} />
             <Route path="/quiz" element={<Quiz />} />

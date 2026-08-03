@@ -3,6 +3,139 @@
 @tailwind utilities;
 
 /* ============================================================
+   OSNOVNI RESET I RESPONZIVNI BREAKPOINTI
+   ============================================================ */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  overflow-x: hidden;
+  width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ============================================================
+   RESPONZIVNI BREAKPOINTI ZA MOBILNE UREĐAJE
+   ============================================================ */
+/* Extra small devices (telefoni, 420px i manje) */
+@media (max-width: 420px) {
+  .container {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+  
+  /* Povećaj touch target za dugmad i linkove */
+  button, 
+  a,
+  select,
+  input[type="button"],
+  input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Smanji font na mobilnom */
+  h1 {
+    font-size: 1.5rem !important;
+  }
+  h2 {
+    font-size: 1.25rem !important;
+  }
+  h3 {
+    font-size: 1.1rem !important;
+  }
+  p, span, div {
+    font-size: 0.9rem !important;
+  }
+  
+  /* Header mobilni stilovi */
+  header nav {
+    gap: 0.25rem !important;
+  }
+  
+  header nav a,
+  header nav button {
+    padding: 0.25rem 0.25rem !important;
+    min-width: 2.5rem !important;
+  }
+  
+  header nav span.text-base {
+    font-size: 0.875rem !important;
+  }
+  
+  header nav span.text-\[8px\] {
+    font-size: 7px !important;
+  }
+  
+  /* Grid prilagodba */
+  .grid {
+    gap: 0.75rem !important;
+  }
+  
+  /* Kategorije - 2 kolone na mobitelu */
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  /* Recepti - 1 kolona na mobitelu */
+  .grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Food Planner - 2 kolone */
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Small devices (tableti, 420px - 640px) */
+@media (min-width: 421px) and (max-width: 640px) {
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  button, 
+  a,
+  select,
+  input[type="button"],
+  input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  header nav {
+    gap: 0.5rem !important;
+  }
+  
+  header nav a,
+  header nav button {
+    padding: 0.25rem 0.5rem !important;
+  }
+  
+  /* Recepti - 1 kolona na tabletu */
+  .grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ============================================================
    DARK MODE - OSNOVNI STILOVI
    ============================================================ */
 .dark {
@@ -583,6 +716,20 @@
   overflow: hidden;
 }
 
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* ============================================================
    SPAWN (za loading)
    ============================================================ */
@@ -595,4 +742,104 @@
   border-right-color: transparent;
   border-radius: 50%;
   animation: spin 0.75s linear infinite;
+}
+
+/* ============================================================
+   RESPONZIVNE POMOĆNE KLASE
+   ============================================================ */
+/* Extra small breakpoint (420px) */
+@media (max-width: 420px) {
+  .xs\:hidden {
+    display: none !important;
+  }
+  .xs\:inline {
+    display: inline !important;
+  }
+  .xs\:flex {
+    display: flex !important;
+  }
+  .xs\:grid {
+    display: grid !important;
+  }
+  .xs\:text-sm {
+    font-size: 0.875rem !important;
+  }
+  .xs\:text-xs {
+    font-size: 0.75rem !important;
+  }
+  .xs\:gap-1 {
+    gap: 0.25rem !important;
+  }
+  .xs\:p-2 {
+    padding: 0.5rem !important;
+  }
+}
+
+/* Small breakpoint (640px) */
+@media (min-width: 421px) and (max-width: 640px) {
+  .sm\:hidden {
+    display: none !important;
+  }
+  .sm\:inline {
+    display: inline !important;
+  }
+  .sm\:flex {
+    display: flex !important;
+  }
+}
+
+/* ============================================================
+   RESPONZIVNE GRID PRILAGODBE
+   ============================================================ */
+/* Prilagodba grid-ova za mobilne uređaje */
+@media (max-width: 640px) {
+  /* Kategorije - 2 kolone */
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  /* Recepti - 1 kolona */
+  .grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+  .grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  /* Food Planner - 2 kolone */
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .grid-cols-6 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 420px) {
+  /* Kategorije - 2 kolone */
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  /* Recepti - 1 kolona */
+  .grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+  .grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+  .grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Food Planner - 2 kolone */
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .grid-cols-6 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
