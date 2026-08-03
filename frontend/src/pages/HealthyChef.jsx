@@ -1,6 +1,7 @@
 // frontend/src/pages/HealthyChef.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -8,18 +9,19 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 // BREADCRUMB KOMPONENTA
 // ============================================================
 const Breadcrumb = ({ customLabels = {} }) => {
+  const { t } = useTranslation();
   const location = window.location;
   const pathnames = location.pathname.split('/').filter(x => x);
   
   const nameMap = {
-    'healthy-chef': '🌿 HealthyChef',
+    'healthy-chef': '🌿 ' + t('healthychef.title'),
     ...customLabels
   };
 
   return (
     <nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4 flex-wrap">
       <Link to="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition flex items-center gap-1">
-        <span>🏠</span> Početna
+        <span>🏠</span> {t('healthychef.breadcrumb.home')}
       </Link>
       
       {pathnames.map((value, index) => {
@@ -48,6 +50,7 @@ const Breadcrumb = ({ customLabels = {} }) => {
 // GLAVNA KOMPONENTA
 // ============================================================
 const HealthyChef = () => {
+  const { t } = useTranslation();
   const { kategorijaId, fazaId } = useParams();
   const navigate = useNavigate();
   const [kategorije, setKategorije] = useState([]);
@@ -207,10 +210,10 @@ const HealthyChef = () => {
   if (!user?.premium) {
     return (
       <div className="max-w-4xl mx-auto py-12 text-center dark:bg-gray-900 dark:text-white">
-        <h1 className="text-3xl font-bold mb-4">🌿 HealthyChef</h1>
-        <p className="text-gray-600 dark:text-gray-300 mb-6">Ova sekcija je dostupna samo za Premium korisnike.</p>
+        <h1 className="text-3xl font-bold mb-4">🌿 {t('healthychef.title')}</h1>
+        <p className="text-gray-600 dark:text-gray-300 mb-6">{t('healthychef.premium.description')}</p>
         <Link to="/premium" className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-3 rounded-full font-semibold transition inline-block">
-          ⭐ Postani Premium
+          ⭐ {t('healthychef.premium.button')}
         </Link>
       </div>
     );
@@ -223,7 +226,7 @@ const HealthyChef = () => {
     return (
       <div className="max-w-4xl mx-auto py-12 text-center dark:bg-gray-900 dark:text-white">
         <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-        <p className="text-gray-500 dark:text-gray-400 mt-4">⏳ Učitavanje...</p>
+        <p className="text-gray-500 dark:text-gray-400 mt-4">⏳ {t('healthychef.loading')}</p>
       </div>
     );
   }
@@ -236,8 +239,8 @@ const HealthyChef = () => {
     return (
       <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
         <Breadcrumb />
-        <h1 className="text-3xl font-bold text-center mb-2">🌿 HealthyChef</h1>
-        <p className="text-center text-gray-600 dark:text-gray-300 mb-8">Odaberite kategoriju za personalizovane recepte.</p>
+        <h1 className="text-3xl font-bold text-center mb-2">🌿 {t('healthychef.title')}</h1>
+        <p className="text-center text-gray-600 dark:text-gray-300 mb-8">{t('healthychef.categories.subtitle')}</p>
         {glavneKategorije.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {glavneKategorije.map(kat => (
@@ -253,7 +256,7 @@ const HealthyChef = () => {
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-gray-500 dark:text-gray-400">Nema dostupnih kategorija.</p>
+            <p className="text-gray-500 dark:text-gray-400">{t('healthychef.categories.empty')}</p>
           </div>
         )}
       </div>
@@ -272,15 +275,15 @@ const HealthyChef = () => {
           onClick={() => navigate('/healthy-chef')} 
           className="text-blue-500 dark:text-blue-400 hover:underline mb-4 flex items-center gap-2"
         >
-          ⬅️ Nazad na kategorije
+          ⬅️ {t('healthychef.phases.back_to_categories')}
         </button>
-        <h1 className="text-3xl font-bold mb-2 dark:text-white">{trenutnaKategorija?.naziv || 'Kategorija'}</h1>
-        <p className="text-gray-600 dark:text-gray-300 mb-6">Odaberite fazu za koju želite recepte.</p>
+        <h1 className="text-3xl font-bold mb-2 dark:text-white">{trenutnaKategorija?.naziv || t('healthychef.phases.category')}</h1>
+        <p className="text-gray-600 dark:text-gray-300 mb-6">{t('healthychef.phases.subtitle')}</p>
 
         {loadingFaze ? (
           <div className="text-center py-8">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">⏳ Učitavanje faza...</p>
+            <p className="text-gray-500 dark:text-gray-400 mt-2">⏳ {t('healthychef.phases.loading')}</p>
           </div>
         ) : faze.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -300,7 +303,7 @@ const HealthyChef = () => {
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-gray-500 dark:text-gray-400">Nema dostupnih faza za ovu kategoriju.</p>
+            <p className="text-gray-500 dark:text-gray-400">{t('healthychef.phases.empty')}</p>
           </div>
         )}
       </div>
@@ -325,14 +328,14 @@ const HealthyChef = () => {
         onClick={() => navigate(`/healthy-chef/${kategorijaId}`)} 
         className="text-blue-500 dark:text-blue-400 hover:underline mb-4 flex items-center gap-2"
       >
-        ⬅️ Nazad na faze
+        ⬅️ {t('healthychef.recipes.back_to_phases')}
       </button>
-      <h1 className="text-3xl font-bold mb-2 dark:text-white">{trenutnaFaza?.naziv || 'Recepti'}</h1>
+      <h1 className="text-3xl font-bold mb-2 dark:text-white">{trenutnaFaza?.naziv || t('healthychef.recipes.title')}</h1>
       <p className="text-gray-600 dark:text-gray-300 mb-6">
-        Recepti prilagođeni vašim preferencijama i zdravstvenim potrebama.
+        {t('healthychef.recipes.subtitle')}
         {activeFiltersCount > 0 && (
           <span className="ml-2 text-sm bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full">
-            {activeFiltersCount} filtera aktivno
+            {activeFiltersCount} {t('healthychef.recipes.filters_active')}
           </span>
         )}
       </p>
@@ -344,11 +347,11 @@ const HealthyChef = () => {
           value={filters.vrsta} 
           onChange={(e) => setFilters({ ...filters, vrsta: e.target.value })}
         >
-          <option value="">🍽️ Sve vrste</option>
-          <option value="Deserti">🍰 Deserti</option>
-          <option value="Slano">🍕 Slano</option>
-          <option value="Dijetalni recepti">🥗 Dijetalno</option>
-          <option value="Napitki">🥤 Napitki</option>
+          <option value="">🍽️ {t('healthychef.filters.all_types')}</option>
+          <option value="Deserti">🍰 {t('healthychef.filters.desserts')}</option>
+          <option value="Slano">🍕 {t('healthychef.filters.savory')}</option>
+          <option value="Dijetalni recepti">🥗 {t('healthychef.filters.diet')}</option>
+          <option value="Napitki">🥤 {t('healthychef.filters.drinks')}</option>
         </select>
         
         <select 
@@ -356,10 +359,10 @@ const HealthyChef = () => {
           value={filters.vrijeme} 
           onChange={(e) => setFilters({ ...filters, vrijeme: e.target.value })}
         >
-          <option value="">⏱️ Svo vrijeme</option>
-          <option value="Kratko (15-30 min)">⚡ Kratko</option>
-          <option value="Srednje (30-45 min)">⏳ Srednje</option>
-          <option value="Duže (45-60+ min)">🐢 Duže</option>
+          <option value="">⏱️ {t('healthychef.filters.all_time')}</option>
+          <option value="Kratko (15-30 min)">⚡ {t('healthychef.filters.short')}</option>
+          <option value="Srednje (30-45 min)">⏳ {t('healthychef.filters.medium')}</option>
+          <option value="Duže (45-60+ min)">🐢 {t('healthychef.filters.long')}</option>
         </select>
         
         <select 
@@ -367,10 +370,10 @@ const HealthyChef = () => {
           value={filters.tezina} 
           onChange={(e) => setFilters({ ...filters, tezina: e.target.value })}
         >
-          <option value="">🏋️ Sva težina</option>
-          <option value="Početnik">👶 Početnik</option>
-          <option value="Srednji">👨‍🍳 Srednji</option>
-          <option value="Profesionalac">👨‍🍳⭐ Profesionalac</option>
+          <option value="">🏋️ {t('healthychef.filters.all_difficulty')}</option>
+          <option value="Početnik">👶 {t('healthychef.filters.beginner')}</option>
+          <option value="Srednji">👨‍🍳 {t('healthychef.filters.intermediate')}</option>
+          <option value="Profesionalac">👨‍🍳⭐ {t('healthychef.filters.professional')}</option>
         </select>
 
         {(filters.vrsta || filters.vrijeme || filters.tezina) && (
@@ -378,7 +381,7 @@ const HealthyChef = () => {
             onClick={resetFilters}
             className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition text-sm"
           >
-            🔄 Resetuj filtere
+            🔄 {t('healthychef.filters.reset')}
           </button>
         )}
       </div>
@@ -387,7 +390,7 @@ const HealthyChef = () => {
       {loading ? (
         <div className="text-center py-8">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">⏳ Učitavanje recepata...</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">⏳ {t('healthychef.recipes.loading')}</p>
         </div>
       ) : recepti.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -416,12 +419,12 @@ const HealthyChef = () => {
         </div>
       ) : (
         <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-xl">
-          <p className="text-gray-500 dark:text-gray-400">😕 Nema recepata za ovu fazu sa trenutnim filterima.</p>
+          <p className="text-gray-500 dark:text-gray-400">😕 {t('healthychef.recipes.no_results')}</p>
           <button
             onClick={resetFilters}
             className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition"
           >
-            🔄 Resetuj filtere
+            🔄 {t('healthychef.recipes.reset_filters')}
           </button>
         </div>
       )}

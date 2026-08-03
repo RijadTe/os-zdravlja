@@ -1,10 +1,12 @@
 // frontend/src/pages/Community.jsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const Community = () => {
+  const { t } = useTranslation();
   const [objave, setObjave] = useState([]);
   const [loading, setLoading] = useState(true);
   const [novaObjava, setNovaObjava] = useState({
@@ -50,7 +52,7 @@ const Community = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) {
-      alert('Morate biti prijavljeni da biste objavili!');
+      alert(t('community.alerts.login_required'));
       return;
     }
 
@@ -76,27 +78,27 @@ const Community = () => {
   };
 
   if (loading) {
-    return <div className="text-center py-12 text-lg dark:text-white">⏳ Učitavanje objava...</div>;
+    return <div className="text-center py-12 text-lg dark:text-white">⏳ {t('community.loading')}</div>;
   }
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
-      <h1 className="text-3xl font-bold mb-6">📝 Community</h1>
+      <h1 className="text-3xl font-bold mb-6">📝 {t('community.title')}</h1>
 
       {/* Forma za novu objavu */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md mb-8">
-        <h2 className="text-xl font-bold mb-4">➕ Podijeli svoj recept</h2>
+        <h2 className="text-xl font-bold mb-4">➕ {t('community.share_recipe')}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
-            placeholder="Naziv recepta *"
+            placeholder={t('community.recipe_name')}
             value={novaObjava.naziv}
             onChange={(e) => setNovaObjava({ ...novaObjava, naziv: e.target.value })}
             className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
             required
           />
           <textarea
-            placeholder="Opis..."
+            placeholder={t('community.description')}
             value={novaObjava.opis}
             onChange={(e) => setNovaObjava({ ...novaObjava, opis: e.target.value })}
             className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
@@ -104,7 +106,7 @@ const Community = () => {
           />
           <input
             type="text"
-            placeholder="Sastojci (odvojeni zarezom)"
+            placeholder={t('community.ingredients')}
             value={novaObjava.sastojci}
             onChange={(e) => setNovaObjava({ ...novaObjava, sastojci: e.target.value })}
             className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
@@ -119,7 +121,7 @@ const Community = () => {
             type="submit"
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition"
           >
-            📤 Objavi
+            📤 {t('community.post_button')}
           </button>
         </form>
       </div>
@@ -132,7 +134,7 @@ const Community = () => {
               <div>
                 <h3 className="font-bold text-lg dark:text-white">{objava.naziv}</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  👤 {objava.korisnik_ime} · {new Date(objava.created_at).toLocaleDateString('hr')}
+                  👤 {objava.korisnik_ime || t('community.unknown_user')} · {new Date(objava.created_at).toLocaleDateString('hr')}
                 </p>
               </div>
               <button

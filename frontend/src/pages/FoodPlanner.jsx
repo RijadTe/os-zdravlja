@@ -1,6 +1,7 @@
 // frontend/src/pages/FoodPlanner.jsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Line, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { supabase } from '../supabaseClient';
@@ -10,6 +11,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const FoodPlanner = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState(0);
   const [user, setUser] = useState(null);
   const [profil, setProfil] = useState(null);
@@ -31,14 +33,14 @@ const FoodPlanner = () => {
   const [moodNote, setMoodNote] = useState('');
 
   const moodOptions = [
-    { emoji: '😊', label: 'Sretan' },
-    { emoji: '😐', label: 'Neutralan' },
-    { emoji: '😞', label: 'Tužan' },
-    { emoji: '😡', label: 'Ljut' },
-    { emoji: '😴', label: 'Umoran' },
-    { emoji: '🤩', label: 'Uzbuđen' },
-    { emoji: '😌', label: 'Opušten' },
-    { emoji: '🤔', label: 'Zamišljen' },
+    { emoji: '😊', label: t('foodplanner.moods.happy') },
+    { emoji: '😐', label: t('foodplanner.moods.neutral') },
+    { emoji: '😞', label: t('foodplanner.moods.sad') },
+    { emoji: '😡', label: t('foodplanner.moods.angry') },
+    { emoji: '😴', label: t('foodplanner.moods.tired') },
+    { emoji: '🤩', label: t('foodplanner.moods.excited') },
+    { emoji: '😌', label: t('foodplanner.moods.relaxed') },
+    { emoji: '🤔', label: t('foodplanner.moods.thoughtful') },
   ];
 
   // --- AI KUHARSKA VIKENDICA ---
@@ -125,13 +127,13 @@ const FoodPlanner = () => {
     e.preventDefault();
     
     if (!noviObrok.naziv || !noviObrok.kalorije) {
-      alert('⚠️ Molimo unesite naziv i kalorije.');
+      alert(t('foodplanner.alerts.fill_fields'));
       return;
     }
 
     const email = user?.email || localStorage.getItem('userEmail');
     if (!email) {
-      alert('⚠️ Morate biti prijavljeni.');
+      alert(t('foodplanner.alerts.login_required'));
       return;
     }
 
@@ -162,26 +164,26 @@ const FoodPlanner = () => {
       setMoodNote('');
     } catch (error) {
       console.error('❌ Greška:', error);
-      alert('❌ Greška pri dodavanju obroka. Pokušajte ponovo.');
+      alert(t('foodplanner.alerts.add_error'));
     } finally {
       setLoading(false);
     }
-  }, [noviObrok, moodBefore, moodAfter, moodNote, user]);
+  }, [noviObrok, moodBefore, moodAfter, moodNote, user, t]);
 
   // ============================================================
   // IZBRIŠI OBROK (IZ BAZE)
   // ============================================================
   const handleDeleteObrok = useCallback(async (id) => {
-    if (!window.confirm('Jeste li sigurni da želite obrisati ovaj obrok?')) return;
+    if (!window.confirm(t('foodplanner.alerts.delete_confirm'))) return;
 
     try {
       await fetch(`${API_URL}/obroci/${id}`, { method: 'DELETE' });
       setObroci(prev => prev.filter(o => o.id !== id));
     } catch (error) {
       console.error('❌ Greška:', error);
-      alert('❌ Greška pri brisanju obroka.');
+      alert(t('foodplanner.alerts.delete_error'));
     }
-  }, []);
+  }, [t]);
 
   // ============================================================
   // IZRAČUNAJ UKUPNO
@@ -220,7 +222,7 @@ const FoodPlanner = () => {
       setWeeklyPlan(data);
     } catch (error) {
       console.error('❌ Greška:', error);
-      alert('❌ Greška pri generisanju plana. Pokušajte ponovo.');
+      alert(t('foodplanner.alerts.plan_error'));
       setWeeklyPlan({
         dani: [
           { naziv: 'Pon', dorucak: 'Ovsena kaša', rucak: 'Pileća prsa', vecera: 'Losos' },
@@ -241,10 +243,10 @@ const FoodPlanner = () => {
   // GRAFIKONI
   // ============================================================
   const lineData = useMemo(() => ({
-    labels: ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'],
+    labels: t('foodplanner.chart.week_labels', { returnObjects: true }) || ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'],
     datasets: [
       {
-        label: 'Kalorije',
+        label: t('foodplanner.chart.calories'),
         data: [1800, 2000, 1900, 2200, 2100, 1950, 1850],
         borderColor: 'rgb(59, 130, 246)',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -252,17 +254,17 @@ const FoodPlanner = () => {
         tension: 0.4,
       },
       {
-        label: 'Cilj (2200 kcal)',
+        label: t('foodplanner.chart.goal'),
         data: [2200, 2200, 2200, 2200, 2200, 2200, 2200],
         borderColor: 'rgb(239, 68, 68)',
         borderDash: [5, 5],
         pointRadius: 0,
       },
     ],
-  }), []);
+  }), [t]);
 
   const doughnutData = useMemo(() => ({
-    labels: ['Proteini', 'Ugljikohidrati', 'Masti'],
+    labels: [t('foodplanner.chart.protein'), t('foodplanner.chart.carbs'), t('foodplanner.chart.fat')],
     datasets: [{
       data: [
         Math.round((ukupno.proteini / (ukupno.proteini + ukupno.ugljikohidrati + ukupno.masti || 1)) * 100),
@@ -272,7 +274,7 @@ const FoodPlanner = () => {
       backgroundColor: ['#3b82f6', '#22c55e', '#f59e0b'],
       borderWidth: 0,
     }],
-  }), [ukupno]);
+  }), [ukupno, t]);
 
   // ============================================================
   // PDF IZVJEŠTAJ
@@ -280,12 +282,12 @@ const FoodPlanner = () => {
   const generatePDF = async () => {
     const email = user?.email || localStorage.getItem('userEmail');
     if (!email) {
-      alert('⚠️ Morate biti prijavljeni.');
+      alert(t('foodplanner.alerts.login_required'));
       return;
     }
 
     if (obroci.length === 0) {
-      alert('⚠️ Nema obroka za izvještaj. Dodajte nekoliko obroka prvo.');
+      alert(t('foodplanner.alerts.no_meals'));
       return;
     }
 
@@ -295,7 +297,7 @@ const FoodPlanner = () => {
       window.open(`${API_URL}/pdf/izvjestaj/${encodeURIComponent(email)}?datum=${danas}`, '_blank');
     } catch (error) {
       console.error('❌ Greška:', error);
-      alert('❌ Greška pri generisanju PDF-a.');
+      alert(t('foodplanner.alerts.pdf_error'));
     } finally {
       setLoading(false);
     }
@@ -307,12 +309,12 @@ const FoodPlanner = () => {
   if (!user?.premium) {
     return (
       <div className="max-w-4xl mx-auto py-12 text-center dark:bg-gray-900 dark:text-white">
-        <h1 className="text-3xl font-bold mb-4">📊 Dnevnik ishrane</h1>
+        <h1 className="text-3xl font-bold mb-4">{t('foodplanner.premium.title')}</h1>
         <p className="text-gray-600 dark:text-gray-300 mb-6">
-          Ova sekcija je dostupna samo za Premium korisnike.
+          {t('foodplanner.premium.description')}
         </p>
         <Link to="/premium" className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-3 rounded-full font-semibold transition inline-block">
-          ⭐ Postani Premium
+          ⭐ {t('foodplanner.premium.button')}
         </Link>
       </div>
     );
@@ -323,11 +325,11 @@ const FoodPlanner = () => {
   // ============================================================
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
-      <h1 className="text-3xl font-bold mb-6">📊 Dnevnik ishrane</h1>
+      <h1 className="text-3xl font-bold mb-6">{t('foodplanner.title')}</h1>
 
       {/* TABOVI */}
       <div className="flex border-b border-gray-200 dark:border-gray-700 mb-6 overflow-x-auto">
-        {['📝 Dnevnik', '📈 Analitika', '📅 Plan obroka'].map((tab, index) => (
+        {[t('foodplanner.tabs.diary'), t('foodplanner.tabs.analytics'), t('foodplanner.tabs.plan')].map((tab, index) => (
           <button
             key={index}
             onClick={() => setActiveTab(index)}
@@ -348,14 +350,14 @@ const FoodPlanner = () => {
       {activeTab === 0 && (
         <div>
           <div className="mb-6">
-            <h2 className="text-xl font-bold mb-4">📅 Danas, {new Date().toLocaleDateString('hr', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</h2>
+            <h2 className="text-xl font-bold mb-4">{t('foodplanner.diary.today', { date: new Date().toLocaleDateString('hr', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) })}</h2>
             
             {/* PROGRESS BAR */}
             <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
               <div className="flex justify-between items-center">
-                <span className="font-semibold dark:text-white">🎯 Dnevni cilj: {dailyGoal} kcal</span>
+                <span className="font-semibold dark:text-white">{t('foodplanner.diary.goal')} {dailyGoal} kcal</span>
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Uneseno: {Math.round(ukupno.kalorije)} kcal
+                  {t('foodplanner.diary.consumed')} {Math.round(ukupno.kalorije)} kcal
                 </span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mt-2">
@@ -367,21 +369,21 @@ const FoodPlanner = () => {
                 />
               </div>
               <div className="flex justify-between mt-2 text-sm text-gray-500 dark:text-gray-400">
-                <span>🥩 Proteini: {Math.round(ukupno.proteini)}g</span>
-                <span>🍞 Uglj.: {Math.round(ukupno.ugljikohidrati)}g</span>
-                <span>🧈 Masti: {Math.round(ukupno.masti)}g</span>
+                <span>🥩 {t('foodplanner.diary.protein')}: {Math.round(ukupno.proteini)}g</span>
+                <span>🍞 {t('foodplanner.diary.carbs')}: {Math.round(ukupno.ugljikohidrati)}g</span>
+                <span>🧈 {t('foodplanner.diary.fat')}: {Math.round(ukupno.masti)}g</span>
               </div>
             </div>
           </div>
 
           {/* FORMA ZA UNOS */}
           <form onSubmit={handleDodajObrok} className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-700">
-            <h3 className="font-bold dark:text-white mb-2">➕ Dodaj obrok</h3>
+            <h3 className="font-bold dark:text-white mb-2">{t('foodplanner.diary.add_meal')}</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
               <input
                 type="text"
-                placeholder="Naziv jela..."
+                placeholder={t('foodplanner.diary.meal_name')}
                 value={noviObrok.naziv}
                 onChange={(e) => setNoviObrok({...noviObrok, naziv: e.target.value})}
                 className="border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
@@ -392,17 +394,17 @@ const FoodPlanner = () => {
                 onChange={(e) => setNoviObrok({...noviObrok, tip: e.target.value})}
                 className="border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
               >
-                <option value="Doručak">🌅 Doručak</option>
-                <option value="Ručak">☀️ Ručak</option>
-                <option value="Večera">🌙 Večera</option>
-                <option value="Užina">🍿 Užina</option>
+                <option value="Doručak">🌅 {t('foodplanner.diary.breakfast')}</option>
+                <option value="Ručak">☀️ {t('foodplanner.diary.lunch')}</option>
+                <option value="Večera">🌙 {t('foodplanner.diary.dinner')}</option>
+                <option value="Užina">🍿 {t('foodplanner.diary.snack')}</option>
               </select>
             </div>
 
             {/* EMOJI UNOS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
               <div>
-                <label className="text-xs font-semibold text-gray-600 dark:text-gray-300">😊 Raspoloženje PRIJE obroka</label>
+                <label className="text-xs font-semibold text-gray-600 dark:text-gray-300">{t('foodplanner.diary.mood_before')}</label>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {moodOptions.map(m => (
                     <button
@@ -420,7 +422,7 @@ const FoodPlanner = () => {
                 </div>
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-600 dark:text-gray-300">😊 Raspoloženje POSLIJE obroka</label>
+                <label className="text-xs font-semibold text-gray-600 dark:text-gray-300">{t('foodplanner.diary.mood_after')}</label>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {moodOptions.map(m => (
                     <button
@@ -441,7 +443,7 @@ const FoodPlanner = () => {
 
             <input
               type="text"
-              placeholder="📝 Bilješka (npr. 'Bila sam gladna', 'Dosada')"
+              placeholder={t('foodplanner.diary.note_placeholder')}
               value={moodNote}
               onChange={(e) => setMoodNote(e.target.value)}
               className="w-full border rounded-lg px-4 py-2 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 mb-2"
@@ -450,7 +452,7 @@ const FoodPlanner = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <input
                 type="number"
-                placeholder="Kalorije"
+                placeholder={t('foodplanner.diary.calories')}
                 value={noviObrok.kalorije}
                 onChange={(e) => setNoviObrok({...noviObrok, kalorije: e.target.value})}
                 className="border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
@@ -458,21 +460,21 @@ const FoodPlanner = () => {
               />
               <input
                 type="number"
-                placeholder="Proteini (g)"
+                placeholder={t('foodplanner.diary.protein')}
                 value={noviObrok.proteini}
                 onChange={(e) => setNoviObrok({...noviObrok, proteini: e.target.value})}
                 className="border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
               <input
                 type="number"
-                placeholder="Uglj. (g)"
+                placeholder={t('foodplanner.diary.carbs')}
                 value={noviObrok.ugljikohidrati}
                 onChange={(e) => setNoviObrok({...noviObrok, ugljikohidrati: e.target.value})}
                 className="border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
               <input
                 type="number"
-                placeholder="Masti (g)"
+                placeholder={t('foodplanner.diary.fat')}
                 value={noviObrok.masti}
                 onChange={(e) => setNoviObrok({...noviObrok, masti: e.target.value})}
                 className="border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
@@ -480,7 +482,7 @@ const FoodPlanner = () => {
             </div>
             
             <button type="submit" disabled={loading} className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition disabled:opacity-50">
-              {loading ? '⏳ Slanje...' : '➕ Dodaj obrok'}
+              {loading ? t('foodplanner.diary.sending') : t('foodplanner.diary.add_button')}
             </button>
           </form>
 
@@ -488,13 +490,13 @@ const FoodPlanner = () => {
           {loadingObroci ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-              <p className="text-gray-500 dark:text-gray-400 mt-2">⏳ Učitavanje obroka...</p>
+              <p className="text-gray-500 dark:text-gray-400 mt-2">{t('foodplanner.diary.loading')}</p>
             </div>
           ) : obroci.length === 0 ? (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <p className="text-4xl mb-2">🍽️</p>
-              <p>Još nema unesenih obroka za danas.</p>
-              <p className="text-sm">Dodajte svoj prvi obrok!</p>
+              <p>{t('foodplanner.diary.no_meals')}</p>
+              <p className="text-sm">{t('foodplanner.diary.add_first')}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -520,7 +522,7 @@ const FoodPlanner = () => {
                       <button
                         onClick={() => handleDeleteObrok(obrok.id)}
                         className="text-red-400 hover:text-red-600 transition"
-                        title="Obriši obrok"
+                        title={t('foodplanner.diary.delete')}
                       >
                         🗑️
                       </button>
@@ -538,18 +540,18 @@ const FoodPlanner = () => {
       {/* ============================================================ */}
       {activeTab === 1 && (
         <div>
-          <h2 className="text-xl font-bold mb-4 dark:text-white">📈 Analitika</h2>
+          <h2 className="text-xl font-bold mb-4 dark:text-white">{t('foodplanner.analytics.title')}</h2>
           
           {obroci.length === 0 ? (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <p className="text-4xl mb-2">📊</p>
-              <p>Nema dovoljno podataka za analitiku.</p>
-              <p className="text-sm">Unesite nekoliko obroka da vidite statistiku.</p>
+              <p>{t('foodplanner.analytics.no_data')}</p>
+              <p className="text-sm">{t('foodplanner.analytics.add_meals')}</p>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 gap-6">
               <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md">
-                <h3 className="font-semibold text-center dark:text-white mb-2">📊 Sedmični unos kalorija</h3>
+                <h3 className="font-semibold text-center dark:text-white mb-2">{t('foodplanner.analytics.weekly_chart')}</h3>
                 <Line 
                   data={lineData} 
                   options={{ 
@@ -563,7 +565,7 @@ const FoodPlanner = () => {
                 />
               </div>
               <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md">
-                <h3 className="font-semibold text-center dark:text-white mb-2">🥧 Makronutrijenti</h3>
+                <h3 className="font-semibold text-center dark:text-white mb-2">{t('foodplanner.analytics.macro_chart')}</h3>
                 <Doughnut 
                   data={doughnutData} 
                   options={{ 
@@ -576,9 +578,9 @@ const FoodPlanner = () => {
                   }} 
                 />
                 <div className="flex justify-center gap-4 mt-2 text-sm">
-                  <span className="text-blue-500">🥩 Proteini</span>
-                  <span className="text-green-500">🍞 Ugljikohidrati</span>
-                  <span className="text-yellow-500">🧈 Masti</span>
+                  <span className="text-blue-500">🥩 {t('foodplanner.chart.protein')}</span>
+                  <span className="text-green-500">🍞 {t('foodplanner.chart.carbs')}</span>
+                  <span className="text-yellow-500">🧈 {t('foodplanner.chart.fat')}</span>
                 </div>
               </div>
             </div>
@@ -589,7 +591,7 @@ const FoodPlanner = () => {
             disabled={loading}
             className="mt-6 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg font-semibold transition flex items-center gap-2"
           >
-            {loading ? '⏳ Generišem...' : '📄 Generiši PDF izvještaj'}
+            {loading ? '⏳ ' + t('foodplanner.analytics.generating') : '📄 ' + t('foodplanner.analytics.generate_pdf')}
           </button>
         </div>
       )}
@@ -599,7 +601,7 @@ const FoodPlanner = () => {
       {/* ============================================================ */}
       {activeTab === 2 && (
         <div>
-          <h2 className="text-xl font-bold mb-4 dark:text-white">📅 Plan obroka</h2>
+          <h2 className="text-xl font-bold mb-4 dark:text-white">{t('foodplanner.plan.title')}</h2>
           
           <button
             onClick={generateWeeklyPlan}
@@ -612,10 +614,10 @@ const FoodPlanner = () => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Generišem...
+                {t('foodplanner.plan.generating')}
               </>
             ) : (
-              '🤖 Generiši sedmični plan'
+              '🤖 ' + t('foodplanner.plan.generate')
             )}
           </button>
 
@@ -632,7 +634,7 @@ const FoodPlanner = () => {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2">
-              {['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'].map((dan, i) => (
+              {t('foodplanner.plan.week_days', { returnObjects: true }).map((dan, i) => (
                 <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-200 dark:border-gray-700">
                   <h4 className="font-bold text-sm dark:text-white">{dan}</h4>
                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">🌅 ---</p>
@@ -644,7 +646,7 @@ const FoodPlanner = () => {
           )}
           
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-4 text-center">
-            💡 Plan se generiše na osnovu vaših namirnica u frižideru
+            💡 {t('foodplanner.plan.hint')}
           </p>
         </div>
       )}

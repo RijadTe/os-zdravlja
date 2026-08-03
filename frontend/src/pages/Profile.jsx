@@ -1,20 +1,22 @@
 // frontend/src/pages/Profile.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const Profile = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [badges, setBadges] = useState([
-    { id: 1, name: 'Prvi recept', icon: '🥇', earned: true },
-    { id: 2, name: '3 dana zaredom', icon: '🥈', earned: false },
-    { id: 3, name: '10 recepata', icon: '🥉', earned: false },
+    { id: 1, name: t('profile.badges.first_recipe'), icon: '🥇', earned: true },
+    { id: 2, name: t('profile.badges.three_days'), icon: '🥈', earned: false },
+    { id: 3, name: t('profile.badges.ten_recipes'), icon: '🥉', earned: false },
   ]);
 
   useEffect(() => {
@@ -95,7 +97,7 @@ const Profile = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email,
-          ime: user?.ime || user?.user_metadata?.ime || 'Korisnik',
+          ime: user?.ime || user?.user_metadata?.ime || t('profile.default_name'),
           premium: false,
           kviz_zavrsen: false,
           vrsta: [],
@@ -118,7 +120,7 @@ const Profile = () => {
   // 🗑️ IZBRIŠI SVE PODATKE
   // ============================================================
   const handleDeleteData = async () => {
-    if (!window.confirm('⚠️ Jeste li sigurni? Ova radnja je nepovratna!')) return;
+    if (!window.confirm(t('profile.delete_confirm'))) return;
     
     setDeleting(true);
     try {
@@ -127,7 +129,7 @@ const Profile = () => {
       localStorage.clear();
       navigate('/login');
     } catch (error) {
-      alert('❌ Greška pri brisanju podataka.');
+      alert(t('profile.delete_error'));
       setDeleting(false);
     }
   };
@@ -154,7 +156,7 @@ const Profile = () => {
     return (
       <div className="text-center py-12 dark:text-white">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-        <p className="mt-4">⏳ Učitavanje profila...</p>
+        <p className="mt-4">{t('profile.loading')}</p>
       </div>
     );
   }
@@ -166,9 +168,9 @@ const Profile = () => {
     return (
       <div className="max-w-4xl mx-auto py-8 px-4">
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6 text-center">
-          <p className="text-yellow-800 dark:text-yellow-200 text-lg">⚠️ Profil nije pronađen.</p>
+          <p className="text-yellow-800 dark:text-yellow-200 text-lg">{t('profile.not_found')}</p>
           <Link to="/quiz" className="mt-4 inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition">
-            🧠 Popuni kviz
+            🧠 {t('profile.take_quiz')}
           </Link>
         </div>
       </div>
@@ -187,15 +189,15 @@ const Profile = () => {
             {profile.ime?.charAt(0) || '👤'}
           </div>
           <div>
-            <h1 className="text-2xl font-bold">{profile.ime || 'Korisnik'}</h1>
+            <h1 className="text-2xl font-bold">{profile.ime || t('profile.default_name')}</h1>
             <p className="text-gray-500 dark:text-gray-400">{profile.email}</p>
             {profile.premium ? (
               <span className="inline-block mt-1 bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 text-xs px-2 py-0.5 rounded-full font-semibold">
-                ⭐ Premium
+                ⭐ {t('profile.premium')}
               </span>
             ) : (
               <Link to="/premium" className="inline-block mt-1 text-yellow-600 dark:text-yellow-400 text-sm hover:underline">
-                Postani Premium →
+                {t('profile.become_premium')} →
               </Link>
             )}
           </div>
@@ -204,22 +206,22 @@ const Profile = () => {
 
       {/* ===== NAPREDAK ===== */}
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
-        <h2 className="text-xl font-bold mb-4">📊 Napredak</h2>
+        <h2 className="text-xl font-bold mb-4">{t('profile.progress')}</h2>
         <div className="flex items-center gap-4">
           <div className="text-4xl">🍳</div>
           <div>
             <p className="text-2xl font-bold">{profile.skuhano_recepata || 0}</p>
-            <p className="text-gray-500 dark:text-gray-400">skuhanih recepata</p>
+            <p className="text-gray-500 dark:text-gray-400">{t('profile.recipes_cooked')}</p>
           </div>
           <div className="ml-8 text-sm text-gray-500 dark:text-gray-400">
-            <p>✅ Kviz: {profile.kviz_zavrsen ? 'Završen' : 'Nije završen'}</p>
+            <p>✅ {t('profile.quiz')}: {profile.kviz_zavrsen ? t('profile.completed') : t('profile.not_completed')}</p>
           </div>
         </div>
       </div>
 
       {/* ===== BEDŽEVI ===== */}
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
-        <h2 className="text-xl font-bold mb-4">🏆 Osvojeni bedževi</h2>
+        <h2 className="text-xl font-bold mb-4">{t('profile.badges.title')}</h2>
         <div className="flex flex-wrap gap-4">
           {badges.map(badge => (
             <div
@@ -233,9 +235,9 @@ const Profile = () => {
               <span className="text-3xl">{badge.icon}</span>
               <span className="text-sm font-semibold mt-1">{badge.name}</span>
               {badge.earned ? (
-                <span className="text-xs text-green-500">✅ Osvojeno</span>
+                <span className="text-xs text-green-500">{t('profile.badges.earned')}</span>
               ) : (
-                <span className="text-xs text-gray-400">🔒 Zaključano</span>
+                <span className="text-xs text-gray-400">{t('profile.badges.locked')}</span>
               )}
             </div>
           ))}
@@ -244,31 +246,31 @@ const Profile = () => {
 
       {/* ===== PREFERENCIJE ===== */}
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
-        <h2 className="text-xl font-bold mb-4">🍽️ Moje preferencije</h2>
+        <h2 className="text-xl font-bold mb-4">{t('profile.preferences')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Vrsta</p>
-            <p className="font-semibold">{profile.vrsta?.length ? profile.vrsta.join(', ') : 'Nije odabrano'}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.preferences_types')}</p>
+            <p className="font-semibold">{profile.vrsta?.length ? profile.vrsta.join(', ') : t('profile.not_selected')}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Restrikcije</p>
-            <p className="font-semibold">{profile.izbjegava?.length ? profile.izbjegava.join(', ') : 'Nema'}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.restrictions')}</p>
+            <p className="font-semibold">{profile.izbjegava?.length ? profile.izbjegava.join(', ') : t('profile.none')}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Preferencije</p>
-            <p className="font-semibold">{profile.preferencije?.length ? profile.preferencije.join(', ') : 'Nije odabrano'}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.preferences')}</p>
+            <p className="font-semibold">{profile.preferencije?.length ? profile.preferencije.join(', ') : t('profile.not_selected')}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Vrijeme</p>
-            <p className="font-semibold">{profile.vrijeme || 'Nije odabrano'}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.time')}</p>
+            <p className="font-semibold">{profile.vrijeme || t('profile.not_selected')}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Vještina</p>
-            <p className="font-semibold">{profile.tezina || 'Nije odabrano'}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.skill')}</p>
+            <p className="font-semibold">{profile.tezina || t('profile.not_selected')}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Kalorije</p>
-            <p className="font-semibold">{profile.kalorije || 'Nije odabrano'}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.calories')}</p>
+            <p className="font-semibold">{profile.kalorije || t('profile.not_selected')}</p>
           </div>
         </div>
       </div>
@@ -281,7 +283,7 @@ const Profile = () => {
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full text-sm font-semibold transition flex items-center gap-2"
         >
           <span>🔄</span>
-          {profile.kviz_zavrsen ? 'Izmijeni filtere' : 'Popuni kviz'}
+          {profile.kviz_zavrsen ? t('profile.edit_filters') : t('profile.take_quiz')}
         </Link>
         
         {!profile.premium && (
@@ -289,7 +291,7 @@ const Profile = () => {
             to="/premium"
             className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-full text-sm font-semibold transition"
           >
-            ⭐ Postani Premium
+            ⭐ {t('profile.become_premium')}
           </Link>
         )}
         
@@ -298,14 +300,14 @@ const Profile = () => {
           disabled={deleting}
           className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full text-sm font-semibold transition disabled:opacity-50"
         >
-          {deleting ? '⏳ Brisanje...' : '🗑️ Izbriši sve podatke'}
+          {deleting ? t('profile.deleting') : t('profile.delete_data')}
         </button>
         
         <button
           onClick={handleLogout}
           className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-full text-sm font-semibold transition"
         >
-          🚪 Odjavi se
+          🚪 {t('profile.logout')}
         </button>
       </div>
     </div>

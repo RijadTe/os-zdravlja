@@ -1,9 +1,11 @@
 // frontend/src/pages/ResetPassword.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 
 const ResetPassword = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [lozinka, setLozinka] = useState('');
   const [lozinkaPotvrda, setLozinkaPotvrda] = useState('');
@@ -28,37 +30,37 @@ const ResetPassword = () => {
     setMessage('');
 
     if (!lozinka || !lozinkaPotvrda) {
-      setError('⚠️ Molimo unesite i potvrdite lozinku.');
+      setError(t('resetpassword.errors.fields_required'));
       setLoading(false);
       return;
     }
 
     if (lozinka !== lozinkaPotvrda) {
-      setError('❌ Lozinke se ne podudaraju.');
+      setError(t('resetpassword.errors.passwords_match'));
       setLoading(false);
       return;
     }
 
     if (lozinka.length < 6) {
-      setError('❌ Lozinka mora imati najmanje 6 karaktera.');
+      setError(t('resetpassword.errors.password_length'));
       setLoading(false);
       return;
     }
 
     try {
       // ✅ KORISTI BACKEND API
-      const res = await axios.post('http://localhost:5000/api/auth/reset-password', {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/reset-password`, {
         token: token,
         lozinka: lozinka
       });
 
-      setMessage(res.data.message || '✅ Lozinka je uspješno promijenjena!');
+      setMessage(res.data.message || t('resetpassword.success.message'));
       setTimeout(() => {
         navigate('/login');
       }, 3000);
     } catch (error) {
       console.error('❌ Greška:', error);
-      setError(error.response?.data?.error || '❌ Greška pri resetovanju lozinke.');
+      setError(error.response?.data?.error || t('resetpassword.errors.general'));
     } finally {
       setLoading(false);
     }
@@ -68,10 +70,10 @@ const ResetPassword = () => {
     <div className="flex justify-center items-start min-h-screen bg-white dark:bg-gray-900 p-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 mt-6">
         <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-2">
-          🔐 Nova lozinka
+          🔐 {t('resetpassword.title')}
         </h1>
         <p className="text-center text-gray-500 dark:text-gray-300 mb-6">
-          Unesite novu lozinku za vaš nalog.
+          {t('resetpassword.subtitle')}
         </p>
 
         {error && (
@@ -89,13 +91,13 @@ const ResetPassword = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block font-semibold text-gray-700 dark:text-gray-200 mb-1">
-              🔒 Nova lozinka *
+              🔒 {t('resetpassword.new_password_label')} *
             </label>
             <input
               type="password"
               value={lozinka}
               onChange={(e) => setLozinka(e.target.value)}
-              placeholder="•••••••• (min 6 karaktera)"
+              placeholder={t('resetpassword.new_password_placeholder')}
               className="w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
               required
               minLength={6}
@@ -104,13 +106,13 @@ const ResetPassword = () => {
 
           <div>
             <label className="block font-semibold text-gray-700 dark:text-gray-200 mb-1">
-              🔒 Potvrdi lozinku *
+              🔒 {t('resetpassword.confirm_password_label')} *
             </label>
             <input
               type="password"
               value={lozinkaPotvrda}
               onChange={(e) => setLozinkaPotvrda(e.target.value)}
-              placeholder="••••••••"
+              placeholder={t('resetpassword.confirm_password_placeholder')}
               className="w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
               required
             />
@@ -121,15 +123,15 @@ const ResetPassword = () => {
             disabled={loading}
             className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white py-3 rounded-xl font-semibold transition shadow-md hover:shadow-lg"
           >
-            {loading ? '⏳ Promjena...' : '🔐 Promijeni lozinku'}
+            {loading ? t('resetpassword.button.loading') : t('resetpassword.button.reset')}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-gray-500 dark:text-gray-400 text-sm">
-            Sjetili ste se lozinke?{' '}
+            {t('resetpassword.remembered')}{' '}
             <Link to="/login" className="text-blue-600 dark:text-blue-400 hover:underline font-semibold">
-              Prijavite se
+              {t('resetpassword.login_link')}
             </Link>
           </p>
         </div>

@@ -1,9 +1,11 @@
 // frontend/src/pages/Login.jsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient';
 
 const Login = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
@@ -24,7 +26,7 @@ const Login = () => {
     setLoading(true);
 
     if (!formData.email || !formData.lozinka) {
-      setError('❌ Email i lozinka su obavezni.');
+      setError(t('login.errors.required'));
       setLoading(false);
       return;
     }
@@ -40,7 +42,7 @@ const Login = () => {
       if (error) {
         console.error('❌ Auth greška:', error);
         if (error.message.includes('Invalid login credentials')) {
-          setError('❌ Pogrešan email ili lozinka.');
+          setError(t('login.errors.invalid'));
         } else {
           setError('❌ ' + error.message);
         }
@@ -83,7 +85,7 @@ const Login = () => {
         localStorage.setItem('user', JSON.stringify(updatedUser));
       }
 
-      setSuccess('✅ Prijava uspješna! Preusmjeravam...');
+      setSuccess(t('login.success'));
 
       setTimeout(() => {
         navigate('/');
@@ -91,7 +93,7 @@ const Login = () => {
 
     } catch (err) {
       console.error('❌ Greška:', err);
-      setError('❌ Došlo je do greške. Pokušajte ponovo.');
+      setError(t('login.errors.general'));
     } finally {
       setLoading(false);
     }
@@ -101,10 +103,10 @@ const Login = () => {
     <div className="flex justify-center items-start min-h-screen bg-white dark:bg-gray-900 p-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 mt-6">
         <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-2">
-          🔐 Prijava
+          🔐 {t('login.title')}
         </h1>
         <p className="text-center text-gray-500 dark:text-gray-300 mb-6">
-          Dobrodošli nazad! Prijavite se za nastavak.
+          {t('login.subtitle')}
         </p>
 
         {error && (
@@ -122,14 +124,14 @@ const Login = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block font-semibold text-gray-700 dark:text-gray-200 mb-1">
-              📧 Email *
+              📧 {t('login.email_label')} *
             </label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="vas@email.com"
+              placeholder={t('login.email_placeholder')}
               className="w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
               required
             />
@@ -137,14 +139,14 @@ const Login = () => {
 
           <div>
             <label className="block font-semibold text-gray-700 dark:text-gray-200 mb-1">
-              🔒 Lozinka *
+              🔒 {t('login.password_label')} *
             </label>
             <input
               type="password"
               name="lozinka"
               value={formData.lozinka}
               onChange={handleChange}
-              placeholder="••••••••"
+              placeholder={t('login.password_placeholder')}
               className="w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
               required
             />
@@ -157,10 +159,10 @@ const Login = () => {
                 name="rememberMe"
                 className="w-4 h-4 accent-blue-500"
               />
-              Zapamti me
+              {t('login.remember_me')}
             </label>
             <Link to="/forgot-password" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-              Zaboravili ste lozinku?
+              {t('login.forgot_password')}
             </Link>
           </div>
 
@@ -169,22 +171,22 @@ const Login = () => {
             disabled={loading}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-3 rounded-xl font-semibold transition shadow-md hover:shadow-lg"
           >
-            {loading ? '⏳ Prijava...' : '🔑 Prijavi se'}
+            {loading ? t('login.button.loading') : t('login.button.login')}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-gray-500 dark:text-gray-400 text-sm">
-            Nemaš nalog?{' '}
+            {t('login.no_account')}{' '}
             <Link to="/register" className="text-blue-600 dark:text-blue-400 hover:underline font-semibold">
-              Registruj se
+              {t('login.register_link')}
             </Link>
           </p>
         </div>
 
         <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
           <Link to="/" className="block text-center text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition text-sm">
-            ⬅️ Vrati se na početnu
+            ⬅️ {t('login.back_home')}
           </Link>
         </div>
       </div>

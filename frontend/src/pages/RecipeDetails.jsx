@@ -501,12 +501,27 @@ const RecipeDetails = () => {
   // ============================================================
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
-      <button
-        onClick={() => navigate(-1)}
-        className="text-blue-500 dark:text-blue-400 hover:underline mb-4 flex items-center gap-2"
-      >
-        ⬅️ {t('common.back')}
-      </button>
+      {/* 🔥 DUGME ZA NAZAD NA RECIPES */}
+      <div className="flex flex-wrap gap-3 mb-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="text-blue-500 dark:text-blue-400 hover:underline flex items-center gap-2"
+        >
+          ⬅️ {t('common.back')}
+        </button>
+        <Link 
+          to="/recipes" 
+          className="text-blue-500 dark:text-blue-400 hover:underline flex items-center gap-2"
+        >
+          📋 {t('recipe.all_recipes')}
+        </Link>
+        <Link 
+          to="/healthy-chef" 
+          className="text-purple-500 dark:text-purple-400 hover:underline flex items-center gap-2"
+        >
+          🌿 {t('healthychef.title')}
+        </Link>
+      </div>
 
       <img
         src={recipe.slika || 'https://via.placeholder.com/800x400'}

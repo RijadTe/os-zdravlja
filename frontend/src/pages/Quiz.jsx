@@ -1,6 +1,7 @@
 // frontend/src/pages/Quiz.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Toast from '../components/Toast';
 import { supabase } from '../supabaseClient';
 
@@ -34,6 +35,7 @@ const ICONS = {
 };
 
 const Quiz = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -89,7 +91,7 @@ const Quiz = () => {
             
             if (profile.kviz_zavrsen) {
               setToast({
-                message: 'ℹ️ Već ste popunili kviz. Možete ponovo promijeniti svoje preferencije.',
+                message: t('quiz.toast.already_completed'),
                 type: 'info'
               });
               setTimeout(() => setToast(null), 3000);
@@ -98,7 +100,7 @@ const Quiz = () => {
         } else {
           console.log('🔒 Korisnik nije prijavljen, preusmjeravam na login...');
           setToast({
-            message: '🔒 Molimo prijavite se za pristup kvizu.',
+            message: t('quiz.toast.login_required'),
             type: 'info'
           });
           setTimeout(() => {
@@ -113,7 +115,7 @@ const Quiz = () => {
     };
 
     checkUser();
-  }, [navigate]);
+  }, [navigate, t]);
 
   // ============================================================
   // 📋 PITANJA ZA KVIZ
@@ -121,44 +123,44 @@ const Quiz = () => {
   const questions = [
     {
       id: 'vrsta',
-      label: '🍽️ Šta danas želite jesti? * (max 3)',
+      label: t('quiz.questions.vrsta'),
       type: 'checkbox',
-      options: ['Deserti', 'Slano', 'Dijetalni recepti', 'Napitki', 'Svejedno'],
+      options: t('quiz.options.vrsta', { returnObjects: true }) || ['Deserti', 'Slano', 'Dijetalni recepti', 'Napitki', 'Svejedno'],
       maxSelect: 3
     },
     {
       id: 'preferencije',
-      label: '💪 Šta PREFERIRATE? (max 2)',
+      label: t('quiz.questions.preferencije'),
       type: 'checkbox',
-      options: ['Visokoproteinski', 'Bogat vlaknima', 'Bogat ugljikohidratima', 'Svejedno'],
+      options: t('quiz.options.preferencije', { returnObjects: true }) || ['Visokoproteinski', 'Bogat vlaknima', 'Bogat ugljikohidratima', 'Svejedno'],
       maxSelect: 2
     },
     {
       id: 'restrikcije',
-      label: '🚫 Šta IZBJEGAVATE? (max 3)',
+      label: t('quiz.questions.restrikcije'),
       type: 'checkbox',
-      options: ['Bez restrikcija', 'Bez glutena', 'Bez laktoze', 'Bez šećera', 'Veganski', 'Orašasti plodovi'],
+      options: t('quiz.options.restrikcije', { returnObjects: true }) || ['Bez restrikcija', 'Bez glutena', 'Bez laktoze', 'Bez šećera', 'Veganski', 'Orašasti plodovi'],
       maxSelect: 3
     },
     {
       id: 'vrijeme',
-      label: '⏱️ Koliko vremena imate za pripremu? *',
+      label: t('quiz.questions.vrijeme'),
       type: 'select',
-      options: ['Kratko (15-30 min)', 'Srednje (30-45 min)', 'Duže (45-60+ min)'],
+      options: t('quiz.options.vrijeme', { returnObjects: true }) || ['Kratko (15-30 min)', 'Srednje (30-45 min)', 'Duže (45-60+ min)'],
       maxSelect: 1
     },
     {
       id: 'tezina',
-      label: '👨‍🍳 Koliko ste vješti u kuhinji? *',
+      label: t('quiz.questions.tezina'),
       type: 'select',
-      options: ['Početnik', 'Srednji', 'Profesionalac'],
+      options: t('quiz.options.tezina', { returnObjects: true }) || ['Početnik', 'Srednji', 'Profesionalac'],
       maxSelect: 1
     },
     {
       id: 'kalorije',
-      label: '🔥 Koje kalorije preferirate? *',
+      label: t('quiz.questions.kalorije'),
       type: 'select',
-      options: ['Nisko (do 300 kcal)', 'Umjereno (300-500 kcal)', 'Srednje (500-700 kcal)', 'Visoko (900+ kcal)'],
+      options: t('quiz.options.kalorije', { returnObjects: true }) || ['Nisko (do 300 kcal)', 'Umjereno (300-500 kcal)', 'Srednje (500-700 kcal)', 'Visoko (900+ kcal)'],
       maxSelect: 1
     }
   ];
@@ -247,7 +249,7 @@ const Quiz = () => {
       handleChange(field, [...current, option]);
     } else {
       setToast({ 
-        message: `Možete izabrati maksimalno ${max} opcije.`, 
+        message: t('quiz.toast.max_selected', { max }), 
         type: 'error' 
       });
       setTimeout(() => setToast(null), 2500);
@@ -283,7 +285,7 @@ const Quiz = () => {
     for (let field of requiredFields) {
       if (!formData[field] || (Array.isArray(formData[field]) && formData[field].length === 0)) {
         setToast({ 
-          message: `Molimo popunite sva polja.`, 
+          message: t('quiz.toast.fill_all_fields'), 
           type: 'error' 
         });
         setTimeout(() => setToast(null), 2500);
@@ -296,7 +298,7 @@ const Quiz = () => {
       
       if (!email) {
         setToast({ 
-          message: '❌ Niste prijavljeni. Molimo prijavite se.', 
+          message: t('quiz.toast.not_logged_in'), 
           type: 'error' 
         });
         navigate('/login');
@@ -331,7 +333,7 @@ const Quiz = () => {
       console.log('✅ Kviz uspješno poslan:', data);
       
       setToast({ 
-        message: '✅ Kviz završen! Filteri su sačuvani.', 
+        message: t('quiz.toast.success'), 
         type: 'success' 
       });
       
@@ -341,7 +343,7 @@ const Quiz = () => {
     } catch (error) {
       console.error('❌ Greška pri slanju kviza:', error);
       setToast({ 
-        message: `❌ Greška pri slanju kviza: ${error.message}`, 
+        message: t('quiz.toast.error', { message: error.message }), 
         type: 'error' 
       });
       setTimeout(() => setToast(null), 3000);
@@ -394,7 +396,7 @@ const Quiz = () => {
           className="w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
           required
         >
-          <option value="">Izaberite...</option>
+          <option value="">{t('quiz.select_placeholder')}</option>
           {q.options.map(option => (
             <option key={option} value={option}>
               {getIcon(option)} {option}
@@ -420,7 +422,7 @@ const Quiz = () => {
       <div className="flex justify-center items-center min-h-[60vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Učitavanje...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -436,7 +438,7 @@ const Quiz = () => {
       <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 mt-4 sm:mt-6">
         <div className="mb-4 sm:mb-6">
           <div className="flex justify-between text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1">
-            <span>Korak {currentStep + 1} od {questions.length}</span>
+            <span>{t('quiz.step', { current: currentStep + 1, total: questions.length })}</span>
             <span>{Math.round(progress)}%</span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -448,17 +450,15 @@ const Quiz = () => {
         </div>
 
         <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 dark:text-white mb-1">
-          {user?.kviz_zavrsen ? '✏️ Izmjena filtera' : '👋 HAJDE DA VAS UPOZNAMO'}
+          {user?.kviz_zavrsen ? t('quiz.edit_title') : t('quiz.title')}
         </h1>
         <p className="text-sm sm:text-base text-center text-gray-500 dark:text-gray-300 mb-4 sm:mb-6">
-          {user?.kviz_zavrsen 
-            ? 'Prilagodite svoje preferencije i uživajte u savršenim receptima!' 
-            : 'Odgovorite na 6 pitanja i mi ćemo prilagoditi recepte vašim potrebama!'}
+          {user?.kviz_zavrsen ? t('quiz.edit_subtitle') : t('quiz.subtitle')}
         </p>
 
         {user && (
           <div className="mb-4 text-center text-sm text-gray-600 dark:text-gray-400">
-            👋 Prijavljeni ste kao <span className="font-semibold text-blue-600 dark:text-blue-400">{user.email}</span>
+            {t('quiz.logged_in_as')} <span className="font-semibold text-blue-600 dark:text-blue-400">{user.email}</span>
           </div>
         )}
 
@@ -477,7 +477,7 @@ const Quiz = () => {
             {renderQuestion()}
             {questions[currentStep].maxSelect && (
               <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-500 mt-1">
-                Odabrano: {(formData[questions[currentStep].id] || []).length}/{questions[currentStep].maxSelect}
+                {t('quiz.selected', { count: (formData[questions[currentStep].id] || []).length, max: questions[currentStep].maxSelect })}
               </p>
             )}
           </div>
@@ -489,7 +489,7 @@ const Quiz = () => {
               disabled={currentStep === 0}
               className="px-4 sm:px-6 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 disabled:opacity-50 hover:bg-gray-300 dark:hover:bg-gray-500 transition text-sm sm:text-base"
             >
-              Nazad
+              {t('quiz.buttons.back')}
             </button>
             
             {currentStep === questions.length - 1 ? (
@@ -498,7 +498,7 @@ const Quiz = () => {
                 onClick={handleSubmit}
                 className="px-4 sm:px-6 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition shadow-md hover:shadow-lg text-sm sm:text-base"
               >
-                {user?.kviz_zavrsen ? '✅ Sačuvaj izmjene' : '✅ Započnimo'}
+                {user?.kviz_zavrsen ? t('quiz.buttons.save') : t('quiz.buttons.submit')}
               </button>
             ) : (
               <button
@@ -506,7 +506,7 @@ const Quiz = () => {
                 onClick={() => setCurrentStep(prev => Math.min(questions.length - 1, prev + 1))}
                 className="px-4 sm:px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition shadow-md hover:shadow-lg text-sm sm:text-base"
               >
-                Dalje →
+                {t('quiz.buttons.next')}
               </button>
             )}
           </div>

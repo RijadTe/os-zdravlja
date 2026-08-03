@@ -1,9 +1,11 @@
 // frontend/src/pages/Register.jsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient';
 
 const Register = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
@@ -26,19 +28,19 @@ const Register = () => {
     setLoading(true);
 
     if (!formData.email || !formData.ime || !formData.lozinka || !formData.lozinkaPotvrda) {
-      setError('❌ Sva polja su obavezna.');
+      setError(t('register.errors.all_fields'));
       setLoading(false);
       return;
     }
 
     if (formData.lozinka !== formData.lozinkaPotvrda) {
-      setError('❌ Lozinke se ne podudaraju.');
+      setError(t('register.errors.passwords_match'));
       setLoading(false);
       return;
     }
 
     if (formData.lozinka.length < 6) {
-      setError('❌ Lozinka mora imati najmanje 6 karaktera.');
+      setError(t('register.errors.password_length'));
       setLoading(false);
       return;
     }
@@ -58,7 +60,7 @@ const Register = () => {
 
       if (existingUser) {
         console.log('⚠️ Email već postoji:', formData.email);
-        setError('❌ Korisnik sa ovim emailom već postoji. Molimo prijavite se.');
+        setError(t('register.errors.email_exists'));
         setLoading(false);
         return;
       }
@@ -78,7 +80,7 @@ const Register = () => {
       if (authError) {
         console.error('❌ Auth greška:', authError);
         if (authError.message.includes('already registered')) {
-          setError('❌ Korisnik sa ovim emailom već postoji. Molimo prijavite se.');
+          setError(t('register.errors.email_exists'));
         } else {
           setError('❌ ' + authError.message);
         }
@@ -108,7 +110,7 @@ const Register = () => {
         if (profileError.code === '23505') {
           console.log('ℹ️ Profil već postoji, nastavljam...');
         } else {
-          setError('❌ Greška pri kreiranju profila: ' + profileError.message);
+          setError(t('register.errors.profile_create') + profileError.message);
           setLoading(false);
           return;
         }
@@ -133,7 +135,7 @@ const Register = () => {
 
       console.log('👤 Sačuvan user:', userData);
 
-      setSuccess('✅ Registracija uspješna! Preusmjeravam...');
+      setSuccess(t('register.success'));
 
       setTimeout(() => {
         navigate('/');
@@ -141,7 +143,7 @@ const Register = () => {
 
     } catch (error) {
       console.error('❌ Greška:', error);
-      setError('❌ Greška pri registraciji: ' + error.message);
+      setError(t('register.errors.general') + error.message);
     } finally {
       setLoading(false);
     }
@@ -151,10 +153,10 @@ const Register = () => {
     <div className="flex justify-center items-start min-h-screen bg-white dark:bg-gray-900 p-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 mt-6">
         <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-2">
-          👋 Kreiraj nalog
+          👋 {t('register.title')}
         </h1>
         <p className="text-center text-gray-500 dark:text-gray-300 mb-6">
-          Pridružite se i otkrijte savršene recepte!
+          {t('register.subtitle')}
         </p>
 
         {error && (
@@ -172,14 +174,14 @@ const Register = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block font-semibold text-gray-700 dark:text-gray-200 mb-1">
-              📧 Email *
+              📧 {t('register.email_label')} *
             </label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="vas@email.com"
+              placeholder={t('register.email_placeholder')}
               className="w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
               required
             />
@@ -187,14 +189,14 @@ const Register = () => {
 
           <div>
             <label className="block font-semibold text-gray-700 dark:text-gray-200 mb-1">
-              👤 Ime *
+              👤 {t('register.name_label')} *
             </label>
             <input
               type="text"
               name="ime"
               value={formData.ime}
               onChange={handleChange}
-              placeholder="Marko Marković"
+              placeholder={t('register.name_placeholder')}
               className="w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
               required
             />
@@ -202,14 +204,14 @@ const Register = () => {
 
           <div>
             <label className="block font-semibold text-gray-700 dark:text-gray-200 mb-1">
-              🔒 Lozinka *
+              🔒 {t('register.password_label')} *
             </label>
             <input
               type="password"
               name="lozinka"
               value={formData.lozinka}
               onChange={handleChange}
-              placeholder="•••••••• (min 6 karaktera)"
+              placeholder={t('register.password_placeholder')}
               className="w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
               required
               minLength={6}
@@ -218,14 +220,14 @@ const Register = () => {
 
           <div>
             <label className="block font-semibold text-gray-700 dark:text-gray-200 mb-1">
-              🔒 Potvrdi lozinku *
+              🔒 {t('register.confirm_password_label')} *
             </label>
             <input
               type="password"
               name="lozinkaPotvrda"
               value={formData.lozinkaPotvrda}
               onChange={handleChange}
-              placeholder="••••••••"
+              placeholder={t('register.confirm_password_placeholder')}
               className="w-full p-3 border rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
               required
             />
@@ -236,14 +238,14 @@ const Register = () => {
             disabled={loading}
             className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white py-3 rounded-xl font-semibold transition shadow-md hover:shadow-lg"
           >
-            {loading ? '⏳ Kreiranje...' : '✅ Registruj se'}
+            {loading ? t('register.button.loading') : t('register.button.register')}
           </button>
         </form>
 
         <p className="text-center text-gray-500 dark:text-gray-400 mt-6 text-sm">
-          Već imaš nalog?{' '}
+          {t('register.have_account')}{' '}
           <Link to="/login" className="text-blue-600 dark:text-blue-400 hover:underline font-semibold">
-            Prijavi se
+            {t('register.login_link')}
           </Link>
         </p>
       </div>

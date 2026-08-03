@@ -1,24 +1,27 @@
 // frontend/src/pages/PrivacyPolicy.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const PrivacyPolicy = () => {
+  const { t } = useTranslation();
+
   return (
     <div className="max-w-4xl mx-auto py-12 px-4 dark:bg-gray-900 dark:text-white">
-      <h1 className="text-3xl font-bold mb-6">🔒 Pravila privatnosti</h1>
+      <h1 className="text-3xl font-bold mb-6">🔒 {t('privacypolicy.title')}</h1>
       <div className="space-y-4 text-gray-700 dark:text-gray-300 leading-relaxed">
-        <p><strong>OS Zdravlja</strong> ozbiljno shvaća vašu privatnost.</p>
-        <p>Prikupljamo samo podatke koje nam dobrovoljno date:</p>
+        <p><strong>OS Zdravlja</strong> {t('privacypolicy.intro')}</p>
+        <p>{t('privacypolicy.collect_info')}</p>
         <ul className="list-disc list-inside space-y-2 ml-4">
-          <li>📧 Email adresa</li>
-          <li>👤 Ime</li>
-          <li>🍽️ Preferencije u ishrani</li>
-          <li>📊 Podaci o ishrani (unos obroka)</li>
+          <li>📧 {t('privacypolicy.data.email')}</li>
+          <li>👤 {t('privacypolicy.data.name')}</li>
+          <li>🍽️ {t('privacypolicy.data.preferences')}</li>
+          <li>📊 {t('privacypolicy.data.nutrition')}</li>
         </ul>
-        <p><strong>Vaši podaci NIKADA se ne dijele s trećim stranama.</strong></p>
-        <p>U svakom trenutku možete zatražiti brisanje svih podataka putem profila.</p>
-        <p className="text-sm text-gray-500 mt-6">Zadnje ažurirano: 31.07.2026.</p>
-        <Link to="/" className="inline-block mt-4 text-blue-500 hover:underline">⬅️ Nazad na početnu</Link>
+        <p><strong>{t('privacypolicy.sharing.title')}</strong></p>
+        <p>{t('privacypolicy.delete_info')}</p>
+        <p className="text-sm text-gray-500 mt-6">{t('privacypolicy.last_updated')}</p>
+        <Link to="/" className="inline-block mt-4 text-blue-500 hover:underline">⬅️ {t('privacypolicy.back_home')}</Link>
       </div>
     </div>
   );
