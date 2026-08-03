@@ -29,7 +29,7 @@ import NotificationBell from './components/NotificationBell';
 import LanguageSwitcher from './components/LanguageSwitcher';
 
 function App() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -303,22 +303,23 @@ function App() {
     <BrowserRouter>
       <div className="min-h-screen bg-white dark:bg-gray-900">
         {/* ============================================================
-            HEADER - POTPUNO RESPONZIVAN
+            HEADER - POTPUNO RESPONZIVAN SA NAZIVOM
             ============================================================ */}
         <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
             <div className="flex items-center justify-between h-14 sm:h-16 md:h-20">
               
-              {/* LOGO - manji na mobitelu */}
+              {/* LOGO - sa nazivom */}
               <Link 
                 to="/" 
-                className="flex-shrink-0 text-base sm:text-xl md:text-3xl font-extrabold text-blue-600 dark:text-blue-400"
+                className="flex items-center gap-1 sm:gap-2 flex-shrink-0 text-base sm:text-xl md:text-3xl font-extrabold text-blue-600 dark:text-blue-400"
               >
-                🏥 <span className="hidden xs:inline">{t('app.title')}</span>
+                <span>🏥</span>
+                <span className="hidden xs:inline">{t('app.title')}</span>
                 <span className="inline xs:hidden">OS</span>
               </Link>
 
-              {/* NAVIGACIJA - manji razmak na mobitelu */}
+              {/* NAVIGACIJA - sa nazivima */}
               <nav className="flex items-center gap-1 sm:gap-2 md:gap-6 text-xs sm:text-sm font-semibold">
                 
                 {/* POČETNA */}
@@ -369,12 +370,12 @@ function App() {
                   <span className="text-[8px] sm:text-[10px] md:text-xs">{t('nav.quiz')}</span>
                 </Link>
 
-                {/* 🔔 NOTIFIKACIJE - sakrij na najmanjim ekranima */}
+                {/* 🔔 NOTIFIKACIJE */}
                 <div className="hidden xs:flex">
                   {currentUser && <NotificationBell />}
                 </div>
 
-                {/* 🌍 JEZIK */}
+                {/* 🌍 JEZIK - poboljšani LanguageSwitcher sa zastavom */}
                 <LanguageSwitcher />
 
                 {/* 🌙 TAMNA TEMA */}
