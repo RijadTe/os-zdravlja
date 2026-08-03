@@ -1,10 +1,12 @@
 // frontend/src/components/RecipeCard.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import LazyImage from './LazyImage';
 
 const RecipeCard = React.memo(({ recipe }) => {
-  // Helper za prikaz nutritivnih vrijednosti
+  const { t } = useTranslation();
+
   const getNutritionLabel = () => {
     const parts = [];
     if (recipe.proteini) parts.push(`💪 ${recipe.proteini}g`);
@@ -32,41 +34,36 @@ const RecipeCard = React.memo(({ recipe }) => {
         </h3>
         
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          ⏱️ {recipe.vrijeme} · 🔥 {recipe.kalorije} kcal
+          ⏱️ {recipe.vrijeme} · 🔥 {recipe.kalorije} {t('recipe.kcal')}
         </p>
 
-        {/* 🆕 NUTRITIVNE VREDNOSTI */}
         {nutritionLabel && (
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
             {nutritionLabel}
           </p>
         )}
 
-        {/* Tagovi */}
         <div className="flex flex-wrap gap-1 mt-2">
-          {/* Premium oznaka */}
           {recipe.premium && (
             <span className="inline-block bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 text-xs px-2 py-0.5 rounded-full font-semibold">
-              ⭐ Premium
+              ⭐ {t('premium.title')}
             </span>
           )}
           
-          {/* 🆕 Preferencije tagovi */}
           {recipe.proteini >= 25 && (
             <span className="inline-block bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200 text-xs px-2 py-0.5 rounded-full font-semibold">
-              💪 Visokoprotein
+              💪 {t('recipes.high_protein')}
             </span>
           )}
           {recipe.vlakna >= 10 && (
             <span className="inline-block bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-200 text-xs px-2 py-0.5 rounded-full font-semibold">
-              🌾 Bogat vlaknima
+              🌾 {t('recipes.high_fiber')}
             </span>
           )}
           
-          {/* 🆕 Restrikcije tagovi */}
           {recipe.alergeni && recipe.alergeni.length > 0 && (
             <span className="inline-block bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-200 text-xs px-2 py-0.5 rounded-full font-semibold">
-              🚫 {recipe.alergeni.length} restrikcija
+              🚫 {recipe.alergeni.length} {t('recipe.restrictions')}
             </span>
           )}
         </div>

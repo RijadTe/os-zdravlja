@@ -1,9 +1,11 @@
 // frontend/src/components/NotificationBell.jsx
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const NotificationBell = () => {
+  const { t } = useTranslation();
   const [notifikacije, setNotifikacije] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -34,7 +36,6 @@ const NotificationBell = () => {
   const fetchNotifikacije = async (korisnikId) => {
     try {
       setLoading(true);
-      // Koristi email ili ID
       const param = korisnikId.includes('@') ? korisnikId : korisnikId;
       const res = await fetch(`${API_URL}/notifikacije/${param}`);
       const data = await res.json();
@@ -55,7 +56,6 @@ const NotificationBell = () => {
     try {
       const param = korisnikId.includes('@') ? korisnikId : korisnikId;
       await fetch(`${API_URL}/notifikacije/preporuke/${param}`);
-      // Ponovo dohvati notifikacije nakon generisanja
       setTimeout(() => fetchNotifikacije(korisnikId), 1000);
     } catch (error) {
       console.error('Greška pri generisanju preporuka:', error);
@@ -111,9 +111,9 @@ const NotificationBell = () => {
     const danas = new Date();
     const razlika = Math.floor((danas - d) / (1000 * 60));
     
-    if (razlika < 1) return 'Upravo sad';
-    if (razlika < 60) return `${razlika} min`;
-    if (razlika < 1440) return `${Math.floor(razlika / 60)}h`;
+    if (razlika < 1) return t('notification.just_now');
+    if (razlika < 60) return `${razlika} ${t('notification.min')}`;
+    if (razlika < 1440) return `${Math.floor(razlika / 60)}${t('notification.h')}`;
     return d.toLocaleDateString('hr', { day: '2-digit', month: '2-digit' });
   };
 
@@ -157,7 +157,7 @@ const NotificationBell = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-        aria-label="Notifikacije"
+        aria-label={t('notification.notifications')}
       >
         <span className="text-2xl">🔔</span>
         {unreadCount > 0 && (
@@ -171,7 +171,7 @@ const NotificationBell = () => {
         <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 z-50">
           <div className="sticky top-0 bg-white dark:bg-gray-800 p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
             <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2">
-              🔔 Notifikacije
+              🔔 {t('notification.title')}
               {unreadCount > 0 && (
                 <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">
                   {unreadCount}
@@ -183,7 +183,7 @@ const NotificationBell = () => {
                 onClick={markAllAsRead}
                 className="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 hover:underline"
               >
-                Označi sve
+                {t('notification.mark_all')}
               </button>
             )}
           </div>
@@ -192,13 +192,13 @@ const NotificationBell = () => {
             {loading ? (
               <div className="text-center py-4 text-gray-500 dark:text-gray-400">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
-                <p className="mt-1 text-sm">Učitavanje...</p>
+                <p className="mt-1 text-sm">{t('common.loading')}</p>
               </div>
             ) : notifikacije.length === 0 ? (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 <span className="text-4xl block mb-2">🎉</span>
-                <p>Sve je mirno</p>
-                <p className="text-xs">Vratite se kasnije</p>
+                <p>{t('notification.no_notifications')}</p>
+                <p className="text-xs">{t('notification.come_back_later')}</p>
               </div>
             ) : (
               notifikacije.map((notif) => (
@@ -229,7 +229,7 @@ const NotificationBell = () => {
                             }}
                             className="text-xs text-blue-500 hover:text-blue-600 hover:underline font-medium"
                           >
-                            Otvori →
+                            {t('notification.open')} →
                           </a>
                         )}
                       </div>
@@ -246,7 +246,7 @@ const NotificationBell = () => {
                       onClick={() => markAsRead(notif.id)}
                       className="mt-1 text-xs text-green-500 hover:text-green-600 hover:underline"
                     >
-                      ✅ Označi kao pročitano
+                      ✅ {t('notification.mark_read')}
                     </button>
                   )}
                 </div>
@@ -256,13 +256,13 @@ const NotificationBell = () => {
 
           <div className="sticky bottom-0 bg-white dark:bg-gray-800 p-2 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
             <span className="text-xs text-gray-400 dark:text-gray-500">
-              {notifikacije.length} notifikacija
+              {notifikacije.length} {t('notification.notifications')}
             </span>
             <button
               onClick={() => setIsOpen(false)}
               className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
-              Zatvori
+              {t('common.close')}
             </button>
           </div>
         </div>

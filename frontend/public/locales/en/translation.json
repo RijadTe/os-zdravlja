@@ -720,7 +720,9 @@
     "time_up": "⏰ Time is up!",
     "recipe": "Recipe",
     "copied": "📋 Recipe copied to clipboard!",
-    "all_recipes": "All recipes"
+    "all_recipes": "All recipes",
+    "kcal": "kcal",
+    "restrictions": "restrictions"
   },
   "recipes": {
     "all": "All recipes",
@@ -755,5 +757,32 @@
       "savory": "Savory",
       "drinks": "Drinks"
     }
+  },
+  "notification": {
+    "title": "Notifications",
+    "notifications": "notifications",
+    "no_notifications": "All quiet",
+    "come_back_later": "Come back later",
+    "mark_all": "Mark all",
+    "mark_read": "Mark as read",
+    "open": "Open",
+    "just_now": "Just now",
+    "min": "min",
+    "h": "h"
+  },
+  "tajni_recept": {
+    "title": "Secret recipe of the day",
+    "secret_recipe": "Secret recipe",
+    "recipe_of_the_day": "Secret recipe of the day",
+    "disappears": "Only today – gone tomorrow!",
+    "no_recipe": "No secret recipe today.",
+    "click_hint": "Click to discover the recipe before it disappears!",
+    "share_button": "Share recipe",
+    "send_to_friend": "Send to friend",
+    "shared_success": "✅ Recipe successfully shared!",
+    "copied": "✅ Recipe copied to clipboard! Share it with friends!",
+    "share_error": "❌ Error sharing. Please try again.",
+    "whatsapp_message": "Discover the secret recipe of the day:",
+    "error": "❌ Secret recipe currently unavailable."
   }
 }

@@ -1,9 +1,11 @@
 // frontend/src/components/TajniRecept.jsx
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 
 const TajniRecept = () => {
+  const { t } = useTranslation();
   const [recept, setRecept] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -12,42 +14,42 @@ const TajniRecept = () => {
   useEffect(() => {
     const fetchTajniRecept = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/tajni-recept');
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/tajni-recept`);
         setRecept(res.data);
       } catch (err) {
         console.error('Greška:', err);
-        setError('❌ Tajni recept trenutno nije dostupan.');
+        setError(t('tajni_recept.error'));
       } finally {
         setLoading(false);
       }
     };
     fetchTajniRecept();
-  }, []);
+  }, [t]);
 
   // 🆕 DIJELJENJE TAJNOG RECEPTA
   const shareRecipe = async () => {
     if (!recept) return;
 
     const shareData = {
-      title: `🕵️ Tajni recept: ${recept.naziv}`,
-      text: `🕵️ Tajni recept dana: ${recept.naziv}\n⏱️ ${recept.vrijeme} min · 🔥 ${recept.kalorije} kcal\n\n👨‍🍳 Upute: ${recept.upute?.join('. ')}\n\n⏳ Samo danas – sutra nestaje!`,
+      title: `🕵️ ${t('tajni_recept.secret_recipe')}: ${recept.naziv}`,
+      text: `🕵️ ${t('tajni_recept.recipe_of_the_day')}: ${recept.naziv}\n⏱️ ${recept.vrijeme} min · 🔥 ${recept.kalorije} kcal\n\n👨‍🍳 ${t('recipe.instructions')}: ${recept.upute?.join('. ')}\n\n⏳ ${t('tajni_recept.disappears')}`,
       url: window.location.href,
     };
 
     try {
       if (navigator.share) {
         await navigator.share(shareData);
-        setShareMessage('✅ Recept uspješno podijeljen!');
+        setShareMessage(t('tajni_recept.shared_success'));
         setTimeout(() => setShareMessage(''), 3000);
       } else {
         await navigator.clipboard.writeText(shareData.text);
-        setShareMessage('✅ Recept je kopiran u clipboard! Podijeli ga sa prijateljima!');
+        setShareMessage(t('tajni_recept.copied'));
         setTimeout(() => setShareMessage(''), 3000);
       }
     } catch (error) {
       if (error.name !== 'AbortError') {
         console.error('Greška pri dijeljenju:', error);
-        setShareMessage('❌ Greška pri dijeljenju. Pokušajte ponovo.');
+        setShareMessage(t('tajni_recept.share_error'));
         setTimeout(() => setShareMessage(''), 3000);
       }
     }
@@ -57,7 +59,7 @@ const TajniRecept = () => {
   const sendToFriend = () => {
     if (!recept) return;
     
-    const message = `🕵️ Otkrij tajni recept dana: ${recept.naziv}! ⏳ Samo danas – sutra nestaje! 🔥 ${recept.kalorije} kcal\n\n👨‍🍳 ${recept.upute?.join('. ')}\n\n🌐 ${window.location.href}`;
+    const message = `🕵️ ${t('tajni_recept.whatsapp_message')} ${recept.naziv}! ⏳ ${t('tajni_recept.disappears')} 🔥 ${recept.kalorije} kcal\n\n👨‍🍳 ${recept.upute?.join('. ')}\n\n🌐 ${window.location.href}`;
     const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
@@ -67,7 +69,7 @@ const TajniRecept = () => {
       <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-2xl p-6 border-2 border-yellow-400 dark:border-yellow-600 text-center">
         <div className="animate-pulse">
           <span className="text-3xl">🕵️</span>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">Učitavanje tajnog recepta...</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -77,7 +79,7 @@ const TajniRecept = () => {
     return (
       <div className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-2xl p-6 border-2 border-yellow-400 dark:border-yellow-600 text-center">
         <span className="text-3xl">🕵️</span>
-        <p className="text-gray-500 dark:text-gray-400 mt-2">{error || 'Danas nema tajnog recepta.'}</p>
+        <p className="text-gray-500 dark:text-gray-400 mt-2">{error || t('tajni_recept.no_recipe')}</p>
       </div>
     );
   }
@@ -104,10 +106,10 @@ const TajniRecept = () => {
             <span className="text-3xl md:text-4xl">🕵️</span>
             <div>
               <h3 className="font-bold text-gray-800 dark:text-white text-lg md:text-xl">
-                🤫 Tajni recept dana
+                🤫 {t('tajni_recept.title')}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Samo danas – sutra nestaje! ⏳
+                {t('tajni_recept.disappears')} ⏳
               </p>
             </div>
           </div>
@@ -134,7 +136,7 @@ const TajniRecept = () => {
 
         <div className="mt-3 text-sm text-yellow-600 dark:text-yellow-400 flex items-center gap-2">
           <span>🌟</span>
-          <span>Klikni da otkriješ recept prije nego što nestane!</span>
+          <span>{t('tajni_recept.click_hint')}</span>
         </div>
       </Link>
 
@@ -144,13 +146,13 @@ const TajniRecept = () => {
           onClick={shareRecipe}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2"
         >
-          📤 Podijeli recept
+          📤 {t('tajni_recept.share_button')}
         </button>
         <button
           onClick={sendToFriend}
           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2"
         >
-          💬 Pošalji prijatelju
+          💬 {t('tajni_recept.send_to_friend')}
         </button>
       </div>
     </div>

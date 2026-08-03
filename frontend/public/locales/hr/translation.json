@@ -720,7 +720,9 @@
     "time_up": "⏰ Vrijeme je isteklo!",
     "recipe": "Recept",
     "copied": "📋 Recept je kopiran u clipboard!",
-    "all_recipes": "Svi recepti"
+    "all_recipes": "Svi recepti",
+    "kcal": "kcal",
+    "restrictions": "restrikcija"
   },
   "recipes": {
     "all": "Svi recepti",
@@ -755,5 +757,32 @@
       "savory": "Slana jela",
       "drinks": "Napitki"
     }
+  },
+  "notification": {
+    "title": "Notifikacije",
+    "notifications": "notifikacija",
+    "no_notifications": "Sve je mirno",
+    "come_back_later": "Vratite se kasnije",
+    "mark_all": "Označi sve",
+    "mark_read": "Označi kao pročitano",
+    "open": "Otvori",
+    "just_now": "Upravo sad",
+    "min": "min",
+    "h": "h"
+  },
+  "tajni_recept": {
+    "title": "Tajni recept dana",
+    "secret_recipe": "Tajni recept",
+    "recipe_of_the_day": "Tajni recept dana",
+    "disappears": "Samo danas – sutra nestaje!",
+    "no_recipe": "Danas nema tajnog recepta.",
+    "click_hint": "Klikni da otkriješ recept prije nego što nestane!",
+    "share_button": "Podijeli recept",
+    "send_to_friend": "Pošalji prijatelju",
+    "shared_success": "✅ Recept uspješno podijeljen!",
+    "copied": "✅ Recept je kopiran u clipboard! Podijeli ga sa prijateljima!",
+    "share_error": "❌ Greška pri dijeljenju. Pokušajte ponovo.",
+    "whatsapp_message": "Otkrij tajni recept dana:",
+    "error": "❌ Tajni recept trenutno nije dostupan."
   }
 }

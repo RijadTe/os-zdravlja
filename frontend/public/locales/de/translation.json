@@ -720,7 +720,9 @@
     "time_up": "⏰ Die Zeit ist abgelaufen!",
     "recipe": "Rezept",
     "copied": "📋 Rezept wurde in die Zwischenablage kopiert!",
-    "all_recipes": "Alle Rezepte"
+    "all_recipes": "Alle Rezepte",
+    "kcal": "kcal",
+    "restrictions": "Einschränkungen"
   },
   "recipes": {
     "all": "Alle Rezepte",
@@ -755,5 +757,32 @@
       "savory": "Herzhaft",
       "drinks": "Getränke"
     }
+  },
+  "notification": {
+    "title": "Benachrichtigungen",
+    "notifications": "Benachrichtigungen",
+    "no_notifications": "Alles ruhig",
+    "come_back_later": "Kommen Sie später wieder",
+    "mark_all": "Alle markieren",
+    "mark_read": "Als gelesen markieren",
+    "open": "Öffnen",
+    "just_now": "Gerade jetzt",
+    "min": "min",
+    "h": "Std."
+  },
+  "tajni_recept": {
+    "title": "Geheimrezept des Tages",
+    "secret_recipe": "Geheimrezept",
+    "recipe_of_the_day": "Geheimrezept des Tages",
+    "disappears": "Nur heute – morgen verschwunden!",
+    "no_recipe": "Heute kein Geheimrezept.",
+    "click_hint": "Klicken Sie, um das Rezept zu entdecken, bevor es verschwindet!",
+    "share_button": "Rezept teilen",
+    "send_to_friend": "An Freund senden",
+    "shared_success": "✅ Rezept erfolgreich geteilt!",
+    "copied": "✅ Rezept wurde in die Zwischenablage kopiert! Teilen Sie es mit Freunden!",
+    "share_error": "❌ Fehler beim Teilen. Bitte versuchen Sie es erneut.",
+    "whatsapp_message": "Entdecke das Geheimrezept des Tages:",
+    "error": "❌ Geheimrezept ist derzeit nicht verfügbar."
   }
 }
