@@ -303,37 +303,27 @@ function App() {
     <BrowserRouter>
       <div className="min-h-screen bg-white dark:bg-gray-900">
         {/* ============================================================
-            HEADER - SAMO NAZIV "OS Zdravlja" BEZ IKONE
+            HEADER - BEZ KUĆICE, VEĆE IKONE NA MOBITELU
             ============================================================ */}
         <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
             <div className="flex items-center justify-between h-14 sm:h-16 md:h-20">
               
-              {/* LOGO - SAMO NAZIV BEZ IKONE */}
+              {/* LOGO - NAZIV "OS Zdravlja" NA SVIM EKRANIMA */}
               <Link 
                 to="/" 
                 className="flex-shrink-0 text-base sm:text-xl md:text-2xl font-extrabold text-blue-600 dark:text-blue-400 hover:opacity-80 transition"
               >
-                <span className="hidden xs:inline">OS Zdravlja</span>
-                <span className="inline xs:hidden">OS</span>
+                OS Zdravlja
               </Link>
 
-              {/* NAVIGACIJA - SA SAMO IKONAMA BEZ TEKSTA */}
-              <nav className="flex items-center gap-1 sm:gap-2 md:gap-4">
+              {/* NAVIGACIJA - BEZ KUĆICE, VEĆE IKONE */}
+              <nav className="flex items-center gap-2 sm:gap-3 md:gap-4">
                 
-                {/* POČETNA */}
-                <Link 
-                  to="/" 
-                  className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-base sm:text-xl md:text-2xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-                  aria-label={t('nav.home')}
-                >
-                  🏠
-                </Link>
-
-                {/* ZAJEDNICA */}
+                {/* 📝 ZAJEDNICA */}
                 <Link 
                   to="/community" 
-                  className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-base sm:text-xl md:text-2xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                  className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-xl sm:text-2xl md:text-3xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
                   aria-label={t('nav.community')}
                 >
                   📝
@@ -343,7 +333,7 @@ function App() {
                 {currentUser ? (
                   <Link 
                     to="/profile" 
-                    className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-base sm:text-xl md:text-2xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 relative"
+                    className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-xl sm:text-2xl md:text-3xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 relative"
                     aria-label={t('nav.profile')}
                   >
                     👤
@@ -354,23 +344,23 @@ function App() {
                 ) : (
                   <Link 
                     to="/login" 
-                    className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-base sm:text-xl md:text-2xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                    className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-xl sm:text-2xl md:text-3xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
                     aria-label={t('nav.login')}
                   >
                     🔑
                   </Link>
                 )}
 
-                {/* KVIZ */}
+                {/* 🧠 KVIZ */}
                 <Link 
                   to="/quiz" 
-                  className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-base sm:text-xl md:text-2xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                  className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-xl sm:text-2xl md:text-3xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
                   aria-label={t('nav.quiz')}
                 >
                   🧠
                 </Link>
 
-                {/* 🔔 NOTIFIKACIJE - SAKRIVENO NA NAJMANJIM EKRANIMA */}
+                {/* 🔔 NOTIFIKACIJE */}
                 <div className="hidden xs:flex items-center">
                   {currentUser && <NotificationBell />}
                 </div>
@@ -381,7 +371,7 @@ function App() {
                 {/* 🌙 TAMNA TEMA */}
                 <button
                   onClick={() => setDarkMode(!darkMode)}
-                  className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-base sm:text-xl md:text-2xl"
+                  className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-xl sm:text-2xl md:text-3xl"
                   aria-label={darkMode ? t('common.light') : t('common.dark')}
                 >
                   {darkMode ? '☀️' : '🌙'}
