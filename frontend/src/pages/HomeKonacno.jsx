@@ -27,7 +27,7 @@ const HomeKonacno = () => {
     vrijeme: '',
     tezina: '',
     preferencije: '',
-    restrikcije: '',
+    restrikcije: [],
     kalorije: ''
   });
 
@@ -65,6 +65,7 @@ const HomeKonacno = () => {
           
           const noviFilteri = {};
           
+          // 🔥 VRSTA
           if (data.data.vrsta && data.data.vrsta.length > 0) {
             const odabraneVrste = data.data.vrsta.filter(v => v !== 'Svejedno');
             if (odabraneVrste.length > 0) {
@@ -72,6 +73,7 @@ const HomeKonacno = () => {
             }
           }
           
+          // 🔥 PREFERENCIJE
           if (data.data.preferencije && data.data.preferencije.length > 0) {
             const odabranePref = data.data.preferencije.filter(p => p !== 'Svejedno');
             if (odabranePref.length > 0) {
@@ -79,20 +81,28 @@ const HomeKonacno = () => {
             }
           }
           
+          // 🔥 RESTRIKCIJE (SVE, ne samo prva!)
+          if (data.data.izbjegava && data.data.izbjegava.length > 0) {
+            // Izbaci "Bez restrikcija" ako postoji
+            const restrikcije = data.data.izbjegava.filter(r => r !== 'Bez restrikcija');
+            if (restrikcije.length > 0) {
+              noviFilteri.restrikcije = restrikcije;
+            }
+          }
+          
+          // 🔥 VRIJEME
           if (data.data.vrijeme) {
             noviFilteri.vrijeme = data.data.vrijeme;
           }
           
+          // 🔥 TEŽINA
           if (data.data.tezina) {
             noviFilteri.tezina = data.data.tezina;
           }
           
+          // 🔥 KALORIJE
           if (data.data.kalorije) {
             noviFilteri.kalorije = data.data.kalorije;
-          }
-          
-          if (data.data.izbjegava && data.data.izbjegava.length > 0) {
-            noviFilteri.restrikcije = data.data.izbjegava[0];
           }
           
           console.log('🔍 Automatski postavljeni filteri:', noviFilteri);
@@ -105,7 +115,7 @@ const HomeKonacno = () => {
             vrijeme: '',
             tezina: '',
             preferencije: '',
-            restrikcije: '',
+            restrikcije: [],
             kalorije: ''
           });
         }
@@ -163,13 +173,16 @@ const HomeKonacno = () => {
         }
       }
       
+      if (profil.izbjegava && profil.izbjegava.length > 0) {
+        const restrikcije = profil.izbjegava.filter(r => r !== 'Bez restrikcija');
+        if (restrikcije.length > 0) {
+          resetFilteri.restrikcije = restrikcije;
+        }
+      }
+      
       if (profil.vrijeme) resetFilteri.vrijeme = profil.vrijeme;
       if (profil.tezina) resetFilteri.tezina = profil.tezina;
       if (profil.kalorije) resetFilteri.kalorije = profil.kalorije;
-      
-      if (profil.izbjegava && profil.izbjegava.length > 0) {
-        resetFilteri.restrikcije = profil.izbjegava[0];
-      }
       
       setFilters(prev => ({ ...prev, ...resetFilteri }));
     } else {
@@ -178,30 +191,34 @@ const HomeKonacno = () => {
         vrijeme: '', 
         tezina: '',
         preferencije: '',
-        restrikcije: '',
+        restrikcije: [],
         kalorije: ''
       });
     }
   }, [profil]);
 
   // ============================================================
-  // 5. FILTRIRANI RECEPTI
+  // 5. FILTRIRANI RECEPTI - SA RESTRIKCIJAMA!
   // ============================================================
   const filteredReceptiMemo = useMemo(() => {
     let filtered = recepti;
     
+    // 🔥 FILTER PO VRSTI
     if (filters.vrsta) {
       filtered = filtered.filter(r => r.vrsta === filters.vrsta);
     }
     
+    // 🔥 FILTER PO VREMENU
     if (filters.vrijeme) {
       filtered = filtered.filter(r => r.vrijeme === filters.vrijeme);
     }
     
+    // 🔥 FILTER PO TEŽINI
     if (filters.tezina) {
       filtered = filtered.filter(r => r.tezina === filters.tezina);
     }
     
+    // 🔥 FILTER PO PREFERENCIJAMA
     if (filters.preferencije) {
       const pref = filters.preferencije;
       if (pref === 'Visokoproteinski') {
@@ -213,14 +230,20 @@ const HomeKonacno = () => {
       }
     }
     
-    if (filters.restrikcije) {
-      const restrikcija = filters.restrikcije;
-      filtered = filtered.filter(r => {
-        const alergeni = r.alergeni || [];
-        return !alergeni.includes(restrikcija);
+    // 🔥 FILTER PO RESTRIKCIJAMA - SVE RESTRIKCIJE!
+    if (filters.restrikcije && filters.restrikcije.length > 0) {
+      const restrikcije = Array.isArray(filters.restrikcije) 
+        ? filters.restrikcije 
+        : [filters.restrikcije];
+      
+      filtered = filtered.filter(recipe => {
+        const alergeni = recipe.alergeni || [];
+        // Recept je dozvoljen ako NEMA nijednu od restrikcija
+        return !restrikcije.some(r => alergeni.includes(r));
       });
     }
     
+    // 🔥 FILTER PO KALORIJAMA
     if (filters.kalorije) {
       const kalorijeMap = {
         'Nisko (do 300 kcal)': { max: 300 },
@@ -283,12 +306,28 @@ const HomeKonacno = () => {
       const isEnergyGood = energy === 'Pun/a' || energy === 'Osrednje';
       const isStressLow = stress === 'Nizak' || stress === 'Srednji';
 
-      // 🔥 FILTRIRAJ RECEPTE NA OSNOVU RASPOLOŽENJA
+      // 🔥 FILTRIRAJ RECEPTE NA OSNOVU RASPOLOŽENJA + RESTRIKCIJA
       if (recepti.length > 0) {
+        // Prvo primijeni restrikcije iz profila
+        let baseRecipes = recepti;
+        
+        // 🔥 PRIMIJENI RESTRIKCIJE
+        if (filters.restrikcije && filters.restrikcije.length > 0) {
+          const restrikcije = Array.isArray(filters.restrikcije) 
+            ? filters.restrikcije 
+            : [filters.restrikcije];
+          
+          baseRecipes = baseRecipes.filter(recipe => {
+            const alergeni = recipe.alergeni || [];
+            return !restrikcije.some(r => alergeni.includes(r));
+          });
+        }
+
+        // Onda primijeni filtere po raspoloženju
         if (!isSleepGood && !isEnergyGood && !isStressLow) {
           // 😴 LOŠ SAN + NISKA ENERGIJA + VISOK STRES
           advice = '😴 Primjećujem da ste umorni i pod stresom. Preporučujem lagane, hranjive obroke koji će vam dati energiju bez opterećenja.';
-          filteredRecepti = recepti.filter(r => 
+          filteredRecepti = baseRecipes.filter(r => 
             r.vrsta === 'Dijetalni recepti' || 
             (r.kalorije || 0) < 400 || 
             r.vrijeme?.includes('Kratko')
@@ -296,14 +335,14 @@ const HomeKonacno = () => {
         } else if (!isSleepGood && !isEnergyGood) {
           // 😴 LOŠ SAN + NISKA ENERGIJA
           advice = '😴 Loš san i niska energija. Preporučujem obroke bogate proteinima i vitaminima za brzi oporavak.';
-          filteredRecepti = recepti.filter(r => 
+          filteredRecepti = baseRecipes.filter(r => 
             (r.proteini || 0) > 20 || 
             r.vrsta === 'Dijetalni recepti'
           );
         } else if (!isSleepGood && isStressLow) {
           // 😴 LOŠ SAN, ALI DOBAR STRES
           advice = '😴 San vam nije najbolji, ali ste opušteni. Preporučujem lagane večere koje ne opterećuju probavu.';
-          filteredRecepti = recepti.filter(r => 
+          filteredRecepti = baseRecipes.filter(r => 
             (r.kalorije || 0) < 500 || 
             r.vrijeme?.includes('Srednje') ||
             r.vrsta === 'Dijetalni recepti'
@@ -311,14 +350,14 @@ const HomeKonacno = () => {
         } else if (isEnergyGood && isStressLow) {
           // ⚡ DOBRA ENERGIJA + NIZAK STRES
           advice = '⚡ Odlično! Imate dobru energiju i nizak stres. Vrijeme je za eksperimentisanje sa novim receptima!';
-          filteredRecepti = recepti.filter(r => 
+          filteredRecepti = baseRecipes.filter(r => 
             r.vrsta !== 'Dijetalni recepti' || 
             r.vrijeme?.includes('Duže')
           );
         } else if (isEnergyGood && !isStressLow) {
           // ⚡ DOBRA ENERGIJA, ALI VISOK STRES
           advice = '⚡ Imate energije, ali ste pod stresom. Preporučujem obroke koji smiruju i opuštaju.';
-          filteredRecepti = recepti.filter(r => 
+          filteredRecepti = baseRecipes.filter(r => 
             r.vrsta === 'Deserti' || 
             r.vrsta === 'Napitki' ||
             (r.kalorije || 0) < 400
@@ -326,7 +365,7 @@ const HomeKonacno = () => {
         } else if (!isEnergyGood && isStressLow) {
           // 😴 NISKA ENERGIJA, ALI NIZAK STRES
           advice = '😴 Niska energija, ali ste opušteni. Preporučujem obroke za podizanje energije.';
-          filteredRecepti = recepti.filter(r => 
+          filteredRecepti = baseRecipes.filter(r => 
             (r.proteini || 0) > 20 || 
             (r.ugljikohidrati || 0) > 30 ||
             r.vrsta === 'Slano'
@@ -334,7 +373,7 @@ const HomeKonacno = () => {
         } else {
           // 😊 SVE JE DOBRO
           advice = '😊 Odlično stanje! Nastavite sa svojom uobičajenom prehranom i uživajte u raznolikim obrocima.';
-          filteredRecepti = recepti.slice(0, 6);
+          filteredRecepti = baseRecipes.slice(0, 6);
         }
 
         // Ograniči na 6 recepata
@@ -342,11 +381,8 @@ const HomeKonacno = () => {
         
         // 🔥 SAČUVAJ FILTRIRANE RECEPTE
         setCoachRecipes(filteredRecepti);
-        
-        // Postavi advice
         setCoachAdvice(advice);
         
-        // Ako ima recepata, prikaži ih u konzoli (za debug)
         if (filteredRecepti.length > 0) {
           console.log('🍽️ Preporučeni recepti:', filteredRecepti.map(r => r.naziv));
         } else {
@@ -354,7 +390,6 @@ const HomeKonacno = () => {
         }
         
       } else {
-        // Ako nema recepata, daj opći savjet
         advice = '😊 Na osnovu vašeg raspoloženja, preporučujemo vam da istražite našu bazu recepata i pronađete nešto što vam odgovara!';
         setCoachAdvice(advice);
         setCoachRecipes([]);
@@ -364,7 +399,7 @@ const HomeKonacno = () => {
       console.error('❌ Greška pri čuvanju podataka:', error);
       setCoachAdvice('❌ Došlo je do greške. Pokušajte ponovo.');
     }
-  }, [sleep, energy, stress, user, recepti]);
+  }, [sleep, energy, stress, user, recepti, filters.restrikcije]);
 
   const addFridgeItem = useCallback(() => {
     if (newItem.trim()) {
@@ -379,7 +414,10 @@ const HomeKonacno = () => {
     setTimeout(() => setScanPoruka(''), 4000);
   }, []);
 
-  const activeFiltersCount = Object.values(filters).filter(v => v !== '').length;
+  const activeFiltersCount = Object.values(filters).filter(v => {
+    if (Array.isArray(v)) return v.length > 0;
+    return v !== '';
+  }).length;
 
   // ============================================================
   // 7. KONFIGURACIJA

@@ -12,6 +12,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const FoodPlanner = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [user, setUser] = useState(null);
+  const [profil, setProfil] = useState(null);
   const [obroci, setObroci] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingObroci, setLoadingObroci] = useState(true);
@@ -46,26 +47,45 @@ const FoodPlanner = () => {
   const [fridgeItems, setFridgeItems] = useState([]);
 
   // ============================================================
-  // DOHVATI KORISNIKA
+  // DOHVATI KORISNIKA I PROFIL
   // ============================================================
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('user'));
-    const email = localStorage.getItem('userEmail');
-    if (userData) {
-      setUser(userData);
-    } else if (email) {
-      setUser({ email: email });
-    }
-
-    // Dohvati namirnice iz frižidera
-    const saved = localStorage.getItem('fridgeItems');
-    if (saved) {
-      try {
-        setFridgeItems(JSON.parse(saved));
-      } catch (e) {
-        setFridgeItems([]);
+    const fetchUserAndProfile = async () => {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      const email = localStorage.getItem('userEmail');
+      
+      if (userData) {
+        setUser(userData);
+      } else if (email) {
+        setUser({ email: email });
       }
-    }
+
+      // 🔥 DOHVATI PROFIL I RESTRIKCIJE
+      if (email) {
+        try {
+          const response = await fetch(`${API_URL}/profil/${encodeURIComponent(email)}`);
+          const data = await response.json();
+          if (data.success && data.data) {
+            console.log('✅ Profil dohvaćen za FoodPlanner:', data.data);
+            setProfil(data.data);
+          }
+        } catch (error) {
+          console.error('❌ Greška pri dohvatu profila:', error);
+        }
+      }
+
+      // Dohvati namirnice iz frižidera
+      const saved = localStorage.getItem('fridgeItems');
+      if (saved) {
+        try {
+          setFridgeItems(JSON.parse(saved));
+        } catch (e) {
+          setFridgeItems([]);
+        }
+      }
+    };
+
+    fetchUserAndProfile();
   }, []);
 
   // ============================================================

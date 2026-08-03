@@ -33,6 +33,7 @@ const AIChef = () => {
   const [filteredRezultati, setFilteredRezultati] = useState([]);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [profil, setProfil] = useState(null);
   const [poruka, setPoruka] = useState('');
   const [cestePretrage, setCestePretrage] = useState([]);
   const [filteri, setFilteri] = useState({
@@ -95,32 +96,50 @@ const AIChef = () => {
   }, [loading]);
 
   // ============================================================
-  // DOHVATI KORISNIKA I ČESTE PRETRAGE
+  // DOHVATI KORISNIKA, PROFIL I RESTRIKCIJE
   // ============================================================
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('user'));
-    const email = localStorage.getItem('userEmail');
-    
-    console.log('👤 User data:', userData);
-    console.log('📧 Email iz localStorage:', email);
-    
-    let finalUserData = userData;
-    if (userData && !userData.email && email) {
-      finalUserData = { ...userData, email: email };
-      localStorage.setItem('user', JSON.stringify(finalUserData));
-      console.log('✅ Dodan email u user:', finalUserData);
-    }
-    
-    setUser(finalUserData);
-
-    const saved = localStorage.getItem('cestePretrage');
-    if (saved) {
-      try {
-        setCestePretrage(JSON.parse(saved));
-      } catch (e) {
-        setCestePretrage([]);
+    const fetchUserAndProfile = async () => {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      const email = localStorage.getItem('userEmail');
+      
+      console.log('👤 User data:', userData);
+      console.log('📧 Email iz localStorage:', email);
+      
+      let finalUserData = userData;
+      if (userData && !userData.email && email) {
+        finalUserData = { ...userData, email: email };
+        localStorage.setItem('user', JSON.stringify(finalUserData));
+        console.log('✅ Dodan email u user:', finalUserData);
       }
-    }
+      
+      setUser(finalUserData);
+
+      // 🔥 DOHVATI PROFIL I RESTRIKCIJE
+      if (email) {
+        try {
+          const response = await fetch(`${API_URL}/profil/${encodeURIComponent(email)}`);
+          const data = await response.json();
+          if (data.success && data.data) {
+            console.log('✅ Profil dohvaćen za AI Chef:', data.data);
+            setProfil(data.data);
+          }
+        } catch (error) {
+          console.error('❌ Greška pri dohvatu profila:', error);
+        }
+      }
+
+      const saved = localStorage.getItem('cestePretrage');
+      if (saved) {
+        try {
+          setCestePretrage(JSON.parse(saved));
+        } catch (e) {
+          setCestePretrage([]);
+        }
+      }
+    };
+
+    fetchUserAndProfile();
   }, []);
 
   // ============================================================
@@ -206,10 +225,12 @@ const AIChef = () => {
   }, [debouncedTekst]);
 
   // ============================================================
-  // FILTRIRAJ REZULTATE
+  // FILTRIRAJ REZULTATE SA RESTRIKCIJAMA
   // ============================================================
   useEffect(() => {
     let filtered = rezultati;
+    
+    // 🔥 FILTER PO VRSTI
     if (filteri.vrsta) {
       filtered = filtered.filter(r => r.vrsta === filteri.vrsta);
     }
@@ -219,8 +240,20 @@ const AIChef = () => {
     if (filteri.tezina) {
       filtered = filtered.filter(r => r.tezina === filteri.tezina);
     }
+    
+    // 🔥 FILTER PO RESTRIKCIJAMA IZ PROFILA
+    if (profil?.izbjegava && profil.izbjegava.length > 0) {
+      const restrikcije = profil.izbjegava.filter(r => r !== 'Bez restrikcija');
+      if (restrikcije.length > 0) {
+        filtered = filtered.filter(recipe => {
+          const alergeni = recipe.alergeni || [];
+          return !restrikcije.some(r => alergeni.includes(r));
+        });
+      }
+    }
+    
     setFilteredRezultati(filtered);
-  }, [filteri, rezultati]);
+  }, [filteri, rezultati, profil]);
 
   // ============================================================
   // GLAVNA PRETRAGA
@@ -265,7 +298,6 @@ const AIChef = () => {
       setStatus('✅ Gotovo!');
       const data = await res.json();
       setRezultati(data);
-      setFilteredRezultati(data);
       setPoruka(`✅ Pronađeno ${data.length} recepata!`);
 
       setSlika(null);
@@ -330,7 +362,7 @@ const AIChef = () => {
   // ============================================================
   const opcije = {
     vrsta: ['Slano', 'Deserti', 'Dijetalni recepti', 'Napitki'],
-    vrijeme: ['Kratko (15-30 min)', 'Srednje (30-45 min)', 'Duže (45-60 min)'],
+    vrijeme: ['Kratko (15-30 min)', 'Srednje (30-45 min)', 'Duže (45-60+ min)'],
     tezina: ['Početnik', 'Srednji', 'Profesionalac']
   };
 
