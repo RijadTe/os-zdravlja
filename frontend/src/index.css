@@ -32,7 +32,6 @@ body {
     padding-right: 0.75rem !important;
   }
   
-  /* Povećaj touch target za dugmad i linkove */
   button, 
   a,
   select,
@@ -42,7 +41,6 @@ body {
     min-width: 44px;
   }
   
-  /* Smanji font na mobilnom */
   h1 {
     font-size: 1.5rem !important;
   }
@@ -56,7 +54,6 @@ body {
     font-size: 0.9rem !important;
   }
   
-  /* Header mobilni stilovi */
   header nav {
     gap: 0.25rem !important;
   }
@@ -75,28 +72,8 @@ body {
     font-size: 7px !important;
   }
   
-  /* Grid prilagodba */
   .grid {
     gap: 0.75rem !important;
-  }
-  
-  /* Kategorije - 2 kolone na mobitelu */
-  .grid-cols-3 {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  
-  /* Recepti - 1 kolona na mobitelu */
-  .grid-cols-2 {
-    grid-template-columns: 1fr !important;
-  }
-  
-  .grid-cols-3 {
-    grid-template-columns: 1fr !important;
-  }
-  
-  /* Food Planner - 2 kolone */
-  .grid-cols-3 {
-    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 
@@ -123,15 +100,6 @@ body {
   header nav a,
   header nav button {
     padding: 0.25rem 0.5rem !important;
-  }
-  
-  /* Recepti - 1 kolona na tabletu */
-  .grid-cols-2 {
-    grid-template-columns: 1fr !important;
-  }
-  
-  .grid-cols-3 {
-    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 
@@ -793,52 +761,40 @@ body {
    ============================================================ */
 /* Prilagodba grid-ova za mobilne uređaje */
 @media (max-width: 640px) {
-  /* Kategorije - 2 kolone */
+  /* 🔥 KATEGORIJE - 2 KOLONE (NE 1!) */
   .grid-cols-3 {
     grid-template-columns: repeat(2, 1fr) !important;
   }
   
-  /* Recepti - 1 kolona */
+  /* 🔥 RECEPTI - 1 KOLONA (samo za listu recepata) */
   .grid-cols-2 {
-    grid-template-columns: 1fr !important;
-  }
-  .grid-cols-3 {
     grid-template-columns: 1fr !important;
   }
   .grid-cols-4 {
     grid-template-columns: repeat(2, 1fr) !important;
   }
   
-  /* Food Planner - 2 kolone */
-  .grid-cols-3 {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
+  /* 🔥 FOOD PLANNER - 2 KOLONE */
   .grid-cols-6 {
     grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 
 @media (max-width: 420px) {
-  /* Kategorije - 2 kolone */
+  /* 🔥 KATEGORIJE - 2 KOLONE */
   .grid-cols-3 {
     grid-template-columns: repeat(2, 1fr) !important;
   }
   
-  /* Recepti - 1 kolona */
+  /* 🔥 RECEPTI - 1 KOLONA */
   .grid-cols-2 {
-    grid-template-columns: 1fr !important;
-  }
-  .grid-cols-3 {
     grid-template-columns: 1fr !important;
   }
   .grid-cols-4 {
     grid-template-columns: 1fr !important;
   }
   
-  /* Food Planner - 2 kolone */
-  .grid-cols-3 {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
+  /* 🔥 FOOD PLANNER - 2 KOLONE */
   .grid-cols-6 {
     grid-template-columns: repeat(2, 1fr) !important;
   }
