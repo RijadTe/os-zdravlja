@@ -144,19 +144,22 @@ const Quiz = () => {
       id: 'vrijeme',
       label: '⏱️ Koliko vremena imate za pripremu? *',
       type: 'select',
-      options: ['Kratko (15-30 min)', 'Srednje (30-45 min)', 'Duže (45-60 min)']
+      options: ['Kratko (15-30 min)', 'Srednje (30-45 min)', 'Duže (45-60+ min)'],
+      maxSelect: 1
     },
     {
       id: 'tezina',
       label: '👨‍🍳 Koliko ste vješti u kuhinji? *',
       type: 'select',
-      options: ['Početnik', 'Srednji', 'Profesionalac']
+      options: ['Početnik', 'Srednji', 'Profesionalac'],
+      maxSelect: 1
     },
     {
       id: 'kalorije',
       label: '🔥 Koje kalorije preferirate? *',
       type: 'select',
-      options: ['Nisko (do 300 kcal)', 'Umjereno (300-500 kcal)', 'Srednje (500-700 kcal)', 'Visoko (900+ kcal)']
+      options: ['Nisko (do 300 kcal)', 'Umjereno (300-500 kcal)', 'Srednje (500-700 kcal)', 'Visoko (900+ kcal)'],
+      maxSelect: 1
     }
   ];
 
@@ -177,10 +180,8 @@ const Quiz = () => {
     // 🔥 LOGIKA ZA "Svejedno" (vrsta)
     if (field === 'vrsta' && option === 'Svejedno') {
       if (current.includes('Svejedno')) {
-        // Ako je već odabrano, ukloni ga
         handleChange(field, current.filter(item => item !== 'Svejedno'));
       } else {
-        // Odaberi samo "Svejedno" i ukloni sve ostale
         handleChange(field, ['Svejedno']);
       }
       return;
@@ -188,7 +189,6 @@ const Quiz = () => {
     
     // 🔥 AKO JE "Svejedno" VEĆ ODABRANO, a korisnik bira nešto drugo
     if (field === 'vrsta' && current.includes('Svejedno') && option !== 'Svejedno') {
-      // Ukloni "Svejedno" i dodaj novu opciju
       const newSelection = current.filter(item => item !== 'Svejedno');
       if (!newSelection.includes(option) && newSelection.length < max) {
         handleChange(field, [...newSelection, option]);
