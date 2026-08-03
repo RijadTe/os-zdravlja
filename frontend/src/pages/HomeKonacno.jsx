@@ -464,19 +464,22 @@ const HomeKonacno = () => {
   // ============================================================
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* ===== HERO SEKCIJA ===== */}
-      <section className="text-center py-12 md:py-16 px-4 bg-gradient-to-b from-blue-50 to-white dark:from-gray-800 dark:to-gray-900">
-        <h1 className="text-4xl md:text-6xl font-extrabold text-gray-800 dark:text-white mb-3">
-          🏥 OS Zdravlja – Operativni sistem za tvoje zdravlje
+      {/* ===== HERO SEKCIJA - SA VEĆIM PODNASLOVOM ===== */}
+      <section className="text-center py-12 md:py-20 px-4 bg-gradient-to-b from-blue-50 to-white dark:from-gray-800 dark:to-gray-900">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-800 dark:text-white mb-2 leading-tight">
+          OS Zdravlja
         </h1>
-        <p className="text-lg md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-6">
+        <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-500 dark:text-gray-400 mb-4 font-medium">
+          Operativni sistem za tvoje zdravlje
+        </p>
+        <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-6">
           Otkrivajte recepte prilagođene vašim potrebama, dijetama i ukusu.
         </p>
-        <div className="flex flex-wrap justify-center gap-4 md:gap-6">
-          <Link to="/quiz" className="bg-blue-600 hover:bg-blue-700 text-white px-8 md:px-12 py-3 md:py-4 rounded-2xl text-base md:text-xl font-bold transition shadow-lg hover:shadow-xl flex items-center gap-2">
+        <div className="flex flex-row justify-center gap-3 sm:gap-4 md:gap-6">
+          <Link to="/quiz" className="bg-blue-600 hover:bg-blue-700 text-white px-5 sm:px-8 md:px-12 py-3 sm:py-4 rounded-2xl text-sm sm:text-base md:text-xl font-bold transition shadow-lg hover:shadow-xl flex items-center gap-2 whitespace-nowrap">
             🧠 Započni kviz
           </Link>
-          <Link to="/ai-chef" className="bg-blue-600 hover:bg-blue-700 text-white px-8 md:px-12 py-3 md:py-4 rounded-2xl text-base md:text-xl font-bold transition shadow-lg hover:shadow-xl flex items-center gap-2">
+          <Link to="/ai-chef" className="bg-blue-600 hover:bg-blue-700 text-white px-5 sm:px-8 md:px-12 py-3 sm:py-4 rounded-2xl text-sm sm:text-base md:text-xl font-bold transition shadow-lg hover:shadow-xl flex items-center gap-2 whitespace-nowrap">
             🤖 AI Chef pretraga
           </Link>
         </div>
@@ -581,17 +584,21 @@ const HomeKonacno = () => {
         </section>
       )}
 
-      {/* ===== KATEGORIJE ===== */}
+      {/* ===== KATEGORIJE - 2 U REDU, VEĆE IKONE ===== */}
       <section className="py-12 md:py-20 px-4 flex justify-center bg-white dark:bg-gray-900">
         <div className="w-full max-w-4xl">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 md:mb-10 text-gray-800 dark:text-white">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 md:mb-12 text-gray-800 dark:text-white">
             IZABERI KATEGORIJU
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 md:gap-10" style={{ rowGap: '40px' }}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6">
             {categories.map(cat => (
-              <Link key={cat.id} to={cat.link} className="flex flex-col items-center justify-center hover:scale-105 transition transform p-6 bg-gray-50 dark:bg-gray-800 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-600 shadow-sm hover:shadow-md">
-                <span className="text-7xl md:text-9xl mb-3">{cat.icon}</span>
-                <span className="font-bold text-center text-sm md:text-lg text-gray-700 dark:text-gray-300">{cat.label}</span>
+              <Link 
+                key={cat.id} 
+                to={cat.link} 
+                className="flex flex-col items-center justify-center hover:scale-105 transition transform p-6 sm:p-8 bg-gray-50 dark:bg-gray-800 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-700 shadow-md hover:shadow-xl border border-gray-100 dark:border-gray-700"
+              >
+                <span className="text-7xl sm:text-8xl md:text-9xl mb-3">{cat.icon}</span>
+                <span className="font-bold text-center text-sm sm:text-base md:text-lg text-gray-700 dark:text-gray-300">{cat.label}</span>
               </Link>
             ))}
           </div>
@@ -814,7 +821,7 @@ const HomeKonacno = () => {
         </section>
       )}
 
-      {/* ===== HEALTHYCHEF ===== */}
+      {/* ===== HEALTHYCHEF - 2 U REDU, VEĆE IKONE ===== */}
       <section className="py-12 md:py-20 px-4 flex justify-center bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
         <div className="w-full max-w-4xl">
           <div className="text-center">
@@ -823,11 +830,15 @@ const HomeKonacno = () => {
               <span className="inline-block bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 px-3 py-1 rounded-full text-sm font-bold">⭐ PREMIUM</span>
             </h2>
             <p className="text-gray-600 dark:text-gray-300 text-base md:text-xl mb-6">Personalizovani recepti za vaše zdravstvene potrebe.</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 md:gap-10" style={{ rowGap: '40px' }}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6">
               {healthyChefCategories.map(cat => (
-                <Link key={cat.id} to={cat.link} className="flex flex-col items-center justify-center hover:scale-105 transition transform p-6 bg-white dark:bg-gray-800 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-600 shadow-sm hover:shadow-md">
-                  <span className="text-7xl md:text-9xl mb-3">{cat.icon}</span>
-                  <span className="font-bold text-gray-700 dark:text-gray-300 text-sm md:text-lg text-center">{cat.label}</span>
+                <Link 
+                  key={cat.id} 
+                  to={cat.link} 
+                  className="flex flex-col items-center justify-center hover:scale-105 transition transform p-6 sm:p-8 bg-white dark:bg-gray-800 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 shadow-md hover:shadow-xl border border-gray-100 dark:border-gray-700"
+                >
+                  <span className="text-7xl sm:text-8xl md:text-9xl mb-3">{cat.icon}</span>
+                  <span className="font-bold text-gray-700 dark:text-gray-300 text-sm sm:text-base md:text-lg text-center">{cat.label}</span>
                 </Link>
               ))}
             </div>
