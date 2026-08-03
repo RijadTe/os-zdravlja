@@ -11,6 +11,150 @@
     "quiz": "Quiz",
     "premium": "Premium"
   },
+  "common": {
+    "loading": "Lädt...",
+    "error": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "success": "Erfolg!",
+    "close": "Schließen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "search": "Suchen...",
+    "light": "Hell",
+    "dark": "Dunkel"
+  },
+  "home": {
+    "hero": {
+      "title": "OS Gesundheit",
+      "subtitle": "Betriebssystem für Ihre Gesundheit",
+      "description": "Entdecken Sie Rezepte, die auf Ihre Bedürfnisse, Diäten und Ihren Geschmack zugeschnitten sind.",
+      "start_quiz": "Quiz starten",
+      "ai_chef": "AI Chef Suche"
+    },
+    "no_profile": {
+      "title": "Personalisieren Sie Ihr Erlebnis!",
+      "description": "Machen Sie ein kurzes Quiz und wir zeigen Ihnen Rezepte, die perfekt für Sie sind.",
+      "button": "Quiz starten"
+    },
+    "profile": {
+      "title": "Ihr Profil",
+      "completed": "Quiz abgeschlossen",
+      "name": "Name",
+      "eat": "Möchte essen",
+      "prefers": "Bevorzugt",
+      "avoids": "Vermeidet",
+      "not_set": "Nicht festgelegt",
+      "not_selected": "Nicht ausgewählt"
+    },
+    "categories": {
+      "title": "KATEGORIE WÄHLEN",
+      "diet": "DIÄT",
+      "desserts": "DESSERTS",
+      "savory": "HERZHAFT",
+      "quiz": "QUIZ",
+      "ai_chef": "AI CHEF",
+      "drinks": "GETRÄNKE"
+    },
+    "lifestyle": {
+      "title": "Lifestyle Coach",
+      "sleep": "Schlaf",
+      "excellent": "Ausgezeichnet",
+      "good": "Gut",
+      "bad": "Schlecht",
+      "energy": "Energie",
+      "full": "Voll",
+      "moderate": "Mäßig",
+      "tired": "Müde",
+      "stress": "Stress",
+      "low": "Niedrig",
+      "high": "Hoch",
+      "get_advice": "Beratung erhalten",
+      "recommended": "Empfohlene Rezepte für Sie:"
+    },
+    "fridge": {
+      "title": "Mein Kühlschrank",
+      "placeholder": "Zutat hinzufügen...",
+      "add": "Hinzufügen",
+      "find_recipes": "Rezepte finden"
+    },
+    "foodplanner": {
+      "title": "Kompletter Food Planner",
+      "description": "Verfolgen Sie Ihre Mahlzeiten, analysieren Sie die Ernährung und planen Sie Ihre Woche mit KI-Assistent.",
+      "emoji": "Emotionale Eingabe",
+      "emoji_desc": "Wählen Sie Emoji vor/nach",
+      "ai": "KI-Empfehlungen",
+      "ai_desc": "Basierend auf Stimmung",
+      "chart": "Diagramm",
+      "chart_desc": "Visuelle Darstellung über die Woche",
+      "watch": "Smartwatch",
+      "watch_desc": "Apple Health, Google Fit",
+      "pdf": "PDF-Bericht",
+      "pdf_desc": "Wöchentlich/Monatlich",
+      "plan": "Essensplan",
+      "plan_desc": "KI-Plan basierend auf Stimmung",
+      "connected": "Verbunden mit Lifestyle Coach",
+      "connected_desc": "Empfehlungen werden automatisch zum Tagebuch hinzugefügt",
+      "open": "Ernährungstagebuch öffnen"
+    },
+    "healthychef": {
+      "title": "HealthyChef",
+      "description": "Personalisierte Rezepte für Ihre gesundheitlichen Bedürfnisse.",
+      "hormonal": "HORMONELL",
+      "thyroid": "SCHILDDRÜSE",
+      "anemia": "ANÄMIE",
+      "bones": "KNOCHEN",
+      "menopause": "MENOPAUSE",
+      "pcos": "PCOS",
+      "open": "HealthyChef öffnen"
+    },
+    "recipes": {
+      "title": "Empfohlene Rezepte",
+      "filters_active": "Filter aktiv",
+      "loading": "Rezepte werden geladen...",
+      "no_results": "Keine Rezepte entsprechen Ihren Filtern.",
+      "reset_filters": "Filter zurücksetzen"
+    },
+    "filters": {
+      "all_types": "Alle Arten",
+      "all_time": "Alle Zeiten",
+      "all_difficulty": "Alle Schwierigkeiten",
+      "preferences": "Präferenzen",
+      "high_protein": "Hoher Proteingehalt",
+      "high_fiber": "Reich an Ballaststoffen",
+      "high_carbs": "Reich an Kohlenhydraten",
+      "reset": "Zurücksetzen",
+      "savory": "Herzhaft",
+      "desserts": "Desserts",
+      "diet": "Diät",
+      "drinks": "Getränke",
+      "short": "Kurz",
+      "medium": "Mittel",
+      "long": "Lang",
+      "beginner": "Anfänger",
+      "intermediate": "Fortgeschritten",
+      "professional": "Profi"
+    },
+    "premium": {
+      "title": "Premium-Inhalt",
+      "description": "Schalten Sie den kompletten Food Planner und alle Premium-Funktionen frei!",
+      "button": "Premium werden",
+      "unlocked": "Freigeschaltet",
+      "unlock_all": "Premium werden und alles freischalten",
+      "all_unlocked": "Alle Funktionen sind verfügbar!",
+      "all_locked": "Alle Funktionen sind gesperrt. Werden Sie Premium, um sie zu nutzen."
+    },
+    "alert_required": "Bitte beantworten Sie alle Fragen.",
+    "advice_tired_stressed": "😴 Ich stelle fest, dass Sie müde und gestresst sind. Ich empfehle leichte, nahrhafte Mahlzeiten, die Ihnen Energie geben, ohne zu belasten.",
+    "advice_bad_sleep_low_energy": "😴 Schlechter Schlaf und wenig Energie. Ich empfehle Mahlzeiten mit viel Protein und Vitaminen zur schnellen Erholung.",
+    "advice_bad_sleep_good_stress": "😴 Ihr Schlaf ist nicht der beste, aber Sie sind entspannt. Ich empfehle leichte Abendessen, die die Verdauung nicht belasten.",
+    "advice_good_energy_low_stress": "⚡ Großartig! Sie haben gute Energie und wenig Stress. Zeit, mit neuen Rezepten zu experimentieren!",
+    "advice_good_energy_high_stress": "⚡ Sie haben Energie, aber Sie sind gestresst. Ich empfehle Mahlzeiten, die beruhigen und entspannen.",
+    "advice_low_energy_low_stress": "😴 Wenig Energie, aber Sie sind entspannt. Ich empfehle Mahlzeiten zur Steigerung der Energie.",
+    "advice_all_good": "😊 Ausgezeichneter Zustand! Setzen Sie Ihre gewohnte Ernährung fort und genießen Sie abwechslungsreiche Mahlzeiten.",
+    "advice_explore_recipes": "😊 Basierend auf Ihrer Stimmung empfehlen wir Ihnen, unsere Rezeptdatenbank zu erkunden und etwas zu finden, das Ihnen gefällt!",
+    "advice_error": "❌ Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+  },
   "quiz": {
     "title": "👋 LERNEN WIR SIE KENNEN",
     "subtitle": "Beantworten Sie 6 Fragen und wir passen Rezepte an Ihre Bedürfnisse an!",
@@ -75,16 +219,5 @@
       "loading": "⏳ Wird bearbeitet...",
       "default": "💳 Premium werden"
     }
-  },
-  "common": {
-    "loading": "Lädt...",
-    "error": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
-    "success": "Erfolg!",
-    "close": "Schließen",
-    "save": "Speichern",
-    "cancel": "Abbrechen",
-    "delete": "Löschen",
-    "edit": "Bearbeiten",
-    "search": "Suchen..."
   }
 }

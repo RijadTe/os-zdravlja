@@ -11,6 +11,150 @@
     "quiz": "Kviz",
     "premium": "Premium"
   },
+  "common": {
+    "loading": "Učitavanje...",
+    "error": "Došlo je do greške. Pokušajte ponovo.",
+    "success": "Uspješno!",
+    "close": "Zatvori",
+    "save": "Sačuvaj",
+    "cancel": "Otkaži",
+    "delete": "Obriši",
+    "edit": "Uredi",
+    "search": "Pretraži...",
+    "light": "Svijetlo",
+    "dark": "Tamno"
+  },
+  "home": {
+    "hero": {
+      "title": "OS Zdravlja",
+      "subtitle": "Operativni sistem za tvoje zdravlje",
+      "description": "Otkrivajte recepte prilagođene vašim potrebama, dijetama i ukusu.",
+      "start_quiz": "Započni kviz",
+      "ai_chef": "AI Chef pretraga"
+    },
+    "no_profile": {
+      "title": "Personalizujte svoje iskustvo!",
+      "description": "Popunite kratki kviz i mi ćemo vam prikazati recepte koji su savršeni za vas.",
+      "button": "Započni kviz"
+    },
+    "profile": {
+      "title": "Tvoj profil",
+      "completed": "Kviz završen",
+      "name": "Ime",
+      "eat": "Želiš jesti",
+      "prefers": "Preferiraš",
+      "avoids": "Izbjegavaš",
+      "not_set": "Nije uneseno",
+      "not_selected": "Nije odabrano"
+    },
+    "categories": {
+      "title": "IZABERI KATEGORIJU",
+      "diet": "DIJETALNO",
+      "desserts": "DESERTI",
+      "savory": "SLANA JELA",
+      "quiz": "KVIZ",
+      "ai_chef": "AI CHEF",
+      "drinks": "NAPITKI"
+    },
+    "lifestyle": {
+      "title": "Lifestyle Coach",
+      "sleep": "San",
+      "excellent": "Odlično",
+      "good": "Dobro",
+      "bad": "Loše",
+      "energy": "Energija",
+      "full": "Pun/a",
+      "moderate": "Osrednje",
+      "tired": "Umoran/a",
+      "stress": "Stres",
+      "low": "Nizak",
+      "high": "Visok",
+      "get_advice": "Dobij preporuke",
+      "recommended": "Preporučeni recepti za vas:"
+    },
+    "fridge": {
+      "title": "Moj frižider",
+      "placeholder": "Dodaj namirnicu...",
+      "add": "Dodaj",
+      "find_recipes": "Pronađi recepte"
+    },
+    "foodplanner": {
+      "title": "Potpuni Food Planner",
+      "description": "Pratite svoje obroke, analizirajte ishranu i planirajte sedmicu uz AI asistenta.",
+      "emoji": "Emocionalni unos",
+      "emoji_desc": "Biraj emoji prije/poslije",
+      "ai": "AI preporuke",
+      "ai_desc": "Na osnovu raspoloženja",
+      "chart": "Grafikon",
+      "chart_desc": "Vizuelni prikaz kroz sedmicu",
+      "watch": "Smartwatch",
+      "watch_desc": "Apple Health, Google Fit",
+      "pdf": "PDF izvještaj",
+      "pdf_desc": "Sedmični/mjesečni",
+      "plan": "Plan obroka",
+      "plan_desc": "AI plan po raspoloženju",
+      "connected": "Povezano sa Lifestyle Coach-om",
+      "connected_desc": "Preporuke se automatski dodaju u Dnevnik",
+      "open": "Otvori Dnevnik ishrane"
+    },
+    "healthychef": {
+      "title": "HealthyChef",
+      "description": "Personalizovani recepti za vaše zdravstvene potrebe.",
+      "hormonal": "HORMONSKI",
+      "thyroid": "TIROIDA",
+      "anemia": "ANEMIJA",
+      "bones": "KOSTI",
+      "menopause": "MENOPAUZA",
+      "pcos": "PCOS",
+      "open": "Otvori HealthyChef"
+    },
+    "recipes": {
+      "title": "Preporučeni recepti",
+      "filters_active": "filtera aktivno",
+      "loading": "Učitavanje recepata...",
+      "no_results": "Nema recepata koji odgovaraju filterima.",
+      "reset_filters": "Resetuj filtere"
+    },
+    "filters": {
+      "all_types": "Sve vrste",
+      "all_time": "Svo vrijeme",
+      "all_difficulty": "Sva težina",
+      "preferences": "Preferencije",
+      "high_protein": "Visokoproteinski",
+      "high_fiber": "Bogat vlaknima",
+      "high_carbs": "Bogat ugljikohidratima",
+      "reset": "Reset",
+      "savory": "Slano",
+      "desserts": "Deserti",
+      "diet": "Dijetalno",
+      "drinks": "Napitki",
+      "short": "Kratko",
+      "medium": "Srednje",
+      "long": "Duže",
+      "beginner": "Početnik",
+      "intermediate": "Srednji",
+      "professional": "Profesionalac"
+    },
+    "premium": {
+      "title": "Premium sadržaj",
+      "description": "Otključajte Potpuni Food Planner i sve Premium funkcionalnosti!",
+      "button": "Postani Premium",
+      "unlocked": "Otključano",
+      "unlock_all": "Postani Premium i otključaj sve",
+      "all_unlocked": "Sve funkcionalnosti su dostupne!",
+      "all_locked": "Sve funkcionalnosti su zaključane. Postanite Premium da ih koristite."
+    },
+    "alert_required": "Molimo odgovorite na sva pitanja.",
+    "advice_tired_stressed": "😴 Primjećujem da ste umorni i pod stresom. Preporučujem lagane, hranjive obroke koji će vam dati energiju bez opterećenja.",
+    "advice_bad_sleep_low_energy": "😴 Loš san i niska energija. Preporučujem obroke bogate proteinima i vitaminima za brzi oporavak.",
+    "advice_bad_sleep_good_stress": "😴 San vam nije najbolji, ali ste opušteni. Preporučujem lagane večere koje ne opterećuju probavu.",
+    "advice_good_energy_low_stress": "⚡ Odlično! Imate dobru energiju i nizak stres. Vrijeme je za eksperimentisanje sa novim receptima!",
+    "advice_good_energy_high_stress": "⚡ Imate energije, ali ste pod stresom. Preporučujem obroke koji smiruju i opuštaju.",
+    "advice_low_energy_low_stress": "😴 Niska energija, ali ste opušteni. Preporučujem obroke za podizanje energije.",
+    "advice_all_good": "😊 Odlično stanje! Nastavite sa svojom uobičajenom prehranom i uživajte u raznolikim obrocima.",
+    "advice_explore_recipes": "😊 Na osnovu vašeg raspoloženja, preporučujemo vam da istražite našu bazu recepata i pronađete nešto što vam odgovara!",
+    "advice_error": "❌ Došlo je do greške. Pokušajte ponovo."
+  },
   "quiz": {
     "title": "👋 HAJDE DA VAS UPOZNAMO",
     "subtitle": "Odgovorite na 6 pitanja i mi ćemo prilagoditi recepte vašim potrebama!",
@@ -75,16 +219,5 @@
       "loading": "⏳ Obrada...",
       "default": "💳 Postani Premium"
     }
-  },
-  "common": {
-    "loading": "Učitavanje...",
-    "error": "Došlo je do greške. Pokušajte ponovo.",
-    "success": "Uspješno!",
-    "close": "Zatvori",
-    "save": "Sačuvaj",
-    "cancel": "Otkaži",
-    "delete": "Obriši",
-    "edit": "Uredi",
-    "search": "Pretraži..."
   }
 }

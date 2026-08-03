@@ -11,6 +11,150 @@
     "quiz": "Quiz",
     "premium": "Premium"
   },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred. Please try again.",
+    "success": "Success!",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search...",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "home": {
+    "hero": {
+      "title": "OS Health",
+      "subtitle": "Operating system for your health",
+      "description": "Discover recipes tailored to your needs, diets and taste.",
+      "start_quiz": "Start Quiz",
+      "ai_chef": "AI Chef Search"
+    },
+    "no_profile": {
+      "title": "Personalize your experience!",
+      "description": "Take a short quiz and we'll show you recipes that are perfect for you.",
+      "button": "Start Quiz"
+    },
+    "profile": {
+      "title": "Your Profile",
+      "completed": "Quiz Completed",
+      "name": "Name",
+      "eat": "Want to eat",
+      "prefers": "Prefers",
+      "avoids": "Avoids",
+      "not_set": "Not set",
+      "not_selected": "Not selected"
+    },
+    "categories": {
+      "title": "CHOOSE CATEGORY",
+      "diet": "DIET",
+      "desserts": "DESSERTS",
+      "savory": "SAVORY",
+      "quiz": "QUIZ",
+      "ai_chef": "AI CHEF",
+      "drinks": "DRINKS"
+    },
+    "lifestyle": {
+      "title": "Lifestyle Coach",
+      "sleep": "Sleep",
+      "excellent": "Excellent",
+      "good": "Good",
+      "bad": "Bad",
+      "energy": "Energy",
+      "full": "Full",
+      "moderate": "Moderate",
+      "tired": "Tired",
+      "stress": "Stress",
+      "low": "Low",
+      "high": "High",
+      "get_advice": "Get advice",
+      "recommended": "Recommended recipes for you:"
+    },
+    "fridge": {
+      "title": "My Fridge",
+      "placeholder": "Add ingredient...",
+      "add": "Add",
+      "find_recipes": "Find recipes"
+    },
+    "foodplanner": {
+      "title": "Complete Food Planner",
+      "description": "Track your meals, analyze nutrition and plan your week with AI assistant.",
+      "emoji": "Emotional input",
+      "emoji_desc": "Choose emoji before/after",
+      "ai": "AI recommendations",
+      "ai_desc": "Based on mood",
+      "chart": "Chart",
+      "chart_desc": "Visual display through the week",
+      "watch": "Smartwatch",
+      "watch_desc": "Apple Health, Google Fit",
+      "pdf": "PDF Report",
+      "pdf_desc": "Weekly/Monthly",
+      "plan": "Meal Plan",
+      "plan_desc": "AI plan based on mood",
+      "connected": "Connected to Lifestyle Coach",
+      "connected_desc": "Recommendations are automatically added to Diary",
+      "open": "Open Food Diary"
+    },
+    "healthychef": {
+      "title": "HealthyChef",
+      "description": "Personalized recipes for your health needs.",
+      "hormonal": "HORMONAL",
+      "thyroid": "THYROID",
+      "anemia": "ANEMIA",
+      "bones": "BONES",
+      "menopause": "MENOPAUSE",
+      "pcos": "PCOS",
+      "open": "Open HealthyChef"
+    },
+    "recipes": {
+      "title": "Recommended recipes",
+      "filters_active": "filters active",
+      "loading": "Loading recipes...",
+      "no_results": "No recipes match your filters.",
+      "reset_filters": "Reset filters"
+    },
+    "filters": {
+      "all_types": "All types",
+      "all_time": "All time",
+      "all_difficulty": "All difficulty",
+      "preferences": "Preferences",
+      "high_protein": "High protein",
+      "high_fiber": "High fiber",
+      "high_carbs": "High carbs",
+      "reset": "Reset",
+      "savory": "Savory",
+      "desserts": "Desserts",
+      "diet": "Diet",
+      "drinks": "Drinks",
+      "short": "Short",
+      "medium": "Medium",
+      "long": "Long",
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "professional": "Professional"
+    },
+    "premium": {
+      "title": "Premium content",
+      "description": "Unlock Complete Food Planner and all Premium features!",
+      "button": "Become Premium",
+      "unlocked": "Unlocked",
+      "unlock_all": "Become Premium and unlock everything",
+      "all_unlocked": "All features are available!",
+      "all_locked": "All features are locked. Become Premium to use them."
+    },
+    "alert_required": "Please answer all questions.",
+    "advice_tired_stressed": "😴 I notice you are tired and stressed. I recommend light, nutritious meals that will give you energy without burden.",
+    "advice_bad_sleep_low_energy": "😴 Poor sleep and low energy. I recommend meals rich in protein and vitamins for quick recovery.",
+    "advice_bad_sleep_good_stress": "😴 Your sleep isn't the best, but you're relaxed. I recommend light dinners that don't burden digestion.",
+    "advice_good_energy_low_stress": "⚡ Great! You have good energy and low stress. Time to experiment with new recipes!",
+    "advice_good_energy_high_stress": "⚡ You have energy, but you're under stress. I recommend meals that calm and relax.",
+    "advice_low_energy_low_stress": "😴 Low energy, but you're relaxed. I recommend meals to boost energy.",
+    "advice_all_good": "😊 Excellent condition! Continue with your usual diet and enjoy diverse meals.",
+    "advice_explore_recipes": "😊 Based on your mood, we recommend you explore our recipe database and find something that suits you!",
+    "advice_error": "❌ An error occurred. Please try again."
+  },
   "quiz": {
     "title": "👋 LET US GET TO KNOW YOU",
     "subtitle": "Answer 6 questions and we'll adapt recipes to your needs!",
@@ -75,16 +219,5 @@
       "loading": "⏳ Processing...",
       "default": "💳 Become Premium"
     }
-  },
-  "common": {
-    "loading": "Loading...",
-    "error": "An error occurred. Please try again.",
-    "success": "Success!",
-    "close": "Close",
-    "save": "Save",
-    "cancel": "Cancel",
-    "delete": "Delete",
-    "edit": "Edit",
-    "search": "Search..."
   }
 }
