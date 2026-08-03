@@ -303,18 +303,19 @@ function App() {
     <BrowserRouter>
       <div className="min-h-screen bg-white dark:bg-gray-900">
         {/* ============================================================
-            HEADER - SAMO IKONA BEZ NAZIVA
+            HEADER - SAMO NAZIV "OS Zdravlja" BEZ IKONE
             ============================================================ */}
         <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
             <div className="flex items-center justify-between h-14 sm:h-16 md:h-20">
               
-              {/* LOGO - SAMO IKONA BEZ TEKSTA */}
+              {/* LOGO - SAMO NAZIV BEZ IKONE */}
               <Link 
                 to="/" 
-                className="flex-shrink-0 text-2xl sm:text-3xl md:text-4xl hover:scale-105 transition-transform"
+                className="flex-shrink-0 text-base sm:text-xl md:text-2xl font-extrabold text-blue-600 dark:text-blue-400 hover:opacity-80 transition"
               >
-                🏥
+                <span className="hidden xs:inline">OS Zdravlja</span>
+                <span className="inline xs:hidden">OS</span>
               </Link>
 
               {/* NAVIGACIJA - SA SAMO IKONAMA BEZ TEKSTA */}
