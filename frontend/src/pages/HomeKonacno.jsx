@@ -464,7 +464,7 @@ const HomeKonacno = () => {
   // ============================================================
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* ===== HERO SEKCIJA - BEZ IKONE I BEZ PODNASLOVA ===== */}
+      {/* ===== HERO SEKCIJA - BEZ IKONE ===== */}
       <section className="text-center py-12 md:py-16 px-4 bg-gradient-to-b from-blue-50 to-white dark:from-gray-800 dark:to-gray-900">
         <h1 className="text-4xl md:text-6xl font-extrabold text-gray-800 dark:text-white mb-3">
           OS Zdravlja
