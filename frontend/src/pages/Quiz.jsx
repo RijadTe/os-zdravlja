@@ -494,7 +494,8 @@ const Quiz = () => {
             
             {currentStep === questions.length - 1 ? (
               <button
-                type="submit"
+                type="button"
+                onClick={handleSubmit}
                 className="px-4 sm:px-6 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition shadow-md hover:shadow-lg text-sm sm:text-base"
               >
                 {user?.kviz_zavrsen ? '✅ Sačuvaj izmjene' : '✅ Započnimo'}
