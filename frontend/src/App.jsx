@@ -1,7 +1,11 @@
 // frontend/src/App.jsx
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient';
+import './i18n'; // ← DODANO!
+
+// Komponente
 import HomeKonacno from './pages/HomeKonacno';
 import Quiz from './pages/Quiz';
 import HealthyChef from './pages/HealthyChef';
@@ -22,8 +26,11 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import Footer from './components/Footer';
 import NotificationBell from './components/NotificationBell';
+import LanguageSwitcher from './components/LanguageSwitcher'; // ← DODANO!
 
 function App() {
+  const { t, i18n } = useTranslation(); // ← DODANO!
+  
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
@@ -52,7 +59,6 @@ function App() {
         setLoading(true);
         console.log('🔍 Provjera korisnika...');
 
-        // 1. Prvo provjeri localStorage (brže)
         const userData = JSON.parse(localStorage.getItem('user'));
         if (userData?.email) {
           console.log('✅ Korisnik iz localStorage:', userData.email);
@@ -61,7 +67,6 @@ function App() {
           return;
         }
 
-        // 2. Ako nema u localStorage, pitaj Supabase
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -193,58 +198,30 @@ function App() {
   }, []);
 
   // ============================================================
-  // 🛡️ SIGURNOSNA ZAŠTITA (15 NIVOA) - UKLJUČENA!
+  // 🛡️ SIGURNOSNA ZAŠTITA (15 NIVOA)
   // ============================================================
   useEffect(() => {
-    // ============================================================
-    // NIVO 1: Onemogući desni klik
-    // ============================================================
     const disableRightClick = (e) => {
       e.preventDefault();
       return false;
     };
     document.addEventListener('contextmenu', disableRightClick);
 
-    // ============================================================
-    // NIVO 2-6: Onemogući tipke za developer alate
-    // ============================================================
     const disableKeys = (e) => {
-      // F12 - DevTools
-      if (e.key === 'F12') {
-        e.preventDefault();
-        return false;
-      }
-      // Ctrl+U - View Source
-      if (e.ctrlKey && e.key === 'u') {
-        e.preventDefault();
-        return false;
-      }
-      // Ctrl+Shift+I - Inspect
-      if (e.ctrlKey && e.shiftKey && e.key === 'I') {
-        e.preventDefault();
-        return false;
-      }
-      // Ctrl+Shift+J - Console
-      if (e.ctrlKey && e.shiftKey && e.key === 'J') {
-        e.preventDefault();
-        return false;
-      }
-      // Ctrl+S - Save
-      if (e.ctrlKey && e.key === 's') {
-        e.preventDefault();
-        return false;
-      }
-      // Ctrl+Shift+C - Inspect Element
-      if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.key === 'u') ||
+        (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+        (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+        (e.ctrlKey && e.key === 's') ||
+        (e.ctrlKey && e.shiftKey && e.key === 'C')
+      ) {
         e.preventDefault();
         return false;
       }
     };
     document.addEventListener('keydown', disableKeys);
 
-    // ============================================================
-    // NIVO 7: Dodatna zaštita - onemogući drag and drop
-    // ============================================================
     const disableDrag = (e) => {
       e.preventDefault();
       return false;
@@ -252,9 +229,6 @@ function App() {
     document.addEventListener('dragstart', disableDrag);
     document.addEventListener('drop', disableDrag);
 
-    // ============================================================
-    // NIVO 8: Onemogući copy/paste
-    // ============================================================
     const disableCopy = (e) => {
       e.preventDefault();
       return false;
@@ -263,9 +237,6 @@ function App() {
     document.addEventListener('cut', disableCopy);
     document.addEventListener('paste', disableCopy);
 
-    // ============================================================
-    // NIVO 9: Onemogući selektovanje teksta
-    // ============================================================
     document.addEventListener('selectstart', (e) => {
       e.preventDefault();
       return false;
@@ -320,7 +291,7 @@ function App() {
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Učitavanje...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -335,48 +306,51 @@ function App() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16 md:h-20">
               <Link to="/" className="text-2xl md:text-3xl font-extrabold text-blue-600 dark:text-blue-400">
-                🏥 OS Zdravlja
+                🏥 {t('app.title')}
               </Link>
 
               <nav className="flex items-center gap-4 sm:gap-6 md:gap-10 text-sm font-semibold">
                 <Link to="/" className="flex flex-col items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
                   <span className="text-xl md:text-3xl">🏠</span>
-                  <span className="text-[10px] md:text-xs">Početna</span>
+                  <span className="text-[10px] md:text-xs">{t('nav.home')}</span>
                 </Link>
 
                 <Link to="/community" className="flex flex-col items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
                   <span className="text-xl md:text-3xl">📝</span>
-                  <span className="text-[10px] md:text-xs">Zajednica</span>
+                  <span className="text-[10px] md:text-xs">{t('nav.community')}</span>
                 </Link>
 
                 {currentUser ? (
                   <Link to="/profile" className="flex flex-col items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
                     <span className="text-xl md:text-3xl">👤</span>
                     <span className="text-[10px] md:text-xs flex items-center gap-1">
-                      Profil {currentUser.premium && <span className="text-yellow-500 text-[8px] md:text-[10px]">⭐</span>}
+                      {t('nav.profile')} {currentUser.premium && <span className="text-yellow-500 text-[8px] md:text-[10px]">⭐</span>}
                     </span>
                   </Link>
                 ) : (
                   <Link to="/login" className="flex flex-col items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
                     <span className="text-xl md:text-3xl">🔑</span>
-                    <span className="text-[10px] md:text-xs">Prijava</span>
+                    <span className="text-[10px] md:text-xs">{t('nav.login')}</span>
                   </Link>
                 )}
 
                 <Link to="/quiz" className="flex flex-col items-center text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
                   <span className="text-xl md:text-3xl">🧠</span>
-                  <span className="text-[10px] md:text-xs">Kviz</span>
+                  <span className="text-[10px] md:text-xs">{t('nav.quiz')}</span>
                 </Link>
 
-                {/* 🔔 NOTIFIKACIJE - DODANO! */}
+                {/* 🔔 NOTIFIKACIJE */}
                 {currentUser && <NotificationBell />}
+
+                {/* 🌍 LANGUAGE SWITCHER - DODANO! */}
+                <LanguageSwitcher />
 
                 <button
                   onClick={() => setDarkMode(!darkMode)}
                   className="flex flex-col items-center p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
                 >
                   <span className="text-xl md:text-3xl">{darkMode ? '☀️' : '🌙'}</span>
-                  <span className="text-[10px] md:text-xs">{darkMode ? 'Svijetlo' : 'Tamno'}</span>
+                  <span className="text-[10px] md:text-xs">{darkMode ? t('common.light') : t('common.dark')}</span>
                 </button>
               </nav>
             </div>

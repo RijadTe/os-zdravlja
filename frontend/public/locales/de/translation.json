@@ -1,0 +1,90 @@
+{
+  "app": {
+    "title": "OS Gesundheit – Betriebssystem für Ihre Gesundheit",
+    "subtitle": "Entdecken Sie Rezepte, die auf Ihre Bedürfnisse, Diäten und Ihren Geschmack zugeschnitten sind."
+  },
+  "nav": {
+    "home": "Startseite",
+    "community": "Gemeinschaft",
+    "profile": "Profil",
+    "login": "Anmelden",
+    "quiz": "Quiz",
+    "premium": "Premium"
+  },
+  "quiz": {
+    "title": "👋 LERNEN WIR SIE KENNEN",
+    "subtitle": "Beantworten Sie 6 Fragen und wir passen Rezepte an Ihre Bedürfnisse an!",
+    "questions": {
+      "vrsta": "🍽️ Was möchten Sie heute essen? * (max 3)",
+      "preferencije": "💪 Was bevorzugen Sie? (max 2)",
+      "restrikcije": "🚫 Was vermeiden Sie? (max 3)",
+      "vrijeme": "⏱️ Wie viel Zeit haben Sie für die Zubereitung? *",
+      "tezina": "👨‍🍳 Wie erfahren sind Sie in der Küche? *",
+      "kalorije": "🔥 Welche Kalorien bevorzugen Sie? *"
+    },
+    "options": {
+      "vrsta": ["Desserts", "Herzhaft", "Diät Rezepte", "Getränke", "Alles"],
+      "restrikcije": ["Keine Einschränkungen", "Glutenfrei", "Laktosefrei", "Zuckerfrei", "Vegan", "Nussfrei"],
+      "preferencije": ["Hoher Protein", "Hohe Ballaststoffe", "Hohe Kohlenhydrate", "Alles"],
+      "vrijeme": ["Kurz (15-30 min)", "Mittel (30-45 min)", "Lang (45-60+ min)"],
+      "tezina": ["Anfänger", "Fortgeschritten", "Profi"],
+      "kalorije": ["Niedrig (bis 300 kcal)", "Moderat (300-500 kcal)", "Mittel (500-700 kcal)", "Hoch (900+ kcal)"]
+    },
+    "buttons": {
+      "back": "Zurück",
+      "next": "Weiter →",
+      "submit": "✅ Los geht's",
+      "save": "✅ Änderungen speichern"
+    },
+    "toast": {
+      "success": "✅ Quiz abgeschlossen! Filter gespeichert.",
+      "error": "❌ Fehler beim Senden des Quiz: {message}"
+    }
+  },
+  "premium": {
+    "title": "⭐ Premium",
+    "subtitle": "Schalten Sie alle Funktionen frei und verbessern Sie Ihr kulinarisches Erlebnis!",
+    "free": {
+      "title": "🆓 Kostenlos",
+      "price": "€0"
+    },
+    "premium": {
+      "title": "⭐ Premium",
+      "price": "€4.99",
+      "period": "/ Monat",
+      "features": [
+        "✅ Alle kostenlosen Funktionen",
+        "✅ Zutatenerkennung (Foto)",
+        "✅ Sprachsuche",
+        "✅ HealthyChef (3 Stufen, 29 Unterkategorien)",
+        "✅ Ernährungstagebuch + Analytik + Grafiken",
+        "✅ Personalisierter Speiseplan (7 Tage)",
+        "✅ Virtueller Kühlschrank",
+        "✅ Lifestyle Coach",
+        "✅ Sommelier – perfekte Kombinationen",
+        "✅ Beleg scannen",
+        "✅ Sprachgesteuertes Kochen (Schritt für Schritt)",
+        "✅ Community (Beiträge, Likes)",
+        "✅ Abzeichen und Herausforderungen",
+        "✅ Einkaufsliste + PDF",
+        "✅ Smartwatch-Integration",
+        "✅ Keine Werbung"
+      ]
+    },
+    "button": {
+      "loading": "⏳ Wird bearbeitet...",
+      "default": "💳 Premium werden"
+    }
+  },
+  "common": {
+    "loading": "Lädt...",
+    "error": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "success": "Erfolg!",
+    "close": "Schließen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "search": "Suchen..."
+  }
+}

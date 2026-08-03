@@ -1,0 +1,90 @@
+{
+  "app": {
+    "title": "OS Health – Operating system for your health",
+    "subtitle": "Discover recipes tailored to your needs, diets, and taste."
+  },
+  "nav": {
+    "home": "Home",
+    "community": "Community",
+    "profile": "Profile",
+    "login": "Login",
+    "quiz": "Quiz",
+    "premium": "Premium"
+  },
+  "quiz": {
+    "title": "👋 LET US GET TO KNOW YOU",
+    "subtitle": "Answer 6 questions and we'll adapt recipes to your needs!",
+    "questions": {
+      "vrsta": "🍽️ What would you like to eat today? * (max 3)",
+      "preferencije": "💪 What do you PREFER? (max 2)",
+      "restrikcije": "🚫 What do you AVOID? (max 3)",
+      "vrijeme": "⏱️ How much time do you have for preparation? *",
+      "tezina": "👨‍🍳 How skilled are you in the kitchen? *",
+      "kalorije": "🔥 Which calories do you prefer? *"
+    },
+    "options": {
+      "vrsta": ["Desserts", "Savory", "Diet recipes", "Drinks", "Anything"],
+      "restrikcije": ["No restrictions", "Gluten-free", "Lactose-free", "Sugar-free", "Vegan", "Nuts-free"],
+      "preferencije": ["High protein", "High fiber", "High carb", "Anything"],
+      "vrijeme": ["Short (15-30 min)", "Medium (30-45 min)", "Long (45-60+ min)"],
+      "tezina": ["Beginner", "Intermediate", "Professional"],
+      "kalorije": ["Low (up to 300 kcal)", "Moderate (300-500 kcal)", "Medium (500-700 kcal)", "High (900+ kcal)"]
+    },
+    "buttons": {
+      "back": "Back",
+      "next": "Next →",
+      "submit": "✅ Let's go",
+      "save": "✅ Save changes"
+    },
+    "toast": {
+      "success": "✅ Quiz completed! Filters saved.",
+      "error": "❌ Error sending quiz: {message}"
+    }
+  },
+  "premium": {
+    "title": "⭐ Premium",
+    "subtitle": "Unlock all features and upgrade your culinary experience!",
+    "free": {
+      "title": "🆓 Free",
+      "price": "€0"
+    },
+    "premium": {
+      "title": "⭐ Premium",
+      "price": "€4.99",
+      "period": "/ month",
+      "features": [
+        "✅ All Free features",
+        "✅ Ingredient recognition (photo)",
+        "✅ Voice search",
+        "✅ HealthyChef (3 levels, 29 subcategories)",
+        "✅ Food Diary + Analytics + Charts",
+        "✅ Personalized meal plan (7 days)",
+        "✅ Virtual fridge",
+        "✅ Lifestyle Coach",
+        "✅ Sommelier – perfect combinations",
+        "✅ Scan Receipt",
+        "✅ Voice cooking (step by step)",
+        "✅ Community (posts, likes)",
+        "✅ Badges and challenges",
+        "✅ Shopping list + PDF",
+        "✅ Smartwatch integration",
+        "✅ No ads"
+      ]
+    },
+    "button": {
+      "loading": "⏳ Processing...",
+      "default": "💳 Become Premium"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred. Please try again.",
+    "success": "Success!",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search..."
+  }
+}

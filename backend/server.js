@@ -2493,7 +2493,135 @@ app.post('/api/notifikacije/subscribe', async (req, res) => {
 });
 
 // ============================================================
-// 47. FALLBACK RUTA
+// 47. PREVOD RECEPATA (i18n)
+// ============================================================
+app.post('/api/recepti/translate', async (req, res) => {
+  try {
+    const { receptId, jezik } = req.body;
+    
+    if (!receptId || !jezik) {
+      return res.status(400).json({ error: 'receptId i jezik su obavezni.' });
+    }
+
+    console.log(`🔄 Prevodenje recepta ${receptId} na jezik: ${jezik}`);
+
+    // 1. Dohvati originalni recept
+    const { data: recept, error: receptError } = await supabase
+      .from('recepti')
+      .select('*')
+      .eq('id', receptId)
+      .single();
+
+    if (receptError) throw receptError;
+
+    // 2. Provjeri da li već postoji prevod
+    const { data: existing, error: existingError } = await supabase
+      .from('recepti_prevodi')
+      .select('*')
+      .eq('recept_id', receptId)
+      .eq('jezik', jezik)
+      .maybeSingle();
+
+    if (existing) {
+      console.log('✅ Prevod već postoji za recept:', receptId);
+      return res.json({ success: true, data: existing, cached: true });
+    }
+
+    // 3. Ako nema prevoda, pozovi OpenAI
+    if (!openai) {
+      console.warn('⚠️ OpenAI nije dostupan, koristim fallback');
+      return res.json({
+        success: true,
+        data: {
+          naziv: recept.naziv,
+          opis: recept.opis || '',
+          sastojci: recept.sastojci || [],
+          upute: recept.upute || []
+        },
+        cached: false,
+        fallback: true
+      });
+    }
+
+    const jezikMap = {
+      'en': 'engleski',
+      'de': 'njemački',
+      'fr': 'francuski',
+      'it': 'talijanski',
+      'es': 'španjolski',
+      'sr': 'srpski'
+    };
+
+    const jezikNaziv = jezikMap[jezik] || jezik;
+
+    const prompt = `
+      Prevedi sljedeći recept na ${jezikNaziv} jezik.
+      
+      Naziv: ${recept.naziv}
+      Opis: ${recept.opis || ''}
+      Sastojci: ${recept.sastojci?.join(', ') || ''}
+      Upute: ${recept.upute?.join('. ') || ''}
+      
+      Odgovori isključivo u JSON formatu:
+      {
+        "naziv": "...",
+        "opis": "...",
+        "sastojci": ["...", "..."],
+        "upute": ["...", "..."]
+      }
+      
+      Prevedi prirodno i sačuvaj kontekst kulinarskih termina.
+    `;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.3,
+      response_format: { type: "json_object" }
+    });
+
+    const translated = JSON.parse(response.choices[0].message.content);
+
+    // 4. Sačuvaj prevod u bazu
+    const { data: saved, error: saveError } = await supabase
+      .from('recepti_prevodi')
+      .insert([{
+        recept_id: receptId,
+        jezik: jezik,
+        naziv: translated.naziv || recept.naziv,
+        opis: translated.opis || recept.opis || '',
+        sastojci: translated.sastojci || recept.sastojci || [],
+        upute: translated.upute || recept.upute || []
+      }])
+      .select()
+      .single();
+
+    if (saveError) {
+      console.error('❌ Greška pri spremanju prevoda:', saveError);
+      return res.json({
+        success: true,
+        data: {
+          naziv: translated.naziv || recept.naziv,
+          opis: translated.opis || recept.opis || '',
+          sastojci: translated.sastojci || recept.sastojci || [],
+          upute: translated.upute || recept.upute || []
+        },
+        cached: false,
+        fallback: false
+      });
+    }
+
+    console.log('✅ Prevod sačuvan za recept:', receptId);
+    res.json({ success: true, data: saved, cached: false });
+
+  } catch (error) {
+    console.error('❌ Greška pri prevodu recepta:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// 48. FALLBACK RUTA
 // ============================================================
 app.use('/*path', (req, res) => {
   res.status(404).json({ 

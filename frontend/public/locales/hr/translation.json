@@ -1,0 +1,90 @@
+{
+  "app": {
+    "title": "OS Zdravlja – Operativni sistem za tvoje zdravlje",
+    "subtitle": "Otkrivajte recepte prilagođene vašim potrebama, dijetama i ukusu."
+  },
+  "nav": {
+    "home": "Početna",
+    "community": "Zajednica",
+    "profile": "Profil",
+    "login": "Prijava",
+    "quiz": "Kviz",
+    "premium": "Premium"
+  },
+  "quiz": {
+    "title": "👋 HAJDE DA VAS UPOZNAMO",
+    "subtitle": "Odgovorite na 6 pitanja i mi ćemo prilagoditi recepte vašim potrebama!",
+    "questions": {
+      "vrsta": "🍽️ Šta danas želite jesti? * (max 3)",
+      "preferencije": "💪 Šta PREFERIRATE? (max 2)",
+      "restrikcije": "🚫 Šta IZBJEGAVATE? (max 3)",
+      "vrijeme": "⏱️ Koliko vremena imate za pripremu? *",
+      "tezina": "👨‍🍳 Koliko ste vješti u kuhinji? *",
+      "kalorije": "🔥 Koje kalorije preferirate? *"
+    },
+    "options": {
+      "vrsta": ["Deserti", "Slano", "Dijetalni recepti", "Napitki", "Svejedno"],
+      "restrikcije": ["Bez restrikcija", "Bez glutena", "Bez laktoze", "Bez šećera", "Veganski", "Orašasti plodovi"],
+      "preferencije": ["Visokoproteinski", "Bogat vlaknima", "Bogat ugljikohidratima", "Svejedno"],
+      "vrijeme": ["Kratko (15-30 min)", "Srednje (30-45 min)", "Duže (45-60+ min)"],
+      "tezina": ["Početnik", "Srednji", "Profesionalac"],
+      "kalorije": ["Nisko (do 300 kcal)", "Umjereno (300-500 kcal)", "Srednje (500-700 kcal)", "Visoko (900+ kcal)"]
+    },
+    "buttons": {
+      "back": "Nazad",
+      "next": "Dalje →",
+      "submit": "✅ Započnimo",
+      "save": "✅ Sačuvaj izmjene"
+    },
+    "toast": {
+      "success": "✅ Kviz završen! Filteri su sačuvani.",
+      "error": "❌ Greška pri slanju kviza: {message}"
+    }
+  },
+  "premium": {
+    "title": "⭐ Premium",
+    "subtitle": "Otključajte sve funkcionalnosti i unaprijedite svoje kulinarsko iskustvo!",
+    "free": {
+      "title": "🆓 Free",
+      "price": "€0"
+    },
+    "premium": {
+      "title": "⭐ Premium",
+      "price": "€4.99",
+      "period": "/ mjesečno",
+      "features": [
+        "✅ Sve Free funkcionalnosti",
+        "✅ Prepoznavanje sastojaka (fotografija)",
+        "✅ Glasovna pretraga",
+        "✅ HealthyChef (3 nivoa, 29 podkategorija)",
+        "✅ Dnevnik ishrane + Analitika + Grafikoni",
+        "✅ Personalizovani plan obroka (7 dana)",
+        "✅ Virtuelni frižider",
+        "✅ Lifestyle Coach",
+        "✅ Somelijer – savršene kombinacije",
+        "✅ Scan Receipt",
+        "✅ Glasovno kuhanje (korak po korak)",
+        "✅ Community (objave, lajkovi)",
+        "✅ Bedževi i izazovi",
+        "✅ Lista za kupovinu + PDF",
+        "✅ Smartwatch integracija",
+        "✅ Bez reklama"
+      ]
+    },
+    "button": {
+      "loading": "⏳ Obrada...",
+      "default": "💳 Postani Premium"
+    }
+  },
+  "common": {
+    "loading": "Učitavanje...",
+    "error": "Došlo je do greške. Pokušajte ponovo.",
+    "success": "Uspješno!",
+    "close": "Zatvori",
+    "save": "Sačuvaj",
+    "cancel": "Otkaži",
+    "delete": "Obriši",
+    "edit": "Uredi",
+    "search": "Pretraži..."
+  }
+}
