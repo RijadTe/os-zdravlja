@@ -12,6 +12,7 @@ const ICONS = {
   'Dijetalni recepti': '🥗',
   'Napitki': '🥤',
   'Svejedno': '😋',
+  'Bez restrikcija': '✅',
   'Bez glutena': '🌾❌',
   'Bez laktoze': '🥛❌',
   'Bez šećera': '🍬❌',
@@ -71,16 +72,28 @@ const Quiz = () => {
           
           const { data: profile } = await supabase
             .from('profili')
-            .select('kviz_zavrsen')
+            .select('kviz_zavrsen, vrsta, izbjegava, preferencije, vrijeme, tezina, kalorije')
             .eq('email', session.user.email)
             .maybeSingle();
           
-          if (profile?.kviz_zavrsen) {
-            setToast({
-              message: 'ℹ️ Već ste popunili kviz. Možete ponovo promijeniti svoje preferencije.',
-              type: 'info'
-            });
-            setTimeout(() => setToast(null), 3000);
+          if (profile) {
+            setFormData(prev => ({
+              ...prev,
+              vrsta: profile.vrsta || [],
+              restrikcije: profile.izbjegava || [],
+              preferencije: profile.preferencije || [],
+              vrijeme: profile.vrijeme || '',
+              tezina: profile.tezina || '',
+              kalorije: profile.kalorije || ''
+            }));
+            
+            if (profile.kviz_zavrsen) {
+              setToast({
+                message: 'ℹ️ Već ste popunili kviz. Možete ponovo promijeniti svoje preferencije.',
+                type: 'info'
+              });
+              setTimeout(() => setToast(null), 3000);
+            }
           }
         } else {
           console.log('🔒 Korisnik nije prijavljen, preusmjeravam na login...');
@@ -124,7 +137,7 @@ const Quiz = () => {
       id: 'restrikcije',
       label: '🚫 Šta IZBJEGAVATE? (max 3)',
       type: 'checkbox',
-      options: ['Bez glutena', 'Bez laktoze', 'Bez šećera', 'Veganski', 'Orašasti plodovi'],
+      options: ['Bez restrikcija', 'Bez glutena', 'Bez laktoze', 'Bez šećera', 'Veganski', 'Orašasti plodovi'],
       maxSelect: 3
     },
     {
@@ -154,10 +167,80 @@ const Quiz = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // ============================================================
+  // 🎯 LOGIKA ZA MULTI-SELECT SA "SVEJEDNO" I "BEZ RESTRIKCIJA"
+  // ============================================================
   const handleMultiSelect = (field, option) => {
     const current = formData[field] || [];
     const max = questions.find(q => q.id === field)?.maxSelect || 3;
     
+    // 🔥 LOGIKA ZA "Svejedno" (vrsta)
+    if (field === 'vrsta' && option === 'Svejedno') {
+      if (current.includes('Svejedno')) {
+        // Ako je već odabrano, ukloni ga
+        handleChange(field, current.filter(item => item !== 'Svejedno'));
+      } else {
+        // Odaberi samo "Svejedno" i ukloni sve ostale
+        handleChange(field, ['Svejedno']);
+      }
+      return;
+    }
+    
+    // 🔥 AKO JE "Svejedno" VEĆ ODABRANO, a korisnik bira nešto drugo
+    if (field === 'vrsta' && current.includes('Svejedno') && option !== 'Svejedno') {
+      // Ukloni "Svejedno" i dodaj novu opciju
+      const newSelection = current.filter(item => item !== 'Svejedno');
+      if (!newSelection.includes(option) && newSelection.length < max) {
+        handleChange(field, [...newSelection, option]);
+      } else if (newSelection.includes(option)) {
+        handleChange(field, newSelection.filter(item => item !== option));
+      }
+      return;
+    }
+    
+    // 🔥 LOGIKA ZA "Bez restrikcija"
+    if (field === 'restrikcije' && option === 'Bez restrikcija') {
+      if (current.includes('Bez restrikcija')) {
+        handleChange(field, current.filter(item => item !== 'Bez restrikcija'));
+      } else {
+        handleChange(field, ['Bez restrikcija']);
+      }
+      return;
+    }
+    
+    // 🔥 AKO JE "Bez restrikcija" VEĆ ODABRANO, a korisnik bira nešto drugo
+    if (field === 'restrikcije' && current.includes('Bez restrikcija') && option !== 'Bez restrikcija') {
+      const newSelection = current.filter(item => item !== 'Bez restrikcija');
+      if (!newSelection.includes(option) && newSelection.length < max) {
+        handleChange(field, [...newSelection, option]);
+      } else if (newSelection.includes(option)) {
+        handleChange(field, newSelection.filter(item => item !== option));
+      }
+      return;
+    }
+    
+    // 🔥 LOGIKA ZA "Svejedno" (preferencije)
+    if (field === 'preferencije' && option === 'Svejedno') {
+      if (current.includes('Svejedno')) {
+        handleChange(field, current.filter(item => item !== 'Svejedno'));
+      } else {
+        handleChange(field, ['Svejedno']);
+      }
+      return;
+    }
+    
+    // 🔥 AKO JE "Svejedno" VEĆ ODABRANO (preferencije), a korisnik bira nešto drugo
+    if (field === 'preferencije' && current.includes('Svejedno') && option !== 'Svejedno') {
+      const newSelection = current.filter(item => item !== 'Svejedno');
+      if (!newSelection.includes(option) && newSelection.length < max) {
+        handleChange(field, [...newSelection, option]);
+      } else if (newSelection.includes(option)) {
+        handleChange(field, newSelection.filter(item => item !== option));
+      }
+      return;
+    }
+    
+    // 🔥 STANDARDNA LOGIKA ZA SVE OSTALE
     if (current.includes(option)) {
       handleChange(field, current.filter(item => item !== option));
     } else if (current.length < max) {
@@ -176,6 +259,24 @@ const Quiz = () => {
   // ============================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // 🔥 OBRADI RESTRIKCIJE - ako je "Bez restrikcija", pošalji prazan niz
+    let restrikcijeZaSlanje = formData.restrikcije;
+    if (restrikcijeZaSlanje.includes('Bez restrikcija')) {
+      restrikcijeZaSlanje = [];
+    }
+    
+    // 🔥 OBRADI VRSTE - ako je "Svejedno", pošalji prazan niz
+    let vrstaZaSlanje = formData.vrsta;
+    if (vrstaZaSlanje.includes('Svejedno')) {
+      vrstaZaSlanje = [];
+    }
+    
+    // 🔥 OBRADI PREFERENCIJE - ako je "Svejedno", pošalji prazan niz
+    let preferencijeZaSlanje = formData.preferencije;
+    if (preferencijeZaSlanje.includes('Svejedno')) {
+      preferencijeZaSlanje = [];
+    }
     
     const requiredFields = ['vrsta', 'restrikcije', 'preferencije', 'vrijeme', 'tezina', 'kalorije'];
     
@@ -202,16 +303,23 @@ const Quiz = () => {
         return;
       }
       
+      const payload = {
+        email: email,
+        vrsta: vrstaZaSlanje || [],
+        restrikcije: restrikcijeZaSlanje || [],
+        preferencije: preferencijeZaSlanje || [],
+        vrijeme: formData.vrijeme || '',
+        tezina: formData.tezina || '',
+        kalorije: formData.kalorije || ''
+      };
+      
       console.log('📤 Šaljem kviz na:', `${API_URL}/quiz`);
-      console.log('📦 Podaci:', { ...formData, email });
+      console.log('📦 Podaci:', payload);
       
       const res = await fetch(`${API_URL}/quiz`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          email: email
-        }),
+        body: JSON.stringify(payload),
       });
       
       if (!res.ok) {
