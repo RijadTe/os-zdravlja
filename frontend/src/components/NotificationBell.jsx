@@ -1,6 +1,7 @@
 // frontend/src/components/NotificationBell.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const NotificationBell = () => {
   const [notifikacije, setNotifikacije] = useState([]);
@@ -12,6 +13,7 @@ const NotificationBell = () => {
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('user'));
     const email = localStorage.getItem('userEmail');
+    const userId = userData?.id;
     
     if (userData) {
       setUser(userData);
@@ -19,23 +21,25 @@ const NotificationBell = () => {
       setUser({ email: email });
     }
     
-    if (userData?.email || email) {
-      const emailToUse = userData?.email || email;
-      fetchNotifikacije(emailToUse);
-      // 🆕 GENERIŠI AUTOMATSKE PREPORUKE
-      generatePreporuke(emailToUse);
+    if (userId || email) {
+      const idToUse = userId || email;
+      fetchNotifikacije(idToUse);
+      generatePreporuke(idToUse);
     }
   }, []);
 
   // ============================================================
   // DOHVATI NOTIFIKACIJE
   // ============================================================
-  const fetchNotifikacije = async (email) => {
+  const fetchNotifikacije = async (korisnikId) => {
     try {
       setLoading(true);
-      const res = await axios.get(`http://localhost:5000/api/notifikacije/${email}`);
-      setNotifikacije(res.data || []);
-      setUnreadCount(res.data.filter(n => !n.procitano).length);
+      // Koristi email ili ID
+      const param = korisnikId.includes('@') ? korisnikId : korisnikId;
+      const res = await fetch(`${API_URL}/notifikacije/${param}`);
+      const data = await res.json();
+      setNotifikacije(data || []);
+      setUnreadCount(data.filter(n => !n.procitano).length);
     } catch (error) {
       console.error('Greška pri dohvatanju notifikacija:', error);
       setNotifikacije([]);
@@ -45,21 +49,27 @@ const NotificationBell = () => {
   };
 
   // ============================================================
-  // 🆕 GENERIŠI AUTOMATSKE PREPORUKE
+  // GENERIŠI AUTOMATSKE PREPORUKE
   // ============================================================
-  const generatePreporuke = async (email) => {
+  const generatePreporuke = async (korisnikId) => {
     try {
-      await axios.get(`http://localhost:5000/api/notifikacije/preporuke/${email}`);
+      const param = korisnikId.includes('@') ? korisnikId : korisnikId;
+      await fetch(`${API_URL}/notifikacije/preporuke/${param}`);
       // Ponovo dohvati notifikacije nakon generisanja
-      setTimeout(() => fetchNotifikacije(email), 1000);
+      setTimeout(() => fetchNotifikacije(korisnikId), 1000);
     } catch (error) {
       console.error('Greška pri generisanju preporuka:', error);
     }
   };
 
+  // ============================================================
+  // OZNAČI KAO PROČITANO
+  // ============================================================
   const markAsRead = async (id) => {
     try {
-      await axios.put(`http://localhost:5000/api/notifikacije/${id}/read`);
+      await fetch(`${API_URL}/notifikacije/${id}/read`, {
+        method: 'PUT'
+      });
       setNotifikacije(prev => 
         prev.map(n => n.id === id ? { ...n, procitano: true } : n)
       );
@@ -69,6 +79,9 @@ const NotificationBell = () => {
     }
   };
 
+  // ============================================================
+  // OZNAČI SVE KAO PROČITANO
+  // ============================================================
   const markAllAsRead = async () => {
     const unread = notifikacije.filter(n => !n.procitano);
     for (const n of unread) {
@@ -76,15 +89,23 @@ const NotificationBell = () => {
     }
   };
 
+  // ============================================================
+  // IZBRIŠI NOTIFIKACIJU
+  // ============================================================
   const deleteNotification = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/notifikacije/${id}`);
+      await fetch(`${API_URL}/notifikacije/${id}`, {
+        method: 'DELETE'
+      });
       setNotifikacije(prev => prev.filter(n => n.id !== id));
     } catch (error) {
       console.error('Greška pri brisanju:', error);
     }
   };
 
+  // ============================================================
+  // FORMATIRANJE DATUMA
+  // ============================================================
   const formatDate = (date) => {
     const d = new Date(date);
     const danas = new Date();
@@ -96,6 +117,9 @@ const NotificationBell = () => {
     return d.toLocaleDateString('hr', { day: '2-digit', month: '2-digit' });
   };
 
+  // ============================================================
+  // IKONE ZA TIPOVE NOTIFIKACIJA
+  // ============================================================
   const getIcon = (tip) => {
     switch (tip) {
       case 'kupovina': return '🛒';
@@ -106,10 +130,14 @@ const NotificationBell = () => {
       case 'energija': return '⚡';
       case 'motivacija': return '🌟';
       case 'rucak': return '🍽️';
+      case 'podsjetnik': return '⏰';
       default: return '🔔';
     }
   };
 
+  // ============================================================
+  // BOJE ZA TIPOVE NOTIFIKACIJA
+  // ============================================================
   const getColor = (tip) => {
     switch (tip) {
       case 'kupovina': return 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/30';
@@ -117,6 +145,7 @@ const NotificationBell = () => {
       case 'coach': return 'border-purple-400 bg-purple-50 dark:bg-purple-900/30';
       case 'motivacija': return 'border-green-400 bg-green-50 dark:bg-green-900/30';
       case 'energija': return 'border-orange-400 bg-orange-50 dark:bg-orange-900/30';
+      case 'tajni_recept': return 'border-red-400 bg-red-50 dark:bg-red-900/30';
       default: return 'border-blue-400 bg-blue-50 dark:bg-blue-900/30';
     }
   };

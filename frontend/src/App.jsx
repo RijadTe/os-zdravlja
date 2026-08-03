@@ -21,6 +21,7 @@ import Community from './pages/Community';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import Footer from './components/Footer';
+import NotificationBell from './components/NotificationBell';
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -366,6 +367,9 @@ function App() {
                   <span className="text-xl md:text-3xl">🧠</span>
                   <span className="text-[10px] md:text-xs">Kviz</span>
                 </Link>
+
+                {/* 🔔 NOTIFIKACIJE - DODANO! */}
+                {currentUser && <NotificationBell />}
 
                 <button
                   onClick={() => setDarkMode(!darkMode)}

@@ -16,23 +16,35 @@ const Premium = () => {
         setLoading(false);
         return;
       }
+
+      console.log('💳 Pokrećem Stripe checkout za:', user.email);
       
       const res = await fetch(`${API_URL}/create-checkout-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: user.email })
       });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Greška pri kreiranju sesije');
+      }
+
       const data = await res.json();
+      console.log('✅ Stripe session kreiran:', data.url);
+      
+      // Preusmjeri na Stripe checkout
       window.location.href = data.url;
+      
     } catch (error) {
-      console.error('Greška:', error);
-      alert('❌ Greška pri pokretanju plaćanja. Pokušajte ponovo.');
+      console.error('❌ Greška:', error);
+      alert(`❌ Greška pri pokretanju plaćanja: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Premium funkcionalnosti – BEZ AI (zaštićeno od konkurencije)
+  // Premium funkcionalnosti
   const premiumFeatures = [
     {
       icon: '📸',

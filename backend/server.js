@@ -7,8 +7,20 @@ const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
 const { createClient } = require('@supabase/supabase-js');
+const OpenAI = require('openai');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const webpush = require('web-push');
 
 const app = express();
+
+// ============================================================
+// VAPID KONFIGURACIJA ZA PUSH NOTIFIKACIJE
+// ============================================================
+webpush.setVapidDetails(
+  'mailto:info@os-zdravlja.com',
+  process.env.VAPID_PUBLIC_KEY,
+  process.env.VAPID_PRIVATE_KEY
+);
 
 // ============================================================
 // MULTER KONFIGURACIJA ZA SLIKE
@@ -38,7 +50,7 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: fileFilter
 });
 
@@ -49,6 +61,10 @@ console.log('🔍 Provjera .env:');
 console.log('PORT:', process.env.PORT || '5000');
 console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? '✅' : '❌');
 console.log('SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY ? '✅' : '❌');
+console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? '✅' : '❌');
+console.log('STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? '✅' : '❌');
+console.log('VAPID_PUBLIC_KEY:', process.env.VAPID_PUBLIC_KEY ? '✅' : '❌');
+console.log('VAPID_PRIVATE_KEY:', process.env.VAPID_PRIVATE_KEY ? '✅' : '❌');
 console.log('=================================\n');
 
 // ============================================================
@@ -64,7 +80,7 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 // ============================================================
-// MIDDLEWARE - CORS (SA SVIM DOZVOLJENIM DOMENAMA)
+// MIDDLEWARE - CORS
 // ============================================================
 app.use(cors({
   origin: [
@@ -95,6 +111,21 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // ============================================================
 const supabase = createClient(supabaseUrl, supabaseKey);
 console.log('✅ Supabase povezan!\n');
+
+// ============================================================
+// OPENAI CLIENT
+// ============================================================
+let openai = null;
+if (process.env.OPENAI_API_KEY) {
+  try {
+    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    console.log('✅ OpenAI povezan!');
+  } catch (error) {
+    console.warn('⚠️ OpenAI nije dostupan:', error.message);
+  }
+} else {
+  console.warn('⚠️ OPENAI_API_KEY nije postavljen, AI Sommelier će koristiti fallback.');
+}
 
 // ============================================================
 // AI CHEF HELPER FUNKCIJE
@@ -189,6 +220,134 @@ async function analyzeImage(imagePath) {
       tekst: path.basename(imagePath, path.extname(imagePath)),
       sastojci: [path.basename(imagePath, path.extname(imagePath))]
     };
+  }
+}
+
+// ============================================================
+// AI SOMELIJER CACHE FUNKCIJE
+// ============================================================
+
+async function checkSommelierCache(receptId) {
+  try {
+    const { data, error } = await supabase
+      .from('ai_sommelier_cache')
+      .select('zacini, pice, prilog, vrijeme_jela, created_at')
+      .eq('recept_id', receptId)
+      .gte('expires_at', new Date().toISOString())
+      .maybeSingle();
+
+    if (error) {
+      console.error('❌ Greška pri provjeri Sommelier keša:', error);
+      return null;
+    }
+    return data;
+  } catch (error) {
+    console.error('❌ Greška pri provjeri Sommelier keša:', error);
+    return null;
+  }
+}
+
+async function saveSommelierCache(receptId, data) {
+  try {
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30);
+
+    const { error } = await supabase
+      .from('ai_sommelier_cache')
+      .insert([{
+        recept_id: receptId,
+        zacini: data.zacini,
+        pice: data.pice,
+        prilog: data.prilog,
+        vrijeme_jela: data.vrijeme_jela,
+        expires_at: expiresAt.toISOString()
+      }]);
+
+    if (error) {
+      console.error('❌ Greška pri spremanju u Sommelier keš:', error);
+    } else {
+      console.log('✅ Sačuvano u Sommelier keš za recept:', receptId);
+    }
+  } catch (error) {
+    console.error('❌ Greška pri spremanju u Sommelier keš:', error);
+  }
+}
+
+// ============================================================
+// NOTIFIKACIJE - POMOĆNE FUNKCIJE
+// ============================================================
+
+async function sendPushNotification(email, title, body, link = '/') {
+  try {
+    const { data: subscriptionData, error } = await supabase
+      .from('push_subscriptions')
+      .select('subscription')
+      .eq('korisnik_email', email)
+      .maybeSingle();
+
+    if (error || !subscriptionData) {
+      console.log('ℹ️ Korisnik nema push subscription:', email);
+      return;
+    }
+
+    const payload = JSON.stringify({
+      title: title,
+      body: body,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      data: { url: link }
+    });
+
+    await webpush.sendNotification(
+      subscriptionData.subscription,
+      payload
+    );
+
+    console.log('✅ Push notifikacija poslana za:', email);
+  } catch (error) {
+    console.error('❌ Greška pri slanju push notifikacije:', error);
+  }
+}
+
+async function createNotification(email, tip, poruka, link = '/') {
+  try {
+    const { data: profil, error: profilError } = await supabase
+      .from('profili')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (profilError || !profil) {
+      console.error('❌ Korisnik nije pronađen:', email);
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('notifikacije')
+      .insert([{
+        korisnik_id: profil.id,
+        korisnik_email: email,
+        tip: tip,
+        poruka: poruka,
+        link: link,
+        created_at: new Date().toISOString()
+      }])
+      .select();
+
+    if (error) {
+      console.error('❌ Greška pri kreiranju notifikacije:', error);
+      return null;
+    }
+
+    console.log('✅ Notifikacija kreirana za:', email);
+    
+    // Pošalji push notifikaciju
+    await sendPushNotification(email, 'OS Zdravlja', poruka, link);
+    
+    return data?.[0] || null;
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    return null;
   }
 }
 
@@ -289,6 +448,14 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     console.log('✅ Profil kreiran:', profileData);
+
+    // 🔥 KREIRAJ DOBRODOŠLICU NOTIFIKACIJU
+    await createNotification(
+      email,
+      'motivacija',
+      `👋 Dobrodošli ${ime}! Otkrijte savršene recepte prilagođene vašim potrebama. Započnite kviz da personalizujemo vaše iskustvo!`,
+      '/quiz'
+    );
 
     res.status(201).json({
       success: true,
@@ -454,7 +621,7 @@ app.post('/api/auth/logout', async (req, res) => {
 });
 
 // ============================================================
-// 6. QUIZ ENDPOINT - SA FILTERIMA
+// 6. QUIZ ENDPOINT
 // ============================================================
 app.post('/api/quiz', async (req, res) => {
   console.log('\n📥 === QUIZ ENDPOINT ===');
@@ -617,7 +784,7 @@ app.get('/api/recepti', async (req, res) => {
 });
 
 // ============================================================
-// 8. DOHVATI RECEPTE ZA KORISNIKA (SA NJEGOVIM FILTERIMA)
+// 8. DOHVATI RECEPTE ZA KORISNIKA
 // ============================================================
 app.get('/api/recepti/korisnik/:email', async (req, res) => {
   try {
@@ -1107,7 +1274,7 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
 });
 
 // ============================================================
-// 20. AI CHEF - OTKLJUČAJ PRETRAGU (VIDEO)
+// 20. AI CHEF - OTKLJUČAJ PRETRAGU
 // ============================================================
 app.post('/api/ai-chef/unlock', async (req, res) => {
   try {
@@ -1174,7 +1341,7 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
 });
 
 // ============================================================
-// 21. AI CHEF - PRETRAGA (SA SLIKOM + OCR + KEŠ)
+// 21. AI CHEF - PRETRAGA
 // ============================================================
 app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
   try {
@@ -1593,29 +1760,17 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       });
     }
 
+    // 🔥 SAČUVAJ PREPORUKE U BAZU
     for (const preporuka of preporuke) {
-      const { data: postoji } = await supabase
-        .from('notifikacije')
-        .select('id')
-        .eq('korisnik_email', email)
-        .eq('tip', preporuka.tip)
-        .gte('created_at', new Date().toISOString().split('T')[0])
-        .maybeSingle();
-
-      if (!postoji) {
-        await supabase
-          .from('notifikacije')
-          .insert([{
-            korisnik_email: email,
-            tip: preporuka.tip,
-            poruka: preporuka.poruka,
-            link: preporuka.link || '/',
-            procitano: false,
-            created_at: new Date().toISOString()
-          }]);
-      }
+      await createNotification(
+        email,
+        preporuka.tip,
+        preporuka.poruka,
+        preporuka.link || '/'
+      );
     }
 
+    // Vrati notifikacije
     const { data: notifikacije, error: notifError } = await supabase
       .from('notifikacije')
       .select('*')
@@ -1679,7 +1834,29 @@ app.put('/api/notifikacije/:id/read', async (req, res) => {
 });
 
 // ============================================================
-// 29. NOTIFIKACIJE - IZBRIŠI
+// 29. NOTIFIKACIJE - OZNAČI SVE KAO PROČITANO
+// ============================================================
+app.put('/api/notifikacije/:email/read-all', async (req, res) => {
+  try {
+    const { email } = req.params;
+    console.log(`✅ Označavam sve notifikacije kao pročitane za: ${email}`);
+    
+    const { error } = await supabase
+      .from('notifikacije')
+      .update({ procitano: true })
+      .eq('korisnik_email', email)
+      .eq('procitano', false);
+
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// 30. NOTIFIKACIJE - IZBRIŠI
 // ============================================================
 app.delete('/api/notifikacije/:id', async (req, res) => {
   try {
@@ -1700,7 +1877,7 @@ app.delete('/api/notifikacije/:id', async (req, res) => {
 });
 
 // ============================================================
-// 30. OBROCI - DOHVATI OBROKE ZA KORISNIKA
+// 31. OBROCI - DOHVATI OBROKE
 // ============================================================
 app.get('/api/obroci/:email', async (req, res) => {
   try {
@@ -1731,7 +1908,7 @@ app.get('/api/obroci/:email', async (req, res) => {
 });
 
 // ============================================================
-// 31. OBROCI - KREIRAJ OBROK
+// 32. OBROCI - KREIRAJ OBROK
 // ============================================================
 app.post('/api/obroci', async (req, res) => {
   try {
@@ -1779,7 +1956,7 @@ app.post('/api/obroci', async (req, res) => {
 });
 
 // ============================================================
-// 32. OBROCI - IZBRIŠI OBROK
+// 33. OBROCI - IZBRIŠI OBROK
 // ============================================================
 app.delete('/api/obroci/:id', async (req, res) => {
   try {
@@ -1800,7 +1977,7 @@ app.delete('/api/obroci/:id', async (req, res) => {
 });
 
 // ============================================================
-// 33. COMMUNITY - DOHVATI SVE OBJAVE
+// 34. COMMUNITY - DOHVATI OBJAVE
 // ============================================================
 app.get('/api/community/objave', async (req, res) => {
   try {
@@ -1820,7 +1997,7 @@ app.get('/api/community/objave', async (req, res) => {
 });
 
 // ============================================================
-// 34. COMMUNITY - KREIRAJ OBJAVU
+// 35. COMMUNITY - KREIRAJ OBJAVU
 // ============================================================
 app.post('/api/community/objave', upload.single('slika'), async (req, res) => {
   try {
@@ -1872,7 +2049,7 @@ app.post('/api/community/objave', upload.single('slika'), async (req, res) => {
 });
 
 // ============================================================
-// 35. COMMUNITY - LAJKUJ OBJAVU
+// 36. COMMUNITY - LAJKUJ OBJAVU
 // ============================================================
 app.post('/api/community/objave/:id/like', async (req, res) => {
   try {
@@ -1918,6 +2095,7 @@ app.post('/api/community/objave/:id/like', async (req, res) => {
 
     if (error) throw error;
 
+    // 🔥 KREIRAJ NOTIFIKACIJU ZA LAJK
     if (lajkovao && objava.korisnik_email && objava.korisnik_email !== email) {
       const { data: userData } = await supabase
         .from('profili')
@@ -1927,16 +2105,12 @@ app.post('/api/community/objave/:id/like', async (req, res) => {
 
       const ime = userData?.ime || 'Neko';
       
-      await supabase
-        .from('notifikacije')
-        .insert([{
-          korisnik_email: objava.korisnik_email,
-          tip: 'lajk',
-          poruka: `${ime} je lajkovao/la vašu objavu "${objava.naziv}"`,
-          link: `/community`,
-          procitano: false,
-          created_at: new Date().toISOString()
-        }]);
+      await createNotification(
+        objava.korisnik_email,
+        'lajk',
+        `${ime} je lajkovao/la vašu objavu "${objava.naziv}"`,
+        `/community`
+      );
     }
 
     res.json({ lajkovi: noviLajkovi, lajkovao });
@@ -1947,7 +2121,7 @@ app.post('/api/community/objave/:id/like', async (req, res) => {
 });
 
 // ============================================================
-// 36. COMMUNITY - IZBRIŠI OBJAVU
+// 37. COMMUNITY - IZBRIŠI OBJAVU
 // ============================================================
 app.delete('/api/community/objave/:id', async (req, res) => {
   try {
@@ -1968,7 +2142,7 @@ app.delete('/api/community/objave/:id', async (req, res) => {
 });
 
 // ============================================================
-// 37. ZABORAVLJENA LOZINKA - POŠALJI LINK
+// 38. ZABORAVLJENA LOZINKA
 // ============================================================
 app.post('/api/auth/forgot-password', async (req, res) => {
   try {
@@ -1996,7 +2170,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 });
 
 // ============================================================
-// 38. RESET LOZINKE
+// 39. RESET LOZINKE
 // ============================================================
 app.post('/api/auth/reset-password', async (req, res) => {
   try {
@@ -2032,7 +2206,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
 });
 
 // ============================================================
-// 39. TEST QUIZ ENDPOINT
+// 40. TEST QUIZ ENDPOINT
 // ============================================================
 app.post('/api/test-quiz', (req, res) => {
   console.log('\n📥 TEST ENDPOINT - Primljen zahtjev');
@@ -2046,37 +2220,108 @@ app.post('/api/test-quiz', (req, res) => {
 });
 
 // ============================================================
-// 40. STRIPE - KREIRAJ CHECKOUT SESSION (PREMIUM)
+// 41. AI SOMELIJER (SA KEŠOM!)
 // ============================================================
-app.post('/api/create-checkout-session', async (req, res) => {
+app.post('/api/ai-sommelier', async (req, res) => {
+  console.log('\n🍷 === AI SOMELIJER ===');
+  console.log('📦 Recept:', req.body.naziv);
+  console.log('📦 Recept ID:', req.body.receptId);
+  
   try {
-    const { email } = req.body;
-    console.log('💳 Kreiranje checkout session za:', email);
+    const { naziv, sastojci, receptId } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ error: 'Email je obavezan.' });
+    // 1. PROVJERI KEŠ
+    if (receptId) {
+      const cached = await checkSommelierCache(receptId);
+      if (cached) {
+        console.log('✅ Keš pronađen za recept:', receptId);
+        return res.json({
+          zacini: cached.zacini,
+          pice: cached.pice,
+          prilog: cached.prilog,
+          vrijeme_jela: cached.vrijeme_jela,
+          _cached: true,
+          _cached_at: cached.created_at
+        });
+      }
     }
 
-    // 🔥 PRIVREMENO - SIMULIRAJ USPJEŠNU NADOGRADNJU
-    console.log('✅ Premium nadogradnja za:', email);
-    
-    // Ažuriraj korisnika u Supabase
-    const { error: updateError } = await supabase
-      .from('profili')
-      .update({ premium: true })
-      .eq('email', email);
+    // 2. AKO NEMA KEŠA, POZOVI OPENAI ILI FALLBACK
+    console.log('🔄 Nema keša, generišem odgovor...');
 
-    if (updateError) {
-      console.error('❌ Greška pri ažuriranju:', updateError);
-      return res.status(500).json({ error: 'Greška pri ažuriranju profila.' });
+    let result = {
+      zacini: 'Origano, bosiljak, crni biber',
+      pice: 'Crno vino (Merlot)',
+      prilog: 'Krompir na žaru',
+      vrijeme_jela: 'Večera (19-21h)'
+    };
+
+    if (openai) {
+      try {
+        const prompt = `Za jelo "${naziv}" sa sastojcima: ${sastojci?.join(', ') || 'nepoznati'}. 
+        Predloži:
+        1. Začine (2-3)
+        2. Piće (vino, sok, čaj...)
+        3. Prilog (salata, krompir, povrće...)
+        4. Idealno vrijeme za jelo (doručak, ručak, večera...)
+        
+        Odgovori u JSON formatu: { "zacini": "...", "pice": "...", "prilog": "...", "vrijeme_jela": "..." }`;
+        
+        const response = await openai.chat.completions.create({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.7,
+          response_format: { type: "json_object" }
+        });
+        
+        result = JSON.parse(response.choices[0].message.content);
+        console.log('✅ OpenAI odgovor generisan');
+      } catch (openaiError) {
+        console.error('❌ OpenAI greška:', openaiError.message);
+      }
+    } else {
+      console.log('ℹ️ OpenAI nije dostupan, koristim fallback odgovor');
     }
 
-    // Vrati URL za preusmjeravanje na success stranicu
-    const clientUrl = process.env.CLIENT_URL || 'https://os-zdravlja.vercel.app';
-    res.json({ 
-      url: `${clientUrl}/premium-success`
+    // 3. SAČUVAJ U KEŠ
+    if (receptId) {
+      await saveSommelierCache(receptId, result);
+      console.log('✅ Sačuvano u keš za recept:', receptId);
+    }
+
+    res.json({
+      ...result,
+      _cached: false
     });
 
+  } catch (error) {
+    console.error('❌ Greška pri AI Somelijeru:', error);
+    res.json({
+      zacini: 'Origano, bosiljak, crni biber',
+      pice: 'Crno vino (Merlot)',
+      prilog: 'Krompir na žaru',
+      vrijeme_jela: 'Večera (19-21h)',
+      _cached: false,
+      _fallback: true
+    });
+  }
+});
+
+// ============================================================
+// 42. OČISTI SOMELIJER KEŠ
+// ============================================================
+app.delete('/api/ai-sommelier/cache/clean', async (req, res) => {
+  try {
+    console.log('🧹 Čišćenje starog AI Sommelier keša...');
+    
+    const { error } = await supabase
+      .from('ai_sommelier_cache')
+      .delete()
+      .lt('expires_at', new Date().toISOString());
+
+    if (error) throw error;
+    
+    res.json({ success: true, message: '✅ Stari Sommelier keš očišćen.' });
   } catch (error) {
     console.error('❌ Greška:', error);
     res.status(500).json({ error: error.message });
@@ -2084,7 +2329,171 @@ app.post('/api/create-checkout-session', async (req, res) => {
 });
 
 // ============================================================
-// 41. FALLBACK RUTA
+// 43. STRIPE - KREIRAJ CHECKOUT SESSION
+// ============================================================
+app.post('/api/create-checkout-session', async (req, res) => {
+  try {
+    const { email } = req.body;
+    console.log('💳 Kreiranje Stripe checkout session za:', email);
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email je obavezan.' });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: '⭐ Premium - OS Zdravlja',
+            description: 'Otključajte sve Premium funkcionalnosti: AI Chef, HealthyChef, Food Planner, Glasovno kuhanje i još mnogo toga!',
+            images: ['https://os-zdravlja.vercel.app/icons/icon-512.png']
+          },
+          unit_amount: 499,
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: `${process.env.CLIENT_URL || 'https://os-zdravlja.vercel.app'}/premium-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.CLIENT_URL || 'https://os-zdravlja.vercel.app'}/premium-cancel`,
+      metadata: { email: email },
+      customer_email: email,
+    });
+
+    console.log('✅ Stripe session kreiran:', session.id);
+    res.json({ url: session.url });
+
+  } catch (error) {
+    console.error('❌ Stripe greška:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// 44. VERIFIKACIJA PLAĆANJA
+// ============================================================
+app.get('/api/verify-payment', async (req, res) => {
+  try {
+    const { session_id } = req.query;
+    
+    console.log('🔍 Verifikacija plaćanja, session_id:', session_id);
+    
+    if (!session_id) {
+      return res.status(400).json({ success: false, error: 'Session ID je obavezan.' });
+    }
+
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+    
+    if (session.payment_status === 'paid') {
+      const email = session.metadata.email || session.customer_email;
+      console.log('💰 Plaćanje potvrđeno za:', email);
+      
+      const { error } = await supabase
+        .from('profili')
+        .update({ 
+          premium: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('email', email);
+
+      if (error) {
+        console.error('❌ Greška pri ažuriranju profila:', error);
+        return res.json({ success: false, error: error.message });
+      }
+
+      console.log('✅ Premium aktiviran za:', email);
+      return res.json({ success: true, premium: true });
+    }
+
+    res.json({ success: false, premium: false });
+  } catch (error) {
+    console.error('❌ Greška pri verifikaciji:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================================
+// 45. STRIPE WEBHOOK - POTVRDA PLAĆANJA
+// ============================================================
+app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (err) {
+    console.error('❌ Webhook greška:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const email = session.metadata.email || session.customer_email;
+    
+    console.log('💰 Plaćanje (webhook) za:', email);
+
+    try {
+      const { error } = await supabase
+        .from('profili')
+        .update({ 
+          premium: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('email', email);
+
+      if (error) {
+        console.error('❌ Greška pri ažuriranju profila:', error);
+      } else {
+        console.log('✅ Premium aktiviran (webhook) za:', email);
+        
+        // 🔥 POŠALJI NOTIFIKACIJU O PREMIUM AKTIVACIJI
+        await createNotification(
+          email,
+          'motivacija',
+          '🎉 Čestitamo! Vaš Premium nalog je aktiviran. Sada imate pristup svim Premium funkcionalnostima!',
+          '/profile'
+        );
+      }
+    } catch (error) {
+      console.error('❌ Greška:', error);
+    }
+  }
+
+  res.json({ received: true });
+});
+
+// ============================================================
+// 46. NOTIFIKACIJE - REGISTRUJ PUSH SUBSCRIPTION
+// ============================================================
+app.post('/api/notifikacije/subscribe', async (req, res) => {
+  try {
+    const { subscription, email } = req.body;
+    console.log('📱 Registrujem push subscription za:', email);
+
+    const { error } = await supabase
+      .from('push_subscriptions')
+      .upsert({
+        korisnik_email: email,
+        subscription: subscription,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'korisnik_email' });
+
+    if (error) throw error;
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// 47. FALLBACK RUTA
 // ============================================================
 app.use('/*path', (req, res) => {
   res.status(404).json({ 

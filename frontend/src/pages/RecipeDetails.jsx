@@ -394,7 +394,7 @@ const RecipeDetails = () => {
   };
 
   // ============================================================
-  // 🍷 AI SOMELIJER
+  // 🍷 AI SOMELIJER SA KEŠIRANJEM!
   // ============================================================
   const fetchSommelier = async () => {
     setLoadingSommelier(true);
@@ -405,10 +405,20 @@ const RecipeDetails = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           naziv: recipe?.naziv,
-          sastojci: recipe?.sastojci
+          sastojci: recipe?.sastojci,
+          receptId: recipe?.id  // ← DODAJ ID ZA KEŠ!
         })
       });
       const data = await res.json();
+      
+      // Ako je iz keša, prikaži posebnu oznaku
+      if (data._cached) {
+        console.log('📦 Sommelier odgovor iz keša!');
+      }
+      if (data._fallback) {
+        console.log('⚠️ Sommelier koristi fallback odgovor (bez AI)');
+      }
+      
       setSommelierData(data);
     } catch (error) {
       console.error('Greška:', error);
@@ -560,7 +570,7 @@ const RecipeDetails = () => {
         </ol>
       </div>
 
-      {/* AI SOMELIJER */}
+      {/* AI SOMELIJER SA KEŠOM */}
       <div className="mt-6 p-4 bg-purple-50 dark:bg-purple-900 rounded-xl border border-purple-200 dark:border-purple-700">
         <h3 className="font-bold dark:text-white flex items-center gap-2">
           🍷 AI Somelijer
@@ -573,6 +583,18 @@ const RecipeDetails = () => {
 
         {sommelierData ? (
           <div className="mt-3 space-y-1 dark:text-gray-300">
+            {/* OZNAKA AKO JE IZ KEŠA */}
+            {sommelierData._cached && (
+              <span className="text-xs text-green-500 dark:text-green-400 flex items-center gap-1">
+                💾 Iz keša (brži odgovor)
+              </span>
+            )}
+            {/* OZNAKA AKO JE FALLBACK */}
+            {sommelierData._fallback && (
+              <span className="text-xs text-yellow-500 dark:text-yellow-400 flex items-center gap-1">
+                ⚠️ Generisano bez AI (fallback)
+              </span>
+            )}
             <p><span className="font-semibold">🌿 Začini:</span> {sommelierData.zacini}</p>
             <p><span className="font-semibold">🍷 Piće:</span> {sommelierData.pice}</p>
             <p><span className="font-semibold">🥗 Prilog:</span> {sommelierData.prilog}</p>
