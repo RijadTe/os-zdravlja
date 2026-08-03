@@ -77,7 +77,7 @@ app.use(cors({
     'http://127.0.0.1:5174',
     'http://10.129.62.121:5173',
     'http://10.129.62.121:5174',
-    'https://os-zdravlja.vercel.app',        // ← DODANO!
+    'https://os-zdravlja.vercel.app',
     'https://os-zdravlja-backend.onrender.com',
     'https://os-zdravlja.vercel.app/',
     process.env.CLIENT_URL
@@ -543,7 +543,6 @@ app.post('/api/quiz', async (req, res) => {
 
     console.log('✅ Kviz uspješno sačuvan!');
     
-    // Vrati ažurirani profil
     const { data: updatedProfile } = await supabase
       .from('profili')
       .select('*')
@@ -586,7 +585,6 @@ app.get('/api/recepti', async (req, res) => {
       .from('recepti')
       .select('*');
 
-    // Prvo primijeni filtere iz kviza (ako postoje)
     if (vrsta) {
       const vrstaArray = Array.isArray(vrsta) ? vrsta : [vrsta];
       query = query.in('vrsta', vrstaArray);
@@ -600,12 +598,9 @@ app.get('/api/recepti', async (req, res) => {
       query = query.eq('tezina', tezina);
     }
 
-    // Restrikcije - izbaci recepte koji sadrže te sastojke
     if (restrikcije) {
       const restrikcijeArray = Array.isArray(restrikcije) ? restrikcije : [restrikcije];
       for (let r of restrikcijeArray) {
-        // Ovo je pojednostavljeno - u pravoj implementaciji bi trebalo
-        // provjeravati sastojke recepta
         query = query.not('sastojci', 'cs', `{${r}}`);
       }
     }
@@ -629,7 +624,6 @@ app.get('/api/recepti/korisnik/:email', async (req, res) => {
     const { email } = req.params;
     console.log(`👤 Dohvatam recepte za korisnika: ${email}`);
     
-    // Prvo dohvati profil korisnika
     const { data: profil, error: profilError } = await supabase
       .from('profili')
       .select('vrsta, izbjegava, preferencije, vrijeme, tezina, kalorije')
@@ -647,7 +641,6 @@ app.get('/api/recepti/korisnik/:email', async (req, res) => {
       .from('recepti')
       .select('*');
 
-    // Primijeni filtere iz profila
     if (profil.vrsta && profil.vrsta.length > 0) {
       query = query.in('vrsta', profil.vrsta);
     }
@@ -660,11 +653,8 @@ app.get('/api/recepti/korisnik/:email', async (req, res) => {
       query = query.eq('tezina', profil.tezina);
     }
 
-    // Restrikcije
     if (profil.izbjegava && profil.izbjegava.length > 0) {
       for (let r of profil.izbjegava) {
-        // Ovo je pojednostavljeno - u pravoj implementaciji bi trebalo
-        // provjeravati sastojke recepta
         query = query.not('sastojci', 'cs', `{${r}}`);
       }
     }
@@ -1530,7 +1520,6 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
     const ime = profil.ime || 'Prijatelju';
     const preporuke = [];
 
-    // Dohvati zdravstvene podatke (zadnjih 7 dana)
     const { data: zdravstveni, error: zdravError } = await supabase
       .from('zdravstveni_podaci')
       .select('*')
@@ -1540,13 +1529,11 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
 
     if (zdravError) throw zdravError;
 
-    // Analiziraj zdravstvene podatke
     if (zdravstveni && zdravstveni.length > 0) {
       const prosjekSna = zdravstveni.reduce((acc, z) => acc + (z.san_sati || 0), 0) / zdravstveni.length;
       const prosjekStresa = zdravstveni.reduce((acc, z) => acc + (z.nivo_stresa || 0), 0) / zdravstveni.length;
       const prosjekEnergije = zdravstveni.reduce((acc, z) => acc + (z.energija || 0), 0) / zdravstveni.length;
 
-      // 😴 LOŠ SAN
       if (prosjekSna < 6) {
         preporuke.push({
           tip: 'san',
@@ -1555,7 +1542,6 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
         });
       }
 
-      // 🧘 VISOK STRES
       if (prosjekStresa > 6) {
         preporuke.push({
           tip: 'coach',
@@ -1564,7 +1550,6 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
         });
       }
 
-      // 💪 NISKA ENERGIJA
       if (prosjekEnergije < 5) {
         preporuke.push({
           tip: 'energija',
@@ -1573,7 +1558,6 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
         });
       }
 
-      // 🌟 DOBRO STANJE
       if (prosjekSna >= 7 && prosjekStresa < 4 && prosjekEnergije >= 7) {
         preporuke.push({
           tip: 'motivacija',
@@ -1583,7 +1567,6 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       }
     }
 
-    // 🛒 PODSJETNIK ZA TRGOVINU
     const namirnice = profil.namirnice || [];
     if (namirnice.length < 3) {
       preporuke.push({
@@ -1593,7 +1576,6 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       });
     }
 
-    // 🍽️ PODSJETNIK ZA OBROKE
     const { data: obroci, error: obrociError } = await supabase
       .from('obroci')
       .select('*')
@@ -1611,7 +1593,6 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       });
     }
 
-    // Sačuvaj preporuke
     for (const preporuka of preporuke) {
       const { data: postoji } = await supabase
         .from('notifikacije')
@@ -1635,7 +1616,6 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       }
     }
 
-    // Vrati notifikacije
     const { data: notifikacije, error: notifError } = await supabase
       .from('notifikacije')
       .select('*')
@@ -1938,7 +1918,6 @@ app.post('/api/community/objave/:id/like', async (req, res) => {
 
     if (error) throw error;
 
-    // Kreiraj notifikaciju za lajk
     if (lajkovao && objava.korisnik_email && objava.korisnik_email !== email) {
       const { data: userData } = await supabase
         .from('profili')
@@ -2067,7 +2046,45 @@ app.post('/api/test-quiz', (req, res) => {
 });
 
 // ============================================================
-// 40. FALLBACK RUTA
+// 40. STRIPE - KREIRAJ CHECKOUT SESSION (PREMIUM)
+// ============================================================
+app.post('/api/create-checkout-session', async (req, res) => {
+  try {
+    const { email } = req.body;
+    console.log('💳 Kreiranje checkout session za:', email);
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email je obavezan.' });
+    }
+
+    // 🔥 PRIVREMENO - SIMULIRAJ USPJEŠNU NADOGRADNJU
+    console.log('✅ Premium nadogradnja za:', email);
+    
+    // Ažuriraj korisnika u Supabase
+    const { error: updateError } = await supabase
+      .from('profili')
+      .update({ premium: true })
+      .eq('email', email);
+
+    if (updateError) {
+      console.error('❌ Greška pri ažuriranju:', updateError);
+      return res.status(500).json({ error: 'Greška pri ažuriranju profila.' });
+    }
+
+    // Vrati URL za preusmjeravanje na success stranicu
+    const clientUrl = process.env.CLIENT_URL || 'https://os-zdravlja.vercel.app';
+    res.json({ 
+      url: `${clientUrl}/premium-success`
+    });
+
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// 41. FALLBACK RUTA
 // ============================================================
 app.use('/*path', (req, res) => {
   res.status(404).json({ 
