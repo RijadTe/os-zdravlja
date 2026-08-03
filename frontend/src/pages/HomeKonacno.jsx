@@ -302,7 +302,7 @@ const HomeKonacno = () => {
     { id: 'slana', icon: '🍕', label: 'SLANA JELA', link: '/recipes?vrsta=Slano' },
     { id: 'kviz', icon: '🧠', label: 'KVIZ', link: '/quiz' },
     { id: 'ai', icon: '🤖', label: 'AI CHEF', link: '/ai-chef' },
-    { id: 'smoothie', icon: '🍹', label: 'SMOOTHIE', link: '/recipes?vrsta=Napitki' },
+    { id: 'napitki', icon: '🍹', label: 'NAPITKI', link: '/recipes?vrsta=Napitki' },
   ];
 
   const healthyChefCategories = [
@@ -318,7 +318,7 @@ const HomeKonacno = () => {
     { value: 'Slano', label: '🍕 Slano' },
     { value: 'Deserti', label: '🍰 Deserti' },
     { value: 'Dijetalni recepti', label: '🥗 Dijetalno' },
-    { value: 'Napitki', label: '🍹 Smoothie' }
+    { value: 'Napitki', label: '🍹 Napitki' }
   ];
   const vrijemeOptions = [
     { value: 'Kratko (15-30 min)', label: '⚡ Kratko' },
