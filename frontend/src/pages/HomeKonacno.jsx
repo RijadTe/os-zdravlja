@@ -17,6 +17,7 @@ const HomeKonacno = () => {
   const [energy, setEnergy] = useState('');
   const [stress, setStress] = useState('');
   const [coachAdvice, setCoachAdvice] = useState('');
+  const [coachRecipes, setCoachRecipes] = useState([]);
   const [fridgeItems, setFridgeItems] = useState([]);
   const [newItem, setNewItem] = useState('');
   const [scanPoruka, setScanPoruka] = useState('');
@@ -245,7 +246,7 @@ const HomeKonacno = () => {
   }, [recepti, filters]);
 
   // ============================================================
-  // 6. LIFESTYLE COACH - SA ČUVANJEM ZDRAVSTVENIH PODATAKA
+  // 6. LIFESTYLE COACH - AI PREPORUKE NA OSNOVU RASPOLOŽENJA
   // ============================================================
   const getCoachAdvice = useCallback(async () => {
     if (!sleep || !energy || !stress) {
@@ -255,6 +256,8 @@ const HomeKonacno = () => {
 
     try {
       const email = user?.email || localStorage.getItem('userEmail');
+      
+      // 🔥 SAČUVAJ ZDRAVSTVENE PODATKE
       if (email) {
         await fetch(`${API_URL}/zdravstveni-podaci`, {
           method: 'POST',
@@ -270,13 +273,98 @@ const HomeKonacno = () => {
         });
         console.log('✅ Zdravstveni podaci sačuvani!');
       }
+
+      // 🔥 GENERIŠI ADVICE NA OSNOVU RASPOLOŽENJA
+      let advice = '';
+      let filteredRecepti = [];
+
+      // Analiziraj raspoloženje
+      const isSleepGood = sleep === 'Odlično' || sleep === 'Dobro';
+      const isEnergyGood = energy === 'Pun/a' || energy === 'Osrednje';
+      const isStressLow = stress === 'Nizak' || stress === 'Srednji';
+
+      // 🔥 FILTRIRAJ RECEPTE NA OSNOVU RASPOLOŽENJA
+      if (recepti.length > 0) {
+        if (!isSleepGood && !isEnergyGood && !isStressLow) {
+          // 😴 LOŠ SAN + NISKA ENERGIJA + VISOK STRES
+          advice = '😴 Primjećujem da ste umorni i pod stresom. Preporučujem lagane, hranjive obroke koji će vam dati energiju bez opterećenja.';
+          filteredRecepti = recepti.filter(r => 
+            r.vrsta === 'Dijetalni recepti' || 
+            (r.kalorije || 0) < 400 || 
+            r.vrijeme?.includes('Kratko')
+          );
+        } else if (!isSleepGood && !isEnergyGood) {
+          // 😴 LOŠ SAN + NISKA ENERGIJA
+          advice = '😴 Loš san i niska energija. Preporučujem obroke bogate proteinima i vitaminima za brzi oporavak.';
+          filteredRecepti = recepti.filter(r => 
+            (r.proteini || 0) > 20 || 
+            r.vrsta === 'Dijetalni recepti'
+          );
+        } else if (!isSleepGood && isStressLow) {
+          // 😴 LOŠ SAN, ALI DOBAR STRES
+          advice = '😴 San vam nije najbolji, ali ste opušteni. Preporučujem lagane večere koje ne opterećuju probavu.';
+          filteredRecepti = recepti.filter(r => 
+            (r.kalorije || 0) < 500 || 
+            r.vrijeme?.includes('Srednje') ||
+            r.vrsta === 'Dijetalni recepti'
+          );
+        } else if (isEnergyGood && isStressLow) {
+          // ⚡ DOBRA ENERGIJA + NIZAK STRES
+          advice = '⚡ Odlično! Imate dobru energiju i nizak stres. Vrijeme je za eksperimentisanje sa novim receptima!';
+          filteredRecepti = recepti.filter(r => 
+            r.vrsta !== 'Dijetalni recepti' || 
+            r.vrijeme?.includes('Duže')
+          );
+        } else if (isEnergyGood && !isStressLow) {
+          // ⚡ DOBRA ENERGIJA, ALI VISOK STRES
+          advice = '⚡ Imate energije, ali ste pod stresom. Preporučujem obroke koji smiruju i opuštaju.';
+          filteredRecepti = recepti.filter(r => 
+            r.vrsta === 'Deserti' || 
+            r.vrsta === 'Napitki' ||
+            (r.kalorije || 0) < 400
+          );
+        } else if (!isEnergyGood && isStressLow) {
+          // 😴 NISKA ENERGIJA, ALI NIZAK STRES
+          advice = '😴 Niska energija, ali ste opušteni. Preporučujem obroke za podizanje energije.';
+          filteredRecepti = recepti.filter(r => 
+            (r.proteini || 0) > 20 || 
+            (r.ugljikohidrati || 0) > 30 ||
+            r.vrsta === 'Slano'
+          );
+        } else {
+          // 😊 SVE JE DOBRO
+          advice = '😊 Odlično stanje! Nastavite sa svojom uobičajenom prehranom i uživajte u raznolikim obrocima.';
+          filteredRecepti = recepti.slice(0, 6);
+        }
+
+        // Ograniči na 6 recepata
+        filteredRecepti = filteredRecepti.slice(0, 6);
+        
+        // 🔥 SAČUVAJ FILTRIRANE RECEPTE
+        setCoachRecipes(filteredRecepti);
+        
+        // Postavi advice
+        setCoachAdvice(advice);
+        
+        // Ako ima recepata, prikaži ih u konzoli (za debug)
+        if (filteredRecepti.length > 0) {
+          console.log('🍽️ Preporučeni recepti:', filteredRecepti.map(r => r.naziv));
+        } else {
+          console.log('ℹ️ Nema recepata za ovo raspoloženje.');
+        }
+        
+      } else {
+        // Ako nema recepata, daj opći savjet
+        advice = '😊 Na osnovu vašeg raspoloženja, preporučujemo vam da istražite našu bazu recepata i pronađete nešto što vam odgovara!';
+        setCoachAdvice(advice);
+        setCoachRecipes([]);
+      }
+
     } catch (error) {
       console.error('❌ Greška pri čuvanju podataka:', error);
+      setCoachAdvice('❌ Došlo je do greške. Pokušajte ponovo.');
     }
-
-    const advice = `Na osnovu vašeg sna (${sleep}), energije (${energy}) i stresa (${stress}), preporučujemo lagani doručak i čaj od kamilice.`;
-    setCoachAdvice(advice);
-  }, [sleep, energy, stress, user]);
+  }, [sleep, energy, stress, user, recepti]);
 
   const addFridgeItem = useCallback(() => {
     if (newItem.trim()) {
@@ -472,7 +560,7 @@ const HomeKonacno = () => {
         </div>
       </section>
 
-      {/* ===== LIFESTYLE COACH ===== */}
+      {/* ===== LIFESTYLE COACH - SA AI PREPORUKAMA ===== */}
       <section className="py-12 md:py-20 px-4 flex justify-center bg-gray-50 dark:bg-gray-800">
         <div className="w-full max-w-3xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-gray-800 dark:text-white flex items-center justify-center gap-2 flex-wrap">
@@ -503,9 +591,37 @@ const HomeKonacno = () => {
                 💡 Dobij preporuke
               </button>
             </div>
+            
+            {/* PRIKAZ SAVJETA */}
             {coachAdvice && (
               <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-xl border border-blue-200 dark:border-blue-700">
                 <p className="text-gray-700 dark:text-gray-300 text-base">{coachAdvice}</p>
+              </div>
+            )}
+
+            {/* PRIKAZ PREPORUČENIH RECEPATA */}
+            {coachRecipes.length > 0 && (
+              <div className="mt-4">
+                <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">🍽️ Preporučeni recepti za vas:</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {coachRecipes.map(recipe => (
+                    <Link
+                      key={recipe.id}
+                      to={`/recipes/${recipe.id}`}
+                      className="bg-white dark:bg-gray-700 rounded-xl overflow-hidden shadow hover:shadow-lg transition border border-gray-200 dark:border-gray-600"
+                    >
+                      <img
+                        src={recipe.slika || 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Recept'}
+                        alt={recipe.naziv}
+                        className="w-full h-24 object-cover"
+                      />
+                      <div className="p-2">
+                        <h5 className="text-sm font-semibold dark:text-white line-clamp-1">{recipe.naziv}</h5>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{recipe.vrijeme} · {recipe.kalorije} kcal</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               </div>
             )}
           </div>
