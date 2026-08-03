@@ -303,23 +303,23 @@ function App() {
     <BrowserRouter>
       <div className="min-h-screen bg-white dark:bg-gray-900">
         {/* ============================================================
-            HEADER - POTPUNO RESPONZIVAN SA NAZIVOM
+            HEADER - SA SAMO "OS Zdravlja" BEZ PODNASLOVA
             ============================================================ */}
         <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
             <div className="flex items-center justify-between h-14 sm:h-16 md:h-20">
               
-              {/* LOGO - sa nazivom */}
+              {/* LOGO - SAMO "OS Zdravlja" */}
               <Link 
                 to="/" 
                 className="flex items-center gap-1 sm:gap-2 flex-shrink-0 text-base sm:text-xl md:text-3xl font-extrabold text-blue-600 dark:text-blue-400"
               >
                 <span>🏥</span>
-                <span className="hidden xs:inline">{t('app.title')}</span>
+                <span className="hidden xs:inline">OS Zdravlja</span>
                 <span className="inline xs:hidden">OS</span>
               </Link>
 
-              {/* NAVIGACIJA - sa nazivima */}
+              {/* NAVIGACIJA - ISTI RASPORED KAO NA STAROM */}
               <nav className="flex items-center gap-1 sm:gap-2 md:gap-6 text-xs sm:text-sm font-semibold">
                 
                 {/* POČETNA */}
@@ -375,7 +375,7 @@ function App() {
                   {currentUser && <NotificationBell />}
                 </div>
 
-                {/* 🌍 JEZIK - poboljšani LanguageSwitcher sa zastavom */}
+                {/* 🌍 JEZIK - SA ZASTAVOM I STRELICOM */}
                 <LanguageSwitcher />
 
                 {/* 🌙 TAMNA TEMA */}
