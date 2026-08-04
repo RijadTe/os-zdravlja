@@ -114,11 +114,11 @@ const getIconForOption = (option) => {
   
   // RESTRIKCIJE
   if (lowerOption.includes('no restriction') || lowerOption.includes('keine einschränkungen') || lowerOption.includes('bez restrikcija')) return '✅';
-  if (lowerOption.includes('gluten free') || lowerOption.includes('glutenfrei') || lowerOption.includes('bez glutena')) return '🌾❌';
-  if (lowerOption.includes('lactose free') || lowerOption.includes('laktosefrei') || lowerOption.includes('bez laktoze')) return '🥛❌';
-  if (lowerOption.includes('sugar free') || lowerOption.includes('zuckerfrei') || lowerOption.includes('bez šećera')) return '🍬❌';
+  if (lowerOption.includes('gluten free') || lowerOption.includes('glutenfrei') || lowerOption.includes('bez glutena')) return '🌾';
+  if (lowerOption.includes('lactose free') || lowerOption.includes('laktosefrei') || lowerOption.includes('bez laktoze')) return '🥛';
+  if (lowerOption.includes('sugar free') || lowerOption.includes('zuckerfrei') || lowerOption.includes('bez šećera')) return '🍬';
   if (lowerOption.includes('vegan')) return '🌱';
-  if (lowerOption.includes('nuts') || lowerOption.includes('nüsse') || lowerOption.includes('orašasti')) return '🥜❌';
+  if (lowerOption.includes('nuts') || lowerOption.includes('nüsse') || lowerOption.includes('orašasti')) return '🥜';
   
   // PREFERENCIJE
   if (lowerOption.includes('high protein') || lowerOption.includes('hoher protein') || lowerOption.includes('visokoprotein')) return '💪';
