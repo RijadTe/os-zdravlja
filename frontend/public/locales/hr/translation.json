@@ -290,8 +290,10 @@
     "premium_hint": "⭐ Postanite Premium za neograničene pretrage i napredne opcije.",
     "premium_link": "Postani Premium →",
     "buttons": {
-      "photo_premium": "Fotkaš ⭐",
-      "photo_free": "Fotkaš ({remaining}/{max})",
+      "photo": "📸 Fotografiši",
+      "photo_premium": "⭐ Premium - Fotografiši",
+      "remaining": "Preostalo {{remaining}} od {{max}} besplatnih pretraga",
+      "remaining_zero": "Preostalo 0 od 3 besplatne pretrage. Postanite Premium za neograničeno!",
       "type": "Otkucaj",
       "voice": "Glasovna",
       "search": "🔍 Pretraži recepte",

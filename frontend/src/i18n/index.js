@@ -36,7 +36,7 @@ const loadTranslations = async () => {
           escapeValue: false,
         },
         react: {
-          useSuspense: true, // 🔥 OSTAVI TRUE
+          useSuspense: true,
         },
       });
 
@@ -44,7 +44,7 @@ const loadTranslations = async () => {
     return i18n;
   } catch (error) {
     console.error('❌ Greška pri učitavanju prevoda:', error);
-    
+    // Fallback
     const resources = {
       hr: { translation: {} },
       en: { translation: {} },

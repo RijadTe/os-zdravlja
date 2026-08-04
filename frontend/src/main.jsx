@@ -8,7 +8,6 @@ import './index.css';
 import { DarkModeProvider } from './context/DarkModeContext';
 import './i18n/index';
 
-// 🔥 LOADING FALLBACK
 const LoadingFallback = () => (
   <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
     <div className="text-center">
