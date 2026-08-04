@@ -400,7 +400,7 @@ const AIChef = () => {
         <div className="flex flex-wrap gap-4 justify-center mb-4">
           
           {/* ============================================================
-              📸 FOTOGRAFIŠI - POPRAVLJENO!
+              📸 FOTOGRAFIŠI - SA PREVODOM
               ============================================================ */}
           <div className="flex flex-col gap-2">
             <button
@@ -415,15 +415,15 @@ const AIChef = () => {
               disabled={!user?.premium && !(dailyLimit.moze && videoWatched)}
             >
               <span className="text-3xl">📸</span> 
-              {user?.premium ? 'Premium - Fotografiši' : 'Fotografiši'}
+              {user?.premium ? t('aichef.buttons.photo_premium') : t('aichef.buttons.photo')}
             </button>
             
             {/* 🔥 MALA PORUKA ISPOD - SAMO AKO NIJE PREMIUM */}
             {!user?.premium && (
               <p className="text-xs text-center text-gray-500 dark:text-gray-400">
                 {dailyLimit.preostalo > 0 
-                  ? `Preostalo ${dailyLimit.preostalo} od ${dailyLimit.max_pretraga} besplatnih pretraga` 
-                  : 'Preostalo 0 od 3 besplatne pretrage. Postanite Premium za neograničeno!'}
+                  ? t('aichef.buttons.remaining', { remaining: dailyLimit.preostalo, max: dailyLimit.max_pretraga })
+                  : t('aichef.buttons.remaining_zero')}
               </p>
             )}
             
