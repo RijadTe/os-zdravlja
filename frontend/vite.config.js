@@ -26,7 +26,6 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    // 🔥 EKSPLICITNO postavi base za build
     rollupOptions: {
       output: {
         entryFileNames: 'assets/[name].[hash].js',
@@ -34,5 +33,10 @@ export default defineConfig({
         assetFileNames: 'assets/[name].[hash].[ext]',
       },
     },
+  },
+  
+  // 🔥 DODATO - OPTIMIZACIJA ZA I18N
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom', 'i18next', 'react-i18next'],
   },
 });
