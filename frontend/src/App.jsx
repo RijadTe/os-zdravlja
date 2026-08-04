@@ -351,17 +351,19 @@ function App() {
                   </Link>
                 )}
 
-                {/* 🧠 KVIZ - SAKRIVEN NA MOBITELU (< 768px), VIDLJIV NA DESKTOPU (≥ 768px) */}
+                {/* 🧠 KVIZ - SAMO NA DESKTOPU (≥ 1024px) */}
                 <Link 
                   to="/quiz" 
-                  className="hidden md:flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-xl sm:text-2xl md:text-3xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                  className="hidden lg:flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-xl sm:text-2xl md:text-3xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
                   aria-label={t('nav.quiz')}
                 >
                   🧠
                 </Link>
 
                 {/* 🔔 NOTIFIKACIJE - VIDLJIVE NA SVIM EKRANIMA */}
-                {currentUser && <NotificationBell />}
+                <div className="flex items-center">
+                  {currentUser && <NotificationBell />}
+                </div>
 
                 {/* 🌍 JEZIK */}
                 <LanguageSwitcher />
