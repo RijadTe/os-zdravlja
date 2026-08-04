@@ -441,7 +441,7 @@ const Quiz = () => {
   };
 
   // ============================================================
-  // 🖥️ RENDER PITANJA - 🔥 POPRAVLJENO SA getIconForOption
+  // 🖥️ RENDER PITANJA - 🔥 UKLONJEN "Odabrano: (count)/(max)"
   // ============================================================
   const renderQuestion = () => {
     const q = questions[currentStep];
@@ -453,7 +453,7 @@ const Quiz = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {q.options.map(option => {
             const isSelected = (formData[q.id] || []).includes(option);
-            const icon = getIconForOption(option); // 🔥 KORISTI NOVU FUNKCIJU
+            const icon = getIconForOption(option);
             return (
               <label
                 key={option}
@@ -488,7 +488,7 @@ const Quiz = () => {
         >
           <option value="">{t('quiz.select_placeholder')}</option>
           {q.options.map(option => {
-            const icon = getIconForOption(option); // 🔥 KORISTI NOVU FUNKCIJU
+            const icon = getIconForOption(option);
             return (
               <option key={option} value={option}>
                 {icon} {option}
@@ -538,7 +538,7 @@ const Quiz = () => {
             <div 
               className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
               style={{ width: `${progress}%` }}
-            ></div>
+            />
           </div>
         </div>
 
@@ -568,11 +568,7 @@ const Quiz = () => {
               {questions[currentStep].label}
             </label>
             {renderQuestion()}
-            {questions[currentStep].maxSelect && (
-              <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-500 mt-1">
-                {t('quiz.selected', { count: (formData[questions[currentStep].id] || []).length, max: questions[currentStep].maxSelect })}
-              </p>
-            )}
+            {/* 🔥 UKLONJENO - više ne prikazuje "Odabrano: (count)/(max)" */}
           </div>
 
           <div className="flex justify-between gap-3 mt-4">
