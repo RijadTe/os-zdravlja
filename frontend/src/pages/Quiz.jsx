@@ -9,7 +9,7 @@ import { supabase } from '../supabaseClient';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
-// 🔥 IKONE - POJEDNOSTAVLJENE, BEZ ❌
+// 🔥 IKONE - POJEDNOSTAVLJENE, BEZ ❌, ZA SVE JEZIKE
 // ============================================================
 const getIconForOption = (option) => {
   const iconMap = {
@@ -138,6 +138,7 @@ const getIconForOption = (option) => {
   // KALORIJE
   if (lowerOption.includes('low') || lowerOption.includes('niedrig') || lowerOption.includes('nisko')) return '⬇️';
   if (lowerOption.includes('moderate') || lowerOption.includes('mäßig') || lowerOption.includes('umjereno')) return '➡️';
+  if (lowerOption.includes('medium') && !lowerOption.includes('time')) return '⬆️';
   if (lowerOption.includes('high') || lowerOption.includes('hoch') || lowerOption.includes('visoko')) return '🔥';
 
   return '📌';
