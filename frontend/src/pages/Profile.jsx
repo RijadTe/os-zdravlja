@@ -13,10 +13,12 @@ const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  
+  // 🔥 BEDŽEVI - FIKSNI NAZIVI NA HRVATSKOM (NE PREVODE SE)
   const [badges, setBadges] = useState([
-    { id: 1, name: t('profile.badges.first_recipe'), icon: '🥇', earned: true },
-    { id: 2, name: t('profile.badges.three_days'), icon: '🥈', earned: false },
-    { id: 3, name: t('profile.badges.ten_recipes'), icon: '🥉', earned: false },
+    { id: 1, name: 'Prvi recept', icon: '🥇', earned: true },
+    { id: 2, name: '3 dana zaredom', icon: '🥈', earned: false },
+    { id: 3, name: '10 recepata', icon: '🥉', earned: false },
   ]);
 
   useEffect(() => {
@@ -219,7 +221,7 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* ===== BEDŽEVI ===== */}
+      {/* ===== BEDŽEVI - FIKSNI NAZIVI NA HRVATSKOM ===== */}
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
         <h2 className="text-xl font-bold mb-4">{t('profile.badges.title')}</h2>
         <div className="flex flex-wrap gap-4">
@@ -233,7 +235,9 @@ const Profile = () => {
               }`}
             >
               <span className="text-3xl">{badge.icon}</span>
-              <span className="text-sm font-semibold mt-1">{badge.name}</span>
+              <span className="text-sm font-semibold mt-1 text-gray-800 dark:text-white">
+                {badge.name}
+              </span>
               {badge.earned ? (
                 <span className="text-xs text-green-500">{t('profile.badges.earned')}</span>
               ) : (
