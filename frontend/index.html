@@ -49,7 +49,7 @@
     </script>
     <!-- ============================================================ -->
     
-    <!-- ⚡ ZAŠTITA – Onemogući desni klik i prečice -->
+    <!-- ⚡ ZAŠTITA – Onemogući desni klik i prečice (BEZ DETEKCIJE DEVTOOLS) -->
     <script>
       // 1. Onemogući desni klik
       document.addEventListener('contextmenu', (e) => {
@@ -91,26 +91,7 @@
         }
       });
 
-      // 3. Detekcija DevTools – ako je otvoren, preusmjeri na blank stranicu
-      (function detectDevTools() {
-        const element = new Image();
-        Object.defineProperty(element, 'id', {
-          get: function() {
-            // DevTools je otvoren!
-            document.body.innerHTML = '';
-            document.body.style.backgroundColor = '#000';
-            document.body.innerHTML = `
-              <div style="display:flex;justify-content:center;align-items:center;height:100vh;color:#fff;font-family:sans-serif;flex-direction:column;text-align:center;padding:20px;">
-                <h1 style="font-size:48px;">🔒</h1>
-                <h2>Pristup onemogućen</h2>
-                <p style="color:#888;max-width:400px;">Molimo zatvorite Developer Tools za nastavak korištenja aplikacije.</p>
-              </div>
-            `;
-            document.title = 'Pristup onemogućen';
-          }
-        });
-        console.log('%c', element);
-      })();
+      // 🔥 DETEKCIJA DEVTOOLS UKLONJENA – F5 SADA RADI NORMALNO!
     </script>
   </head>
   <body>

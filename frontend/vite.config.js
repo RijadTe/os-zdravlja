@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true,        // Dozvoli pristup sa svih IP adresa
+    host: true,
     port: 5174,
     strictPort: true,
     watch: {
@@ -15,5 +15,12 @@ export default defineConfig({
   preview: {
     host: true,
     port: 5174,
+  },
+  // 🔥 DODAJ OVO!
+  publicDir: 'public',
+  assetsInclude: ['**/*.json'],
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
   },
 });

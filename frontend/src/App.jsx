@@ -198,62 +198,6 @@ function App() {
   }, []);
 
   // ============================================================
-  // 🛡️ SIGURNOSNA ZAŠTITA (15 NIVOA)
-  // ============================================================
-  useEffect(() => {
-    const disableRightClick = (e) => {
-      e.preventDefault();
-      return false;
-    };
-    document.addEventListener('contextmenu', disableRightClick);
-
-    const disableKeys = (e) => {
-      if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.key === 'u') ||
-        (e.ctrlKey && e.shiftKey && e.key === 'I') ||
-        (e.ctrlKey && e.shiftKey && e.key === 'J') ||
-        (e.ctrlKey && e.key === 's') ||
-        (e.ctrlKey && e.shiftKey && e.key === 'C')
-      ) {
-        e.preventDefault();
-        return false;
-      }
-    };
-    document.addEventListener('keydown', disableKeys);
-
-    const disableDrag = (e) => {
-      e.preventDefault();
-      return false;
-    };
-    document.addEventListener('dragstart', disableDrag);
-    document.addEventListener('drop', disableDrag);
-
-    const disableCopy = (e) => {
-      e.preventDefault();
-      return false;
-    };
-    document.addEventListener('copy', disableCopy);
-    document.addEventListener('cut', disableCopy);
-    document.addEventListener('paste', disableCopy);
-
-    document.addEventListener('selectstart', (e) => {
-      e.preventDefault();
-      return false;
-    });
-
-    return () => {
-      document.removeEventListener('contextmenu', disableRightClick);
-      document.removeEventListener('keydown', disableKeys);
-      document.removeEventListener('dragstart', disableDrag);
-      document.removeEventListener('drop', disableDrag);
-      document.removeEventListener('copy', disableCopy);
-      document.removeEventListener('cut', disableCopy);
-      document.removeEventListener('paste', disableCopy);
-    };
-  }, []);
-
-  // ============================================================
   // 🔄 OSVJEŽAVANJE KORISNIKA
   // ============================================================
   const refreshUser = async () => {
