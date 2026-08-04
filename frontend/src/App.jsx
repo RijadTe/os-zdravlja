@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient';
-import './i18n/index';
+import './i18n';
 
 // Komponente
 import HomeKonacno from './pages/HomeKonacno';
@@ -29,7 +29,7 @@ import NotificationBell from './components/NotificationBell';
 import LanguageSwitcher from './components/LanguageSwitcher';
 
 function App() {
-  const { t } = useTranslation(); // 🔥 SAMO `t`
+  const { t } = useTranslation(); // 🔥 IZBACI `ready`
   
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -245,10 +245,14 @@ function App() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* ===== HEADER ===== */}
+      {/* ============================================================
+          HEADER - KVIZ SAKRIVEN NA MOBITELU, NOTIFIKACIJE VIDLJIVE
+          ============================================================ */}
       <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-20">
+            
+            {/* LOGO - NAZIV "OS Zdravlja" NA SVIM EKRANIMA */}
             <Link 
               to="/" 
               className="flex-shrink-0 text-base sm:text-xl md:text-2xl font-extrabold text-blue-600 dark:text-blue-400 hover:opacity-80 transition"
@@ -256,7 +260,10 @@ function App() {
               OS Zdravlja
             </Link>
 
+            {/* NAVIGACIJA - BEZ KUĆICE, VEĆE IKONE */}
             <nav className="flex items-center gap-2 sm:gap-3 md:gap-4">
+              
+              {/* 📝 ZAJEDNICA */}
               <Link 
                 to="/community" 
                 className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-xl sm:text-2xl md:text-3xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
@@ -265,6 +272,7 @@ function App() {
                 📝
               </Link>
 
+              {/* PROFIL / LOGIN */}
               {currentUser ? (
                 <Link 
                   to="/profile" 
@@ -286,6 +294,7 @@ function App() {
                 </Link>
               )}
 
+              {/* 🧠 KVIZ - SAMO NA DESKTOPU (≥ 1024px) */}
               <Link 
                 to="/quiz" 
                 className="hidden lg:flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-xl sm:text-2xl md:text-3xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
@@ -294,12 +303,15 @@ function App() {
                 🧠
               </Link>
 
+              {/* 🔔 NOTIFIKACIJE - VIDLJIVE NA SVIM EKRANIMA */}
               <div className="flex items-center">
                 {currentUser && <NotificationBell />}
               </div>
 
+              {/* 🌍 JEZIK */}
               <LanguageSwitcher />
 
+              {/* 🌙 TAMNA TEMA */}
               <button
                 onClick={() => setDarkMode(!darkMode)}
                 className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-xl sm:text-2xl md:text-3xl"
@@ -312,7 +324,9 @@ function App() {
         </div>
       </header>
 
-      {/* ===== GLAVNI SADRŽAJ ===== */}
+      {/* ============================================================
+          GLAVNI SADRŽAJ
+          ============================================================ */}
       <div className="container mx-auto max-w-7xl px-3 sm:px-4 md:px-6 py-4 md:py-6">
         <Routes>
           <Route path="/" element={<HomeKonacno />} />
