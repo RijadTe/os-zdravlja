@@ -6,7 +6,8 @@ import RecipeCard from '../components/RecipeCard';
 import ScanReceipt from '../components/ScanReceipt';
 import AdBanner from '../components/AdBanner';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// 🔥 PROMIJENJENO - uklonjen /api sa kraja
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const HomeKonacno = () => {
   const { t } = useTranslation();
@@ -59,7 +60,8 @@ const HomeKonacno = () => {
         setProfilLoading(true);
         console.log('📧 Dohvatam profil za email:', email);
         
-        const response = await fetch(`${API_URL}/profil/${encodeURIComponent(email)}`);
+        // 🔥 PROMIJENJENO - dodan /api
+        const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
         const data = await response.json();
         
         if (data.success && data.data) {
@@ -137,7 +139,8 @@ const HomeKonacno = () => {
   // ============================================================
   const fetchRecipes = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/recepti`);
+      // 🔥 PROMIJENJENO - dodan /api
+      const res = await fetch(`${API_URL}/api/recepti`);
       const data = await res.json();
       setRecepti(data);
       setLoading(false);
@@ -283,9 +286,10 @@ const HomeKonacno = () => {
     try {
       const email = user?.email || localStorage.getItem('userEmail');
       
-      // 🔥 SAČUVAJ ZDRAVSTVENE PODATKE
+      // 🔥 SAČUVAJ ZDRAVSTVENE PODATKE - POPRAVLJENO!
       if (email) {
-        await fetch(`${API_URL}/zdravstveni-podaci`, {
+        // 🔥 PROMIJENJENO - dodan /api
+        await fetch(`${API_URL}/api/zdravstveni-podaci`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

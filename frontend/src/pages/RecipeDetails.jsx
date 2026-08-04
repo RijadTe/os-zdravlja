@@ -3,7 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// 🔥 PROMIJENJENO - uklonjen /api sa kraja
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // --- VOICE RECIPE READER KOMPONENTA ---
 const VoiceRecipeReader = ({ recipe }) => {
@@ -328,7 +329,7 @@ const RecipeDetails = () => {
   }, []);
 
   // ============================================================
-  // 📥 DOHVATI RECEPT SA PREVODOM
+  // 📥 DOHVATI RECEPT SA PREVODOM - 🔥 POPRAVLJENO!
   // ============================================================
   useEffect(() => {
     const fetchRecipe = async () => {
@@ -336,7 +337,8 @@ const RecipeDetails = () => {
         setLoading(true);
         console.log('🔍 Dohvatam recept ID:', id);
         
-        const res = await fetch(`${API_URL}/recepti/${id}`);
+        // 🔥 PROMIJENJENO - dodan /api
+        const res = await fetch(`${API_URL}/api/recepti/${id}`);
         const data = await res.json();
         console.log('📊 Recept dohvaćen:', data);
         
@@ -347,10 +349,11 @@ const RecipeDetails = () => {
           sastojci: data.sastojci || []
         });
 
-        // 🔥 AKO NIJE HRVATSKI, DOHVATI PREVOD
+        // 🔥 AKO NIJE HRVATSKI, DOHVATI PREVOD - POPRAVLJENO!
         if (i18n.language !== 'hr') {
           try {
-            const translateRes = await fetch(`${API_URL}/recepti/translate`, {
+            // 🔥 PROMIJENJENO - dodan /api
+            const translateRes = await fetch(`${API_URL}/api/recepti/translate`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -368,9 +371,10 @@ const RecipeDetails = () => {
           }
         }
 
-        // Dohvati slične recepte
+        // 🔥 DOHVATI SLIČNE RECEPTE - POPRAVLJENO!
         if (data?.vrsta) {
-          const slicniRes = await fetch(`${API_URL}/recepti?vrsta=${encodeURIComponent(data.vrsta)}`);
+          // 🔥 PROMIJENJENO - dodan /api
+          const slicniRes = await fetch(`${API_URL}/api/recepti?vrsta=${encodeURIComponent(data.vrsta)}`);
           const slicniData = await slicniRes.json();
           setSlicniRecepti(slicniData.filter(r => r.id !== id).slice(0, 3));
         }
@@ -419,13 +423,14 @@ const RecipeDetails = () => {
   };
 
   // ============================================================
-  // 🍷 AI SOMELIJER SA KEŠIRANJEM!
+  // 🍷 AI SOMELIJER SA KEŠIRANJEM! - POPRAVLJENO!
   // ============================================================
   const fetchSommelier = async () => {
     setLoadingSommelier(true);
     setSommelierError(null);
     try {
-      const res = await fetch(`${API_URL}/ai-sommelier`, {
+      // 🔥 PROMIJENJENO - dodan /api
+      const res = await fetch(`${API_URL}/api/ai-sommelier`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

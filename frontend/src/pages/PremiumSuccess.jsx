@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// 🔥 PROMIJENJENO - uklonjen /api sa kraja
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const PremiumSuccess = () => {
   const { t } = useTranslation();
@@ -24,8 +25,8 @@ const PremiumSuccess = () => {
           return;
         }
 
-        // 🔥 PROVJERI PLAĆANJE NA BACKENDU
-        const res = await fetch(`${API_URL}/verify-payment?session_id=${sessionId}`);
+        // 🔥 PROMIJENJENO - dodan /api
+        const res = await fetch(`${API_URL}/api/verify-payment?session_id=${sessionId}`);
         const data = await res.json();
         
         if (data.success && data.premium) {

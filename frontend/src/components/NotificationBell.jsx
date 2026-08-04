@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// 🔥 PROMIJENJENO - uklonjen /api sa kraja
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const NotificationBell = () => {
   const { t } = useTranslation();
@@ -43,13 +44,14 @@ const NotificationBell = () => {
   }, []);
 
   // ============================================================
-  // DOHVATI NOTIFIKACIJE
+  // DOHVATI NOTIFIKACIJE - 🔥 POPRAVLJENO!
   // ============================================================
   const fetchNotifikacije = async (korisnikId) => {
     try {
       setLoading(true);
       const param = korisnikId.includes('@') ? korisnikId : korisnikId;
-      const res = await fetch(`${API_URL}/notifikacije/${param}`);
+      // 🔥 PROMIJENJENO - dodan /api
+      const res = await fetch(`${API_URL}/api/notifikacije/${param}`);
       const data = await res.json();
       setNotifikacije(data || []);
       setUnreadCount(data.filter(n => !n.procitano).length);
@@ -62,12 +64,13 @@ const NotificationBell = () => {
   };
 
   // ============================================================
-  // GENERIŠI AUTOMATSKE PREPORUKE
+  // GENERIŠI AUTOMATSKE PREPORUKE - 🔥 POPRAVLJENO!
   // ============================================================
   const generatePreporuke = async (korisnikId) => {
     try {
       const param = korisnikId.includes('@') ? korisnikId : korisnikId;
-      await fetch(`${API_URL}/notifikacije/preporuke/${param}`);
+      // 🔥 PROMIJENJENO - dodan /api
+      await fetch(`${API_URL}/api/notifikacije/preporuke/${param}`);
       setTimeout(() => fetchNotifikacije(korisnikId), 1000);
     } catch (error) {
       console.error('Greška pri generisanju preporuka:', error);
@@ -75,11 +78,12 @@ const NotificationBell = () => {
   };
 
   // ============================================================
-  // OZNAČI KAO PROČITANO
+  // OZNAČI KAO PROČITANO - 🔥 POPRAVLJENO!
   // ============================================================
   const markAsRead = async (id) => {
     try {
-      await fetch(`${API_URL}/notifikacije/${id}/read`, {
+      // 🔥 PROMIJENJENO - dodan /api
+      await fetch(`${API_URL}/api/notifikacije/${id}/read`, {
         method: 'PUT'
       });
       setNotifikacije(prev => 
@@ -102,11 +106,12 @@ const NotificationBell = () => {
   };
 
   // ============================================================
-  // IZBRIŠI NOTIFIKACIJU
+  // IZBRIŠI NOTIFIKACIJU - 🔥 POPRAVLJENO!
   // ============================================================
   const deleteNotification = async (id) => {
     try {
-      await fetch(`${API_URL}/notifikacije/${id}`, {
+      // 🔥 PROMIJENJENO - dodan /api
+      await fetch(`${API_URL}/api/notifikacije/${id}`, {
         method: 'DELETE'
       });
       setNotifikacije(prev => prev.filter(n => n.id !== id));

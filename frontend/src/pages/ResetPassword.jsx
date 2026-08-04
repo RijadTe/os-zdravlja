@@ -4,6 +4,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 
+// 🔥 PROMIJENJENO - uklonjen /api sa kraja
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const ResetPassword = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -48,8 +51,8 @@ const ResetPassword = () => {
     }
 
     try {
-      // ✅ KORISTI BACKEND API
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/reset-password`, {
+      // 🔥 PROMIJENJENO - koristi API_URL sa /api
+      const res = await axios.post(`${API_URL}/api/auth/reset-password`, {
         token: token,
         lozinka: lozinka
       });

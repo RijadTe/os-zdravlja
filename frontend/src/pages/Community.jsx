@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// 🔥 PROMIJENJENO - uklonjen /api sa kraja
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const Community = () => {
   const { t } = useTranslation();
@@ -25,7 +26,8 @@ const Community = () => {
 
   const fetchObjave = async () => {
     try {
-      const res = await fetch(`${API_URL}/community/objave`);
+      // 🔥 PROMIJENJENO - dodan /api
+      const res = await fetch(`${API_URL}/api/community/objave`);
       const data = await res.json();
       setObjave(data);
     } catch (error) {
@@ -38,7 +40,8 @@ const Community = () => {
   const handleLike = async (id) => {
     try {
       const email = user?.email || localStorage.getItem('userEmail');
-      await fetch(`${API_URL}/community/objave/${id}/like`, {
+      // 🔥 PROMIJENJENO - dodan /api
+      await fetch(`${API_URL}/api/community/objave/${id}/like`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email })
@@ -65,7 +68,8 @@ const Community = () => {
       formData.append('sastojci', novaObjava.sastojci);
       if (novaObjava.slika) formData.append('slika', novaObjava.slika);
 
-      await fetch(`${API_URL}/community/objave`, {
+      // 🔥 PROMIJENJENO - dodan /api
+      await fetch(`${API_URL}/api/community/objave`, {
         method: 'POST',
         body: formData
       });

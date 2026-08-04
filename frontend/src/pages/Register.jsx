@@ -4,6 +4,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient';
 
+// 🔥 DODANO - API_URL za profile
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const Register = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -48,6 +51,7 @@ const Register = () => {
     try {
       console.log('📝 Registracija sa Supabase...');
 
+      // ✅ OVO OSTAJE - Supabase provjera emaila
       const { data: existingUser, error: checkError } = await supabase
         .from('profili')
         .select('email')
@@ -67,6 +71,7 @@ const Register = () => {
 
       console.log('✅ Email slobodan:', formData.email);
 
+      // ✅ OVO OSTAJE - Supabase auth registracija
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.lozinka,
@@ -90,33 +95,82 @@ const Register = () => {
 
       console.log('✅ Auth korisnik kreiran:', authData.user?.id);
 
-      const { data: profileData, error: profileError } = await supabase
-        .from('profili')
-        .insert([{
-          id: authData.user?.id,
-          email: formData.email,
-          ime: formData.ime,
-          premium: false,
-          kviz_zavrsen: false,
-          vrsta: [],
-          izbjegava: [],
-          preferencije: [],
-          created_at: new Date().toISOString()
-        }])
-        .select();
+      // 🔥 PROMIJENJENO - koristi API umjesto direktnog Supabase poziva
+      try {
+        console.log('📡 Kreiram profil preko API-ja...');
+        const response = await fetch(`${API_URL}/api/profil`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: authData.user?.id,
+            email: formData.email,
+            ime: formData.ime,
+            premium: false,
+            kviz_zavrsen: false,
+            vrsta: [],
+            izbjegava: [],
+            preferencije: []
+          })
+        });
 
-      if (profileError) {
-        console.error('❌ Greška pri kreiranju profila:', profileError);
-        if (profileError.code === '23505') {
-          console.log('ℹ️ Profil već postoji, nastavljam...');
+        const result = await response.json();
+        
+        if (result.success) {
+          console.log('✅ Profil kreiran preko API-ja:', result.data);
         } else {
-          setError(t('register.errors.profile_create') + profileError.message);
-          setLoading(false);
-          return;
+          console.warn('⚠️ Profil nije kreiran preko API-ja:', result);
+          // Pokušaj direktno sa Supabase kao fallback
+          const { data: profileData, error: profileError } = await supabase
+            .from('profili')
+            .insert([{
+              id: authData.user?.id,
+              email: formData.email,
+              ime: formData.ime,
+              premium: false,
+              kviz_zavrsen: false,
+              vrsta: [],
+              izbjegava: [],
+              preferencije: [],
+              created_at: new Date().toISOString()
+            }])
+            .select();
+
+          if (profileError) {
+            console.error('❌ Greška pri kreiranju profila (fallback):', profileError);
+            if (profileError.code !== '23505') {
+              setError(t('register.errors.profile_create') + profileError.message);
+              setLoading(false);
+              return;
+            }
+          }
+        }
+      } catch (apiError) {
+        console.warn('⚠️ Greška pri API pozivu, koristim Supabase fallback:', apiError);
+        // Fallback na direktan Supabase poziv
+        const { data: profileData, error: profileError } = await supabase
+          .from('profili')
+          .insert([{
+            id: authData.user?.id,
+            email: formData.email,
+            ime: formData.ime,
+            premium: false,
+            kviz_zavrsen: false,
+            vrsta: [],
+            izbjegava: [],
+            preferencije: [],
+            created_at: new Date().toISOString()
+          }])
+          .select();
+
+        if (profileError) {
+          console.error('❌ Greška pri kreiranju profila (fallback):', profileError);
+          if (profileError.code !== '23505') {
+            setError(t('register.errors.profile_create') + profileError.message);
+            setLoading(false);
+            return;
+          }
         }
       }
-
-      console.log('✅ Profil kreiran:', profileData);
 
       const userData = {
         id: authData.user?.id || '',

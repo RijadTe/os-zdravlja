@@ -1,9 +1,10 @@
 // frontend/src/pages/Premium.jsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useTranslation }react-i18next';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// 🔥 PROMIJENJENO - uklonjen /api sa kraja
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const Premium = () => {
   const { t } = useTranslation();
@@ -21,7 +22,8 @@ const Premium = () => {
 
       console.log('💳 Pokrećem Stripe checkout za:', user.email);
       
-      const res = await fetch(`${API_URL}/create-checkout-session`, {
+      // 🔥 PROMIJENJENO - dodan /api
+      const res = await fetch(`${API_URL}/api/create-checkout-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: user.email })

@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// 🔥 PROMIJENJENO - uklonjen /api sa kraja
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
 // BREADCRUMB KOMPONENTA
@@ -114,7 +115,8 @@ const HealthyChef = () => {
       try {
         console.log(`🔄 Dohvatam podatke (pokušaj ${retry + 1})...`);
         
-        const katRes = await fetch(`${API_URL}/healthy-chef/kategorije`);
+        // 🔥 PROMIJENJENO - dodan /api
+        const katRes = await fetch(`${API_URL}/api/healthy-chef/kategorije`);
         const katData = await katRes.json();
         console.log('📊 Kategorije dohvaćene:', katData?.length || 0);
         setKategorije(katData);
@@ -122,7 +124,8 @@ const HealthyChef = () => {
         if (kategorijaId) {
           setLoadingFaze(true);
           try {
-            const fazeRes = await fetch(`${API_URL}/healthy-chef/faze/${kategorijaId}`);
+            // 🔥 PROMIJENJENO - dodan /api
+            const fazeRes = await fetch(`${API_URL}/api/healthy-chef/faze/${kategorijaId}`);
             const fazeData = await fazeRes.json();
             console.log('📊 Faze dohvaćene:', fazeData?.length || 0);
             setFaze(fazeData);
@@ -173,7 +176,8 @@ const HealthyChef = () => {
             email: user.email,
             ...filters
           });
-          const res = await fetch(`${API_URL}/healthy-chef/recepti?${params}`);
+          // 🔥 PROMIJENJENO - dodan /api
+          const res = await fetch(`${API_URL}/api/healthy-chef/recepti?${params}`);
           const data = await res.json();
           console.log('📊 Recepti dohvaćeni:', data?.length || 0);
           setRecepti(data);

@@ -4,7 +4,8 @@ import { useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import RecipeCard from '../components/RecipeCard';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// 🔥 PROMIJENJENO - uklonjen /api sa kraja
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const Recipes = () => {
   const { t, i18n } = useTranslation();
@@ -22,7 +23,7 @@ const Recipes = () => {
   });
 
   // ============================================================
-  // 🔥 AUTOMATSKI DOHVATI PROFIL I POSTAVI FILTERE
+  // 🔥 AUTOMATSKI DOHVATI PROFIL I POSTAVI FILTERE - POPRAVLJENO!
   // ============================================================
   useEffect(() => {
     const dohvatiProfil = async () => {
@@ -30,7 +31,8 @@ const Recipes = () => {
       if (!email) return;
 
       try {
-        const response = await fetch(`${API_URL}/profil/${encodeURIComponent(email)}`);
+        // 🔥 PROMIJENJENO - dodan /api
+        const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
         const data = await response.json();
         
         if (data.success && data.data) {
@@ -79,13 +81,14 @@ const Recipes = () => {
     }
   }, [location]);
 
-  // Dohvati recepte (osvježi kad se promijeni jezik)
+  // Dohvati recepte (osvježi kad se promijeni jezik) - POPRAVLJENO!
   useEffect(() => {
     const fetchRecipes = async () => {
       try {
         setLoading(true);
         console.log('🔍 Dohvatam recepte...');
-        const res = await fetch(`${API_URL}/recepti`);
+        // 🔥 PROMIJENJENO - dodan /api
+        const res = await fetch(`${API_URL}/api/recepti`);
         const data = await res.json();
         console.log('📊 Dohvaćeno recepata:', data?.length || 0);
         setRecepti(data || []);

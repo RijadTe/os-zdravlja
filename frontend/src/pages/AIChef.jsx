@@ -3,7 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// 🔥 PROMIJENJENO - koristi VITE_API_URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
 // CUSTOM HOOK - DEBOUNCE
@@ -117,10 +118,11 @@ const AIChef = () => {
       
       setUser(finalUserData);
 
-      // 🔥 DOHVATI PROFIL I RESTRIKCIJE
+      // 🔥 DOHVATI PROFIL I RESTRIKCIJE - POPRAVLJENO!
       if (email) {
         try {
-          const response = await fetch(`${API_URL}/profil/${encodeURIComponent(email)}`);
+          // 🔥 PROMIJENJENO - dodan /api
+          const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
           const data = await response.json();
           if (data.success && data.data) {
             console.log('✅ Profil dohvaćen za AI Chef:', data.data);
@@ -152,7 +154,8 @@ const AIChef = () => {
     if (!email) return;
     
     try {
-      const res = await fetch(`${API_URL}/ai-chef/limit/${email}`);
+      // 🔥 PROMIJENJENO - dodan /api
+      const res = await fetch(`${API_URL}/api/ai-chef/limit/${email}`);
       const data = await res.json();
       setDailyLimit({
         broj_pretraga: data.broj_pretraga || 0,
@@ -191,7 +194,8 @@ const AIChef = () => {
     setLoadingLimit(true);
     try {
       console.log('📤 Šaljem zahtjev na /api/ai-chef/unlock');
-      const res = await fetch(`${API_URL}/ai-chef/unlock`, {
+      // 🔥 PROMIJENJENO - dodan /api
+      const res = await fetch(`${API_URL}/api/ai-chef/unlock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email })
@@ -291,7 +295,8 @@ const AIChef = () => {
       setProgress(30);
       setStatus(t('aichef.status.analyzing'));
 
-      const res = await fetch(`${API_URL}/ai-chef`, {
+      // 🔥 PROMIJENJENO - dodan /api
+      const res = await fetch(`${API_URL}/api/ai-chef`, {
         method: 'POST',
         body: formData
       });

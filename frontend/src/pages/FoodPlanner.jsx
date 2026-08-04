@@ -8,7 +8,8 @@ import { supabase } from '../supabaseClient';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// 🔥 PROMIJENJENO - uklonjen /api sa kraja
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const FoodPlanner = () => {
   const { t } = useTranslation();
@@ -62,10 +63,11 @@ const FoodPlanner = () => {
         setUser({ email: email });
       }
 
-      // 🔥 DOHVATI PROFIL I RESTRIKCIJE
+      // 🔥 DOHVATI PROFIL I RESTRIKCIJE - POPRAVLJENO!
       if (email) {
         try {
-          const response = await fetch(`${API_URL}/profil/${encodeURIComponent(email)}`);
+          // 🔥 PROMIJENJENO - dodan /api
+          const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
           const data = await response.json();
           if (data.success && data.data) {
             console.log('✅ Profil dohvaćen za FoodPlanner:', data.data);
@@ -103,7 +105,8 @@ const FoodPlanner = () => {
     try {
       setLoadingObroci(true);
       const danas = new Date().toISOString().split('T')[0];
-      const res = await fetch(`${API_URL}/obroci/${email}?datum=${danas}`);
+      // 🔥 PROMIJENJENO - dodan /api
+      const res = await fetch(`${API_URL}/api/obroci/${email}?datum=${danas}`);
       const data = await res.json();
       setObroci(data || []);
     } catch (error) {
@@ -139,7 +142,8 @@ const FoodPlanner = () => {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/obroci`, {
+      // 🔥 PROMIJENJENO - dodan /api
+      const res = await fetch(`${API_URL}/api/obroci`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -177,7 +181,8 @@ const FoodPlanner = () => {
     if (!window.confirm(t('foodplanner.alerts.delete_confirm'))) return;
 
     try {
-      await fetch(`${API_URL}/obroci/${id}`, { method: 'DELETE' });
+      // 🔥 PROMIJENJENO - dodan /api
+      await fetch(`${API_URL}/api/obroci/${id}`, { method: 'DELETE' });
       setObroci(prev => prev.filter(o => o.id !== id));
     } catch (error) {
       console.error('❌ Greška:', error);
@@ -210,7 +215,8 @@ const FoodPlanner = () => {
     setLoadingPlan(true);
     try {
       const email = user?.email || localStorage.getItem('userEmail');
-      const res = await fetch(`${API_URL}/ai-weekly-plan`, {
+      // 🔥 PROMIJENJENO - dodan /api
+      const res = await fetch(`${API_URL}/api/ai-weekly-plan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -294,7 +300,8 @@ const FoodPlanner = () => {
     try {
       setLoading(true);
       const danas = new Date().toISOString().split('T')[0];
-      window.open(`${API_URL}/pdf/izvjestaj/${encodeURIComponent(email)}?datum=${danas}`, '_blank');
+      // 🔥 PROMIJENJENO - dodan /api
+      window.open(`${API_URL}/api/pdf/izvjestaj/${encodeURIComponent(email)}?datum=${danas}`, '_blank');
     } catch (error) {
       console.error('❌ Greška:', error);
       alert(t('foodplanner.alerts.pdf_error'));

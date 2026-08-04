@@ -4,6 +4,9 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 
+// 🔥 PROMIJENJENO - uklonjen /api sa kraja
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const TajniRecept = () => {
   const { t } = useTranslation();
   const [recept, setRecept] = useState(null);
@@ -14,7 +17,8 @@ const TajniRecept = () => {
   useEffect(() => {
     const fetchTajniRecept = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/tajni-recept`);
+        // 🔥 PROMIJENJENO - koristi API_URL sa /api
+        const res = await axios.get(`${API_URL}/api/tajni-recept`);
         setRecept(res.data);
       } catch (err) {
         console.error('Greška:', err);

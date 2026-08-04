@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next';
 import Toast from '../components/Toast';
 import { supabase } from '../supabaseClient';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// 🔥 PROMIJENJENO - uklonjen /api sa kraja
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const ICONS = {
   'Deserti': '🍰',
@@ -54,6 +55,7 @@ const Quiz = () => {
 
   // ============================================================
   // 🔍 PROVJERI DA LI JE KORISNIK PRIJAVLJEN
+  // ✅ OVO OSTAJE - Supabase autentifikacija
   // ============================================================
   useEffect(() => {
     const checkUser = async () => {
@@ -72,6 +74,7 @@ const Quiz = () => {
             ime: session.user.user_metadata?.ime || ''
           }));
           
+          // ✅ OVO OSTAJE - Supabase dohvat profila
           const { data: profile } = await supabase
             .from('profili')
             .select('kviz_zavrsen, vrsta, izbjegava, preferencije, vrijeme, tezina, kalorije')
@@ -257,7 +260,7 @@ const Quiz = () => {
   };
 
   // ============================================================
-  // 📤 SLANJE KVIZA
+  // 📤 SLANJE KVIZA - 🔥 POPRAVLJENO!
   // ============================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -315,10 +318,11 @@ const Quiz = () => {
         kalorije: formData.kalorije || ''
       };
       
-      console.log('📤 Šaljem kviz na:', `${API_URL}/quiz`);
+      console.log('📤 Šaljem kviz na:', `${API_URL}/api/quiz`);
       console.log('📦 Podaci:', payload);
       
-      const res = await fetch(`${API_URL}/quiz`, {
+      // 🔥 POPRAVLJENO - dodan /api
+      const res = await fetch(`${API_URL}/api/quiz`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

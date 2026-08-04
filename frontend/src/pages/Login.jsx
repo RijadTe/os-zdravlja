@@ -4,6 +4,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient';
 
+// 🔥 DODANO - API_URL za profile
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const Login = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -69,20 +72,43 @@ const Login = () => {
 
       console.log('👤 Sačuvan user:', userData);
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profili')
-        .select('*')
-        .eq('email', formData.email)
-        .maybeSingle();
-
-      if (profileError) {
+      // 🔥 PROMIJENJENO - koristi API umjesto direktnog Supabase poziva
+      try {
+        console.log('📡 Dohvatam profil preko API-ja...');
+        const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(formData.email)}`);
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          console.log('📋 Profil dohvaćen:', result.data);
+          const updatedUser = { 
+            ...userData, 
+            premium: result.data.premium || false,
+            kviz_zavrsen: result.data.kviz_zavrsen || false,
+            vrsta: result.data.vrsta || [],
+            izbjegava: result.data.izbjegava || [],
+            preferencije: result.data.preferencije || []
+          };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        } else {
+          console.log('ℹ️ Profil nije pronađen, kreiram novi...');
+          // Kreiraj profil ako ne postoji
+          await fetch(`${API_URL}/api/profil`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: formData.email,
+              ime: userData.ime || t('profile.default_name'),
+              premium: false,
+              kviz_zavrsen: false,
+              vrsta: [],
+              izbjegava: [],
+              preferencije: []
+            })
+          });
+        }
+      } catch (profileError) {
         console.warn('⚠️ Greška pri dohvatu profila:', profileError);
-      }
-
-      if (profile) {
-        console.log('📋 Profil dohvaćen:', profile);
-        const updatedUser = { ...userData, premium: profile.premium || false };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+        // Nastavi dalje čak i ako profil ne može dohvatiti
       }
 
       setSuccess(t('login.success'));

@@ -4,7 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// 🔥 KORISTI VITE_API_URL umjesto hard-coded localhost
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const Profile = () => {
   const { t, i18n } = useTranslation();
@@ -64,12 +65,10 @@ const Profile = () => {
     const map = maps[type];
     if (!map) return value;
     
-    // Ako je niz (vrsta, restrikcije, preferencije)
     if (Array.isArray(value)) {
       return value.map(v => map[v] || v).join(', ');
     }
     
-    // Ako je string
     return map[value] || value;
   };
 
@@ -130,7 +129,8 @@ const Profile = () => {
   const fetchProfile = async (email) => {
     try {
       console.log('📧 Dohvatam profil za:', email);
-      const res = await fetch(`${API_URL}/profil/${encodeURIComponent(email)}`);
+      // 🔥 PROMIJENJENO - koristi API_URL
+      const res = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
       const data = await res.json();
       console.log('📊 Profil dohvaćen:', data);
       
@@ -156,7 +156,8 @@ const Profile = () => {
   const createProfile = async (email) => {
     try {
       console.log('🆕 Kreiram profil za:', email);
-      const res = await fetch(`${API_URL}/profil`, {
+      // 🔥 PROMIJENJENO - koristi API_URL
+      const res = await fetch(`${API_URL}/api/profil`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -189,7 +190,8 @@ const Profile = () => {
     setDeleting(true);
     try {
       const email = user?.email || localStorage.getItem('userEmail');
-      await fetch(`${API_URL}/profil/${email}/delete`, { method: 'DELETE' });
+      // 🔥 PROMIJENJENO - koristi API_URL
+      await fetch(`${API_URL}/api/profil/${email}/delete`, { method: 'DELETE' });
       localStorage.clear();
       navigate('/login');
     } catch (error) {
