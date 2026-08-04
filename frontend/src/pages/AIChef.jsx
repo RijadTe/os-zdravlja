@@ -398,7 +398,10 @@ const AIChef = () => {
       {/* GLAVNI KONTEJNER */}
       <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 shadow-md mb-6">
         <div className="flex flex-wrap gap-4 justify-center mb-4">
-          {/* FOTOGRAFIJA */}
+          
+          {/* ============================================================
+              📸 FOTOGRAFIŠI - POPRAVLJENO!
+              ============================================================ */}
           <div className="flex flex-col gap-2">
             <button
               className={`px-8 py-4 rounded-2xl text-lg font-semibold transition shadow-md hover:shadow-lg flex items-center gap-3 ${
@@ -412,8 +415,18 @@ const AIChef = () => {
               disabled={!user?.premium && !(dailyLimit.moze && videoWatched)}
             >
               <span className="text-3xl">📸</span> 
-              {user?.premium ? t('aichef.buttons.photo_premium') : t('aichef.buttons.photo_free', { remaining: dailyLimit.preostalo, max: dailyLimit.max_pretraga })}
+              📸 Fotografiši
             </button>
+            
+            {/* 🔥 MALA PORUKA ISPOD - SAMO AKO NIJE PREMIUM */}
+            {!user?.premium && (
+              <p className="text-xs text-center text-gray-500 dark:text-gray-400">
+                {dailyLimit.preostalo > 0 
+                  ? `📸 Preostalo ${dailyLimit.preostalo} od ${dailyLimit.max_pretraga} besplatnih pretraga` 
+                  : '📸 Iskoristili ste sve besplatne pretrage. Postanite Premium za neograničeno!'}
+              </p>
+            )}
+            
             <input
               id="fileInput"
               type="file"
