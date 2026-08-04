@@ -9,7 +9,7 @@ import { supabase } from '../supabaseClient';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
-// 🔥 VIŠEJEZIČNE IKONE - ZA SVE JEZIKE
+// 🔥 VIŠEJEZIČNE IKONE - SVAKA OPCIJA IMA SVOJU IKONU
 // ============================================================
 const getIconForOption = (option) => {
   const iconMap = {
@@ -39,7 +39,7 @@ const getIconForOption = (option) => {
     'Srednje (500-700 kcal)': '⬆️',
     'Visoko (900+ kcal)': '🔥',
 
-    // ===== ENGLESKI (samo za prikaz - NE IDE U BAZU) =====
+    // ===== ENGLESKI =====
     'Desserts': '🍰',
     'Savory': '🍕',
     'Diet recipes': '🥗',
@@ -65,7 +65,7 @@ const getIconForOption = (option) => {
     'Medium (500-700 kcal)': '⬆️',
     'High (900+ kcal)': '🔥',
 
-    // ===== NJEMAČKI (samo za prikaz - NE IDE U BAZU) =====
+    // ===== NJEMAČKI =====
     'Nachspeisen': '🍰',
     'Herzhaft': '🍕',
     'Diätgerichte': '🥗',
@@ -92,29 +92,51 @@ const getIconForOption = (option) => {
     'Hoch (900+ kcal)': '🔥',
   };
 
+  // Ako nađe ikonu, vrati je
   if (iconMap[option]) {
     return iconMap[option];
   }
 
+  // 🔥 FALLBACK - ako nema u mapi, probaj po ključnim riječima
   const lowerOption = option.toLowerCase();
-  if (lowerOption.includes('dessert') || lowerOption.includes('nachspeisen')) return '🍰';
-  if (lowerOption.includes('savory') || lowerOption.includes('herzhaft')) return '🍕';
-  if (lowerOption.includes('diet') || lowerOption.includes('diät')) return '🥗';
-  if (lowerOption.includes('drink') || lowerOption.includes('getränk')) return '🥤';
-  if (lowerOption.includes('anything') || lowerOption.includes('alles')) return '😋';
-  if (lowerOption.includes('protein')) return '💪';
-  if (lowerOption.includes('fiber') || lowerOption.includes('ballaststoff')) return '🌾';
-  if (lowerOption.includes('carbs') || lowerOption.includes('kohlenhydrat')) return '🍞';
-  if (lowerOption.includes('quick') || lowerOption.includes('kurz')) return '⚡';
-  if (lowerOption.includes('medium') || lowerOption.includes('mittel')) return '⏳';
-  if (lowerOption.includes('long') || lowerOption.includes('lang')) return '🐢';
-  if (lowerOption.includes('beginner') || lowerOption.includes('anfänger')) return '👶';
-  if (lowerOption.includes('intermediate') || lowerOption.includes('fortgeschritten')) return '👨‍🍳';
-  if (lowerOption.includes('professional') || lowerOption.includes('profi')) return '👨‍🍳⭐';
-  if (lowerOption.includes('low') || lowerOption.includes('niedrig')) return '⬇️';
-  if (lowerOption.includes('moderate') || lowerOption.includes('mäßig')) return '➡️';
-  if (lowerOption.includes('high') || lowerOption.includes('hoch')) return '🔥';
+  
+  // VRSTA
+  if (lowerOption.includes('dessert') || lowerOption.includes('nachspeisen') || lowerOption.includes('desert')) return '🍰';
+  if (lowerOption.includes('savory') || lowerOption.includes('herzhaft') || lowerOption.includes('slano')) return '🍕';
+  if (lowerOption.includes('diet') || lowerOption.includes('diät') || lowerOption.includes('dijetalni')) return '🥗';
+  if (lowerOption.includes('drink') || lowerOption.includes('getränk') || lowerOption.includes('napitak')) return '🥤';
+  if (lowerOption.includes('anything') || lowerOption.includes('alles') || lowerOption.includes('svejedno')) return '😋';
+  
+  // RESTRIKCIJE
+  if (lowerOption.includes('no restriction') || lowerOption.includes('keine einschränkungen') || lowerOption.includes('bez restrikcija')) return '✅';
+  if (lowerOption.includes('gluten free') || lowerOption.includes('glutenfrei') || lowerOption.includes('bez glutena')) return '🌾❌';
+  if (lowerOption.includes('lactose free') || lowerOption.includes('laktosefrei') || lowerOption.includes('bez laktoze')) return '🥛❌';
+  if (lowerOption.includes('sugar free') || lowerOption.includes('zuckerfrei') || lowerOption.includes('bez šećera')) return '🍬❌';
+  if (lowerOption.includes('vegan')) return '🌱';
+  if (lowerOption.includes('nuts') || lowerOption.includes('nüsse') || lowerOption.includes('orašasti')) return '🥜❌';
+  
+  // PREFERENCIJE
+  if (lowerOption.includes('high protein') || lowerOption.includes('hoher protein') || lowerOption.includes('visokoprotein')) return '💪';
+  if (lowerOption.includes('high fiber') || lowerOption.includes('ballaststoff') || lowerOption.includes('vlaknima')) return '🌾';
+  if (lowerOption.includes('high carbs') || lowerOption.includes('kohlenhydrat') || lowerOption.includes('ugljikohidrat')) return '🍞';
+  
+  // VRIJEME
+  if (lowerOption.includes('quick') || lowerOption.includes('kurz') || lowerOption.includes('kratko')) return '⚡';
+  if (lowerOption.includes('medium') || lowerOption.includes('mittel') || lowerOption.includes('srednje')) return '⏳';
+  if (lowerOption.includes('long') || lowerOption.includes('lang') || lowerOption.includes('duže')) return '🐢';
+  
+  // TEŽINA
+  if (lowerOption.includes('beginner') || lowerOption.includes('anfänger') || lowerOption.includes('početnik')) return '👶';
+  if (lowerOption.includes('intermediate') || lowerOption.includes('fortgeschritten') || lowerOption.includes('srednji')) return '👨‍🍳';
+  if (lowerOption.includes('professional') || lowerOption.includes('profi') || lowerOption.includes('profesionalac')) return '👨‍🍳⭐';
+  
+  // KALORIJE
+  if (lowerOption.includes('low') || lowerOption.includes('niedrig') || lowerOption.includes('nisko')) return '⬇️';
+  if (lowerOption.includes('moderate') || lowerOption.includes('mäßig') || lowerOption.includes('umjereno')) return '➡️';
+  if (lowerOption.includes('medium') && !lowerOption.includes('time')) return '⬆️';
+  if (lowerOption.includes('high') || lowerOption.includes('hoch') || lowerOption.includes('visoko')) return '🔥';
 
+  // Default ikona
   return '📌';
 };
 
@@ -437,7 +459,7 @@ const Quiz = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {q.options.map(option => {
             const isSelected = (formData[q.id] || []).includes(option);
-            const icon = getIconForOption(option);
+            const icon = getIconForOption(option) || '📌';
             return (
               <label
                 key={option}
@@ -472,7 +494,7 @@ const Quiz = () => {
         >
           <option value="">{t('quiz.select_placeholder')}</option>
           {q.options.map(option => {
-            const icon = getIconForOption(option);
+            const icon = getIconForOption(option) || '📌';
             return (
               <option key={option} value={option}>
                 {icon} {option}
@@ -515,7 +537,6 @@ const Quiz = () => {
       <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 mt-4 sm:mt-6">
         <div className="mb-4 sm:mb-6">
           <div className="flex justify-between text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1">
-            {/* 🔥 PROMIJENJENO - sada piše samo "Korak" umjesto "Korak {current} od {total}" */}
             <span>{t('quiz.step_label')}</span>
             <span>{Math.round(progress)}%</span>
           </div>

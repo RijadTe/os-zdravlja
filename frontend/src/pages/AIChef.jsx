@@ -400,7 +400,7 @@ const AIChef = () => {
         <div className="flex flex-wrap gap-4 justify-center mb-4">
           
           {/* ============================================================
-              📸 FOTOGRAFIŠI - SA PREVODOM (SAMO JEDAN FOTOAPARAT)
+              📸 FOTOGRAFIŠI - SAMO JEDAN FOTOAPARAT!
               ============================================================ */}
           <div className="flex flex-col gap-2">
             <button
@@ -414,8 +414,7 @@ const AIChef = () => {
               onClick={() => (user?.premium || (dailyLimit.moze && videoWatched)) && document.getElementById('fileInput').click()}
               disabled={!user?.premium && !(dailyLimit.moze && videoWatched)}
             >
-              <span className="text-3xl">📸</span>
-              {user?.premium ? t('aichef.buttons.photo_premium') : t('aichef.buttons.photo')}
+              <span className="text-3xl">📸</span> {user?.premium ? t('aichef.buttons.photo_premium') : t('aichef.buttons.photo')}
             </button>
             
             {/* 🔥 MALA PORUKA ISPOD - SAMO AKO NIJE PREMIUM */}
