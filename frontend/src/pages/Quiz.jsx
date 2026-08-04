@@ -12,7 +12,6 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 // 🔥 IKONE - ISTE ZA SVE JEZIKE NA OSNOVU ZNAČENJA
 // ============================================================
 const getIconForOption = (option) => {
-  // Prvo probaj direktno u mapi
   const iconMap = {
     // ===== VRSTA =====
     'Deserti': '🍰',
@@ -48,6 +47,7 @@ const getIconForOption = (option) => {
     'Glutenfrei': '🌾❌',
     'Laktosefrei': '🥛❌',
     'Zuckerfrei': '🍬❌',
+    'Vegan': '🌱',
     'Nüsse': '🥜❌',
 
     // ===== PREFERENCIJE =====

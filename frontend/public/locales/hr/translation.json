@@ -162,6 +162,7 @@
     "subtitle": "Odgovorite na 6 pitanja i mi ćemo prilagoditi recepte vašim potrebama!",
     "edit_title": "✏️ Izmjena filtera",
     "edit_subtitle": "Prilagodite svoje preferencije i uživajte u savršenim receptima!",
+    "step_label": "Koraci",
     "step": "Korak {current} od {total}",
     "selected": "Odabrano: {count}/{max}",
     "select_placeholder": "Izaberite...",

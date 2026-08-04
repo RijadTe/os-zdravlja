@@ -162,6 +162,7 @@
     "subtitle": "Beantworten Sie 6 Fragen und wir passen Rezepte an Ihre Bedürfnisse an!",
     "edit_title": "✏️ Filter bearbeiten",
     "edit_subtitle": "Passen Sie Ihre Präferenzen an und genießen Sie perfekte Rezepte!",
+    "step_label": "Schritte",
     "step": "Schritt {current} von {total}",
     "selected": "Ausgewählt: {count}/{max}",
     "select_placeholder": "Auswählen...",
