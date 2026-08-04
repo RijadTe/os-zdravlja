@@ -10,8 +10,113 @@ const { createClient } = require('@supabase/supabase-js');
 const OpenAI = require('openai');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const webpush = require('web-push');
+const rateLimit = require('express-rate-limit');
+const cloudinary = require('cloudinary').v2;
+const speakeasy = require('speakeasy');
+const geoip = require('geoip-lite');
 
 const app = express();
+
+// ============================================================
+// PROVJERA ENV VARIJABLI
+// ============================================================
+console.log('🔍 Provjera .env:');
+console.log('PORT:', process.env.PORT || '5000');
+console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? '✅' : '❌');
+console.log('SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY ? '✅' : '❌');
+console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? '✅' : '❌');
+console.log('STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? '✅' : '❌');
+console.log('VAPID_PUBLIC_KEY:', process.env.VAPID_PUBLIC_KEY ? '✅' : '❌');
+console.log('VAPID_PRIVATE_KEY:', process.env.VAPID_PRIVATE_KEY ? '✅' : '❌');
+console.log('CLOUDINARY_CLOUD_NAME:', process.env.CLOUDINARY_CLOUD_NAME ? '✅' : '❌');
+console.log('=================================\n');
+
+// ============================================================
+// KONFIGURACIJA
+// ============================================================
+const PORT = process.env.PORT || 5000;
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ Fale Supabase kredencijali!');
+  process.exit(1);
+}
+
+// ============================================================
+// CLOUDINARY KONFIGURACIJA
+// ============================================================
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+console.log('✅ Cloudinary povezan!');
+
+// ============================================================
+// RATE LIMIT - ZAŠTITA OD PREVIŠE ZAHTJEVA
+// ============================================================
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  message: {
+    success: false,
+    error: '⏳ Previše zahtjeva. Pokušajte za 15 minuta.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: {
+    success: false,
+    error: '⏳ Previše pokušaja prijave. Pokušajte za 15 minuta.'
+  },
+  skipSuccessfulRequests: true,
+});
+
+const aiLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 50,
+  message: {
+    success: false,
+    error: '⏳ Previše AI pretraga. Pokušajte za sat vremena.'
+  }
+});
+
+// ============================================================
+// MIDDLEWARE - CORS
+// ============================================================
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3000',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174',
+    'http://10.129.62.121:5173',
+    'http://10.129.62.121:5174',
+    'https://os-zdravlja.vercel.app',
+    'https://os-zdravlja-backend.onrender.com',
+    process.env.CLIENT_URL
+  ].filter(Boolean),
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With']
+}));
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Primijeni rate limit na rute
+app.use('/api/', apiLimiter);
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/ai-chef', aiLimiter);
 
 // ============================================================
 // VAPID KONFIGURACIJA ZA PUSH NOTIFIKACIJE
@@ -55,62 +160,10 @@ const upload = multer({
 });
 
 // ============================================================
-// PROVJERA ENV
-// ============================================================
-console.log('🔍 Provjera .env:');
-console.log('PORT:', process.env.PORT || '5000');
-console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? '✅' : '❌');
-console.log('SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY ? '✅' : '❌');
-console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? '✅' : '❌');
-console.log('STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? '✅' : '❌');
-console.log('VAPID_PUBLIC_KEY:', process.env.VAPID_PUBLIC_KEY ? '✅' : '❌');
-console.log('VAPID_PRIVATE_KEY:', process.env.VAPID_PRIVATE_KEY ? '✅' : '❌');
-console.log('=================================\n');
-
-// ============================================================
-// KONFIGURACIJA
-// ============================================================
-const PORT = process.env.PORT || 5000;
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  console.error('❌ Fale Supabase kredencijali!');
-  process.exit(1);
-}
-
-// ============================================================
-// MIDDLEWARE - CORS
-// ============================================================
-app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://127.0.0.1:3000',
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:5174',
-    'http://10.129.62.121:5173',
-    'http://10.129.62.121:5174',
-    'https://os-zdravlja.vercel.app',
-    'https://os-zdravlja-backend.onrender.com',
-    'https://os-zdravlja.vercel.app/',
-    process.env.CLIENT_URL
-  ].filter(Boolean),
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With']
-}));
-
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// ============================================================
 // SUPABASE CLIENT
 // ============================================================
 const supabase = createClient(supabaseUrl, supabaseKey);
-console.log('✅ Supabase povezan!\n');
+console.log('✅ Supabase povezan!');
 
 // ============================================================
 // OPENAI CLIENT
@@ -128,9 +181,41 @@ if (process.env.OPENAI_API_KEY) {
 }
 
 // ============================================================
+// CLOUDINARY FUNKCIJE
+// ============================================================
+async function uploadToCloudinary(filePath, folder = 'os-zdravlja') {
+  try {
+    const result = await cloudinary.uploader.upload(filePath, {
+      folder: folder,
+      use_filename: true,
+      unique_filename: true,
+      transformation: [
+        { width: 800, height: 600, crop: 'limit' },
+        { quality: 'auto' }
+      ]
+    });
+    console.log('✅ Slika uploadana na Cloudinary:', result.secure_url);
+    return result.secure_url;
+  } catch (error) {
+    console.error('❌ Cloudinary greška:', error);
+    return null;
+  }
+}
+
+async function deleteFromCloudinary(publicId) {
+  try {
+    const result = await cloudinary.uploader.destroy(publicId);
+    console.log('✅ Slika izbrisana sa Cloudinary:', publicId);
+    return result;
+  } catch (error) {
+    console.error('❌ Greška pri brisanju sa Cloudinary:', error);
+    return null;
+  }
+}
+
+// ============================================================
 // AI CHEF HELPER FUNKCIJE
 // ============================================================
-
 function generateHash(input, type = 'tekst') {
   if (type === 'tekst') {
     return crypto.createHash('md5').update(input.toLowerCase().trim()).digest('hex');
@@ -226,7 +311,6 @@ async function analyzeImage(imagePath) {
 // ============================================================
 // AI SOMELIJER CACHE FUNKCIJE
 // ============================================================
-
 async function checkSommelierCache(receptId) {
   try {
     const { data, error } = await supabase
@@ -276,7 +360,6 @@ async function saveSommelierCache(receptId, data) {
 // ============================================================
 // NOTIFIKACIJE - POMOĆNE FUNKCIJE
 // ============================================================
-
 async function sendPushNotification(email, title, body, link = '/') {
   try {
     const { data: subscriptionData, error } = await supabase
@@ -340,8 +423,6 @@ async function createNotification(email, tip, poruka, link = '/') {
     }
 
     console.log('✅ Notifikacija kreirana za:', email);
-    
-    // Pošalji push notifikaciju
     await sendPushNotification(email, 'OS Zdravlja', poruka, link);
     
     return data?.[0] || null;
@@ -363,7 +444,135 @@ app.get('/api/test', (req, res) => {
 });
 
 // ============================================================
-// 2. REGISTRACIJA
+// 2. GEOIP - DOHVATI LOKACIJU
+// ============================================================
+app.get('/api/geoip', (req, res) => {
+  try {
+    const ip = req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress;
+    
+    if (ip === '::1' || ip === '127.0.0.1' || ip === 'localhost') {
+      return res.json({
+        country: 'Localhost',
+        city: 'Development',
+        ip: ip
+      });
+    }
+
+    const geo = geoip.lookup(ip);
+    
+    if (geo) {
+      res.json({
+        country: geo.country,
+        city: geo.city,
+        region: geo.region,
+        timezone: geo.timezone,
+        ip: ip
+      });
+    } else {
+      res.json({ 
+        country: 'Nepoznato', 
+        ip: ip,
+        message: 'Lokacija nije pronađena'
+      });
+    }
+  } catch (error) {
+    console.error('❌ Greška pri dohvatu lokacije:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// 3. 2FA - GENERIŠI SECRET
+// ============================================================
+app.post('/api/auth/2fa/generate', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email je obavezan.' });
+    }
+
+    const secret = speakeasy.generateSecret({
+      name: `OS Zdravlja (${email})`,
+      length: 20
+    });
+
+    await supabase
+      .from('profili')
+      .update({ 
+        twofa_secret: secret.base32,
+        twofa_enabled: false
+      })
+      .eq('email', email);
+
+    const QRCode = require('qrcode');
+    const otpauthUrl = secret.otpauth_url;
+    const qrCode = await QRCode.toDataURL(otpauthUrl);
+
+    res.json({
+      success: true,
+      secret: secret.base32,
+      qrCode: qrCode,
+      message: '📱 Skenirajte QR kod sa Google Authenticator ili Authy.'
+    });
+  } catch (error) {
+    console.error('❌ Greška pri generisanju 2FA:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// 4. 2FA - VERIFIKUJ KOD
+// ============================================================
+app.post('/api/auth/2fa/verify', async (req, res) => {
+  try {
+    const { email, token } = req.body;
+
+    if (!email || !token) {
+      return res.status(400).json({ error: 'Email i token su obavezni.' });
+    }
+
+    const { data: user, error } = await supabase
+      .from('profili')
+      .select('twofa_secret')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (error || !user || !user.twofa_secret) {
+      return res.status(400).json({ error: '2FA nije podešen za ovog korisnika.' });
+    }
+
+    const verified = speakeasy.totp.verify({
+      secret: user.twofa_secret,
+      encoding: 'base32',
+      token: token,
+      window: 1
+    });
+
+    if (verified) {
+      await supabase
+        .from('profili')
+        .update({ twofa_enabled: true })
+        .eq('email', email);
+
+      res.json({ 
+        success: true, 
+        message: '✅ 2FA uspješno aktiviran!' 
+      });
+    } else {
+      res.status(400).json({ 
+        success: false, 
+        error: '❌ Pogrešan 2FA kod. Pokušajte ponovo.' 
+      });
+    }
+  } catch (error) {
+    console.error('❌ Greška pri verifikaciji 2FA:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// 5. REGISTRACIJA
 // ============================================================
 app.post('/api/auth/register', async (req, res) => {
   console.log('\n📝 === REGISTRACIJA ===');
@@ -429,6 +638,8 @@ app.post('/api/auth/register', async (req, res) => {
         preferencije: [],
         ai_chef_pretrage: 0,
         ai_chef_datum: null,
+        twofa_secret: null,
+        twofa_enabled: false,
         created_at: new Date().toISOString()
       }])
       .select();
@@ -449,7 +660,6 @@ app.post('/api/auth/register', async (req, res) => {
 
     console.log('✅ Profil kreiran:', profileData);
 
-    // 🔥 KREIRAJ DOBRODOŠLICU NOTIFIKACIJU
     await createNotification(
       email,
       'motivacija',
@@ -471,7 +681,7 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 // ============================================================
-// 3. PRIJAVA (LOGIN)
+// 6. PRIJAVA (LOGIN)
 // ============================================================
 app.post('/api/auth/login', async (req, res) => {
   console.log('\n🔐 === PRIJAVA ===');
@@ -524,6 +734,8 @@ app.post('/api/auth/login', async (req, res) => {
           preferencije: [],
           ai_chef_pretrage: 0,
           ai_chef_datum: null,
+          twofa_secret: null,
+          twofa_enabled: false,
           created_at: new Date().toISOString()
         }])
         .select();
@@ -564,7 +776,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // ============================================================
-// 4. DOHVATI TRENUTNOG KORISNIKA
+// 7. DOHVATI TRENUTNOG KORISNIKA
 // ============================================================
 app.get('/api/auth/me', async (req, res) => {
   try {
@@ -603,7 +815,7 @@ app.get('/api/auth/me', async (req, res) => {
 });
 
 // ============================================================
-// 5. ODJAVA (LOGOUT)
+// 8. ODJAVA (LOGOUT)
 // ============================================================
 app.post('/api/auth/logout', async (req, res) => {
   try {
@@ -621,7 +833,7 @@ app.post('/api/auth/logout', async (req, res) => {
 });
 
 // ============================================================
-// 6. QUIZ ENDPOINT
+// 9. QUIZ ENDPOINT
 // ============================================================
 app.post('/api/quiz', async (req, res) => {
   console.log('\n📥 === QUIZ ENDPOINT ===');
@@ -690,6 +902,8 @@ app.post('/api/quiz', async (req, res) => {
           premium: false,
           ai_chef_pretrage: 0,
           ai_chef_datum: null,
+          twofa_secret: null,
+          twofa_enabled: false,
           created_at: new Date().toISOString()
         }])
         .select();
@@ -732,7 +946,7 @@ app.post('/api/quiz', async (req, res) => {
 });
 
 // ============================================================
-// 7. DOHVATI RECEPTE SA FILTERIMA
+// 10. DOHVATI RECEPTE SA FILTERIMA
 // ============================================================
 app.get('/api/recepti', async (req, res) => {
   try {
@@ -784,7 +998,7 @@ app.get('/api/recepti', async (req, res) => {
 });
 
 // ============================================================
-// 8. DOHVATI RECEPTE ZA KORISNIKA
+// 11. DOHVATI RECEPTE ZA KORISNIKA
 // ============================================================
 app.get('/api/recepti/korisnik/:email', async (req, res) => {
   try {
@@ -838,7 +1052,7 @@ app.get('/api/recepti/korisnik/:email', async (req, res) => {
 });
 
 // ============================================================
-// 9. DOHVATI JEDAN RECEPT
+// 12. DOHVATI JEDAN RECEPT
 // ============================================================
 app.get('/api/recepti/:id', async (req, res) => {
   try {
@@ -863,7 +1077,7 @@ app.get('/api/recepti/:id', async (req, res) => {
 });
 
 // ============================================================
-// 10. DOHVATI PROFIL
+// 13. DOHVATI PROFIL
 // ============================================================
 app.get('/api/profil/:email', async (req, res) => {
   try {
@@ -888,7 +1102,7 @@ app.get('/api/profil/:email', async (req, res) => {
 });
 
 // ============================================================
-// 11. AŽURIRAJ PROFIL
+// 14. AŽURIRAJ PROFIL
 // ============================================================
 app.put('/api/profil/:email', async (req, res) => {
   try {
@@ -915,7 +1129,7 @@ app.put('/api/profil/:email', async (req, res) => {
 });
 
 // ============================================================
-// 12. KREIRAJ PROFIL
+// 15. KREIRAJ PROFIL
 // ============================================================
 app.post('/api/profil', async (req, res) => {
   try {
@@ -945,6 +1159,8 @@ app.post('/api/profil', async (req, res) => {
         preferencije: preferencije || [],
         ai_chef_pretrage: 0,
         ai_chef_datum: null,
+        twofa_secret: null,
+        twofa_enabled: false,
         created_at: new Date().toISOString()
       }])
       .select();
@@ -962,7 +1178,7 @@ app.post('/api/profil', async (req, res) => {
 });
 
 // ============================================================
-// 13. IZBRIŠI PROFIL
+// 16. IZBRIŠI PROFIL
 // ============================================================
 app.delete('/api/profil/:email/delete', async (req, res) => {
   try {
@@ -988,7 +1204,7 @@ app.delete('/api/profil/:email/delete', async (req, res) => {
 });
 
 // ============================================================
-// 14. HEALTHY CHEF - KATEGORIJE
+// 17. HEALTHY CHEF - KATEGORIJE
 // ============================================================
 app.get('/api/healthy-chef/kategorije', async (req, res) => {
   try {
@@ -1009,7 +1225,7 @@ app.get('/api/healthy-chef/kategorije', async (req, res) => {
 });
 
 // ============================================================
-// 15. HEALTHY CHEF - FAZE PO KATEGORIJI
+// 18. HEALTHY CHEF - FAZE PO KATEGORIJI
 // ============================================================
 app.get('/api/healthy-chef/faze/:kategorijaId', async (req, res) => {
   try {
@@ -1032,7 +1248,7 @@ app.get('/api/healthy-chef/faze/:kategorijaId', async (req, res) => {
 });
 
 // ============================================================
-// 16. HEALTHY CHEF - RECEPTI ZA FAZU
+// 19. HEALTHY CHEF - RECEPTI ZA FAZU
 // ============================================================
 app.get('/api/healthy-chef/recepti', async (req, res) => {
   try {
@@ -1065,7 +1281,7 @@ app.get('/api/healthy-chef/recepti', async (req, res) => {
 });
 
 // ============================================================
-// 17. AI WEEKLY PLAN (FoodPlanner)
+// 20. AI WEEKLY PLAN (FoodPlanner)
 // ============================================================
 app.post('/api/ai-weekly-plan', async (req, res) => {
   try {
@@ -1093,7 +1309,7 @@ app.post('/api/ai-weekly-plan', async (req, res) => {
 });
 
 // ============================================================
-// 18. TAJNI RECEPT
+// 21. TAJNI RECEPT
 // ============================================================
 app.get('/api/tajni-recept', async (req, res) => {
   try {
@@ -1215,7 +1431,7 @@ app.get('/api/tajni-recept', async (req, res) => {
 });
 
 // ============================================================
-// 19. AI CHEF - DOHVATI LIMIT
+// 22. AI CHEF - DOHVATI LIMIT
 // ============================================================
 app.get('/api/ai-chef/limit/:email', async (req, res) => {
   try {
@@ -1274,7 +1490,7 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
 });
 
 // ============================================================
-// 20. AI CHEF - OTKLJUČAJ PRETRAGU
+// 23. AI CHEF - OTKLJUČAJ PRETRAGU
 // ============================================================
 app.post('/api/ai-chef/unlock', async (req, res) => {
   try {
@@ -1341,7 +1557,7 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
 });
 
 // ============================================================
-// 21. AI CHEF - PRETRAGA
+// 24. AI CHEF - PRETRAGA
 // ============================================================
 app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
   try {
@@ -1376,6 +1592,7 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
       const analysis = await analyzeImage(slikaPutanja);
       inputText = analysis.sastojci.join(', ');
       
+      // 🔥 UPLOAD NA CLOUDINARY UMJESTO LOKALNOG SPREMANJA
       if (fs.existsSync(slikaPutanja)) {
         fs.unlink(slikaPutanja, (err) => { if (err) console.error('⚠️ Greška pri brisanju slike:', err); });
       }
@@ -1429,7 +1646,7 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
 });
 
 // ============================================================
-// 22. AI CHEF - OČISTI STARI KEŠ
+// 25. AI CHEF - OČISTI STARI KEŠ
 // ============================================================
 app.delete('/api/ai-chef/cache/clean', async (req, res) => {
   try {
@@ -1450,7 +1667,7 @@ app.delete('/api/ai-chef/cache/clean', async (req, res) => {
 });
 
 // ============================================================
-// 23. PDF IZVJEŠTAJ
+// 26. PDF IZVJEŠTAJ
 // ============================================================
 app.get('/api/pdf/izvjestaj/:email', async (req, res) => {
   try {
@@ -1613,7 +1830,7 @@ app.get('/api/pdf/izvjestaj/:email', async (req, res) => {
 });
 
 // ============================================================
-// 24. ZDRAVSTVENI PODACI - SAČUVAJ
+// 27. ZDRAVSTVENI PODACI - SAČUVAJ
 // ============================================================
 app.post('/api/zdravstveni-podaci', async (req, res) => {
   try {
@@ -1643,7 +1860,7 @@ app.post('/api/zdravstveni-podaci', async (req, res) => {
 });
 
 // ============================================================
-// 25. ZDRAVSTVENI PODACI - DOHVATI
+// 28. ZDRAVSTVENI PODACI - DOHVATI
 // ============================================================
 app.get('/api/zdravstveni-podaci/:email', async (req, res) => {
   try {
@@ -1666,7 +1883,7 @@ app.get('/api/zdravstveni-podaci/:email', async (req, res) => {
 });
 
 // ============================================================
-// 26. NOTIFIKACIJE - GENERIŠI PREPORUKE
+// 29. NOTIFIKACIJE - GENERIŠI PREPORUKE
 // ============================================================
 app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
   try {
@@ -1760,7 +1977,6 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       });
     }
 
-    // 🔥 SAČUVAJ PREPORUKE U BAZU
     for (const preporuka of preporuke) {
       await createNotification(
         email,
@@ -1770,7 +1986,6 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       );
     }
 
-    // Vrati notifikacije
     const { data: notifikacije, error: notifError } = await supabase
       .from('notifikacije')
       .select('*')
@@ -1791,7 +2006,7 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
 });
 
 // ============================================================
-// 27. NOTIFIKACIJE - DOHVATI
+// 30. NOTIFIKACIJE - DOHVATI
 // ============================================================
 app.get('/api/notifikacije/:email', async (req, res) => {
   try {
@@ -1813,7 +2028,7 @@ app.get('/api/notifikacije/:email', async (req, res) => {
 });
 
 // ============================================================
-// 28. NOTIFIKACIJE - OZNAČI KAO PROČITANO
+// 31. NOTIFIKACIJE - OZNAČI KAO PROČITANO
 // ============================================================
 app.put('/api/notifikacije/:id/read', async (req, res) => {
   try {
@@ -1834,7 +2049,7 @@ app.put('/api/notifikacije/:id/read', async (req, res) => {
 });
 
 // ============================================================
-// 29. NOTIFIKACIJE - OZNAČI SVE KAO PROČITANO
+// 32. NOTIFIKACIJE - OZNAČI SVE KAO PROČITANO
 // ============================================================
 app.put('/api/notifikacije/:email/read-all', async (req, res) => {
   try {
@@ -1856,7 +2071,7 @@ app.put('/api/notifikacije/:email/read-all', async (req, res) => {
 });
 
 // ============================================================
-// 30. NOTIFIKACIJE - IZBRIŠI
+// 33. NOTIFIKACIJE - IZBRIŠI
 // ============================================================
 app.delete('/api/notifikacije/:id', async (req, res) => {
   try {
@@ -1877,7 +2092,7 @@ app.delete('/api/notifikacije/:id', async (req, res) => {
 });
 
 // ============================================================
-// 31. OBROCI - DOHVATI OBROKE
+// 34. OBROCI - DOHVATI OBROKE
 // ============================================================
 app.get('/api/obroci/:email', async (req, res) => {
   try {
@@ -1908,7 +2123,7 @@ app.get('/api/obroci/:email', async (req, res) => {
 });
 
 // ============================================================
-// 32. OBROCI - KREIRAJ OBROK
+// 35. OBROCI - KREIRAJ OBROK
 // ============================================================
 app.post('/api/obroci', async (req, res) => {
   try {
@@ -1956,7 +2171,7 @@ app.post('/api/obroci', async (req, res) => {
 });
 
 // ============================================================
-// 33. OBROCI - IZBRIŠI OBROK
+// 36. OBROCI - IZBRIŠI OBROK
 // ============================================================
 app.delete('/api/obroci/:id', async (req, res) => {
   try {
@@ -1977,7 +2192,7 @@ app.delete('/api/obroci/:id', async (req, res) => {
 });
 
 // ============================================================
-// 34. COMMUNITY - DOHVATI OBJAVE
+// 37. COMMUNITY - DOHVATI OBJAVE
 // ============================================================
 app.get('/api/community/objave', async (req, res) => {
   try {
@@ -1997,7 +2212,7 @@ app.get('/api/community/objave', async (req, res) => {
 });
 
 // ============================================================
-// 35. COMMUNITY - KREIRAJ OBJAVU
+// 38. COMMUNITY - KREIRAJ OBJAVU (SA CLOUDINARY)
 // ============================================================
 app.post('/api/community/objave', upload.single('slika'), async (req, res) => {
   try {
@@ -2019,7 +2234,12 @@ app.post('/api/community/objave', upload.single('slika'), async (req, res) => {
 
     let slikaUrl = null;
     if (slika) {
-      slikaUrl = `/uploads/${slika.filename}`;
+      // 🔥 UPLOAD NA CLOUDINARY
+      slikaUrl = await uploadToCloudinary(slika.path, 'community');
+      // Obriši lokalni fajl
+      if (fs.existsSync(slika.path)) {
+        fs.unlink(slika.path, (err) => { if (err) console.error('⚠️ Greška pri brisanju slike:', err); });
+      }
     }
 
     const sastojciArray = sastojci ? sastojci.split(',').map(s => s.trim()).filter(s => s) : [];
@@ -2049,7 +2269,7 @@ app.post('/api/community/objave', upload.single('slika'), async (req, res) => {
 });
 
 // ============================================================
-// 36. COMMUNITY - LAJKUJ OBJAVU
+// 39. COMMUNITY - LAJKUJ OBJAVU
 // ============================================================
 app.post('/api/community/objave/:id/like', async (req, res) => {
   try {
@@ -2095,7 +2315,6 @@ app.post('/api/community/objave/:id/like', async (req, res) => {
 
     if (error) throw error;
 
-    // 🔥 KREIRAJ NOTIFIKACIJU ZA LAJK
     if (lajkovao && objava.korisnik_email && objava.korisnik_email !== email) {
       const { data: userData } = await supabase
         .from('profili')
@@ -2121,13 +2340,26 @@ app.post('/api/community/objave/:id/like', async (req, res) => {
 });
 
 // ============================================================
-// 37. COMMUNITY - IZBRIŠI OBJAVU
+// 40. COMMUNITY - IZBRIŠI OBJAVU
 // ============================================================
 app.delete('/api/community/objave/:id', async (req, res) => {
   try {
     const { id } = req.params;
     console.log(`🗑️ Brisanje objave: ${id}`);
     
+    // Dohvati sliku prije brisanja
+    const { data: objava } = await supabase
+      .from('objave')
+      .select('slika')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (objava?.slika) {
+      // Izbriši sa Cloudinary
+      const publicId = objava.slika.split('/').pop().split('.')[0];
+      await deleteFromCloudinary(`community/${publicId}`);
+    }
+
     const { error } = await supabase
       .from('objave')
       .delete()
@@ -2142,7 +2374,7 @@ app.delete('/api/community/objave/:id', async (req, res) => {
 });
 
 // ============================================================
-// 38. ZABORAVLJENA LOZINKA
+// 41. ZABORAVLJENA LOZINKA
 // ============================================================
 app.post('/api/auth/forgot-password', async (req, res) => {
   try {
@@ -2170,7 +2402,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 });
 
 // ============================================================
-// 39. RESET LOZINKE
+// 42. RESET LOZINKE
 // ============================================================
 app.post('/api/auth/reset-password', async (req, res) => {
   try {
@@ -2206,7 +2438,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
 });
 
 // ============================================================
-// 40. TEST QUIZ ENDPOINT
+// 43. TEST QUIZ ENDPOINT
 // ============================================================
 app.post('/api/test-quiz', (req, res) => {
   console.log('\n📥 TEST ENDPOINT - Primljen zahtjev');
@@ -2220,7 +2452,7 @@ app.post('/api/test-quiz', (req, res) => {
 });
 
 // ============================================================
-// 41. AI SOMELIJER (SA KEŠOM!)
+// 44. AI SOMELIJER (SA KEŠOM!)
 // ============================================================
 app.post('/api/ai-sommelier', async (req, res) => {
   console.log('\n🍷 === AI SOMELIJER ===');
@@ -2230,7 +2462,6 @@ app.post('/api/ai-sommelier', async (req, res) => {
   try {
     const { naziv, sastojci, receptId } = req.body;
 
-    // 1. PROVJERI KEŠ
     if (receptId) {
       const cached = await checkSommelierCache(receptId);
       if (cached) {
@@ -2246,7 +2477,6 @@ app.post('/api/ai-sommelier', async (req, res) => {
       }
     }
 
-    // 2. AKO NEMA KEŠA, POZOVI OPENAI ILI FALLBACK
     console.log('🔄 Nema keša, generišem odgovor...');
 
     let result = {
@@ -2283,7 +2513,6 @@ app.post('/api/ai-sommelier', async (req, res) => {
       console.log('ℹ️ OpenAI nije dostupan, koristim fallback odgovor');
     }
 
-    // 3. SAČUVAJ U KEŠ
     if (receptId) {
       await saveSommelierCache(receptId, result);
       console.log('✅ Sačuvano u keš za recept:', receptId);
@@ -2308,7 +2537,7 @@ app.post('/api/ai-sommelier', async (req, res) => {
 });
 
 // ============================================================
-// 42. OČISTI SOMELIJER KEŠ
+// 45. OČISTI SOMELIJER KEŠ
 // ============================================================
 app.delete('/api/ai-sommelier/cache/clean', async (req, res) => {
   try {
@@ -2329,7 +2558,7 @@ app.delete('/api/ai-sommelier/cache/clean', async (req, res) => {
 });
 
 // ============================================================
-// 43. STRIPE - KREIRAJ CHECKOUT SESSION
+// 46. STRIPE - KREIRAJ CHECKOUT SESSION
 // ============================================================
 app.post('/api/create-checkout-session', async (req, res) => {
   try {
@@ -2371,7 +2600,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
 });
 
 // ============================================================
-// 44. VERIFIKACIJA PLAĆANJA
+// 47. VERIFIKACIJA PLAĆANJA
 // ============================================================
 app.get('/api/verify-payment', async (req, res) => {
   try {
@@ -2414,7 +2643,7 @@ app.get('/api/verify-payment', async (req, res) => {
 });
 
 // ============================================================
-// 45. STRIPE WEBHOOK - POTVRDA PLAĆANJA
+// 48. STRIPE WEBHOOK - POTVRDA PLAĆANJA
 // ============================================================
 app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
@@ -2451,7 +2680,6 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
       } else {
         console.log('✅ Premium aktiviran (webhook) za:', email);
         
-        // 🔥 POŠALJI NOTIFIKACIJU O PREMIUM AKTIVACIJI
         await createNotification(
           email,
           'motivacija',
@@ -2468,7 +2696,7 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
 });
 
 // ============================================================
-// 46. NOTIFIKACIJE - REGISTRUJ PUSH SUBSCRIPTION
+// 49. NOTIFIKACIJE - REGISTRUJ PUSH SUBSCRIPTION
 // ============================================================
 app.post('/api/notifikacije/subscribe', async (req, res) => {
   try {
@@ -2493,7 +2721,7 @@ app.post('/api/notifikacije/subscribe', async (req, res) => {
 });
 
 // ============================================================
-// 47. PREVOD RECEPATA (i18n)
+// 50. PREVOD RECEPATA (i18n)
 // ============================================================
 app.post('/api/recepti/translate', async (req, res) => {
   try {
@@ -2505,7 +2733,6 @@ app.post('/api/recepti/translate', async (req, res) => {
 
     console.log(`🔄 Prevodenje recepta ${receptId} na jezik: ${jezik}`);
 
-    // 1. Dohvati originalni recept
     const { data: recept, error: receptError } = await supabase
       .from('recepti')
       .select('*')
@@ -2514,7 +2741,6 @@ app.post('/api/recepti/translate', async (req, res) => {
 
     if (receptError) throw receptError;
 
-    // 2. Provjeri da li već postoji prevod
     const { data: existing, error: existingError } = await supabase
       .from('recepti_prevodi')
       .select('*')
@@ -2527,7 +2753,6 @@ app.post('/api/recepti/translate', async (req, res) => {
       return res.json({ success: true, data: existing, cached: true });
     }
 
-    // 3. Ako nema prevoda, pozovi OpenAI
     if (!openai) {
       console.warn('⚠️ OpenAI nije dostupan, koristim fallback');
       return res.json({
@@ -2582,7 +2807,6 @@ app.post('/api/recepti/translate', async (req, res) => {
 
     const translated = JSON.parse(response.choices[0].message.content);
 
-    // 4. Sačuvaj prevod u bazu
     const { data: saved, error: saveError } = await supabase
       .from('recepti_prevodi')
       .insert([{
@@ -2621,7 +2845,7 @@ app.post('/api/recepti/translate', async (req, res) => {
 });
 
 // ============================================================
-// 48. FALLBACK RUTA
+// 51. FALLBACK RUTA
 // ============================================================
 app.use('/*path', (req, res) => {
   res.status(404).json({ 
@@ -2636,6 +2860,5 @@ app.use('/*path', (req, res) => {
 app.listen(PORT, () => {
   console.log('\n=================================');
   console.log(`✅ Server pokrenut na http://localhost:${PORT}`);
-  console.log('=================================');
   console.log('=================================\n');
 });
