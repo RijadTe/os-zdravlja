@@ -1,7 +1,7 @@
 // frontend/src/main.jsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { HashRouter } from 'react-router-dom'; // 🔥 PROMJENJENO U HashRouter
+import { HashRouter } from 'react-router-dom'; // 🔥 HASH ROUTER
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
 import './index.css';
