@@ -8,31 +8,117 @@ import { supabase } from '../supabaseClient';
 // 🔥 PROMIJENJENO - uklonjen /api sa kraja
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-const ICONS = {
-  'Deserti': '🍰',
-  'Slano': '🍕',
-  'Dijetalni recepti': '🥗',
-  'Napitki': '🥤',
-  'Svejedno': '😋',
-  'Bez restrikcija': '✅',
-  'Bez glutena': '🌾❌',
-  'Bez laktoze': '🥛❌',
-  'Bez šećera': '🍬❌',
-  'Veganski': '🌱',
-  'Orašasti plodovi': '🥜❌',
-  'Visokoproteinski': '💪',
-  'Bogat vlaknima': '🌾',
-  'Bogat ugljikohidratima': '🍞',
-  'Kratko (15-30 min)': '⚡',
-  'Srednje (30-45 min)': '⏳',
-  'Duže (45-60+ min)': '🐢',
-  'Početnik': '👶',
-  'Srednji': '👨‍🍳',
-  'Profesionalac': '👨‍🍳⭐',
-  'Nisko (do 300 kcal)': '⬇️',
-  'Umjereno (300-500 kcal)': '➡️',
-  'Srednje (500-700 kcal)': '⬆️',
-  'Visoko (900+ kcal)': '🔥'
+// ============================================================
+// 🔥 VIŠEJEZIČNE IKONE - ZA SVE JEZIKE
+// ============================================================
+const getIconForOption = (option) => {
+  const iconMap = {
+    // ===== HRVATSKI (originalni nazivi - OVO IDE U BAZU) =====
+    'Deserti': '🍰',
+    'Slano': '🍕',
+    'Dijetalni recepti': '🥗',
+    'Napitki': '🥤',
+    'Svejedno': '😋',
+    'Bez restrikcija': '✅',
+    'Bez glutena': '🌾❌',
+    'Bez laktoze': '🥛❌',
+    'Bez šećera': '🍬❌',
+    'Veganski': '🌱',
+    'Orašasti plodovi': '🥜❌',
+    'Visokoproteinski': '💪',
+    'Bogat vlaknima': '🌾',
+    'Bogat ugljikohidratima': '🍞',
+    'Kratko (15-30 min)': '⚡',
+    'Srednje (30-45 min)': '⏳',
+    'Duže (45-60+ min)': '🐢',
+    'Početnik': '👶',
+    'Srednji': '👨‍🍳',
+    'Profesionalac': '👨‍🍳⭐',
+    'Nisko (do 300 kcal)': '⬇️',
+    'Umjereno (300-500 kcal)': '➡️',
+    'Srednje (500-700 kcal)': '⬆️',
+    'Visoko (900+ kcal)': '🔥',
+
+    // ===== ENGLESKI (samo za prikaz - NE IDE U BAZU) =====
+    'Desserts': '🍰',
+    'Savory': '🍕',
+    'Diet recipes': '🥗',
+    'Drinks': '🥤',
+    'Anything': '😋',
+    'No restrictions': '✅',
+    'Gluten free': '🌾❌',
+    'Lactose free': '🥛❌',
+    'Sugar free': '🍬❌',
+    'Vegan': '🌱',
+    'Nuts': '🥜❌',
+    'High protein': '💪',
+    'High fiber': '🌾',
+    'High carbs': '🍞',
+    'Quick (15-30 min)': '⚡',
+    'Medium (30-45 min)': '⏳',
+    'Long (45-60+ min)': '🐢',
+    'Beginner': '👶',
+    'Intermediate': '👨‍🍳',
+    'Professional': '👨‍🍳⭐',
+    'Low (up to 300 kcal)': '⬇️',
+    'Moderate (300-500 kcal)': '➡️',
+    'Medium (500-700 kcal)': '⬆️',
+    'High (900+ kcal)': '🔥',
+
+    // ===== NJEMAČKI (samo za prikaz - NE IDE U BAZU) =====
+    'Nachspeisen': '🍰',
+    'Herzhaft': '🍕',
+    'Diätgerichte': '🥗',
+    'Getränke': '🥤',
+    'Alles': '😋',
+    'Keine Einschränkungen': '✅',
+    'Glutenfrei': '🌾❌',
+    'Laktosefrei': '🥛❌',
+    'Zuckerfrei': '🍬❌',
+    'Vegan': '🌱',
+    'Nüsse': '🥜❌',
+    'Hoher Proteingehalt': '💪',
+    'Ballaststoffreich': '🌾',
+    'Kohlenhydratreich': '🍞',
+    'Kurz (15-30 min)': '⚡',
+    'Mittel (30-45 min)': '⏳',
+    'Lang (45-60+ min)': '🐢',
+    'Anfänger': '👶',
+    'Fortgeschritten': '👨‍🍳',
+    'Profi': '👨‍🍳⭐',
+    'Niedrig (bis 300 kcal)': '⬇️',
+    'Mäßig (300-500 kcal)': '➡️',
+    'Mittel (500-700 kcal)': '⬆️',
+    'Hoch (900+ kcal)': '🔥',
+  };
+
+  // Ako nađe ikonu, vrati je
+  if (iconMap[option]) {
+    return iconMap[option];
+  }
+
+  // Fallback - probaj po ključnim riječima
+  const lowerOption = option.toLowerCase();
+  if (lowerOption.includes('dessert') || lowerOption.includes('nachspeisen')) return '🍰';
+  if (lowerOption.includes('savory') || lowerOption.includes('herzhaft')) return '🍕';
+  if (lowerOption.includes('diet') || lowerOption.includes('diät')) return '🥗';
+  if (lowerOption.includes('drink') || lowerOption.includes('getränk')) return '🥤';
+  if (lowerOption.includes('anything') || lowerOption.includes('alles')) return '😋';
+  if (lowerOption.includes('protein')) return '💪';
+  if (lowerOption.includes('fiber') || lowerOption.includes('ballaststoff')) return '🌾';
+  if (lowerOption.includes('carbs') || lowerOption.includes('kohlenhydrat')) return '🍞';
+  if (lowerOption.includes('quick') || lowerOption.includes('kurz')) return '⚡';
+  if (lowerOption.includes('medium') || lowerOption.includes('mittel')) return '⏳';
+  if (lowerOption.includes('long') || lowerOption.includes('lang')) return '🐢';
+  if (lowerOption.includes('beginner') || lowerOption.includes('anfänger')) return '👶';
+  if (lowerOption.includes('intermediate') || lowerOption.includes('fortgeschritten')) return '👨‍🍳';
+  if (lowerOption.includes('professional') || lowerOption.includes('profi')) return '👨‍🍳⭐';
+  if (lowerOption.includes('low') || lowerOption.includes('niedrig')) return '⬇️';
+  if (lowerOption.includes('moderate') || lowerOption.includes('mäßig')) return '➡️';
+  if (lowerOption.includes('high') || lowerOption.includes('hoch')) return '🔥';
+
+  // Default ikona
+  return '📌';
 };
 
 const Quiz = () => {
@@ -355,11 +441,10 @@ const Quiz = () => {
   };
 
   // ============================================================
-  // 🖥️ RENDER PITANJA
+  // 🖥️ RENDER PITANJA - 🔥 POPRAVLJENO SA getIconForOption
   // ============================================================
   const renderQuestion = () => {
     const q = questions[currentStep];
-    const getIcon = (option) => ICONS[option] || '📌';
     
     if (!q) return null;
     
@@ -368,6 +453,7 @@ const Quiz = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {q.options.map(option => {
             const isSelected = (formData[q.id] || []).includes(option);
+            const icon = getIconForOption(option); // 🔥 KORISTI NOVU FUNKCIJU
             return (
               <label
                 key={option}
@@ -383,7 +469,7 @@ const Quiz = () => {
                   onChange={() => handleMultiSelect(q.id, option)}
                   className="w-4 h-4 accent-blue-500 shrink-0"
                 />
-                <span className="text-lg sm:text-xl shrink-0">{getIcon(option)}</span>
+                <span className="text-lg sm:text-xl shrink-0">{icon}</span>
                 <span className="text-gray-700 dark:text-gray-200 break-words">{option}</span>
               </label>
             );
@@ -401,11 +487,14 @@ const Quiz = () => {
           required
         >
           <option value="">{t('quiz.select_placeholder')}</option>
-          {q.options.map(option => (
-            <option key={option} value={option}>
-              {getIcon(option)} {option}
-            </option>
-          ))}
+          {q.options.map(option => {
+            const icon = getIconForOption(option); // 🔥 KORISTI NOVU FUNKCIJU
+            return (
+              <option key={option} value={option}>
+                {icon} {option}
+              </option>
+            );
+          })}
         </select>
       );
     }
