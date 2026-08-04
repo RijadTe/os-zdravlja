@@ -9,7 +9,7 @@ import { supabase } from '../supabaseClient';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
-// 🔥 IKONE - ISTE ZA SVE JEZIKE NA OSNOVU ZNAČENJA
+// 🔥 IKONE - POJEDNOSTAVLJENE, BEZ ❌
 // ============================================================
 const getIconForOption = (option) => {
   const iconMap = {
@@ -30,25 +30,25 @@ const getIconForOption = (option) => {
     'Getränke': '🥤',
     'Alles': '😋',
 
-    // ===== RESTRIKCIJE =====
+    // ===== RESTRIKCIJE - BEZ ❌ =====
     'Bez restrikcija': '✅',
-    'Bez glutena': '🌾❌',
-    'Bez laktoze': '🥛❌',
-    'Bez šećera': '🍬❌',
+    'Bez glutena': '🌾',
+    'Bez laktoze': '🥛',
+    'Bez šećera': '🍬',
     'Veganski': '🌱',
-    'Orašasti plodovi': '🥜❌',
+    'Orašasti plodovi': '🥜',
     'No restrictions': '✅',
-    'Gluten free': '🌾❌',
-    'Lactose free': '🥛❌',
-    'Sugar free': '🍬❌',
+    'Gluten free': '🌾',
+    'Lactose-free': '🥛',
+    'Sugar-free': '🍬',
     'Vegan': '🌱',
-    'Nuts': '🥜❌',
+    'Nuts-free': '🥜',
     'Keine Einschränkungen': '✅',
-    'Glutenfrei': '🌾❌',
-    'Laktosefrei': '🥛❌',
-    'Zuckerfrei': '🍬❌',
+    'Glutenfrei': '🌾',
+    'Laktosefrei': '🥛',
+    'Zuckerfrei': '🍬',
     'Vegan': '🌱',
-    'Nüsse': '🥜❌',
+    'Nüsse': '🥜',
 
     // ===== PREFERENCIJE =====
     'Visokoproteinski': '💪',
@@ -102,7 +102,7 @@ const getIconForOption = (option) => {
     return iconMap[option];
   }
 
-  // 🔥 FALLBACK - ako nema u mapi, probaj po ključnim riječima
+  // 🔥 FALLBACK - po ključnim riječima
   const lowerOption = option.toLowerCase();
   
   // VRSTA
@@ -112,7 +112,7 @@ const getIconForOption = (option) => {
   if (lowerOption.includes('drink') || lowerOption.includes('getränk') || lowerOption.includes('napitak')) return '🥤';
   if (lowerOption.includes('anything') || lowerOption.includes('alles') || lowerOption.includes('svejedno')) return '😋';
   
-  // RESTRIKCIJE
+  // RESTRIKCIJE - BEZ ❌
   if (lowerOption.includes('no restriction') || lowerOption.includes('keine einschränkungen') || lowerOption.includes('bez restrikcija')) return '✅';
   if (lowerOption.includes('gluten free') || lowerOption.includes('glutenfrei') || lowerOption.includes('bez glutena')) return '🌾';
   if (lowerOption.includes('lactose free') || lowerOption.includes('laktosefrei') || lowerOption.includes('bez laktoze')) return '🥛';
