@@ -291,7 +291,7 @@
     "premium_hint": "⭐ Become Premium for unlimited searches and advanced options.",
     "premium_link": "Become Premium →",
     "buttons": {
-      "photo": "📸 Take a photo",
+      "photo": "Take a photo",
       "photo_premium": "⭐ Premium - Take a photo",
       "remaining": "Remaining {{remaining}} out of {{max}} free searches",
       "remaining_zero": "Remaining 0 out of 3 free searches. Become Premium for unlimited!",

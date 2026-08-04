@@ -291,7 +291,7 @@
     "premium_hint": "⭐ Werden Sie Premium für unbegrenzte Suchanfragen und erweiterte Optionen.",
     "premium_link": "Premium werden →",
     "buttons": {
-      "photo": "📸 Foto machen",
+      "photo": "Foto machen",
       "photo_premium": "⭐ Premium - Foto machen",
       "remaining": "Noch {{remaining}} von {{max}} kostenlosen Suchen übrig",
       "remaining_zero": "Noch 0 von 3 kostenlosen Suchen übrig. Werden Sie Premium für unbegrenzte!",
