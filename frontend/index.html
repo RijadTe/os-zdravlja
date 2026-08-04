@@ -49,50 +49,6 @@
     </script>
     <!-- ============================================================ -->
     
-    <!-- ⚡ ZAŠTITA – Onemogući desni klik i prečice (BEZ DETEKCIJE DEVTOOLS) -->
-    <script>
-      // 1. Onemogući desni klik
-      document.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        return false;
-      });
-
-      // 2. Onemogući F12, Ctrl+U, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+S
-      document.addEventListener('keydown', (e) => {
-        // F12
-        if (e.key === 'F12') {
-          e.preventDefault();
-          return false;
-        }
-        // Ctrl+U (View Source)
-        if (e.ctrlKey && e.key === 'u') {
-          e.preventDefault();
-          return false;
-        }
-        // Ctrl+Shift+I (DevTools)
-        if (e.ctrlKey && e.shiftKey && e.key === 'I') {
-          e.preventDefault();
-          return false;
-        }
-        // Ctrl+Shift+J (Console)
-        if (e.ctrlKey && e.shiftKey && e.key === 'J') {
-          e.preventDefault();
-          return false;
-        }
-        // Ctrl+S (Save)
-        if (e.ctrlKey && e.key === 's') {
-          e.preventDefault();
-          return false;
-        }
-        // Ctrl+Shift+C (Inspect)
-        if (e.ctrlKey && e.shiftKey && e.key === 'C') {
-          e.preventDefault();
-          return false;
-        }
-      });
-
-      // 🔥 DETEKCIJA DEVTOOLS UKLONJENA – F5 SADA RADI NORMALNO!
-    </script>
   </head>
   <body>
     <div id="root"></div>
