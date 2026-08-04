@@ -303,7 +303,7 @@ function App() {
     <BrowserRouter>
       <div className="min-h-screen bg-white dark:bg-gray-900">
         {/* ============================================================
-            HEADER - BEZ KUĆICE, VEĆE IKONE NA MOBITELU
+            HEADER - KVIZ SAKRIVEN NA MOBITELU, NOTIFIKACIJE VIDLJIVE
             ============================================================ */}
         <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
@@ -351,19 +351,17 @@ function App() {
                   </Link>
                 )}
 
-                {/* 🧠 KVIZ */}
+                {/* 🧠 KVIZ - SAKRIVEN NA MOBITELU (< 768px), VIDLJIV NA DESKTOPU (≥ 768px) */}
                 <Link 
                   to="/quiz" 
-                  className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-xl sm:text-2xl md:text-3xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                  className="hidden md:flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition text-xl sm:text-2xl md:text-3xl text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
                   aria-label={t('nav.quiz')}
                 >
                   🧠
                 </Link>
 
-                {/* 🔔 NOTIFIKACIJE */}
-                <div className="hidden xs:flex items-center">
-                  {currentUser && <NotificationBell />}
-                </div>
+                {/* 🔔 NOTIFIKACIJE - VIDLJIVE NA SVIM EKRANIMA */}
+                {currentUser && <NotificationBell />}
 
                 {/* 🌍 JEZIK */}
                 <LanguageSwitcher />
