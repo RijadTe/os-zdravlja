@@ -7,19 +7,22 @@ import { supabase } from '../supabaseClient';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const Profile = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation(); // ← DODAJ i18n!
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
-  
-  // 🔥 BEDŽEVI - FIKSNI NAZIVI NA HRVATSKOM (NE PREVODE SE)
-  const [badges, setBadges] = useState([
-    { id: 1, name: 'Prvi recept', icon: '🥇', earned: true },
-    { id: 2, name: '3 dana zaredom', icon: '🥈', earned: false },
-    { id: 3, name: '10 recepata', icon: '🥉', earned: false },
-  ]);
+  const [badges, setBadges] = useState([]);
+
+  // 🔥 KADA SE JEZIK PROMIJENI – AŽURIRAJ BEDŽEVE!
+  useEffect(() => {
+    setBadges([
+      { id: 1, name: t('profile.badges.first_recipe'), icon: '🥇', earned: true },
+      { id: 2, name: t('profile.badges.three_days'), icon: '🥈', earned: false },
+      { id: 3, name: t('profile.badges.ten_recipes'), icon: '🥉', earned: false },
+    ]);
+  }, [t, i18n.language]); // ← Ovisi o jeziku!
 
   useEffect(() => {
     const checkUser = async () => {
@@ -221,7 +224,7 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* ===== BEDŽEVI - FIKSNI NAZIVI NA HRVATSKOM ===== */}
+      {/* ===== BEDŽEVI - PREVODE SE ZAVISNO OD JEZIKA ===== */}
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
         <h2 className="text-xl font-bold mb-4">{t('profile.badges.title')}</h2>
         <div className="flex flex-wrap gap-4">
