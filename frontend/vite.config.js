@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   
-  // 🔥 VAŽNO ZA VERCEL - base URL
+  // VAŽNO ZA VERCEL - base URL
   base: '/',
   
   server: {
@@ -28,17 +28,10 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    // 🔥 Dodatne opcije za build
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-        },
-      },
-    },
+    // 🔥 IZBACI rollupOptions - Vite 8 koristi drugačiji sistem
   },
   
-  // 🔥 Optimizacija za Vercel
+  // 🔥 Optimizacija za Vercel - drugačija sintaksa za Vite 8
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom'],
   },
