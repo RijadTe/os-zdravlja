@@ -29,7 +29,7 @@ import NotificationBell from './components/NotificationBell';
 import LanguageSwitcher from './components/LanguageSwitcher';
 
 function App() {
-  const { t, ready } = useTranslation(); // 🔥 DODAO `ready`
+  const { t } = useTranslation(); // 🔥 IZBACI `ready`
   
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -226,20 +226,6 @@ function App() {
       console.error('❌ Greška pri osvježavanju korisnika:', error);
     }
   };
-
-  // ============================================================
-  // 🔥 PRIKAŽI LOADING DOK SE PRIJEVODI NE UČITAJU
-  // ============================================================
-  if (!ready) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">⏳ Učitavanje...</p>
-        </div>
-      </div>
-    );
-  }
 
   // ============================================================
   // 🖥️ RENDER
