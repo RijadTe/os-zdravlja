@@ -415,15 +415,15 @@ const AIChef = () => {
               disabled={!user?.premium && !(dailyLimit.moze && videoWatched)}
             >
               <span className="text-3xl">📸</span> 
-              📸 Fotografiši
+              {user?.premium ? 'Premium - Fotografiši' : 'Fotografiši'}
             </button>
             
             {/* 🔥 MALA PORUKA ISPOD - SAMO AKO NIJE PREMIUM */}
             {!user?.premium && (
               <p className="text-xs text-center text-gray-500 dark:text-gray-400">
                 {dailyLimit.preostalo > 0 
-                  ? `📸 Preostalo ${dailyLimit.preostalo} od ${dailyLimit.max_pretraga} besplatnih pretraga` 
-                  : '📸 Iskoristili ste sve besplatne pretrage. Postanite Premium za neograničeno!'}
+                  ? `Preostalo ${dailyLimit.preostalo} od ${dailyLimit.max_pretraga} besplatnih pretraga` 
+                  : 'Preostalo 0 od 3 besplatne pretrage. Postanite Premium za neograničeno!'}
               </p>
             )}
             
