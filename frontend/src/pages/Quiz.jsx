@@ -92,12 +92,10 @@ const getIconForOption = (option) => {
     'Hoch (900+ kcal)': '🔥',
   };
 
-  // Ako nađe ikonu, vrati je
   if (iconMap[option]) {
     return iconMap[option];
   }
 
-  // Fallback - probaj po ključnim riječima
   const lowerOption = option.toLowerCase();
   if (lowerOption.includes('dessert') || lowerOption.includes('nachspeisen')) return '🍰';
   if (lowerOption.includes('savory') || lowerOption.includes('herzhaft')) return '🍕';
@@ -117,7 +115,6 @@ const getIconForOption = (option) => {
   if (lowerOption.includes('moderate') || lowerOption.includes('mäßig')) return '➡️';
   if (lowerOption.includes('high') || lowerOption.includes('hoch')) return '🔥';
 
-  // Default ikona
   return '📌';
 };
 
@@ -141,7 +138,6 @@ const Quiz = () => {
 
   // ============================================================
   // 🔍 PROVJERI DA LI JE KORISNIK PRIJAVLJEN
-  // ✅ OVO OSTAJE - Supabase autentifikacija
   // ============================================================
   useEffect(() => {
     const checkUser = async () => {
@@ -160,7 +156,6 @@ const Quiz = () => {
             ime: session.user.user_metadata?.ime || ''
           }));
           
-          // ✅ OVO OSTAJE - Supabase dohvat profila
           const { data: profile } = await supabase
             .from('profili')
             .select('kviz_zavrsen, vrsta, izbjegava, preferencije, vrijeme, tezina, kalorije')
@@ -262,13 +257,12 @@ const Quiz = () => {
   };
 
   // ============================================================
-  // 🎯 LOGIKA ZA MULTI-SELECT SA "SVEJEDNO" I "BEZ RESTRIKCIJA"
+  // 🎯 LOGIKA ZA MULTI-SELECT
   // ============================================================
   const handleMultiSelect = (field, option) => {
     const current = formData[field] || [];
     const max = questions.find(q => q.id === field)?.maxSelect || 3;
     
-    // 🔥 LOGIKA ZA "Svejedno" (vrsta)
     if (field === 'vrsta' && option === 'Svejedno') {
       if (current.includes('Svejedno')) {
         handleChange(field, current.filter(item => item !== 'Svejedno'));
@@ -278,7 +272,6 @@ const Quiz = () => {
       return;
     }
     
-    // 🔥 AKO JE "Svejedno" VEĆ ODABRANO, a korisnik bira nešto drugo
     if (field === 'vrsta' && current.includes('Svejedno') && option !== 'Svejedno') {
       const newSelection = current.filter(item => item !== 'Svejedno');
       if (!newSelection.includes(option) && newSelection.length < max) {
@@ -289,7 +282,6 @@ const Quiz = () => {
       return;
     }
     
-    // 🔥 LOGIKA ZA "Bez restrikcija"
     if (field === 'restrikcije' && option === 'Bez restrikcija') {
       if (current.includes('Bez restrikcija')) {
         handleChange(field, current.filter(item => item !== 'Bez restrikcija'));
@@ -299,7 +291,6 @@ const Quiz = () => {
       return;
     }
     
-    // 🔥 AKO JE "Bez restrikcija" VEĆ ODABRANO, a korisnik bira nešto drugo
     if (field === 'restrikcije' && current.includes('Bez restrikcija') && option !== 'Bez restrikcija') {
       const newSelection = current.filter(item => item !== 'Bez restrikcija');
       if (!newSelection.includes(option) && newSelection.length < max) {
@@ -310,7 +301,6 @@ const Quiz = () => {
       return;
     }
     
-    // 🔥 LOGIKA ZA "Svejedno" (preferencije)
     if (field === 'preferencije' && option === 'Svejedno') {
       if (current.includes('Svejedno')) {
         handleChange(field, current.filter(item => item !== 'Svejedno'));
@@ -320,7 +310,6 @@ const Quiz = () => {
       return;
     }
     
-    // 🔥 AKO JE "Svejedno" VEĆ ODABRANO (preferencije), a korisnik bira nešto drugo
     if (field === 'preferencije' && current.includes('Svejedno') && option !== 'Svejedno') {
       const newSelection = current.filter(item => item !== 'Svejedno');
       if (!newSelection.includes(option) && newSelection.length < max) {
@@ -331,7 +320,6 @@ const Quiz = () => {
       return;
     }
     
-    // 🔥 STANDARDNA LOGIKA ZA SVE OSTALE
     if (current.includes(option)) {
       handleChange(field, current.filter(item => item !== option));
     } else if (current.length < max) {
@@ -346,24 +334,21 @@ const Quiz = () => {
   };
 
   // ============================================================
-  // 📤 SLANJE KVIZA - 🔥 POPRAVLJENO!
+  // 📤 SLANJE KVIZA
   // ============================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // 🔥 OBRADI RESTRIKCIJE - ako je "Bez restrikcija", pošalji prazan niz
     let restrikcijeZaSlanje = formData.restrikcije;
     if (restrikcijeZaSlanje.includes('Bez restrikcija')) {
       restrikcijeZaSlanje = [];
     }
     
-    // 🔥 OBRADI VRSTE - ako je "Svejedno", pošalji prazan niz
     let vrstaZaSlanje = formData.vrsta;
     if (vrstaZaSlanje.includes('Svejedno')) {
       vrstaZaSlanje = [];
     }
     
-    // 🔥 OBRADI PREFERENCIJE - ako je "Svejedno", pošalji prazan niz
     let preferencijeZaSlanje = formData.preferencije;
     if (preferencijeZaSlanje.includes('Svejedno')) {
       preferencijeZaSlanje = [];
@@ -407,7 +392,6 @@ const Quiz = () => {
       console.log('📤 Šaljem kviz na:', `${API_URL}/api/quiz`);
       console.log('📦 Podaci:', payload);
       
-      // 🔥 POPRAVLJENO - dodan /api
       const res = await fetch(`${API_URL}/api/quiz`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -441,7 +425,7 @@ const Quiz = () => {
   };
 
   // ============================================================
-  // 🖥️ RENDER PITANJA - 🔥 UKLONJEN "Odabrano: (count)/(max)"
+  // 🖥️ RENDER PITANJA
   // ============================================================
   const renderQuestion = () => {
     const q = questions[currentStep];
@@ -531,7 +515,8 @@ const Quiz = () => {
       <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 mt-4 sm:mt-6">
         <div className="mb-4 sm:mb-6">
           <div className="flex justify-between text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1">
-            <span>{t('quiz.step', { current: currentStep + 1, total: questions.length })}</span>
+            {/* 🔥 PROMIJENJENO - sada piše samo "Korak" umjesto "Korak {current} od {total}" */}
+            <span>{t('quiz.step_label')}</span>
             <span>{Math.round(progress)}%</span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -568,7 +553,6 @@ const Quiz = () => {
               {questions[currentStep].label}
             </label>
             {renderQuestion()}
-            {/* 🔥 UKLONJENO - više ne prikazuje "Odabrano: (count)/(max)" */}
           </div>
 
           <div className="flex justify-between gap-3 mt-4">
