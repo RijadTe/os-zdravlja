@@ -9,90 +9,95 @@ import { supabase } from '../supabaseClient';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
-// 🔥 VIŠEJEZIČNE IKONE - SVAKA OPCIJA IMA SVOJU IKONU
+// 🔥 IKONE - ISTE ZA SVE JEZIKE NA OSNOVU ZNAČENJA
 // ============================================================
 const getIconForOption = (option) => {
+  // Prvo probaj direktno u mapi
   const iconMap = {
-    // ===== HRVATSKI (originalni nazivi - OVO IDE U BAZU) =====
+    // ===== VRSTA =====
     'Deserti': '🍰',
     'Slano': '🍕',
     'Dijetalni recepti': '🥗',
     'Napitki': '🥤',
     'Svejedno': '😋',
+    'Desserts': '🍰',
+    'Savory': '🍕',
+    'Diet recipes': '🥗',
+    'Drinks': '🥤',
+    'Anything': '😋',
+    'Nachspeisen': '🍰',
+    'Herzhaft': '🍕',
+    'Diätgerichte': '🥗',
+    'Getränke': '🥤',
+    'Alles': '😋',
+
+    // ===== RESTRIKCIJE =====
     'Bez restrikcija': '✅',
     'Bez glutena': '🌾❌',
     'Bez laktoze': '🥛❌',
     'Bez šećera': '🍬❌',
     'Veganski': '🌱',
     'Orašasti plodovi': '🥜❌',
-    'Visokoproteinski': '💪',
-    'Bogat vlaknima': '🌾',
-    'Bogat ugljikohidratima': '🍞',
-    'Kratko (15-30 min)': '⚡',
-    'Srednje (30-45 min)': '⏳',
-    'Duže (45-60+ min)': '🐢',
-    'Početnik': '👶',
-    'Srednji': '👨‍🍳',
-    'Profesionalac': '👨‍🍳⭐',
-    'Nisko (do 300 kcal)': '⬇️',
-    'Umjereno (300-500 kcal)': '➡️',
-    'Srednje (500-700 kcal)': '⬆️',
-    'Visoko (900+ kcal)': '🔥',
-
-    // ===== ENGLESKI =====
-    'Desserts': '🍰',
-    'Savory': '🍕',
-    'Diet recipes': '🥗',
-    'Drinks': '🥤',
-    'Anything': '😋',
     'No restrictions': '✅',
     'Gluten free': '🌾❌',
     'Lactose free': '🥛❌',
     'Sugar free': '🍬❌',
     'Vegan': '🌱',
     'Nuts': '🥜❌',
-    'High protein': '💪',
-    'High fiber': '🌾',
-    'High carbs': '🍞',
-    'Quick (15-30 min)': '⚡',
-    'Medium (30-45 min)': '⏳',
-    'Long (45-60+ min)': '🐢',
-    'Beginner': '👶',
-    'Intermediate': '👨‍🍳',
-    'Professional': '👨‍🍳⭐',
-    'Low (up to 300 kcal)': '⬇️',
-    'Moderate (300-500 kcal)': '➡️',
-    'Medium (500-700 kcal)': '⬆️',
-    'High (900+ kcal)': '🔥',
-
-    // ===== NJEMAČKI =====
-    'Nachspeisen': '🍰',
-    'Herzhaft': '🍕',
-    'Diätgerichte': '🥗',
-    'Getränke': '🥤',
-    'Alles': '😋',
     'Keine Einschränkungen': '✅',
     'Glutenfrei': '🌾❌',
     'Laktosefrei': '🥛❌',
     'Zuckerfrei': '🍬❌',
-    'Vegan': '🌱',
     'Nüsse': '🥜❌',
+
+    // ===== PREFERENCIJE =====
+    'Visokoproteinski': '💪',
+    'Bogat vlaknima': '🌾',
+    'Bogat ugljikohidratima': '🍞',
+    'High protein': '💪',
+    'High fiber': '🌾',
+    'High carbs': '🍞',
     'Hoher Proteingehalt': '💪',
     'Ballaststoffreich': '🌾',
     'Kohlenhydratreich': '🍞',
+
+    // ===== VRIJEME =====
+    'Kratko (15-30 min)': '⚡',
+    'Srednje (30-45 min)': '⏳',
+    'Duže (45-60+ min)': '🐢',
+    'Quick (15-30 min)': '⚡',
+    'Medium (30-45 min)': '⏳',
+    'Long (45-60+ min)': '🐢',
     'Kurz (15-30 min)': '⚡',
     'Mittel (30-45 min)': '⏳',
     'Lang (45-60+ min)': '🐢',
+
+    // ===== TEŽINA =====
+    'Početnik': '👶',
+    'Srednji': '👨‍🍳',
+    'Profesionalac': '👨‍🍳⭐',
+    'Beginner': '👶',
+    'Intermediate': '👨‍🍳',
+    'Professional': '👨‍🍳⭐',
     'Anfänger': '👶',
     'Fortgeschritten': '👨‍🍳',
     'Profi': '👨‍🍳⭐',
+
+    // ===== KALORIJE =====
+    'Nisko (do 300 kcal)': '⬇️',
+    'Umjereno (300-500 kcal)': '➡️',
+    'Srednje (500-700 kcal)': '⬆️',
+    'Visoko (900+ kcal)': '🔥',
+    'Low (up to 300 kcal)': '⬇️',
+    'Moderate (300-500 kcal)': '➡️',
+    'Medium (500-700 kcal)': '⬆️',
+    'High (900+ kcal)': '🔥',
     'Niedrig (bis 300 kcal)': '⬇️',
     'Mäßig (300-500 kcal)': '➡️',
     'Mittel (500-700 kcal)': '⬆️',
     'Hoch (900+ kcal)': '🔥',
   };
 
-  // Ako nađe ikonu, vrati je
   if (iconMap[option]) {
     return iconMap[option];
   }
@@ -133,10 +138,8 @@ const getIconForOption = (option) => {
   // KALORIJE
   if (lowerOption.includes('low') || lowerOption.includes('niedrig') || lowerOption.includes('nisko')) return '⬇️';
   if (lowerOption.includes('moderate') || lowerOption.includes('mäßig') || lowerOption.includes('umjereno')) return '➡️';
-  if (lowerOption.includes('medium') && !lowerOption.includes('time')) return '⬆️';
   if (lowerOption.includes('high') || lowerOption.includes('hoch') || lowerOption.includes('visoko')) return '🔥';
 
-  // Default ikona
   return '📌';
 };
 
