@@ -49,6 +49,80 @@
     </script>
     <!-- ============================================================ -->
     
+    <!-- ⚡ ZAŠTITA – Onemogući desni klik i prečice (BEZ DETEKCIJE DEVTOOLS) -->
+    <script>
+      // 1. Onemogući desni klik
+      document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        return false;
+      });
+
+      // 2. Onemogući F12, Ctrl+U, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+S
+      document.addEventListener('keydown', (e) => {
+        // F12
+        if (e.key === 'F12') {
+          e.preventDefault();
+          return false;
+        }
+        // Ctrl+U (View Source)
+        if (e.ctrlKey && e.key === 'u') {
+          e.preventDefault();
+          return false;
+        }
+        // Ctrl+Shift+I (DevTools)
+        if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+          e.preventDefault();
+          return false;
+        }
+        // Ctrl+Shift+J (Console)
+        if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+          e.preventDefault();
+          return false;
+        }
+        // Ctrl+S (Save)
+        if (e.ctrlKey && e.key === 's') {
+          e.preventDefault();
+          return false;
+        }
+        // Ctrl+Shift+C (Inspect)
+        if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+          e.preventDefault();
+          return false;
+        }
+        // Ctrl+Shift+F (Search)
+        if (e.ctrlKey && e.shiftKey && e.key === 'F') {
+          e.preventDefault();
+          return false;
+        }
+        // Ctrl+U (View Source) - dodatna zaštita
+        if (e.ctrlKey && e.key === 'u') {
+          e.preventDefault();
+          return false;
+        }
+      });
+
+      // 3. Onemogući srednji klik (scroll wheel click) za otvaranje linkova
+      document.addEventListener('mousedown', (e) => {
+        if (e.button === 1) {
+          e.preventDefault();
+          return false;
+        }
+      });
+
+      // 4. Onemogući drag and drop slika
+      document.addEventListener('dragstart', (e) => {
+        e.preventDefault();
+        return false;
+      });
+
+      // 5. Onemogući selektovanje teksta (opciono - možeš ukloniti ako želiš)
+      // document.addEventListener('selectstart', (e) => {
+      //   e.preventDefault();
+      //   return false;
+      // });
+
+      console.log('🛡️ Zaštita aktivirana - desni klik, F12 i prečice onemogućeni!');
+    </script>
   </head>
   <body>
     <div id="root"></div>
