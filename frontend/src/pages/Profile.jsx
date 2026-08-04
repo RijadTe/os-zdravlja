@@ -7,7 +7,7 @@ import { supabase } from '../supabaseClient';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const Profile = () => {
-  const { t, i18n } = useTranslation(); // ← DODAJ i18n!
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -15,19 +15,81 @@ const Profile = () => {
   const [deleting, setDeleting] = useState(false);
   const [badges, setBadges] = useState([]);
 
+  // ============================================================
+  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA
+  // ============================================================
+  const translateValue = (value, type) => {
+    if (!value) return t('profile.not_selected');
+    
+    const maps = {
+      vrsta: {
+        'Slano': t('quiz.options.vrsta.0'),
+        'Deserti': t('quiz.options.vrsta.1'),
+        'Dijetalni recepti': t('quiz.options.vrsta.2'),
+        'Napitki': t('quiz.options.vrsta.3'),
+        'Svejedno': t('quiz.options.vrsta.4')
+      },
+      restrikcije: {
+        'Bez restrikcija': t('quiz.options.restrikcije.0'),
+        'Bez glutena': t('quiz.options.restrikcije.1'),
+        'Bez laktoze': t('quiz.options.restrikcije.2'),
+        'Bez šećera': t('quiz.options.restrikcije.3'),
+        'Veganski': t('quiz.options.restrikcije.4'),
+        'Orašasti plodovi': t('quiz.options.restrikcije.5')
+      },
+      preferencije: {
+        'Visokoproteinski': t('quiz.options.preferencije.0'),
+        'Bogat vlaknima': t('quiz.options.preferencije.1'),
+        'Bogat ugljikohidratima': t('quiz.options.preferencije.2'),
+        'Svejedno': t('quiz.options.preferencije.3')
+      },
+      vrijeme: {
+        'Kratko (15-30 min)': t('quiz.options.vrijeme.0'),
+        'Srednje (30-45 min)': t('quiz.options.vrijeme.1'),
+        'Duže (45-60+ min)': t('quiz.options.vrijeme.2')
+      },
+      tezina: {
+        'Početnik': t('quiz.options.tezina.0'),
+        'Srednji': t('quiz.options.tezina.1'),
+        'Profesionalac': t('quiz.options.tezina.2')
+      },
+      kalorije: {
+        'Nisko (do 300 kcal)': t('quiz.options.kalorije.0'),
+        'Umjereno (300-500 kcal)': t('quiz.options.kalorije.1'),
+        'Srednje (500-700 kcal)': t('quiz.options.kalorije.2'),
+        'Visoko (900+ kcal)': t('quiz.options.kalorije.3')
+      }
+    };
+
+    const map = maps[type];
+    if (!map) return value;
+    
+    // Ako je niz (vrsta, restrikcije, preferencije)
+    if (Array.isArray(value)) {
+      return value.map(v => map[v] || v).join(', ');
+    }
+    
+    // Ako je string
+    return map[value] || value;
+  };
+
+  // ============================================================
   // 🔥 KADA SE JEZIK PROMIJENI – AŽURIRAJ BEDŽEVE!
+  // ============================================================
   useEffect(() => {
     setBadges([
       { id: 1, name: t('profile.badges.first_recipe'), icon: '🥇', earned: true },
       { id: 2, name: t('profile.badges.three_days'), icon: '🥈', earned: false },
       { id: 3, name: t('profile.badges.ten_recipes'), icon: '🥉', earned: false },
     ]);
-  }, [t, i18n.language]); // ← Ovisi o jeziku!
+  }, [t, i18n.language]);
 
+  // ============================================================
+  // 🔐 AUTH
+  // ============================================================
   useEffect(() => {
     const checkUser = async () => {
       try {
-        // 1. Provjeri Supabase session
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
@@ -36,13 +98,10 @@ const Profile = () => {
           localStorage.setItem('user', JSON.stringify(session.user));
           localStorage.setItem('userEmail', session.user.email);
           localStorage.setItem('userName', session.user.user_metadata?.ime || '');
-          
-          // Dohvati profil
           await fetchProfile(session.user.email);
           return;
         }
         
-        // 2. Provjeri localStorage (fallback)
         const userData = JSON.parse(localStorage.getItem('user'));
         if (!userData) {
           navigate('/login');
@@ -224,7 +283,7 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* ===== BEDŽEVI - PREVODE SE ZAVISNO OD JEZIKA ===== */}
+      {/* ===== BEDŽEVI ===== */}
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
         <h2 className="text-xl font-bold mb-4">{t('profile.badges.title')}</h2>
         <div className="flex flex-wrap gap-4">
@@ -251,40 +310,63 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* ===== PREFERENCIJE ===== */}
+      {/* ===== PREFERENCIJE - SA PREVODOM ===== */}
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
         <h2 className="text-xl font-bold mb-4">{t('profile.preferences')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.preferences_types')}</p>
-            <p className="font-semibold">{profile.vrsta?.length ? profile.vrsta.join(', ') : t('profile.not_selected')}</p>
+            <p className="font-semibold">
+              {profile.vrsta?.length 
+                ? translateValue(profile.vrsta, 'vrsta') 
+                : t('profile.not_selected')}
+            </p>
           </div>
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.restrictions')}</p>
-            <p className="font-semibold">{profile.izbjegava?.length ? profile.izbjegava.join(', ') : t('profile.none')}</p>
+            <p className="font-semibold">
+              {profile.izbjegava?.length 
+                ? translateValue(profile.izbjegava, 'restrikcije') 
+                : t('profile.none')}
+            </p>
           </div>
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.preferences')}</p>
-            <p className="font-semibold">{profile.preferencije?.length ? profile.preferencije.join(', ') : t('profile.not_selected')}</p>
+            <p className="font-semibold">
+              {profile.preferencije?.length 
+                ? translateValue(profile.preferencije, 'preferencije') 
+                : t('profile.not_selected')}
+            </p>
           </div>
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.time')}</p>
-            <p className="font-semibold">{profile.vrijeme || t('profile.not_selected')}</p>
+            <p className="font-semibold">
+              {profile.vrijeme 
+                ? translateValue(profile.vrijeme, 'vrijeme') 
+                : t('profile.not_selected')}
+            </p>
           </div>
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.skill')}</p>
-            <p className="font-semibold">{profile.tezina || t('profile.not_selected')}</p>
+            <p className="font-semibold">
+              {profile.tezina 
+                ? translateValue(profile.tezina, 'tezina') 
+                : t('profile.not_selected')}
+            </p>
           </div>
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.calories')}</p>
-            <p className="font-semibold">{profile.kalorije || t('profile.not_selected')}</p>
+            <p className="font-semibold">
+              {profile.kalorije 
+                ? translateValue(profile.kalorije, 'kalorije') 
+                : t('profile.not_selected')}
+            </p>
           </div>
         </div>
       </div>
 
       {/* ===== DUGMAD ===== */}
       <div className="mt-8 flex flex-wrap gap-4">
-        {/* 🔄 PAMETNO DUGME ZA KVIZ */}
         <Link
           to="/quiz"
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full text-sm font-semibold transition flex items-center gap-2"
