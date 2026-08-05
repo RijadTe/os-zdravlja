@@ -43,7 +43,7 @@ const NotificationBell = () => {
   }, []);
 
   // ============================================================
-  // DOHVATI NOTIFIKACIJE - SA SIGURNOSNIM PROVJERAMA!
+  // 🔥 DOHVATI NOTIFIKACIJE - SA SIGURNOSNIM PROVJERAMA ZA 404 I 429!
   // ============================================================
   const fetchNotifikacije = async (korisnikId) => {
     try {
@@ -51,9 +51,27 @@ const NotificationBell = () => {
       const param = korisnikId.includes('@') ? korisnikId : korisnikId;
       const res = await fetch(`${API_URL}/api/notifikacije/${param}`);
       
+      // 🔥 PROVJERI DA LI JE 404 (NOT FOUND)
+      if (res.status === 404) {
+        console.warn('⚠️ Notifikacije nisu dostupne (404) - koristim prazan niz');
+        setNotifikacije([]);
+        setUnreadCount(0);
+        setLoading(false);
+        return;
+      }
+      
       // 🔥 PROVJERI DA LI JE RATE LIMIT (429)
       if (res.status === 429) {
         console.warn('⚠️ Rate limit (429) - koristim prazne notifikacije');
+        setNotifikacije([]);
+        setUnreadCount(0);
+        setLoading(false);
+        return;
+      }
+      
+      // 🔥 PROVJERI DA LI JE SERVER GREŠKA (500)
+      if (res.status >= 500) {
+        console.warn('⚠️ Server greška (500) - koristim prazne notifikacije');
         setNotifikacije([]);
         setUnreadCount(0);
         setLoading(false);
@@ -84,18 +102,28 @@ const NotificationBell = () => {
   };
 
   // ============================================================
-  // GENERIŠI AUTOMATSKE PREPORUKE - SA RATE LIMIT ZAŠTITOM
+  // 🔥 GENERIŠI AUTOMATSKE PREPORUKE - SA 404 I 429 ZAŠTITOM
   // ============================================================
   const generatePreporuke = async (korisnikId) => {
     try {
       const param = korisnikId.includes('@') ? korisnikId : korisnikId;
       const res = await fetch(`${API_URL}/api/notifikacije/preporuke/${param}`);
       
-      // 🔥 AKO JE RATE LIMIT, NE ČEKAJ PREPORUKE
-      if (res.status !== 429) {
-        setTimeout(() => fetchNotifikacije(korisnikId), 1000);
-      } else {
+      // 🔥 PROVJERI 404
+      if (res.status === 404) {
+        console.warn('⚠️ Preporuke nisu dostupne (404) - preskačem');
+        return;
+      }
+      
+      // 🔥 PROVJERI 429
+      if (res.status === 429) {
         console.warn('⚠️ Rate limit (429) - preskačem preporuke');
+        return;
+      }
+      
+      // 🔥 AKO JE SVE OK, OSVJEŽI NOTIFIKACIJE
+      if (res.status === 200) {
+        setTimeout(() => fetchNotifikacije(korisnikId), 1000);
       }
     } catch (error) {
       console.error('Greška pri generisanju preporuka:', error);
@@ -107,9 +135,15 @@ const NotificationBell = () => {
   // ============================================================
   const markAsRead = async (id) => {
     try {
-      await fetch(`${API_URL}/api/notifikacije/${id}/read`, {
+      const res = await fetch(`${API_URL}/api/notifikacije/${id}/read`, {
         method: 'PUT'
       });
+      
+      if (res.status === 404) {
+        console.warn('⚠️ Notifikacija nije pronađena (404)');
+        return;
+      }
+      
       setNotifikacije(prev => 
         prev.map(n => n.id === id ? { ...n, procitano: true } : n)
       );
@@ -134,9 +168,15 @@ const NotificationBell = () => {
   // ============================================================
   const deleteNotification = async (id) => {
     try {
-      await fetch(`${API_URL}/api/notifikacije/${id}`, {
+      const res = await fetch(`${API_URL}/api/notifikacije/${id}`, {
         method: 'DELETE'
       });
+      
+      if (res.status === 404) {
+        console.warn('⚠️ Notifikacija nije pronađena (404)');
+        return;
+      }
+      
       setNotifikacije(prev => prev.filter(n => n.id !== id));
     } catch (error) {
       console.error('Greška pri brisanju:', error);

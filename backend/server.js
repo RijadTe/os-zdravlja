@@ -54,14 +54,13 @@ cloudinary.config({
 console.log('✅ Cloudinary povezan!');
 
 // ============================================================
-// 🔥 RATE LIMIT - ZAŠTITA OD DDoS NAPADA (NORMALAN LIMIT)
+// 🔥 RATE LIMIT - POVEĆAN ZA BOLJE PERFORMANSE!
 // ============================================================
-console.log('🛡️ POSTAVLJAM RATE LIMIT ZA ZAŠTITU OD DDoS-a...');
+console.log('🛡️ POSTAVLJAM RATE LIMIT...');
 
-// Glavni API limit - 500 zahtjeva po minuti
 const apiLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000,   // 1 minuta
-  max: 500,                  // 500 zahtjeva po minuti
+  windowMs: 1 * 60 * 1000,
+  max: 1000,
   message: {
     success: false,
     error: '⏳ Previše zahtjeva. Pokušajte za minutu.'
@@ -70,10 +69,9 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Auth limit - 50 pokušaja po minuti (zaštita od brute force)
 const authLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000,   // 1 minuta
-  max: 50,                   // 50 pokušaja po minuti
+  windowMs: 1 * 60 * 1000,
+  max: 100,
   message: {
     success: false,
     error: '⏳ Previše pokušaja prijave. Pokušajte za minutu.'
@@ -81,20 +79,18 @@ const authLimiter = rateLimit({
   skipSuccessfulRequests: true,
 });
 
-// AI limit - 100 pretraga po minuti
 const aiLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000,   // 1 minuta
-  max: 100,                  // 100 AI pretraga po minuti
+  windowMs: 1 * 60 * 1000,
+  max: 200,
   message: {
     success: false,
     error: '⏳ Previše AI pretraga. Pokušajte za minutu.'
   }
 });
 
-// 🔥 TEŠKI ENDPOINTI - 50 zahtjeva po minuti (profil, recepti)
 const heavyLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
-  max: 200,
+  max: 500,
   message: {
     success: false,
     error: '⏳ Previše zahtjeva za ovaj endpoint. Pokušajte za minutu.'
@@ -104,10 +100,10 @@ const heavyLimiter = rateLimit({
 });
 
 console.log('✅ Rate Limit postavljen:');
-console.log('   - API: 500 zahtjeva/min');
-console.log('   - Auth: 50 pokušaja/min');
-console.log('   - AI: 100 pretraga/min');
-console.log('   - Teški endpointi: 200 zahtjeva/min');
+console.log('   - API: 1000 zahtjeva/min');
+console.log('   - Auth: 100 pokušaja/min');
+console.log('   - AI: 200 pretraga/min');
+console.log('   - Teški endpointi: 500 zahtjeva/min');
 
 // ============================================================
 // MIDDLEWARE - CORS
@@ -135,7 +131,6 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// 🔥 PRIMIJENI RATE LIMIT NA RUTE
 app.use('/api/', apiLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
@@ -1308,7 +1303,7 @@ app.get('/api/healthy-chef/recepti', async (req, res) => {
 });
 
 // ============================================================
-// 20. 🔥 AI WEEKLY PLAN (FoodPlanner) - NADOGRAĐEN!
+// 20. AI WEEKLY PLAN (FoodPlanner)
 // ============================================================
 app.post('/api/ai-weekly-plan', async (req, res) => {
   try {
@@ -1328,7 +1323,6 @@ app.post('/api/ai-weekly-plan', async (req, res) => {
     console.log('🔒 Restrikcije:', restrikcije);
     console.log('📦 Sastojci:', sastojci?.length || 0);
     
-    // 🔥 DOHVATI KORISNIKA IZ BAZE
     const { data: user, error: userError } = await supabase
       .from('profili')
       .select('ime, vrsta, preferencije')
@@ -1341,7 +1335,6 @@ app.post('/api/ai-weekly-plan', async (req, res) => {
     
     const ime = user?.ime || 'Korisnik';
     
-    // 🔥 GENERIRAJ PLAN POMOĆU OPENAI (AKO JE DOSTUPAN)
     let plan = null;
     
     if (openai) {
@@ -1398,16 +1391,13 @@ app.post('/api/ai-weekly-plan', async (req, res) => {
         
       } catch (openaiError) {
         console.error('❌ OpenAI greška:', openaiError.message);
-        // 🔥 FALLBACK - generiraj plan bez AI
         plan = generateFallbackPlan(kalorije, proteini, ugljikohidrati, masti, restrikcije);
       }
     } else {
       console.log('ℹ️ OpenAI nije dostupan, koristim fallback plan');
-      // 🔥 FALLBACK - generiraj plan bez AI
       plan = generateFallbackPlan(kalorije, proteini, ugljikohidrati, masti, restrikcije);
     }
     
-    // 🔥 SPREMI PLAN U BAZU (OPCIONALNO)
     try {
       const { error: saveError } = await supabase
         .from('planovi_obroka')
@@ -1441,10 +1431,9 @@ app.post('/api/ai-weekly-plan', async (req, res) => {
 });
 
 // ============================================================
-// 🔥 FALLBACK PLAN GENERATOR (KAD OPENAI NIJE DOSTUPAN)
+// FALLBACK PLAN GENERATOR
 // ============================================================
 function generateFallbackPlan(kalorije, proteini, ugljikohidrati, masti, restrikcije) {
-  // 🔥 FILTRIRAJ RESTRIKCIJE
   const hasRestriction = (food) => {
     if (!restrikcije || restrikcije.length === 0) return false;
     return restrikcije.some(r => 
@@ -1453,7 +1442,6 @@ function generateFallbackPlan(kalorije, proteini, ugljikohidrati, masti, restrik
     );
   };
   
-  // Osnovni planovi za različite kalorijske ciljeve
   const planovi = {
     low: {
       dani: [
@@ -1490,7 +1478,6 @@ function generateFallbackPlan(kalorije, proteini, ugljikohidrati, masti, restrik
     }
   };
   
-  // Odaberi plan na osnovu kalorija
   let selectedPlan;
   if (kalorije < 1800) {
     selectedPlan = planovi.low;
@@ -1500,7 +1487,6 @@ function generateFallbackPlan(kalorije, proteini, ugljikohidrati, masti, restrik
     selectedPlan = planovi.high;
   }
   
-  // 🔥 FILTRIRAJ RESTRIKCIJE IZ PLANA
   if (restrikcije && restrikcije.length > 0) {
     selectedPlan.dani = selectedPlan.dani.map(dan => {
       const newDan = { ...dan };
@@ -1821,7 +1807,6 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
       const analysis = await analyzeImage(slikaPutanja);
       inputText = analysis.sastojci.join(', ');
       
-      // 🔥 UPLOAD NA CLOUDINARY UMJESTO LOKALNOG SPREMANJA
       if (fs.existsSync(slikaPutanja)) {
         fs.unlink(slikaPutanja, (err) => { if (err) console.error('⚠️ Greška pri brisanju slike:', err); });
       }
@@ -1960,11 +1945,9 @@ app.get('/api/pdf/izvjestaj/:email', async (req, res) => {
     doc.text(`Datum: ${datumIzvjestaja}`, { align: 'center' });
     doc.moveDown(1);
 
-    // Linija
     doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#e5e7eb').lineWidth(1).stroke();
     doc.moveDown(1);
 
-    // Statistika
     doc.fontSize(16).fillColor('#1f2937').text('📊 Statistika', { underline: true });
     doc.moveDown(0.5);
     doc.fontSize(12).fillColor('#4b5563')
@@ -1987,11 +1970,9 @@ app.get('/api/pdf/izvjestaj/:email', async (req, res) => {
     doc.text(`🥧 Makronutrijenti: ${procProteini}% proteini, ${procUglj}% ugljikohidrati, ${procMasti}% masti`);
     doc.moveDown(1);
 
-    // Linija
     doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#e5e7eb').lineWidth(1).stroke();
     doc.moveDown(1);
 
-    // Tabela
     doc.fontSize(16).fillColor('#1f2937').text('📋 Lista obroka', { underline: true });
     doc.moveDown(0.5);
 
@@ -2112,7 +2093,7 @@ app.get('/api/zdravstveni-podaci/:email', async (req, res) => {
 });
 
 // ============================================================
-// 29. NOTIFIKACIJE - GENERIŠI PREPORUKE
+// 29. 🔥 NOTIFIKACIJE - GENERIŠI PREPORUKE (POVEĆANE!)
 // ============================================================
 app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
   try {
@@ -2132,7 +2113,9 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
 
     const ime = profil.ime || 'Prijatelju';
     const preporuke = [];
+    const sat = new Date().getHours();
 
+    // 📊 ZDRAVSTVENI PODACI
     const { data: zdravstveni, error: zdravError } = await supabase
       .from('zdravstveni_podaci')
       .select('*')
@@ -2180,6 +2163,7 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       }
     }
 
+    // 🛒 NAMIRNICE U FRIŽIDERU
     const namirnice = profil.namirnice || [];
     if (namirnice.length < 3) {
       preporuke.push({
@@ -2189,23 +2173,67 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       });
     }
 
-    const { data: obroci, error: obrociError } = await supabase
+    // 🍽️ REDOVNI OBROCI - DORUČAK, RUČAK, VEČERA
+    const { data: danasnjiObroci, error: obrociError } = await supabase
       .from('obroci')
-      .select('*')
+      .select('tip, created_at, datum')
       .eq('email', email)
       .eq('datum', new Date().toISOString().split('T')[0]);
 
     if (obrociError) throw obrociError;
 
-    const sat = new Date().getHours();
-    if (obroci.length === 0 && sat >= 12 && sat < 14) {
+    const imaDoručak = danasnjiObroci?.some(o => o.tip === 'Doručak') || false;
+    const imaRučak = danasnjiObroci?.some(o => o.tip === 'Ručak') || false;
+    const imaVečeru = danasnjiObroci?.some(o => o.tip === 'Večera') || false;
+
+    // 🌅 DORUČAK - 7-10h
+    if (sat >= 7 && sat <= 10 && !imaDoručak) {
       preporuke.push({
-        tip: 'rucak',
-        poruka: `🍽️ ${ime}, još nisi unio/la današnje obroke. Ne zaboravi na ručak!`,
+        tip: 'dorucak',
+        poruka: `🌅 ${ime}, vrijeme je za doručak! Dobre jutarnje navike počinju obrokom bogatim proteinima.`,
         link: '/food-planner'
       });
     }
 
+    // 🍽️ RUČAK - 12-15h
+    if (sat >= 12 && sat <= 15 && !imaRučak) {
+      preporuke.push({
+        tip: 'rucak',
+        poruka: `🍽️ ${ime}, vrijeme je za ručak! Ne preskači glavni obrok u danu.`,
+        link: '/food-planner'
+      });
+    }
+
+    // 🌙 VEČERA - 18-21h
+    if (sat >= 18 && sat <= 21 && !imaVečeru) {
+      preporuke.push({
+        tip: 'vecera',
+        poruka: `🌙 ${ime}, vrijeme je za laganu večeru! Izbjegavaj tešku hranu prije spavanja.`,
+        link: '/food-planner'
+      });
+    }
+
+    // ⏰ PROŠLO VIŠE OD 5 SATI OD ZADNJEG OBROKA
+    if (danasnjiObroci && danasnjiObroci.length > 0) {
+      const zadnjiObrok = danasnjiObroci.sort((a, b) => 
+        new Date(b.created_at) - new Date(a.created_at)
+      )[0];
+      
+      if (zadnjiObrok) {
+        const vrijemeZadnjeg = new Date(zadnjiObrok.created_at);
+        const satiOdZadnjeg = (Date.now() - vrijemeZadnjeg.getTime()) / (1000 * 60 * 60);
+        
+        if (satiOdZadnjeg > 5) {
+          preporuke.push({
+            tip: 'podsjetnik',
+            poruka: `⏰ ${ime}, prošlo je više od 5 sati od zadnjeg obroka. Vrijeme je za nešto zdravo!`,
+            link: '/food-planner'
+          });
+        }
+      }
+    }
+
+    // 📦 SPREMI PREPORUKE U BAZU
     for (const preporuka of preporuke) {
       await createNotification(
         email,
