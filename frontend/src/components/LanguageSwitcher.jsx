@@ -1,12 +1,10 @@
 // frontend/src/components/LanguageSwitcher.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { changeLanguage } from '../i18n/index';
 
 const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
-  const [updateKey, setUpdateKey] = useState(Date.now()); // 🔥 ZA RE-RENDER
   const dropdownRef = useRef(null);
 
   const languages = [
@@ -17,24 +15,12 @@ const LanguageSwitcher = () => {
 
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
 
-  const handleChangeLanguage = async (lng) => {
-    await changeLanguage(lng);
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+    localStorage.setItem('i18nextLng', lng);
     setIsOpen(false);
-    setUpdateKey(Date.now()); // 🔥 FORSIRAJ RE-RENDER
   };
 
-  // 🔥 OSJEĆAJ NA PROMJENU JEZIKA
-  useEffect(() => {
-    const handleLanguageChange = () => {
-      setUpdateKey(Date.now());
-    };
-    i18n.on('languageChanged', handleLanguageChange);
-    return () => {
-      i18n.off('languageChanged', handleLanguageChange);
-    };
-  }, [i18n]);
-
-  // 🔥 ZATVORI DROPDOWN
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -46,7 +32,7 @@ const LanguageSwitcher = () => {
   }, []);
 
   return (
-    <div key={updateKey} className="relative inline-block" ref={dropdownRef}>
+    <div className="relative inline-block" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-1 sm:gap-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 transition duration-200"
@@ -70,7 +56,7 @@ const LanguageSwitcher = () => {
           {languages.map((lang) => (
             <button
               key={lang.code}
-              onClick={() => handleChangeLanguage(lang.code)}
+              onClick={() => changeLanguage(lang.code)}
               className={`w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm transition duration-150 ${
                 i18n.language === lang.code
                   ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
