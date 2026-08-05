@@ -36,6 +36,48 @@ const HomeKonacno = () => {
   });
 
   // ============================================================
+  // 🔐 PROVJERA DA LI JE KORISNIK PRIJAVLJEN - NOVO!
+  // ============================================================
+  useEffect(() => {
+    const checkUser = () => {
+      const userData = localStorage.getItem('user');
+      if (!userData) {
+        console.log('⚠️ Nema korisnika, preusmjeravam na login');
+        window.location.href = '/login';
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(userData);
+        // Provjeri da li je token istekao
+        const expiry = parsed.expires_at || parsed.exp;
+        if (expiry) {
+          const now = Math.floor(Date.now() / 1000);
+          if (expiry < now) {
+            console.log('⏰ Session istekao, brišem...');
+            localStorage.removeItem('user');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('remember_me');
+            window.location.href = '/login';
+            return;
+          }
+        }
+        // Ako nema emaila, preusmjeri na login
+        if (!parsed?.email) {
+          console.log('⚠️ Nema emaila, preusmjeravam na login');
+          window.location.href = '/login';
+        }
+      } catch (error) {
+        console.error('❌ Greška pri provjeri korisnika:', error);
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
+    };
+
+    checkUser();
+  }, []);
+
+  // ============================================================
   // 1. DOHVATI KORISNIKA IZ LOCALSTORAGE
   // ============================================================
   useEffect(() => {

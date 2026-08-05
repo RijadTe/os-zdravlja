@@ -4,7 +4,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient';
 
-// 🔥 DODANO - API_URL za profile
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const Login = () => {
@@ -20,6 +19,57 @@ const Login = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // 🔥 DOHVATI PROFIL IZ BAZE
+  const fetchUserProfile = async (email) => {
+    try {
+      console.log('📡 Dohvatam profil iz baze za:', email);
+      const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        console.log('✅ Profil dohvaćen:', data.data);
+        return data.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('❌ Greška pri dohvatu profila:', error);
+      return null;
+    }
+  };
+
+  // 🔥 KREIRAJ PROFIL AKO NE POSTOJI
+  const createProfile = async (email, ime) => {
+    try {
+      console.log('📝 Kreiram novi profil za:', email);
+      const response = await fetch(`${API_URL}/api/profil`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          ime: ime || 'Korisnik',
+          premium: false,
+          kviz_zavrsen: false,
+          vrsta: [],
+          izbjegava: [],
+          preferencije: [],
+          vrijeme: '',
+          tezina: '',
+          kalorije: ''
+        })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        console.log('✅ Profil kreiran');
+        return data.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('❌ Greška pri kreiranju profila:', error);
+      return null;
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -55,61 +105,50 @@ const Login = () => {
 
       console.log('✅ Prijava uspješna:', data.user?.id);
 
+      // 🔥 EXPIRATION - 30 DANA (umjesto 7)
+      const expiresAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
+      const now = Math.floor(Date.now() / 1000);
+
+      // 🔥 DOHVATI PROFIL IZ BAZE
+      const profile = await fetchUserProfile(formData.email);
+      
+      // 🔥 KREIRAJ PROFIL AKO NE POSTOJI
+      let userProfile = profile;
+      if (!profile) {
+        userProfile = await createProfile(formData.email, data.user?.user_metadata?.ime || 'Korisnik');
+      }
+
+      // 🔥 SPREMI KORISNIKA SA DUGIM TRAJANJEM
       const userData = {
         id: data.user?.id || '',
         email: data.user?.email || formData.email,
-        ime: data.user?.user_metadata?.ime || '',
-        premium: false
+        ime: data.user?.user_metadata?.ime || userProfile?.ime || 'Korisnik',
+        premium: userProfile?.premium || false,
+        kviz_zavrsen: userProfile?.kviz_zavrsen || false,
+        vrsta: userProfile?.vrsta || [],
+        izbjegava: userProfile?.izbjegava || [],
+        preferencije: userProfile?.preferencije || [],
+        vrijeme: userProfile?.vrijeme || '',
+        tezina: userProfile?.tezina || '',
+        kalorije: userProfile?.kalorije || '',
+        expires_at: expiresAt, // ⬅️ 30 dana
+        login_time: now,
+        remember_me: true // ⬅️ PERMANENTNA PRIJAVA
       };
       
+      // 🔥 SPREMI U LOCALSTORAGE
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('userEmail', formData.email);
       localStorage.setItem('userName', userData.ime || '');
+      localStorage.setItem('remember_me', 'true'); // ⬅️ PERMANENTNA PRIJAVA
       
       if (data.session) {
         localStorage.setItem('supabase_session', JSON.stringify(data.session));
       }
 
       console.log('👤 Sačuvan user:', userData);
-
-      // 🔥 PROMIJENJENO - koristi API umjesto direktnog Supabase poziva
-      try {
-        console.log('📡 Dohvatam profil preko API-ja...');
-        const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(formData.email)}`);
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-          console.log('📋 Profil dohvaćen:', result.data);
-          const updatedUser = { 
-            ...userData, 
-            premium: result.data.premium || false,
-            kviz_zavrsen: result.data.kviz_zavrsen || false,
-            vrsta: result.data.vrsta || [],
-            izbjegava: result.data.izbjegava || [],
-            preferencije: result.data.preferencije || []
-          };
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-        } else {
-          console.log('ℹ️ Profil nije pronađen, kreiram novi...');
-          // Kreiraj profil ako ne postoji
-          await fetch(`${API_URL}/api/profil`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: formData.email,
-              ime: userData.ime || t('profile.default_name'),
-              premium: false,
-              kviz_zavrsen: false,
-              vrsta: [],
-              izbjegava: [],
-              preferencije: []
-            })
-          });
-        }
-      } catch (profileError) {
-        console.warn('⚠️ Greška pri dohvatu profila:', profileError);
-        // Nastavi dalje čak i ako profil ne može dohvatiti
-      }
+      console.log('⏰ Session traje do:', new Date(expiresAt * 1000).toLocaleString());
+      console.log('✅ PERMANENTNA PRIJAVA - korisnik ostaje prijavljen');
 
       setSuccess(t('login.success'));
 
@@ -183,6 +222,7 @@ const Login = () => {
               <input
                 type="checkbox"
                 name="rememberMe"
+                defaultChecked={true} // ⬅️ UVJEK UPALJENO
                 className="w-4 h-4 accent-blue-500"
               />
               {t('login.remember_me')}

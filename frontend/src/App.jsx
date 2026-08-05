@@ -1,11 +1,10 @@
 // frontend/src/App.jsx
-import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient';
 import './i18n';
 
-// 🔥 DODAJ OVO - API_URL za dohvat profila
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // Komponente
@@ -33,8 +32,8 @@ import LanguageSwitcher from './components/LanguageSwitcher';
 
 function App() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   
-  // 🔥 DARK MODE - OVAKO JE RADILO!
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
@@ -42,9 +41,10 @@ function App() {
   
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
 
   // ============================================================
-  // 🌙 TAMNA TEMA - OVO JE ISPRAVNO, NE MIJENJAJ!
+  // 🌙 TAMNA TEMA
   // ============================================================
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
@@ -56,32 +56,18 @@ function App() {
   }, [darkMode]);
 
   // ============================================================
-  // 🔥 NOVA FUNKCIJA - DOHVATI PROFIL IZ BAZE
+  // 🔥 DOHVATI PROFIL IZ BAZE
   // ============================================================
-  const fetchUserProfile = async (email) => {
+  const fetchUserProfile = useCallback(async (email) => {
+    if (!email) return null;
+    
     try {
       console.log('📡 Dohvatam profil iz baze za:', email);
       const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
       const data = await response.json();
       
       if (data.success && data.data) {
-        console.log('✅ Profil dohvaćen iz baze:', data.data);
-        const userData = JSON.parse(localStorage.getItem('user'));
-        if (userData) {
-          const updatedUser = {
-            ...userData,
-            premium: data.data.premium || false,
-            kviz_zavrsen: data.data.kviz_zavrsen || false,
-            vrsta: data.data.vrsta || [],
-            izbjegava: data.data.izbjegava || [],
-            preferencije: data.data.preferencije || [],
-            vrijeme: data.data.vrijeme || '',
-            tezina: data.data.tezina || '',
-            kalorije: data.data.kalorije || ''
-          };
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-          return updatedUser;
-        }
+        console.log('✅ Profil dohvaćen:', data.data);
         return data.data;
       }
       return null;
@@ -89,33 +75,155 @@ function App() {
       console.error('❌ Greška pri dohvatu profila:', error);
       return null;
     }
-  };
+  }, []);
 
   // ============================================================
-  // 🔐 SUPABASE AUTH - PROVJERA KORISNIKA
+  // 🔐 PROVJERA KORISNIKA - PERMANENTNA PRIJAVA (30 DANA)
+  // ============================================================
+  const checkAndSetUser = useCallback(async (userData) => {
+    if (!userData?.email) {
+      setUser(null);
+      return null;
+    }
+
+    // 🔥 PROVJERI DA LI JE TOKEN ISTEKAO (30 DANA)
+    const tokenExpiry = userData.expires_at || userData.exp;
+    if (tokenExpiry) {
+      const now = Math.floor(Date.now() / 1000);
+      if (tokenExpiry < now) {
+        console.log('⏰ Token istekao nakon 30 dana, brišem sesiju...');
+        localStorage.removeItem('user');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('remember_me');
+        setUser(null);
+        return null;
+      }
+    }
+
+    // 🔥 DOHVATI PROFIL IZ BAZE
+    const profile = await fetchUserProfile(userData.email);
+    
+    // 🔥 ZADRŽI POSTOJEĆI expires_at (NE MIJENJAJ GA)
+    const updatedUser = {
+      ...userData,
+      premium: profile?.premium || false,
+      kviz_zavrsen: profile?.kviz_zavrsen || false,
+      vrsta: profile?.vrsta || [],
+      izbjegava: profile?.izbjegava || [],
+      preferencije: profile?.preferencije || [],
+      vrijeme: profile?.vrijeme || '',
+      tezina: profile?.tezina || '',
+      kalorije: profile?.kalorije || '',
+      // ⬅️ ZADRŽI ORIGINALNI expires_at
+    };
+    
+    // 🔥 SPREMI U LOCALSTORAGE
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    if (updatedUser.email) {
+      localStorage.setItem('userEmail', updatedUser.email);
+    }
+    
+    setUser(updatedUser);
+    return updatedUser;
+  }, [fetchUserProfile]);
+
+  // ============================================================
+  // 🔄 AUTO-REFRESH SESSIONA - SVAKIH 30 MINUTA
+  // ============================================================
+  const refreshSession = useCallback(async () => {
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) return;
+    
+    try {
+      const parsed = JSON.parse(storedUser);
+      if (!parsed?.email) return;
+      
+      console.log('🔄 Auto-refresh sessiona...');
+      
+      // 🔥 DOHVATI SVJEŽI PROFIL IZ BAZE
+      const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(parsed.email)}`);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        // 🔥 OSVJEŽI USER PODATKE (ZADRŽI expires_at)
+        const updatedUser = {
+          ...parsed,
+          ime: data.data.ime || parsed.ime,
+          premium: data.data.premium || false,
+          kviz_zavrsen: data.data.kviz_zavrsen || false,
+          vrsta: data.data.vrsta || [],
+          izbjegava: data.data.izbjegava || [],
+          preferencije: data.data.preferencije || [],
+          vrijeme: data.data.vrijeme || '',
+          tezina: data.data.tezina || '',
+          kalorije: data.data.kalorije || '',
+          // 🔥 PRODUŽI EXPIRATION (JOŠ 30 DANA)
+          expires_at: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30),
+          last_refresh: Math.floor(Date.now() / 1000)
+        };
+        
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setUser(updatedUser);
+        console.log('✅ Session osvježen, traje do:', new Date(updatedUser.expires_at * 1000).toLocaleString());
+      }
+    } catch (error) {
+      console.error('❌ Greška pri refresh sessiona:', error);
+    }
+  }, []);
+
+  // ============================================================
+  // 🔐 SUPABASE AUTH - GLAVNA LOGIKA
   // ============================================================
   useEffect(() => {
-    const checkUser = async () => {
+    let isMounted = true;
+    let authInterval = null;
+    let refreshInterval = null;
+
+    const initAuth = async () => {
       try {
         setLoading(true);
-        console.log('🔍 Provjera korisnika...');
+        console.log('🔍 Inicijalizacija auth-a...');
 
-        const userData = JSON.parse(localStorage.getItem('user'));
-        if (userData?.email) {
-          console.log('✅ Korisnik iz localStorage:', userData.email);
-          setUser(userData);
-          
-          // 🔥 DODATO - OSVJEŽI PROFIL IZ BAZE (ZA PREMIUM STATUS)
-          const updatedUser = await fetchUserProfile(userData.email);
-          if (updatedUser) {
-            console.log('✅ Profil osvježen iz baze, premium:', updatedUser.premium);
-            setUser(updatedUser);
+        // 1. PROVJERI LOCALSTORAGE
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          try {
+            const parsed = JSON.parse(storedUser);
+            if (parsed?.email) {
+              console.log('📦 Korisnik iz localStorage:', parsed.email);
+              
+              // 🔥 PROVJERI EXPIRATION
+              const expiry = parsed.expires_at || parsed.exp;
+              if (expiry) {
+                const now = Math.floor(Date.now() / 1000);
+                if (expiry < now) {
+                  console.log('⏰ Session istekao, brišem...');
+                  localStorage.removeItem('user');
+                  localStorage.removeItem('userEmail');
+                  localStorage.removeItem('remember_me');
+                  if (isMounted) {
+                    setUser(null);
+                    setAuthChecked(true);
+                    setLoading(false);
+                  }
+                  return;
+                }
+              }
+              
+              await checkAndSetUser(parsed);
+              if (isMounted) {
+                setAuthChecked(true);
+                setLoading(false);
+              }
+              return;
+            }
+          } catch (e) {
+            console.error('❌ Greška pri parsiranju usera:', e);
+            localStorage.removeItem('user');
           }
-          
-          setLoading(false);
-          return;
         }
 
+        // 2. PROVJERI SUPABASE SESSION
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -125,128 +233,183 @@ function App() {
         if (session?.user) {
           console.log('✅ Korisnik prijavljen preko Supabase:', session.user.email);
           
+          // 🔥 30 DANA EXPIRATION
+          const expiresAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
+          
           const userObj = {
             id: session.user.id,
             email: session.user.email,
             ime: session.user.user_metadata?.ime || '',
-            premium: false
+            premium: false,
+            expires_at: expiresAt,
+            remember_me: true
           };
           
-          setUser(userObj);
-          localStorage.setItem('user', JSON.stringify(userObj));
-          localStorage.setItem('userEmail', session.user.email);
-          localStorage.setItem('userName', session.user.user_metadata?.ime || '');
-          
-          // 🔥 DODATO - DOHVATI PROFIL IZ BAZE
-          const updatedUser = await fetchUserProfile(session.user.email);
-          if (updatedUser) {
-            console.log('✅ Profil dohvaćen iz baze, premium:', updatedUser.premium);
-            setUser(updatedUser);
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-          }
-          
+          await checkAndSetUser(userObj);
         } else {
           console.log('ℹ️ Nema prijavljenog korisnika');
-          setUser(null);
-          localStorage.removeItem('user');
-          localStorage.removeItem('userEmail');
-          localStorage.removeItem('userName');
+          if (isMounted) {
+            setUser(null);
+            localStorage.removeItem('user');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('remember_me');
+          }
         }
       } catch (error) {
-        console.error('❌ Greška pri provjeri korisnika:', error);
-        setUser(null);
+        console.error('❌ Greška pri auth inicijalizaciji:', error);
+        if (isMounted) {
+          setUser(null);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setAuthChecked(true);
+          setLoading(false);
+        }
       }
     };
 
-    checkUser();
+    // 🔥 POKRENI AUTH
+    initAuth();
 
+    // 🔥 PROVJERAVAJ SESSION SVAKIH 5 MINUTA (SAMO EXPIRATION)
+    authInterval = setInterval(async () => {
+      if (!isMounted) return;
+      
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          if (parsed?.email) {
+            // Provjeri expiration
+            const expiry = parsed.expires_at || parsed.exp;
+            if (expiry) {
+              const now = Math.floor(Date.now() / 1000);
+              if (expiry < now) {
+                console.log('⏰ Session istekao, brišem...');
+                localStorage.removeItem('user');
+                localStorage.removeItem('userEmail');
+                localStorage.removeItem('remember_me');
+                if (isMounted) {
+                  setUser(null);
+                  navigate('/login');
+                }
+                return;
+              }
+            }
+          }
+        } catch (e) {
+          console.error('❌ Greška pri provjeri sessiona:', e);
+        }
+      }
+    }, 5 * 60 * 1000); // 5 minuta
+
+    // 🔥 AUTO-REFRESH SESSIONA SVAKIH 30 MINUTA
+    refreshInterval = setInterval(() => {
+      if (isMounted) {
+        refreshSession();
+      }
+    }, 30 * 60 * 1000); // 30 minuta
+
+    // 🔥 REFRESH KAD SE TAB VRATI U FOKUS
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && isMounted) {
+        console.log('👁️ Tab u fokusu, refresh sessiona...');
+        refreshSession();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    // ============================================================
+    // 🔥 SUPABASE AUTH LISTENER
+    // ============================================================
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 Auth event:', event);
       
+      if (!isMounted) return;
+
       if (event === 'SIGNED_IN' && session?.user) {
         console.log('✅ Korisnik se prijavio:', session.user.email);
+        
+        // 🔥 30 DANA EXPIRATION
+        const expiresAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
         
         const userObj = {
           id: session.user.id,
           email: session.user.email,
           ime: session.user.user_metadata?.ime || '',
-          premium: false
+          premium: false,
+          expires_at: expiresAt,
+          remember_me: true
         };
         
-        setUser(userObj);
-        localStorage.setItem('user', JSON.stringify(userObj));
-        localStorage.setItem('userEmail', session.user.email);
-        localStorage.setItem('userName', session.user.user_metadata?.ime || '');
-        
-        // 🔥 DODATO - DOHVATI PROFIL IZ BAZE
-        const updatedUser = await fetchUserProfile(session.user.email);
-        if (updatedUser) {
-          console.log('✅ Profil dohvaćen iz baze, premium:', updatedUser.premium);
-          setUser(updatedUser);
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-        }
+        await checkAndSetUser(userObj);
+        navigate('/');
         
       } else if (event === 'SIGNED_OUT') {
         console.log('🚪 Korisnik se odjavio');
-        setUser(null);
-        localStorage.removeItem('user');
-        localStorage.removeItem('userEmail');
-        localStorage.removeItem('userName');
-        localStorage.removeItem('supabase_session');
+        if (isMounted) {
+          setUser(null);
+          localStorage.removeItem('user');
+          localStorage.removeItem('userEmail');
+          localStorage.removeItem('remember_me');
+          navigate('/login');
+        }
+        
       } else if (event === 'USER_UPDATED') {
         console.log('📝 Korisnik ažuriran');
         if (session?.user) {
+          const expiresAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
           const userObj = {
             id: session.user.id,
             email: session.user.email,
             ime: session.user.user_metadata?.ime || '',
-            premium: false
+            premium: false,
+            expires_at: expiresAt,
+            remember_me: true
           };
-          setUser(userObj);
-          localStorage.setItem('user', JSON.stringify(userObj));
-          localStorage.setItem('userEmail', session.user.email);
-          localStorage.setItem('userName', session.user.user_metadata?.ime || '');
-          
-          // 🔥 DODATO - DOHVATI PROFIL IZ BAZE
-          const updatedUser = await fetchUserProfile(session.user.email);
-          if (updatedUser) {
-            console.log('✅ Profil dohvaćen iz baze, premium:', updatedUser.premium);
-            setUser(updatedUser);
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-          }
+          await checkAndSetUser(userObj);
         }
       }
     });
 
+    // ============================================================
+    // 🧹 CLEANUP
+    // ============================================================
     return () => {
-      console.log('🧹 Čišćenje auth subscription-a');
+      isMounted = false;
+      if (authInterval) {
+        clearInterval(authInterval);
+      }
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+      }
+      document.removeEventListener('visibilitychange', handleVisibility);
       subscription.unsubscribe();
+      console.log('🧹 Čišćenje auth listenera');
     };
-  }, []);
+  }, [checkAndSetUser, navigate, refreshSession]);
 
   // ============================================================
   // 🔄 OSVJEŽAVANJE KORISNIKA (POZIVI IZ DRUGIH DIJELOVA)
   // ============================================================
-  const refreshUser = async () => {
-    try {
-      const userData = JSON.parse(localStorage.getItem('user'));
-      if (userData?.email) {
-        const updatedUser = await fetchUserProfile(userData.email);
-        if (updatedUser) {
-          setUser(updatedUser);
+  const refreshUser = useCallback(async () => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        if (parsed?.email) {
+          await checkAndSetUser(parsed);
         }
+      } catch (error) {
+        console.error('❌ Greška pri osvježavanju:', error);
       }
-    } catch (error) {
-      console.error('❌ Greška pri osvježavanju korisnika:', error);
     }
-  };
+  }, [checkAndSetUser]);
 
   // ============================================================
   // 🖥️ RENDER
   // ============================================================
-  if (loading) {
+  if (loading || !authChecked) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -257,9 +420,9 @@ function App() {
     );
   }
 
-  const currentUser = user || JSON.parse(localStorage.getItem('user'));
+  // 🔥 KORISTI user IZ STATE-A
+  const currentUser = user;
 
-  // 🔥 VRATI ORIGINALNI RENDER - OVAKO JE RADILO!
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* HEADER */}
