@@ -33,12 +33,14 @@ const loadTranslations = async () => {
       .init({
         resources,
         fallbackLng: 'hr',
+        // 🔥 SAMO OVO DODAJ - lng: 'hr' (PRVO HRVATSKI!)
+        lng: 'hr',
         interpolation: {
           escapeValue: false,
         },
       });
 
-    console.log('✅ i18n inicijaliziran!');
+    console.log('✅ i18n inicijaliziran sa HR kao osnovnim jezikom!');
     return i18n;
   } catch (error) {
     console.error('❌ Greška pri učitavanju prevoda:', error);
@@ -55,6 +57,7 @@ const loadTranslations = async () => {
       .init({
         resources,
         fallbackLng: 'hr',
+        lng: 'hr',
         interpolation: {
           escapeValue: false,
         },
