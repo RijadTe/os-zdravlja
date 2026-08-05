@@ -1,4 +1,10 @@
 {
+  "scanreceipt": {
+    "select_file": "Select receipt image",
+    "scanning": "Scanning...",
+    "scan": "Scan",
+    "info": "Take a photo of your grocery receipt and we'll automatically add items to your fridge."
+  },
   "app": {
     "title": "OS Health – Operating system for your health",
     "subtitle": "Discover recipes tailored to your needs, diets, and taste."

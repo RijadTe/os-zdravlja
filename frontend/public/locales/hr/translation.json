@@ -1,4 +1,10 @@
 {
+  "scanreceipt": {
+    "select_file": "Odaberi sliku računa",
+    "scanning": "Skeniram...",
+    "scan": "Skeniraj",
+    "info": "Uslikajte račun iz trgovine i automatski ćemo dodati namirnice u frižider."
+  },
   "app": {
     "title": "OS Zdravlja – Operativni sistem za tvoje zdravlje",
     "subtitle": "Otkrivajte recepte prilagođene vašim potrebama, dijetama i ukusu."

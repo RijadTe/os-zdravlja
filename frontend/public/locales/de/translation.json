@@ -1,4 +1,10 @@
 {
+  "scanreceipt": {
+    "select_file": "Kassenbon auswählen",
+    "scanning": "Scanne...",
+    "scan": "Scannen",
+    "info": "Fotografieren Sie Ihren Kassenbon und wir fügen automatisch Artikel zu Ihrem Kühlschrank hinzu."
+  },
   "app": {
     "title": "OS Gesundheit – Betriebssystem für Ihre Gesundheit",
     "subtitle": "Entdecken Sie Rezepte, die auf Ihre Bedürfnisse, Diäten und Ihren Geschmack zugeschnitten sind."

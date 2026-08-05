@@ -6,12 +6,21 @@ import { useTranslation } from 'react-i18next';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const ScanReceipt = ({ onNamirniceDodane }) => {
-  const { t } = useTranslation();
+  const { t, ready } = useTranslation(); // ← DODAJ ready!
   const [slika, setSlika] = useState(null);
   const [loading, setLoading] = useState(false);
   const [poruka, setPoruka] = useState('');
   const [prepoznate, setPrepoznate] = useState([]);
   const fileInputRef = useRef(null);
+
+  // 🔥 AKO PREVODI NISU SPREMNI - NE RENDERIRAJ (ili prikaži loading)
+  if (!ready) {
+    return (
+      <div className="w-full text-center py-2">
+        <span className="text-gray-400">⏳ Učitavanje...</span>
+      </div>
+    );
+  }
 
   const handleScan = async () => {
     if (!slika) {
@@ -53,19 +62,22 @@ const ScanReceipt = ({ onNamirniceDodane }) => {
     }
   };
 
+  // ============================================================
+  // RESPOZIVNI RENDER - SA FALLBACK TEKSTOVIMA (bez t() ako nisu spremni)
+  // ============================================================
   return (
     <div className="w-full">
-      {/* RESPONZIVNI DIO - POPRAVLJEN! */}
+      {/* RESPOZIVNI DIO - radi na svim uređajima */}
       <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
         
-        {/* File input - responzivan, bez "Nije izabran nijedan fajl" */}
+        {/* File input - responzivan */}
         <div className="w-full sm:flex-1">
           <label 
             className="flex flex-row items-center justify-center w-full px-3 py-2 sm:py-3 bg-white dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors gap-2"
           >
             <span className="text-xl sm:text-2xl">📷</span>
-            <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 text-center truncate max-w-[180px] sm:max-w-full">
-              {slika ? slika.name : t('scanreceipt.select_file', { defaultValue: 'Odaberi sliku računa' })}
+            <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 text-center truncate max-w-[150px] sm:max-w-full">
+              {slika ? slika.name : '📎 Odaberi sliku računa'}
             </span>
             <input
               ref={fileInputRef}
@@ -86,12 +98,10 @@ const ScanReceipt = ({ onNamirniceDodane }) => {
           {loading ? (
             <>
               <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
-              ⏳ {t('scanreceipt.scanning', { defaultValue: 'Skeniram...' })}
+              ⏳ Skeniram...
             </>
           ) : (
-            <>
-              📸 {t('scanreceipt.scan', { defaultValue: 'Skeniraj' })}
-            </>
+            '📸 Skeniraj'
           )}
         </button>
       </div>
@@ -123,7 +133,7 @@ const ScanReceipt = ({ onNamirniceDodane }) => {
 
       {/* Info tekst */}
       <p className="mt-2 text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 text-center">
-        {t('scanreceipt.info', { defaultValue: 'Uslikajte račun iz trgovine i automatski ćemo dodati namirnice u frižider.' })}
+        📸 Uslikajte račun iz trgovine i automatski ćemo dodati namirnice u frižider.
       </p>
     </div>
   );
