@@ -346,7 +346,7 @@
     }
   },
   "foodplanner": {
-    "title": "📊 Ernährungstagebuch",
+    "title": "Ernährungstagebuch",
     "premium": {
       "title": "Ernährungstagebuch",
       "description": "Dieser Bereich ist nur für Premium-Nutzer verfügbar.",
@@ -364,7 +364,7 @@
       "protein": "Protein",
       "carbs": "Kohlenhydrate",
       "fat": "Fett",
-      "add_meal": "➕ Mahlzeit hinzufügen",
+      "add_meal": "Mahlzeit hinzufügen",
       "meal_name": "Name des Gerichts...",
       "breakfast": "Frühstück",
       "lunch": "Mittagessen",

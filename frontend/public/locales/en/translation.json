@@ -346,7 +346,7 @@
     }
   },
   "foodplanner": {
-    "title": "📊 Food Diary",
+    "title": "Food Diary",
     "premium": {
       "title": "Food Diary",
       "description": "This section is only available for Premium users.",
@@ -364,7 +364,7 @@
       "protein": "Protein",
       "carbs": "Carbs",
       "fat": "Fat",
-      "add_meal": "➕ Add meal",
+      "add_meal": "Add meal",
       "meal_name": "Meal name...",
       "breakfast": "Breakfast",
       "lunch": "Lunch",

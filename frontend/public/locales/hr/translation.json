@@ -346,7 +346,7 @@
     }
   },
   "foodplanner": {
-    "title": "📊 Dnevnik ishrane",
+    "title": "Dnevnik ishrane",
     "premium": {
       "title": "Dnevnik ishrane",
       "description": "Ova sekcija je dostupna samo za Premium korisnike.",
@@ -364,7 +364,7 @@
       "protein": "Proteini",
       "carbs": "Uglj.",
       "fat": "Masti",
-      "add_meal": "➕ Dodaj obrok",
+      "add_meal": "Dodaj obrok",
       "meal_name": "Naziv jela...",
       "breakfast": "Doručak",
       "lunch": "Ručak",
