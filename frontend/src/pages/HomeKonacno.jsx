@@ -423,47 +423,47 @@ const HomeKonacno = () => {
   // 7. KONFIGURACIJA
   // ============================================================
   const categories = [
-    { id: 'dijetalni', icon: '🥗', label: t('home.categories.diet'), link: '/recipes?vrsta=Dijetalni%20recepti' },
-    { id: 'deserti', icon: '🍰', label: t('home.categories.desserts'), link: '/recipes?vrsta=Deserti' },
-    { id: 'slana', icon: '🍕', label: t('home.categories.savory'), link: '/recipes?vrsta=Slano' },
-    { id: 'kviz', icon: '🧠', label: t('home.categories.quiz'), link: '/quiz' },
-    { id: 'ai', icon: '🤖', label: t('home.categories.ai_chef'), link: '/ai-chef' },
-    { id: 'napitki', icon: '🍹', label: t('home.categories.drinks'), link: '/recipes?vrsta=Napitki' },
+    { id: 'dijetalni', icon: '🥗', label: t('home.categories.diet', { defaultValue: 'Dijetalno' }), link: '/recipes?vrsta=Dijetalni%20recepti' },
+    { id: 'deserti', icon: '🍰', label: t('home.categories.desserts', { defaultValue: 'Deserti' }), link: '/recipes?vrsta=Deserti' },
+    { id: 'slana', icon: '🍕', label: t('home.categories.savory', { defaultValue: 'Slana jela' }), link: '/recipes?vrsta=Slano' },
+    { id: 'kviz', icon: '🧠', label: t('home.categories.quiz', { defaultValue: 'Kviz' }), link: '/quiz' },
+    { id: 'ai', icon: '🤖', label: t('home.categories.ai_chef', { defaultValue: 'AI Chef' }), link: '/ai-chef' },
+    { id: 'napitki', icon: '🍹', label: t('home.categories.drinks', { defaultValue: 'Napitki' }), link: '/recipes?vrsta=Napitki' },
   ];
 
   const healthyChefCategories = [
-    { id: 'hormonski', icon: '🩸', label: t('home.healthychef.hormonal'), link: '/healthy-chef/hormonski' },
-    { id: 'tiroida', icon: '🦋', label: t('home.healthychef.thyroid'), link: '/healthy-chef/tiroida' },
-    { id: 'anemija', icon: '🩸', label: t('home.healthychef.anemia'), link: '/healthy-chef/anemija' },
-    { id: 'kosti', icon: '🦴', label: t('home.healthychef.bones'), link: '/healthy-chef/kosti' },
-    { id: 'menopauza', icon: '👵', label: t('home.healthychef.menopause'), link: '/healthy-chef/menopauza' },
-    { id: 'pcos', icon: '💉', label: t('home.healthychef.pcos'), link: '/healthy-chef/pcos' },
+    { id: 'hormonski', icon: '🩸', label: t('home.healthychef.hormonal', { defaultValue: 'Hormonski' }), link: '/healthy-chef/hormonski' },
+    { id: 'tiroida', icon: '🦋', label: t('home.healthychef.thyroid', { defaultValue: 'Tiroida' }), link: '/healthy-chef/tiroida' },
+    { id: 'anemija', icon: '🩸', label: t('home.healthychef.anemia', { defaultValue: 'Anemija' }), link: '/healthy-chef/anemija' },
+    { id: 'kosti', icon: '🦴', label: t('home.healthychef.bones', { defaultValue: 'Kosti' }), link: '/healthy-chef/kosti' },
+    { id: 'menopauza', icon: '👵', label: t('home.healthychef.menopause', { defaultValue: 'Menopauza' }), link: '/healthy-chef/menopauza' },
+    { id: 'pcos', icon: '💉', label: t('home.healthychef.pcos', { defaultValue: 'PCOS' }), link: '/healthy-chef/pcos' },
   ];
 
   const foodPlannerFeatures = [
-    { icon: '😊', label: t('home.foodplanner.emoji'), desc: t('home.foodplanner.emoji_desc') },
-    { icon: '🤖', label: t('home.foodplanner.ai'), desc: t('home.foodplanner.ai_desc') },
-    { icon: '📈', label: t('home.foodplanner.chart'), desc: t('home.foodplanner.chart_desc') },
-    { icon: '⌚', label: t('home.foodplanner.watch'), desc: t('home.foodplanner.watch_desc') },
-    { icon: '📄', label: t('home.foodplanner.pdf'), desc: t('home.foodplanner.pdf_desc') },
-    { icon: '📅', label: t('home.foodplanner.plan'), desc: t('home.foodplanner.plan_desc') },
+    { icon: '😊', label: t('home.foodplanner.emoji', { defaultValue: 'Emocionalni unos' }), desc: t('home.foodplanner.emoji_desc', { defaultValue: 'Biraj emoji prije/poslije' }) },
+    { icon: '🤖', label: t('home.foodplanner.ai', { defaultValue: 'AI preporuke' }), desc: t('home.foodplanner.ai_desc', { defaultValue: 'Na osnovu raspoloženja' }) },
+    { icon: '📈', label: t('home.foodplanner.chart', { defaultValue: 'Grafikon' }), desc: t('home.foodplanner.chart_desc', { defaultValue: 'Vizuelni prikaz kroz sedmicu' }) },
+    { icon: '⌚', label: t('home.foodplanner.watch', { defaultValue: 'Smartwatch' }), desc: t('home.foodplanner.watch_desc', { defaultValue: 'Apple Health, Google Fit' }) },
+    { icon: '📄', label: t('home.foodplanner.pdf', { defaultValue: 'PDF izvještaj' }), desc: t('home.foodplanner.pdf_desc', { defaultValue: 'Sedmični/mjesečni' }) },
+    { icon: '📅', label: t('home.foodplanner.plan', { defaultValue: 'Plan obroka' }), desc: t('home.foodplanner.plan_desc', { defaultValue: 'AI plan po raspoloženju' }) },
   ];
 
   const vrstaOptions = [
-    { value: 'Slano', label: '🍕 ' + t('home.filters.savory') },
-    { value: 'Deserti', label: '🍰 ' + t('home.filters.desserts') },
-    { value: 'Dijetalni recepti', label: '🥗 ' + t('home.filters.diet') },
-    { value: 'Napitki', label: '🍹 ' + t('home.filters.drinks') }
+    { value: 'Slano', label: '🍕 ' + t('home.filters.savory', { defaultValue: 'Slano' }) },
+    { value: 'Deserti', label: '🍰 ' + t('home.filters.desserts', { defaultValue: 'Deserti' }) },
+    { value: 'Dijetalni recepti', label: '🥗 ' + t('home.filters.diet', { defaultValue: 'Dijetalno' }) },
+    { value: 'Napitki', label: '🍹 ' + t('home.filters.drinks', { defaultValue: 'Napitki' }) }
   ];
   const vrijemeOptions = [
-    { value: 'Kratko (15-30 min)', label: '⚡ ' + t('home.filters.short') },
-    { value: 'Srednje (30-45 min)', label: '⏳ ' + t('home.filters.medium') },
-    { value: 'Duže (45-60+ min)', label: '🐢 ' + t('home.filters.long') }
+    { value: 'Kratko (15-30 min)', label: '⚡ ' + t('home.filters.short', { defaultValue: 'Kratko' }) },
+    { value: 'Srednje (30-45 min)', label: '⏳ ' + t('home.filters.medium', { defaultValue: 'Srednje' }) },
+    { value: 'Duže (45-60+ min)', label: '🐢 ' + t('home.filters.long', { defaultValue: 'Duže' }) }
   ];
   const tezinaOptions = [
-    { value: 'Početnik', label: '👶 ' + t('home.filters.beginner') },
-    { value: 'Srednji', label: '👨‍🍳 ' + t('home.filters.intermediate') },
-    { value: 'Profesionalac', label: '👨‍🍳⭐ ' + t('home.filters.professional') }
+    { value: 'Početnik', label: '👶 ' + t('home.filters.beginner', { defaultValue: 'Početnik' }) },
+    { value: 'Srednji', label: '👨‍🍳 ' + t('home.filters.intermediate', { defaultValue: 'Srednji' }) },
+    { value: 'Profesionalac', label: '👨‍🍳⭐ ' + t('home.filters.professional', { defaultValue: 'Profesionalac' }) }
   ];
 
   const isPremium = user?.premium || false;
@@ -473,23 +473,23 @@ const HomeKonacno = () => {
   // ============================================================
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* ===== HERO SEKCIJA ===== */}
+      {/* ===== HERO SEKCIJA - SA FALLBACK PREVODIMA ===== */}
       <section className="text-center py-12 md:py-20 px-4 bg-gradient-to-b from-blue-50 to-white dark:from-gray-800 dark:to-gray-900">
         <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold text-gray-800 dark:text-white mb-2 leading-tight">
-          {t('home.hero.title')}
+          {t('home.hero.title', { defaultValue: 'OS Zdravlja' })}
         </h1>
         <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-500 dark:text-gray-400 mb-4">
-          {t('home.hero.subtitle')}
+          {t('home.hero.subtitle', { defaultValue: 'Operativni sistem za tvoje zdravlje' })}
         </p>
         <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-6">
-          {t('home.hero.description')}
+          {t('home.hero.description', { defaultValue: 'Otkrivajte recepte prilagođene vašim potrebama, dijetama i ukusu.' })}
         </p>
         <div className="flex flex-row justify-center gap-3 sm:gap-4 md:gap-6 flex-wrap">
           <Link to="/quiz" className="bg-blue-600 hover:bg-blue-700 text-white px-5 sm:px-8 md:px-12 py-3 sm:py-4 rounded-2xl text-sm sm:text-base md:text-xl font-bold transition shadow-lg hover:shadow-xl flex items-center gap-2">
-            🧠 {t('home.hero.start_quiz')}
+            🧠 {t('home.hero.start_quiz', { defaultValue: 'Započni kviz' })}
           </Link>
           <Link to="/ai-chef" className="bg-blue-600 hover:bg-blue-700 text-white px-5 sm:px-8 md:px-12 py-3 sm:py-4 rounded-2xl text-sm sm:text-base md:text-xl font-bold transition shadow-lg hover:shadow-xl flex items-center gap-2">
-            🤖 {t('home.hero.ai_chef')}
+            🤖 {t('home.hero.ai_chef', { defaultValue: 'AI Chef pretraga' })}
           </Link>
         </div>
       </section>
@@ -500,16 +500,16 @@ const HomeKonacno = () => {
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-2xl p-6 text-center">
             <p className="text-2xl mb-2">🧠</p>
             <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
-              {t('home.no_profile.title')}
+              {t('home.no_profile.title', { defaultValue: 'Personalizujte svoje iskustvo!' })}
             </h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              {t('home.no_profile.description')}
+              {t('home.no_profile.description', { defaultValue: 'Popunite kratki kviz i mi ćemo vam prikazati recepte koji su savršeni za vas.' })}
             </p>
             <Link 
               to="/quiz" 
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-semibold transition inline-block"
             >
-              🧠 {t('home.no_profile.button')}
+              🧠 {t('home.no_profile.button', { defaultValue: 'Započni kviz' })}
             </Link>
           </div>
         </section>
@@ -520,20 +520,20 @@ const HomeKonacno = () => {
         <section className="py-6 px-4 max-w-7xl mx-auto">
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-6 shadow-lg border border-blue-200 dark:border-blue-800">
             <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
-              👤 {t('home.profile.title')}
+              👤 {t('home.profile.title', { defaultValue: 'Tvoj profil' })}
               {profil.kviz_zavrsen && (
                 <span className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-3 py-1 rounded-full text-xs font-semibold">
-                  ✅ {t('home.profile.completed')}
+                  ✅ {t('home.profile.completed', { defaultValue: 'Kviz završen' })}
                 </span>
               )}
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
               <div className="bg-white/50 dark:bg-gray-800/50 p-3 rounded-xl">
-                <p className="text-gray-500 dark:text-gray-400 text-xs">{t('home.profile.name')}</p>
-                <p className="font-semibold text-gray-800 dark:text-white">{profil.ime || t('home.profile.not_set')}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-xs">{t('home.profile.name', { defaultValue: 'Ime' })}</p>
+                <p className="font-semibold text-gray-800 dark:text-white">{profil.ime || t('home.profile.not_set', { defaultValue: 'Nije uneseno' })}</p>
               </div>
               <div className="bg-white/50 dark:bg-gray-800/50 p-3 rounded-xl">
-                <p className="text-gray-500 dark:text-gray-400 text-xs">🍽️ {t('home.profile.eat')}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-xs">🍽️ {t('home.profile.eat', { defaultValue: 'Želiš jesti' })}</p>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {profil.vrsta && profil.vrsta.length > 0 ? (
                     profil.vrsta.map(item => (
@@ -542,12 +542,12 @@ const HomeKonacno = () => {
                       </span>
                     ))
                   ) : (
-                    <span className="text-gray-400 text-xs">{t('home.profile.not_selected')}</span>
+                    <span className="text-gray-400 text-xs">{t('home.profile.not_selected', { defaultValue: 'Nije odabrano' })}</span>
                   )}
                 </div>
               </div>
               <div className="bg-white/50 dark:bg-gray-800/50 p-3 rounded-xl">
-                <p className="text-gray-500 dark:text-gray-400 text-xs">💪 {t('home.profile.prefers')}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-xs">💪 {t('home.profile.prefers', { defaultValue: 'Preferiraš' })}</p>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {profil.preferencije && profil.preferencije.length > 0 ? (
                     profil.preferencije.map(item => (
@@ -556,12 +556,12 @@ const HomeKonacno = () => {
                       </span>
                     ))
                   ) : (
-                    <span className="text-gray-400 text-xs">{t('home.profile.not_selected')}</span>
+                    <span className="text-gray-400 text-xs">{t('home.profile.not_selected', { defaultValue: 'Nije odabrano' })}</span>
                   )}
                 </div>
               </div>
               <div className="bg-white/50 dark:bg-gray-800/50 p-3 rounded-xl">
-                <p className="text-gray-500 dark:text-gray-400 text-xs">🚫 {t('home.profile.avoids')}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-xs">🚫 {t('home.profile.avoids', { defaultValue: 'Izbjegavaš' })}</p>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {profil.izbjegava && profil.izbjegava.length > 0 ? (
                     profil.izbjegava.map(item => (
@@ -570,15 +570,15 @@ const HomeKonacno = () => {
                       </span>
                     ))
                   ) : (
-                    <span className="text-gray-400 text-xs">{t('home.profile.not_selected')}</span>
+                    <span className="text-gray-400 text-xs">{t('home.profile.not_selected', { defaultValue: 'Nije odabrano' })}</span>
                   )}
                 </div>
               </div>
             </div>
             <div className="flex flex-wrap gap-3 mt-3 text-xs text-gray-500 dark:text-gray-400">
-              <span>⏱️ {profil.vrijeme || t('home.profile.not_set')}</span>
-              <span>👨‍🍳 {profil.tezina || t('home.profile.not_set')}</span>
-              <span>🔥 {profil.kalorije || t('home.profile.not_set')}</span>
+              <span>⏱️ {profil.vrijeme || t('home.profile.not_set', { defaultValue: 'Nije uneseno' })}</span>
+              <span>👨‍🍳 {profil.tezina || t('home.profile.not_set', { defaultValue: 'Nije uneseno' })}</span>
+              <span>🔥 {profil.kalorije || t('home.profile.not_set', { defaultValue: 'Nije uneseno' })}</span>
             </div>
           </div>
         </section>
@@ -597,7 +597,7 @@ const HomeKonacno = () => {
       <section className="py-12 md:py-20 px-4 flex justify-center bg-white dark:bg-gray-900">
         <div className="w-full max-w-4xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 md:mb-12 text-gray-800 dark:text-white">
-            {t('home.categories.title')}
+            {t('home.categories.title', { defaultValue: 'IZABERI KATEGORIJU' })}
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6">
             {categories.map(cat => (
@@ -618,31 +618,31 @@ const HomeKonacno = () => {
       <section className="py-12 md:py-20 px-4 flex justify-center bg-gray-50 dark:bg-gray-800">
         <div className="w-full max-w-3xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-gray-800 dark:text-white flex items-center justify-center gap-2 flex-wrap">
-            🧘 {t('home.lifestyle.title')}
+            🧘 {t('home.lifestyle.title', { defaultValue: 'Lifestyle Coach' })}
             <span className="inline-block bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 px-3 py-1 rounded-full text-sm font-bold">⭐ PREMIUM</span>
           </h2>
           <div className="bg-white dark:bg-gray-700 rounded-2xl p-6 md:p-8 shadow-md">
             <div className="flex flex-wrap gap-4 justify-center">
               <select value={sleep} onChange={(e) => setSleep(e.target.value)} className="border rounded-lg px-4 py-2 text-base dark:bg-gray-600 dark:text-white dark:border-gray-500 flex-1 min-w-[120px] max-w-[180px]">
-                <option value="">😴 {t('home.lifestyle.sleep')}</option>
-                <option value="Odlično">😁 {t('home.lifestyle.excellent')}</option>
-                <option value="Dobro">🙂 {t('home.lifestyle.good')}</option>
-                <option value="Loše">😩 {t('home.lifestyle.bad')}</option>
+                <option value="">😴 {t('home.lifestyle.sleep', { defaultValue: 'San' })}</option>
+                <option value="Odlično">😁 {t('home.lifestyle.excellent', { defaultValue: 'Odlično' })}</option>
+                <option value="Dobro">🙂 {t('home.lifestyle.good', { defaultValue: 'Dobro' })}</option>
+                <option value="Loše">😩 {t('home.lifestyle.bad', { defaultValue: 'Loše' })}</option>
               </select>
               <select value={energy} onChange={(e) => setEnergy(e.target.value)} className="border rounded-lg px-4 py-2 text-base dark:bg-gray-600 dark:text-white dark:border-gray-500 flex-1 min-w-[120px] max-w-[180px]">
-                <option value="">⚡ {t('home.lifestyle.energy')}</option>
-                <option value="Pun/a">⚡ {t('home.lifestyle.full')}</option>
-                <option value="Osrednje">😐 {t('home.lifestyle.moderate')}</option>
-                <option value="Umoran/a">😴 {t('home.lifestyle.tired')}</option>
+                <option value="">⚡ {t('home.lifestyle.energy', { defaultValue: 'Energija' })}</option>
+                <option value="Pun/a">⚡ {t('home.lifestyle.full', { defaultValue: 'Pun/a' })}</option>
+                <option value="Osrednje">😐 {t('home.lifestyle.moderate', { defaultValue: 'Osrednje' })}</option>
+                <option value="Umoran/a">😴 {t('home.lifestyle.tired', { defaultValue: 'Umoran/a' })}</option>
               </select>
               <select value={stress} onChange={(e) => setStress(e.target.value)} className="border rounded-lg px-4 py-2 text-base dark:bg-gray-600 dark:text-white dark:border-gray-500 flex-1 min-w-[120px] max-w-[180px]">
-                <option value="">😊 {t('home.lifestyle.stress')}</option>
-                <option value="Nizak">😊 {t('home.lifestyle.low')}</option>
-                <option value="Srednji">😐 {t('home.lifestyle.moderate')}</option>
-                <option value="Visok">😰 {t('home.lifestyle.high')}</option>
+                <option value="">😊 {t('home.lifestyle.stress', { defaultValue: 'Stres' })}</option>
+                <option value="Nizak">😊 {t('home.lifestyle.low', { defaultValue: 'Nizak' })}</option>
+                <option value="Srednji">😐 {t('home.lifestyle.moderate', { defaultValue: 'Srednji' })}</option>
+                <option value="Visok">😰 {t('home.lifestyle.high', { defaultValue: 'Visok' })}</option>
               </select>
               <button onClick={getCoachAdvice} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full text-base font-semibold transition">
-                💡 {t('home.lifestyle.get_advice')}
+                💡 {t('home.lifestyle.get_advice', { defaultValue: 'Dobij preporuke' })}
               </button>
             </div>
             
@@ -654,7 +654,7 @@ const HomeKonacno = () => {
 
             {coachRecipes.length > 0 && (
               <div className="mt-4">
-                <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">🍽️ {t('home.lifestyle.recommended')}</h4>
+                <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">🍽️ {t('home.lifestyle.recommended', { defaultValue: 'Preporučeni recepti za vas:' })}</h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {coachRecipes.map(recipe => (
                     <Link
@@ -684,7 +684,7 @@ const HomeKonacno = () => {
       <section className="py-12 md:py-20 px-4 flex justify-center bg-white dark:bg-gray-900">
         <div className="w-full max-w-3xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-gray-800 dark:text-white flex items-center justify-center gap-2 flex-wrap">
-            🧊 {t('home.fridge.title')}
+            🧊 {t('home.fridge.title', { defaultValue: 'Moj frižider' })}
             <span className="inline-block bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 px-3 py-1 rounded-full text-sm font-bold">⭐ PREMIUM</span>
           </h2>
           <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 md:p-8 shadow-md">
@@ -693,7 +693,7 @@ const HomeKonacno = () => {
                 type="text" 
                 value={newItem} 
                 onChange={(e) => setNewItem(e.target.value)} 
-                placeholder={t('home.fridge.placeholder')} 
+                placeholder={t('home.fridge.placeholder', { defaultValue: 'Dodaj namirnicu...' })} 
                 className="flex-1 border rounded-lg px-4 py-3 text-base dark:bg-gray-700 dark:text-white dark:border-gray-600" 
                 onKeyPress={(e) => e.key === 'Enter' && addFridgeItem()} 
               />
@@ -701,7 +701,7 @@ const HomeKonacno = () => {
                 onClick={addFridgeItem} 
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition text-base w-full sm:w-auto"
               >
-                ➕ {t('home.fridge.add')}
+                ➕ {t('home.fridge.add', { defaultValue: 'Dodaj' })}
               </button>
             </div>
 
@@ -726,7 +726,7 @@ const HomeKonacno = () => {
             )}
 
             <button className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-white w-full sm:w-auto px-6 md:px-8 py-3 rounded-full text-sm md:text-base font-semibold transition">
-              🔍 {t('home.fridge.find_recipes')}
+              🔍 {t('home.fridge.find_recipes', { defaultValue: 'Pronađi recepte' })}
             </button>
           </div>
         </div>
@@ -748,20 +748,20 @@ const HomeKonacno = () => {
             {!user?.premium && (
               <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-10 flex flex-col items-center justify-center rounded-3xl">
                 <span className="text-6xl mb-4">🔒</span>
-                <h3 className="text-2xl md:text-4xl font-extrabold text-white mb-2 text-center px-4">{t('home.premium.title')}</h3>
-                <p className="text-white/80 text-center px-4 mb-4 max-w-md text-sm md:text-base">{t('home.premium.description')}</p>
-                <Link to="/premium" className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 md:px-10 py-3 md:py-4 rounded-full font-bold transition shadow-lg hover:shadow-xl text-sm md:text-lg">⭐ {t('home.premium.button')}</Link>
+                <h3 className="text-2xl md:text-4xl font-extrabold text-white mb-2 text-center px-4">{t('home.premium.title', { defaultValue: 'Premium sadržaj' })}</h3>
+                <p className="text-white/80 text-center px-4 mb-4 max-w-md text-sm md:text-base">{t('home.premium.description', { defaultValue: 'Otključajte Potpuni Food Planner i sve Premium funkcionalnosti!' })}</p>
+                <Link to="/premium" className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 md:px-10 py-3 md:py-4 rounded-full font-bold transition shadow-lg hover:shadow-xl text-sm md:text-lg">⭐ {t('home.premium.button', { defaultValue: 'Postani Premium' })}</Link>
               </div>
             )}
             <div className={`${!user?.premium ? 'opacity-50' : ''}`}>
               <div className="flex flex-wrap items-center justify-between mb-4">
                 <h2 className="text-2xl sm:text-3xl md:text-5xl font-extrabold text-gray-800 dark:text-white flex items-center gap-2 md:gap-3">
-                  📊 {t('home.foodplanner.title')}
-                  {user?.premium && <span className="inline-block bg-green-200 dark:bg-green-600 text-green-800 dark:text-green-200 px-2 md:px-4 py-0.5 md:py-1 rounded-full text-[10px] md:text-sm font-bold">✅ {t('home.premium.unlocked')}</span>}
+                  📊 {t('home.foodplanner.title', { defaultValue: 'Potpuni Food Planner' })}
+                  {user?.premium && <span className="inline-block bg-green-200 dark:bg-green-600 text-green-800 dark:text-green-200 px-2 md:px-4 py-0.5 md:py-1 rounded-full text-[10px] md:text-sm font-bold">✅ {t('home.premium.unlocked', { defaultValue: 'Otključano' })}</span>}
                   {!user?.premium && <span className="inline-block bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 px-2 md:px-4 py-0.5 md:py-1 rounded-full text-[10px] md:text-sm font-bold">⭐ PREMIUM</span>}
                 </h2>
               </div>
-              <p className="text-gray-600 dark:text-gray-300 text-sm md:text-xl mb-6">{t('home.foodplanner.description')}</p>
+              <p className="text-gray-600 dark:text-gray-300 text-sm md:text-xl mb-6">{t('home.foodplanner.description', { defaultValue: 'Pratite svoje obroke, analizirajte ishranu i planirajte sedmicu uz AI asistenta.' })}</p>
               
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-6">
                 {foodPlannerFeatures.map((feature, index) => (
@@ -777,20 +777,20 @@ const HomeKonacno = () => {
                 <div className="flex items-center gap-2 md:gap-4">
                   <span className="text-2xl md:text-4xl">🧘</span>
                   <div>
-                    <h4 className="font-bold text-sm md:text-xl text-gray-700 dark:text-gray-200">{t('home.foodplanner.connected')}</h4>
-                    <p className="text-[10px] md:text-sm text-gray-500 dark:text-gray-300">{t('home.foodplanner.connected_desc')}</p>
+                    <h4 className="font-bold text-sm md:text-xl text-gray-700 dark:text-gray-200">{t('home.foodplanner.connected', { defaultValue: 'Povezano sa Lifestyle Coach-om' })}</h4>
+                    <p className="text-[10px] md:text-sm text-gray-500 dark:text-gray-300">{t('home.foodplanner.connected_desc', { defaultValue: 'Preporuke se automatski dodaju u Dnevnik' })}</p>
                   </div>
                 </div>
               </div>
 
               <div className="text-center">
                 {user?.premium ? (
-                  <Link to="/food-planner" className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 md:px-14 py-3 md:py-5 rounded-full text-sm md:text-xl font-bold transition shadow-md hover:shadow-lg">📊 {t('home.foodplanner.open')}</Link>
+                  <Link to="/food-planner" className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 md:px-14 py-3 md:py-5 rounded-full text-sm md:text-xl font-bold transition shadow-md hover:shadow-lg">📊 {t('home.foodplanner.open', { defaultValue: 'Otvori Dnevnik ishrane' })}</Link>
                 ) : (
-                  <Link to="/premium" className="inline-block bg-yellow-500 hover:bg-yellow-600 text-white px-8 md:px-14 py-3 md:py-5 rounded-full text-sm md:text-xl font-bold transition shadow-md hover:shadow-lg">⭐ {t('home.premium.unlock_all')}</Link>
+                  <Link to="/premium" className="inline-block bg-yellow-500 hover:bg-yellow-600 text-white px-8 md:px-14 py-3 md:py-5 rounded-full text-sm md:text-xl font-bold transition shadow-md hover:shadow-lg">⭐ {t('home.premium.unlock_all', { defaultValue: 'Postani Premium i otključaj sve' })}</Link>
                 )}
                 <p className="text-[10px] md:text-sm text-gray-400 dark:text-gray-400 mt-3">
-                  {user?.premium ? '✅ ' + t('home.premium.all_unlocked') : '🔒 ' + t('home.premium.all_locked')}
+                  {user?.premium ? '✅ ' + t('home.premium.all_unlocked', { defaultValue: 'Sve funkcionalnosti su dostupne!' }) : '🔒 ' + t('home.premium.all_locked', { defaultValue: 'Sve funkcionalnosti su zaključane. Postanite Premium da ih koristite.' })}
                 </p>
               </div>
             </div>
@@ -812,10 +812,10 @@ const HomeKonacno = () => {
         <div className="w-full max-w-4xl">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-1 text-gray-800 dark:text-white flex items-center justify-center gap-3 flex-wrap">
-              🌿 {t('home.healthychef.title')}
+              🌿 {t('home.healthychef.title', { defaultValue: 'HealthyChef' })}
               <span className="inline-block bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 px-3 py-1 rounded-full text-sm font-bold">⭐ PREMIUM</span>
             </h2>
-            <p className="text-gray-600 dark:text-gray-300 text-base md:text-xl mb-6">{t('home.healthychef.description')}</p>
+            <p className="text-gray-600 dark:text-gray-300 text-base md:text-xl mb-6">{t('home.healthychef.description', { defaultValue: 'Personalizovani recepti za vaše zdravstvene potrebe.' })}</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6">
               {healthyChefCategories.map(cat => (
                 <Link 
@@ -828,7 +828,7 @@ const HomeKonacno = () => {
                 </Link>
               ))}
             </div>
-            <Link to="/healthy-chef" className="inline-block mt-10 bg-yellow-500 hover:bg-yellow-600 text-white px-10 py-4 rounded-full text-base md:text-xl font-semibold transition shadow-md hover:shadow-lg">🌿 {t('home.healthychef.open')}</Link>
+            <Link to="/healthy-chef" className="inline-block mt-10 bg-yellow-500 hover:bg-yellow-600 text-white px-10 py-4 rounded-full text-base md:text-xl font-semibold transition shadow-md hover:shadow-lg">🌿 {t('home.healthychef.open', { defaultValue: 'Otvori HealthyChef' })}</Link>
           </div>
         </div>
       </section>
@@ -836,10 +836,10 @@ const HomeKonacno = () => {
       {/* ===== PREPORUČENI RECEPTI ===== */}
       <section className="py-12 md:py-20 px-4 max-w-7xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-6 md:mb-8 text-gray-800 dark:text-white">
-          🍽️ {t('home.recipes.title')}
+          🍽️ {t('home.recipes.title', { defaultValue: 'Preporučeni recepti' })}
           {activeFiltersCount > 0 && (
             <span className="ml-2 text-sm bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full">
-              {activeFiltersCount} {t('home.recipes.filters_active')}
+              {activeFiltersCount} {t('home.recipes.filters_active', { defaultValue: 'filtera aktivno' })}
             </span>
           )}
         </h2>
@@ -850,7 +850,7 @@ const HomeKonacno = () => {
             value={filters.vrsta} 
             onChange={(e) => handleFilterChange('vrsta', e.target.value)}
           >
-            <option value="">🍽️ {t('home.filters.all_types')}</option>
+            <option value="">🍽️ {t('home.filters.all_types', { defaultValue: 'Sve vrste' })}</option>
             {vrstaOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
           </select>
           
@@ -859,7 +859,7 @@ const HomeKonacno = () => {
             value={filters.vrijeme} 
             onChange={(e) => handleFilterChange('vrijeme', e.target.value)}
           >
-            <option value="">⏱️ {t('home.filters.all_time')}</option>
+            <option value="">⏱️ {t('home.filters.all_time', { defaultValue: 'Svo vrijeme' })}</option>
             {vrijemeOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
           </select>
           
@@ -868,7 +868,7 @@ const HomeKonacno = () => {
             value={filters.tezina} 
             onChange={(e) => handleFilterChange('tezina', e.target.value)}
           >
-            <option value="">🏋️ {t('home.filters.all_difficulty')}</option>
+            <option value="">🏋️ {t('home.filters.all_difficulty', { defaultValue: 'Sva težina' })}</option>
             {tezinaOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
           </select>
 
@@ -877,22 +877,22 @@ const HomeKonacno = () => {
             value={filters.preferencije} 
             onChange={(e) => handleFilterChange('preferencije', e.target.value)}
           >
-            <option value="">💪 {t('home.filters.preferences')}</option>
-            <option value="Visokoproteinski">💪 {t('home.filters.high_protein')}</option>
-            <option value="Bogat vlaknima">🌾 {t('home.filters.high_fiber')}</option>
-            <option value="Bogat ugljikohidratima">🍞 {t('home.filters.high_carbs')}</option>
+            <option value="">💪 {t('home.filters.preferences', { defaultValue: 'Preferencije' })}</option>
+            <option value="Visokoproteinski">💪 {t('home.filters.high_protein', { defaultValue: 'Visokoproteinski' })}</option>
+            <option value="Bogat vlaknima">🌾 {t('home.filters.high_fiber', { defaultValue: 'Bogat vlaknima' })}</option>
+            <option value="Bogat ugljikohidratima">🍞 {t('home.filters.high_carbs', { defaultValue: 'Bogat ugljikohidratima' })}</option>
           </select>
 
           <button 
             onClick={handleResetFilters} 
             className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 md:px-6 md:py-3 rounded-lg text-sm md:text-base font-semibold transition"
           >
-            🔄 {t('home.filters.reset')}
+            🔄 {t('home.filters.reset', { defaultValue: 'Reset' })}
           </button>
         </div>
 
         {loading ? (
-          <p className="text-center text-gray-500 dark:text-gray-400 text-base md:text-lg">{t('home.recipes.loading')}</p>
+          <p className="text-center text-gray-500 dark:text-gray-400 text-base md:text-lg">{t('home.recipes.loading', { defaultValue: 'Učitavanje recepata...' })}</p>
         ) : filteredReceptiMemo.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {filteredReceptiMemo.slice(0, 6).map(recipe => (
@@ -901,12 +901,12 @@ const HomeKonacno = () => {
           </div>
         ) : (
           <div className="text-center py-12 md:py-16 bg-gray-50 dark:bg-gray-800 rounded-xl">
-            <p className="text-gray-500 dark:text-gray-400 text-base md:text-lg">{t('home.recipes.no_results')}</p>
+            <p className="text-gray-500 dark:text-gray-400 text-base md:text-lg">{t('home.recipes.no_results', { defaultValue: 'Nema recepata koji odgovaraju filterima.' })}</p>
             <button 
               onClick={handleResetFilters}
               className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition"
             >
-              {t('home.recipes.reset_filters')}
+              {t('home.recipes.reset_filters', { defaultValue: 'Resetuj filtere' })}
             </button>
           </div>
         )}
