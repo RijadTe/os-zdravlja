@@ -3,6 +3,9 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
+// 🔥 PROVJERI DA LI KORISNIK IMA SPREMLJEN JEZIK
+const savedLanguage = localStorage.getItem('i18nextLng') || 'hr';
+
 const loadTranslations = async () => {
   try {
     // 🔥 UČITAJ JSON FAJLOVE DIREKTNO PREKO FETCH-a
@@ -33,14 +36,14 @@ const loadTranslations = async () => {
       .init({
         resources,
         fallbackLng: 'hr',
-        // 🔥 SAMO OVO DODAJ - lng: 'hr' (PRVO HRVATSKI!)
-        lng: 'hr',
+        // 🔥 KORISTI SPREMLJENI JEZIK ILI HR
+        lng: savedLanguage,
         interpolation: {
           escapeValue: false,
         },
       });
 
-    console.log('✅ i18n inicijaliziran sa HR kao osnovnim jezikom!');
+    console.log(`✅ i18n inicijaliziran sa jezikom: ${savedLanguage}`);
     return i18n;
   } catch (error) {
     console.error('❌ Greška pri učitavanju prevoda:', error);
@@ -69,5 +72,11 @@ const loadTranslations = async () => {
 
 // 🔥 POKRENI UČITAVANJE
 loadTranslations();
+
+// 🔥 KAD SE JEZIK PROMIJENI, SPREMI GA U LOCALSTORAGE
+i18n.on('languageChanged', (lng) => {
+  localStorage.setItem('i18nextLng', lng);
+  console.log(`💾 Jezik sačuvan: ${lng}`);
+});
 
 export default i18n;
