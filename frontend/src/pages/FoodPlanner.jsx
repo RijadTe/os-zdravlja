@@ -55,12 +55,10 @@ const FoodPlanner = () => {
         const data = await response.json();
         
         if (data.success && data.data) {
-          // Filtriraj samo današnje obroke
           const today = new Date().toISOString().split('T')[0];
           const todayMeals = data.data.filter(meal => meal.datum === today);
           setMeals(todayMeals);
           
-          // Izračunaj ukupne vrijednosti
           let calcCalories = 0, calcProtein = 0, calcCarbs = 0, calcFat = 0;
           todayMeals.forEach(meal => {
             calcCalories += meal.kalorije || 0;
@@ -122,16 +120,12 @@ const FoodPlanner = () => {
       const data = await response.json();
       
       if (data.success) {
-        // Dodaj u listu
         setMeals([...meals, newMeal]);
-        
-        // Ažuriraj ukupne vrijednosti
         setTotalCalories(totalCalories + newMeal.kalorije);
         setTotalProtein(totalProtein + newMeal.proteini);
         setTotalCarbs(totalCarbs + newMeal.ugljikohidrati);
         setTotalFat(totalFat + newMeal.masti);
         
-        // Resetuj formu
         setMealName('');
         setCalories('');
         setProtein('');
@@ -175,7 +169,6 @@ const FoodPlanner = () => {
         const updatedMeals = meals.filter((_, i) => i !== index);
         setMeals(updatedMeals);
         
-        // Ponovno izračunaj ukupne vrijednosti
         let calcCalories = 0, calcProtein = 0, calcCarbs = 0, calcFat = 0;
         updatedMeals.forEach(meal => {
           calcCalories += meal.kalorije || 0;
@@ -466,7 +459,8 @@ const FoodPlanner = () => {
             ⭐ Postani Premium za više funkcionalnosti!
           </Link>
         </div>
-      </div>
+
+      </div> {/* ⬅️ 🔥 OVO JE FALILO! */}
     </div>
   );
 };
