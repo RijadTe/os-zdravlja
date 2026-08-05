@@ -5,6 +5,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 const loadTranslations = async () => {
   try {
+    // 🔥 UČITAJ JSON FAJLOVE DIREKTNO PREKO FETCH-a
     const [hr, en, de] = await Promise.all([
       fetch('/locales/hr/translation.json').then(res => {
         if (!res.ok) throw new Error('HR not found');
@@ -32,19 +33,18 @@ const loadTranslations = async () => {
       .init({
         resources,
         fallbackLng: 'hr',
+        // 🔥 SAMO OVO DODAJ - lng: 'hr'
         lng: 'hr',
         interpolation: {
           escapeValue: false,
-        },
-        react: {
-          useSuspense: false,
         },
       });
 
     console.log('✅ i18n inicijaliziran sa HR!');
     return i18n;
   } catch (error) {
-    console.error('❌ Greška:', error);
+    console.error('❌ Greška pri učitavanju prevoda:', error);
+    // 🔥 FALLBACK - ako ne može da učita, koristi prazne prevode
     const resources = {
       hr: { translation: {} },
       en: { translation: {} },
@@ -61,15 +61,13 @@ const loadTranslations = async () => {
         interpolation: {
           escapeValue: false,
         },
-        react: {
-          useSuspense: false,
-        },
       });
     
     return i18n;
   }
 };
 
+// 🔥 POKRENI UČITAVANJE
 loadTranslations();
 
 export default i18n;
