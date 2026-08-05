@@ -54,11 +54,14 @@ cloudinary.config({
 console.log('✅ Cloudinary povezan!');
 
 // ============================================================
-// 🔥 RATE LIMIT - POVEĆAN ZA BOLJE PERFORMANSE!
+// 🔥 RATE LIMIT - ZAŠTITA OD DDoS NAPADA (NORMALAN LIMIT)
 // ============================================================
+console.log('🛡️ POSTAVLJAM RATE LIMIT ZA ZAŠTITU OD DDoS-a...');
+
+// Glavni API limit - 500 zahtjeva po minuti
 const apiLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000,   // ⬅️ 1 minuta (brže resetiranje)
-  max: 500,                  // ⬅️ 500 zahtjeva po minuti
+  windowMs: 1 * 60 * 1000,   // 1 minuta
+  max: 500,                  // 500 zahtjeva po minuti
   message: {
     success: false,
     error: '⏳ Previše zahtjeva. Pokušajte za minutu.'
@@ -67,24 +70,44 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Auth limit - 50 pokušaja po minuti (zaštita od brute force)
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 50,                   // ⬅️ Povećano sa 20 na 50
+  windowMs: 1 * 60 * 1000,   // 1 minuta
+  max: 50,                   // 50 pokušaja po minuti
   message: {
     success: false,
-    error: '⏳ Previše pokušaja prijave. Pokušajte za 15 minuta.'
+    error: '⏳ Previše pokušaja prijave. Pokušajte za minutu.'
   },
   skipSuccessfulRequests: true,
 });
 
+// AI limit - 100 pretraga po minuti
 const aiLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 200,                  // ⬅️ Povećano sa 50 na 200
+  windowMs: 1 * 60 * 1000,   // 1 minuta
+  max: 100,                  // 100 AI pretraga po minuti
   message: {
     success: false,
-    error: '⏳ Previše AI pretraga. Pokušajte za sat vremena.'
+    error: '⏳ Previše AI pretraga. Pokušajte za minutu.'
   }
 });
+
+// 🔥 TEŠKI ENDPOINTI - 50 zahtjeva po minuti (profil, recepti)
+const heavyLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 200,
+  message: {
+    success: false,
+    error: '⏳ Previše zahtjeva za ovaj endpoint. Pokušajte za minutu.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+console.log('✅ Rate Limit postavljen:');
+console.log('   - API: 500 zahtjeva/min');
+console.log('   - Auth: 50 pokušaja/min');
+console.log('   - AI: 100 pretraga/min');
+console.log('   - Teški endpointi: 200 zahtjeva/min');
 
 // ============================================================
 // MIDDLEWARE - CORS
@@ -112,11 +135,15 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Primijeni rate limit na rute
+// 🔥 PRIMIJENI RATE LIMIT NA RUTE
 app.use('/api/', apiLimiter);
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 app.use('/api/ai-chef', aiLimiter);
+app.use('/api/recepti', heavyLimiter);
+app.use('/api/profil', heavyLimiter);
+app.use('/api/community', heavyLimiter);
+app.use('/api/healthy-chef', heavyLimiter);
 
 // ============================================================
 // VAPID KONFIGURACIJA ZA PUSH NOTIFIKACIJE
