@@ -33,6 +33,8 @@ const loadTranslations = async () => {
       .init({
         resources,
         fallbackLng: 'hr',
+        // 🔥 SAMO OVO DODAJ - lng: 'hr' (PRVO HRVATSKI!)
+        lng: 'hr',
         interpolation: {
           escapeValue: false,
         },
@@ -55,6 +57,7 @@ const loadTranslations = async () => {
       .init({
         resources,
         fallbackLng: 'hr',
+        lng: 'hr',
         interpolation: {
           escapeValue: false,
         },
