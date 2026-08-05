@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "express-rate-limit": "^8.6.1"
+    "express-rate-limit": "^8.6.1",
+    "react-flag-icons": "^1.0.6"
   }
 }
