@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-// 🔥 PROMIJENJENO - uklonjen /api sa kraja
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const Community = () => {
@@ -26,7 +25,6 @@ const Community = () => {
 
   const fetchObjave = async () => {
     try {
-      // 🔥 PROMIJENJENO - dodan /api
       const res = await fetch(`${API_URL}/api/community/objave`);
       const data = await res.json();
       setObjave(data);
@@ -40,7 +38,6 @@ const Community = () => {
   const handleLike = async (id) => {
     try {
       const email = user?.email || localStorage.getItem('userEmail');
-      // 🔥 PROMIJENJENO - dodan /api
       await fetch(`${API_URL}/api/community/objave/${id}/like`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -68,7 +65,6 @@ const Community = () => {
       formData.append('sastojci', novaObjava.sastojci);
       if (novaObjava.slika) formData.append('slika', novaObjava.slika);
 
-      // 🔥 PROMIJENJENO - dodan /api
       await fetch(`${API_URL}/api/community/objave`, {
         method: 'POST',
         body: formData
@@ -115,12 +111,28 @@ const Community = () => {
             onChange={(e) => setNovaObjava({ ...novaObjava, sastojci: e.target.value })}
             className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
           />
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setNovaObjava({ ...novaObjava, slika: e.target.files[0] })}
-            className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
-          />
+          
+          {/* 🔥 FILE INPUT - SAMO FOTOAPARAT IKONA */}
+          <div className="relative">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setNovaObjava({ ...novaObjava, slika: e.target.files[0] })}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              id="file-upload"
+            />
+            <label
+              htmlFor="file-upload"
+              className="flex items-center justify-center w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+            >
+              {novaObjava.slika ? (
+                <span className="text-green-500 text-sm">✅ {novaObjava.slika.name}</span>
+              ) : (
+                <span className="text-3xl">📸</span>
+              )}
+            </label>
+          </div>
+
           <button
             type="submit"
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition"
