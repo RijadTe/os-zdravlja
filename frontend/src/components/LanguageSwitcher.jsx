@@ -2,30 +2,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-// 🔥 IMPORT ZASTAVICA KAO KOMPONENTE
-import { HrFlag, EnFlag, DeFlag } from './Flags';
-
 const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   const languages = [
-    { 
-      code: 'hr', 
-      label: 'Hrvatski', 
-      flag: <HrFlag className="w-5 h-5 rounded-sm" />
-    },
-    { 
-      code: 'en', 
-      label: 'English', 
-      flag: <EnFlag className="w-5 h-5 rounded-sm" />
-    },
-    { 
-      code: 'de', 
-      label: 'Deutsch', 
-      flag: <DeFlag className="w-5 h-5 rounded-sm" />
-    },
+    { code: 'hr', label: 'Hrvatski', flag: '🇭🇷' },
+    { code: 'en', label: 'English', flag: '🇬🇧' },
+    { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
   ];
 
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
@@ -52,7 +37,7 @@ const LanguageSwitcher = () => {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition text-sm font-medium text-gray-700 dark:text-gray-300"
       >
-        <span className="flex items-center">{currentLanguage.flag}</span>
+        <span className="text-xl">{currentLanguage.flag}</span>
         <span className="hidden sm:inline">{currentLanguage.label}</span>
         <svg 
           className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
@@ -76,7 +61,7 @@ const LanguageSwitcher = () => {
                   : 'text-gray-700 dark:text-gray-300'
               }`}
             >
-              <span className="flex items-center">{lang.flag}</span>
+              <span className="text-2xl">{lang.flag}</span>
               <span className="flex-1 text-left">{lang.label}</span>
               {i18n.language === lang.code && (
                 <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
