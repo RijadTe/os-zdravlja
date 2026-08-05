@@ -67,15 +67,13 @@ const FoodPlanner = () => {
   const [restrictions, setRestrictions] = useState([]);
 
   // ============================================================
-  // HELPER FUNKCIJE ZA DATUM
+  // 🔥 HELPER FUNKCIJE ZA DATUM - BINARNI FORMAT (DD.MM.YYYY)
   // ============================================================
   const formatDate = (date) => {
-    return date.toLocaleDateString('hr', { 
-      weekday: 'long', 
-      day: 'numeric', 
-      month: 'long', 
-      year: 'numeric' 
-    });
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}.${month}.${year}`;
   };
 
   const formatDateForAPI = (date) => {
@@ -106,9 +104,7 @@ const FoodPlanner = () => {
     if (!restrictions || restrictions.length === 0) return recipes;
     
     return recipes.filter(recipe => {
-      // Provjeri da li recept ima alergene
       const alergeni = recipe.alergeni || [];
-      // Recept je dozvoljen ako NEMA nijednu od restrikcija
       return !restrictions.some(restriction => 
         alergeni.includes(restriction)
       );
@@ -137,7 +133,6 @@ const FoodPlanner = () => {
             console.log('✅ Profil dohvaćen za FoodPlanner:', data.data);
             setProfil(data.data);
             
-            // 🔥 DOHVATI RESTRIKCIJE IZ PROFILA
             const restrikcije = data.data.izbjegava || [];
             setRestrictions(restrikcije);
             console.log('🔒 Restrikcije korisnika:', restrikcije);
@@ -147,7 +142,6 @@ const FoodPlanner = () => {
         }
       }
 
-      // 🔥 DOHVATI SVE RECEPTE IZ BAZE
       try {
         const res = await fetch(`${API_URL}/api/recepti`);
         const data = await res.json();
@@ -155,7 +149,6 @@ const FoodPlanner = () => {
           setAllRecipes(data);
           console.log('✅ Dohvaćeno recepata:', data.length);
           
-          // 🔥 FILTRIRAJ RECEPTE PREMA RESTRIKCIJAMA
           const filtered = filterRecipesByRestrictions(data);
           setFilteredRecipes(filtered);
           console.log('✅ Filtrirano recepata (bez restrikcija):', filtered.length);
@@ -342,7 +335,7 @@ const FoodPlanner = () => {
           proteini: dailyGoal.proteini,
           ugljikohidrati: dailyGoal.ugljikohidrati,
           masti: dailyGoal.masti,
-          restrikcije: restrictions, // 🔥 DODAJ RESTRIKCIJE
+          restrikcije: restrictions,
           datum: formatDateForAPI(selectedDate)
         })
       });
@@ -495,7 +488,7 @@ const FoodPlanner = () => {
       {activeTab === 0 && (
         <div>
           <div className="mb-6">
-            {/* KALENDAR NAVIGACIJA */}
+            {/* 🔥 KALENDAR NAVIGACIJA - BINARNI FORMAT DATUMA */}
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <h2 className="text-xl font-bold dark:text-white">
                 📅 {formatDate(selectedDate)}
@@ -636,11 +629,10 @@ const FoodPlanner = () => {
             </div>
           </div>
 
-          {/* 🔥 FORMA ZA UNOS - SA DROPDOWN ZA RECEPTE (FILTRIRANO) */}
+          {/* FORMA ZA UNOS - SA DROPDOWN ZA RECEPTE (FILTRIRANO) */}
           <form onSubmit={handleDodajObrok} className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-700">
             <h3 className="font-bold dark:text-white mb-2">{t('foodplanner.diary.add_meal')}</h3>
             
-            {/* 🔥 PRETRAŽIVANJE RECEPATA IZ FILTRIRANE LISTE */}
             <div className="relative mb-2">
               <input
                 type="text"
@@ -896,7 +888,7 @@ const FoodPlanner = () => {
       )}
 
       {/* ============================================================ */}
-      {/* TAB 3: PLAN OBROKA */}
+      {/* 🔥 TAB 3: PLAN OBROKA - IZMJENJEN TEKST */}
       {/* ============================================================ */}
       {activeTab === 2 && (
         <div>
@@ -944,8 +936,9 @@ const FoodPlanner = () => {
             </div>
           )}
           
+          {/* 🔥 IZMJENJEN TEKST */}
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-4 text-center">
-            💡 {t('foodplanner.plan.hint')} (Cilj: {dailyGoal.kalorije} kcal, {dailyGoal.proteini}g proteina)
+            🤖 Plan generiše AI FoodPlanner (Cilj: {dailyGoal.kalorije} kcal, {dailyGoal.proteini}g proteina)
             {restrictions.length > 0 && ` 🔒 Restrikcije: ${restrictions.join(', ')}`}
           </p>
         </div>
