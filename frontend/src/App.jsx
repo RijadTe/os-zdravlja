@@ -31,7 +31,7 @@ import NotificationBell from './components/NotificationBell';
 import LanguageSwitcher from './components/LanguageSwitcher';
 
 function App() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   
   const [darkMode, setDarkMode] = useState(() => {
@@ -42,6 +42,37 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
+  // 🔥 DODANO - i18n spreman
+  const [i18nReady, setI18nReady] = useState(false);
+
+  // ============================================================
+  // 🔥 i18n - PROVJERA DA LI JE SPREMAN (BEZ ČEKANJA!)
+  // ============================================================
+  useEffect(() => {
+    // Provjeri da li je i18n već inicijaliziran
+    if (i18n.isInitialized) {
+      console.log('✅ i18n već inicijaliziran!');
+      setI18nReady(true);
+    } else {
+      // Ako nije, čekaj event
+      const handleInitialized = () => {
+        console.log('✅ i18n inicijaliziran!');
+        setI18nReady(true);
+      };
+      i18n.on('initialized', handleInitialized);
+      
+      // Fallback - ako se inicijalizacija dogodila prije nego smo stigli
+      setTimeout(() => {
+        if (i18n.isInitialized) {
+          setI18nReady(true);
+        }
+      }, 100);
+      
+      return () => {
+        i18n.off('initialized', handleInitialized);
+      };
+    }
+  }, [i18n]);
 
   // ============================================================
   // 🌙 TAMNA TEMA
@@ -407,8 +438,22 @@ function App() {
   }, [checkAndSetUser]);
 
   // ============================================================
-  // 🖥️ RENDER
+  // 🖥️ RENDER - SA i18n READY PROVJEROM (BEZ VJEČNOG LOADINGA)
   // ============================================================
+  
+  // 🔥 AKO i18n NIJE SPREMAN - PRIKAŽI LOADING (SAMO 100ms)
+  if (!i18nReady) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Učitavanje...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 🔥 AKO SE AUTH UČITAVA
   if (loading || !authChecked) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">

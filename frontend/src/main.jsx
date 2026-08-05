@@ -1,30 +1,14 @@
 // frontend/src/main.jsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { HashRouter } from 'react-router-dom'; // 🔥 HASH ROUTER
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
 import './index.css';
-import { DarkModeProvider } from './context/DarkModeContext';
+import './i18n'; // SAMO UVOZI, NE ČEKA!
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5,
-      cacheTime: 1000 * 60 * 30,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+console.log('🚀 Pokrećem aplikaciju...');
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <DarkModeProvider>
-        <HashRouter>
-          <App />
-        </HashRouter>
-      </DarkModeProvider>
-    </QueryClientProvider>
+    <App />
   </React.StrictMode>
 );
