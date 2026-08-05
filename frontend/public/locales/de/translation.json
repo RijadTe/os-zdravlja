@@ -84,7 +84,11 @@
       "title": "Mein Kühlschrank",
       "placeholder": "Zutat hinzufügen...",
       "add": "Hinzufügen",
-      "find_recipes": "Rezepte finden"
+      "find_recipes": "Rezepte finden",
+      "empty": "Der Kühlschrank ist leer.",
+      "empty_hint": "Fügen Sie Zutaten hinzu, die Sie kaufen müssen.",
+      "premium": "⭐ PREMIUM",
+      "delete": "Löschen"
     },
     "foodplanner": {
       "title": "Kompletter Food Planner",

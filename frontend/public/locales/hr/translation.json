@@ -84,7 +84,11 @@
       "title": "Moj frižider",
       "placeholder": "Dodaj namirnicu...",
       "add": "Dodaj",
-      "find_recipes": "Pronađi recepte"
+      "find_recipes": "Pronađi recepte",
+      "empty": "Frižider je prazan.",
+      "empty_hint": "Dodajte namirnice koje trebate kupiti.",
+      "premium": "⭐ PREMIUM",
+      "delete": "Obriši"
     },
     "foodplanner": {
       "title": "Potpuni Food Planner",

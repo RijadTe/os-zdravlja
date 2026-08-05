@@ -84,7 +84,11 @@
       "title": "My Fridge",
       "placeholder": "Add ingredient...",
       "add": "Add",
-      "find_recipes": "Find recipes"
+      "find_recipes": "Find recipes",
+      "empty": "Fridge is empty.",
+      "empty_hint": "Add ingredients you need to buy.",
+      "premium": "⭐ PREMIUM",
+      "delete": "Delete"
     },
     "foodplanner": {
       "title": "Complete Food Planner",
