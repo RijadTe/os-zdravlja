@@ -29,7 +29,7 @@ import NotificationBell from './components/NotificationBell';
 import LanguageSwitcher from './components/LanguageSwitcher';
 
 function App() {
-  const { t } = useTranslation(); // 🔥 IZBACI `ready`
+  const { t, i18n } = useTranslation(); // 🔥 DODAJ `i18n`
   
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -37,6 +37,36 @@ function App() {
   });
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // 🔥 DODAJ OVO - PROVJERA DA LI JE JEZIK UČITAN
+  const [isLanguageReady, setIsLanguageReady] = useState(i18n.isInitialized);
+
+  useEffect(() => {
+    const handleInitialized = () => {
+      setIsLanguageReady(true);
+    };
+
+    if (i18n.isInitialized) {
+      setIsLanguageReady(true);
+    } else {
+      i18n.on('initialized', handleInitialized);
+    }
+
+    return () => {
+      i18n.off('initialized', handleInitialized);
+    };
+  }, [i18n]);
+
+  // 🔥 PRIKAŽI LOADING SAMO DOK SE JEZIK NE UČITA
+  if (!isLanguageReady) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
 
   // ============================================================
   // 🌙 TAMNA TEMA
