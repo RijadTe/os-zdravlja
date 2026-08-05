@@ -24,7 +24,6 @@ const HomeKonacno = () => {
   const [coachRecipes, setCoachRecipes] = useState([]);
   const [fridgeItems, setFridgeItems] = useState([]);
   const [newItem, setNewItem] = useState('');
-  const [manualItem, setManualItem] = useState(''); // 🔥 DODATO ZA RUČNI UNOS
   const [scanPoruka, setScanPoruka] = useState('');
 
   const [filters, setFilters] = useState({
@@ -61,6 +60,7 @@ const HomeKonacno = () => {
         setProfilLoading(true);
         console.log('📧 Dohvatam profil za email:', email);
         
+        // 🔥 PROMIJENJENO - dodan /api
         const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
         const data = await response.json();
         
@@ -70,6 +70,7 @@ const HomeKonacno = () => {
           
           const noviFilteri = {};
           
+          // 🔥 VRSTA
           if (data.data.vrsta && data.data.vrsta.length > 0) {
             const odabraneVrste = data.data.vrsta.filter(v => v !== 'Svejedno');
             if (odabraneVrste.length > 0) {
@@ -77,6 +78,7 @@ const HomeKonacno = () => {
             }
           }
           
+          // 🔥 PREFERENCIJE
           if (data.data.preferencije && data.data.preferencije.length > 0) {
             const odabranePref = data.data.preferencije.filter(p => p !== 'Svejedno');
             if (odabranePref.length > 0) {
@@ -84,16 +86,29 @@ const HomeKonacno = () => {
             }
           }
           
+          // 🔥 RESTRIKCIJE (SVE, ne samo prva!)
           if (data.data.izbjegava && data.data.izbjegava.length > 0) {
+            // Izbaci "Bez restrikcija" ako postoji
             const restrikcije = data.data.izbjegava.filter(r => r !== 'Bez restrikcija');
             if (restrikcije.length > 0) {
               noviFilteri.restrikcije = restrikcije;
             }
           }
           
-          if (data.data.vrijeme) noviFilteri.vrijeme = data.data.vrijeme;
-          if (data.data.tezina) noviFilteri.tezina = data.data.tezina;
-          if (data.data.kalorije) noviFilteri.kalorije = data.data.kalorije;
+          // 🔥 VRIJEME
+          if (data.data.vrijeme) {
+            noviFilteri.vrijeme = data.data.vrijeme;
+          }
+          
+          // 🔥 TEŽINA
+          if (data.data.tezina) {
+            noviFilteri.tezina = data.data.tezina;
+          }
+          
+          // 🔥 KALORIJE
+          if (data.data.kalorije) {
+            noviFilteri.kalorije = data.data.kalorije;
+          }
           
           console.log('🔍 Automatski postavljeni filteri:', noviFilteri);
           setFilters(prev => ({ ...prev, ...noviFilteri }));
@@ -124,6 +139,7 @@ const HomeKonacno = () => {
   // ============================================================
   const fetchRecipes = useCallback(async () => {
     try {
+      // 🔥 PROMIJENJENO - dodan /api
       const res = await fetch(`${API_URL}/api/recepti`);
       const data = await res.json();
       setRecepti(data);
@@ -188,23 +204,27 @@ const HomeKonacno = () => {
   }, [profil]);
 
   // ============================================================
-  // 5. FILTRIRANI RECEPTI
+  // 5. FILTRIRANI RECEPTI - SA RESTRIKCIJAMA!
   // ============================================================
   const filteredReceptiMemo = useMemo(() => {
     let filtered = recepti;
     
+    // 🔥 FILTER PO VRSTI
     if (filters.vrsta) {
       filtered = filtered.filter(r => r.vrsta === filters.vrsta);
     }
     
+    // 🔥 FILTER PO VREMENU
     if (filters.vrijeme) {
       filtered = filtered.filter(r => r.vrijeme === filters.vrijeme);
     }
     
+    // 🔥 FILTER PO TEŽINI
     if (filters.tezina) {
       filtered = filtered.filter(r => r.tezina === filters.tezina);
     }
     
+    // 🔥 FILTER PO PREFERENCIJAMA
     if (filters.preferencije) {
       const pref = filters.preferencije;
       if (pref === 'Visokoproteinski') {
@@ -216,6 +236,7 @@ const HomeKonacno = () => {
       }
     }
     
+    // 🔥 FILTER PO RESTRIKCIJAMA - SVE RESTRIKCIJE!
     if (filters.restrikcije && filters.restrikcije.length > 0) {
       const restrikcije = Array.isArray(filters.restrikcije) 
         ? filters.restrikcije 
@@ -223,10 +244,12 @@ const HomeKonacno = () => {
       
       filtered = filtered.filter(recipe => {
         const alergeni = recipe.alergeni || [];
+        // Recept je dozvoljen ako NEMA nijednu od restrikcija
         return !restrikcije.some(r => alergeni.includes(r));
       });
     }
     
+    // 🔥 FILTER PO KALORIJAMA
     if (filters.kalorije) {
       const kalorijeMap = {
         'Nisko (do 300 kcal)': { max: 300 },
@@ -252,7 +275,7 @@ const HomeKonacno = () => {
   }, [recepti, filters]);
 
   // ============================================================
-  // 6. LIFESTYLE COACH
+  // 6. LIFESTYLE COACH - AI PREPORUKE NA OSNOVU RASPOLOŽENJA
   // ============================================================
   const getCoachAdvice = useCallback(async () => {
     if (!sleep || !energy || !stress) {
@@ -263,7 +286,9 @@ const HomeKonacno = () => {
     try {
       const email = user?.email || localStorage.getItem('userEmail');
       
+      // 🔥 SAČUVAJ ZDRAVSTVENE PODATKE - POPRAVLJENO!
       if (email) {
+        // 🔥 PROMIJENJENO - dodan /api
         await fetch(`${API_URL}/api/zdravstveni-podaci`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -279,16 +304,21 @@ const HomeKonacno = () => {
         console.log('✅ Zdravstveni podaci sačuvani!');
       }
 
+      // 🔥 GENERIŠI ADVICE NA OSNOVU RASPOLOŽENJA
       let advice = '';
       let filteredRecepti = [];
 
+      // Analiziraj raspoloženje
       const isSleepGood = sleep === 'Odlično' || sleep === 'Dobro';
       const isEnergyGood = energy === 'Pun/a' || energy === 'Osrednje';
       const isStressLow = stress === 'Nizak' || stress === 'Srednji';
 
+      // 🔥 FILTRIRAJ RECEPTE NA OSNOVU RASPOLOŽENJA + RESTRIKCIJA
       if (recepti.length > 0) {
+        // Prvo primijeni restrikcije iz profila
         let baseRecipes = recepti;
         
+        // 🔥 PRIMIJENI RESTRIKCIJE
         if (filters.restrikcije && filters.restrikcije.length > 0) {
           const restrikcije = Array.isArray(filters.restrikcije) 
             ? filters.restrikcije 
@@ -300,6 +330,7 @@ const HomeKonacno = () => {
           });
         }
 
+        // Onda primijeni filtere po raspoloženju
         if (!isSleepGood && !isEnergyGood && !isStressLow) {
           advice = t('home.advice_tired_stressed');
           filteredRecepti = baseRecipes.filter(r => 
@@ -345,9 +376,18 @@ const HomeKonacno = () => {
           filteredRecepti = baseRecipes.slice(0, 6);
         }
 
+        // Ograniči na 6 recepata
         filteredRecepti = filteredRecepti.slice(0, 6);
+        
+        // 🔥 SAČUVAJ FILTRIRANE RECEPTE
         setCoachRecipes(filteredRecepti);
         setCoachAdvice(advice);
+        
+        if (filteredRecepti.length > 0) {
+          console.log('🍽️ Preporučeni recepti:', filteredRecepti.map(r => r.naziv));
+        } else {
+          console.log('ℹ️ Nema recepata za ovo raspoloženje.');
+        }
         
       } else {
         advice = t('home.advice_explore_recipes');
@@ -361,9 +401,6 @@ const HomeKonacno = () => {
     }
   }, [sleep, energy, stress, user, recepti, filters.restrikcije, t]);
 
-  // ============================================================
-  // 7. FRIŽIDER FUNKCIJE
-  // ============================================================
   const addFridgeItem = useCallback(() => {
     if (newItem.trim()) {
       setFridgeItems([...fridgeItems, newItem.trim()]);
@@ -371,23 +408,10 @@ const HomeKonacno = () => {
     }
   }, [newItem, fridgeItems]);
 
-  // 🔥 RUČNI UNOS NAMIRNICA (SA DUGMETA)
-  const handleManualAdd = useCallback(() => {
-    if (manualItem.trim()) {
-      setFridgeItems([...fridgeItems, manualItem.trim()]);
-      setManualItem('');
-      setScanPoruka(`✅ Dodano "${manualItem.trim()}" u frižider!`);
-      setTimeout(() => setScanPoruka(''), 3000);
-    }
-  }, [manualItem, fridgeItems]);
-
-  // 🔥 DODAVANJE NAMIRNICA IZ SKENIRANJA
   const handleNamirniceDodane = useCallback((namirnice) => {
-    if (namirnice && namirnice.length > 0) {
-      setFridgeItems(prev => [...prev, ...namirnice]);
-      setScanPoruka(`✅ Dodano ${namirnice.length} namirnica u frižider!`);
-      setTimeout(() => setScanPoruka(''), 4000);
-    }
+    setFridgeItems(prev => [...prev, ...namirnice]);
+    setScanPoruka(`✅ Dodano ${namirnice.length} namirnica u frižider!`);
+    setTimeout(() => setScanPoruka(''), 4000);
   }, []);
 
   const activeFiltersCount = Object.values(filters).filter(v => {
@@ -396,7 +420,7 @@ const HomeKonacno = () => {
   }).length;
 
   // ============================================================
-  // 8. KONFIGURACIJA
+  // 7. KONFIGURACIJA
   // ============================================================
   const categories = [
     { id: 'dijetalni', icon: '🥗', label: t('home.categories.diet', { defaultValue: 'Dijetalno' }), link: '/recipes?vrsta=Dijetalni%20recepti' },
@@ -445,11 +469,11 @@ const HomeKonacno = () => {
   const isPremium = user?.premium || false;
 
   // ============================================================
-  // 9. RENDER
+  // 8. RENDER
   // ============================================================
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* ===== HERO SEKCIJA ===== */}
+      {/* ===== HERO SEKCIJA - SA FALLBACK PREVODIMA ===== */}
       <section className="text-center py-12 md:py-20 px-4 bg-gradient-to-b from-blue-50 to-white dark:from-gray-800 dark:to-gray-900">
         <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold text-gray-800 dark:text-white mb-2 leading-tight">
           {t('home.hero.title', { defaultValue: 'OS Zdravlja' })}
@@ -491,7 +515,7 @@ const HomeKonacno = () => {
         </section>
       )}
 
-      {/* ===== PRIKAZ PROFILA ===== */}
+      {/* ===== PRIKAZ PROFILA IZ KVIZA ===== */}
       {!profilLoading && profil && (
         <section className="py-6 px-4 max-w-7xl mx-auto">
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-6 shadow-lg border border-blue-200 dark:border-blue-800">
@@ -656,22 +680,21 @@ const HomeKonacno = () => {
         </div>
       </section>
 
-      {/* ===== VIRTUALNI FRIŽIDER SA RUČNIM UNOSOM ===== */}
+      {/* ===== VIRTUALNI FRIŽIDER ===== */}
       <section className="py-12 md:py-20 px-4 flex justify-center bg-white dark:bg-gray-900">
         <div className="w-full max-w-3xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-gray-800 dark:text-white flex items-center justify-center gap-2 flex-wrap">
             🧊 {t('home.fridge.title', { defaultValue: 'Moj frižider' })}
             <span className="inline-block bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 px-3 py-1 rounded-full text-sm font-bold">⭐ PREMIUM</span>
           </h2>
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 sm:p-6 md:p-8 shadow-md">
-            {/* 🔥 UNOS NAMIRNICA */}
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 md:p-8 shadow-md">
             <div className="flex flex-col sm:flex-row gap-3">
               <input 
                 type="text" 
                 value={newItem} 
                 onChange={(e) => setNewItem(e.target.value)} 
                 placeholder={t('home.fridge.placeholder', { defaultValue: 'Dodaj namirnicu...' })} 
-                className="flex-1 border rounded-lg px-4 py-3 text-base dark:bg-gray-700 dark:text-white dark:border-gray-600 w-full" 
+                className="flex-1 border rounded-lg px-4 py-3 text-base dark:bg-gray-700 dark:text-white dark:border-gray-600" 
                 onKeyPress={(e) => e.key === 'Enter' && addFridgeItem()} 
               />
               <button 
@@ -682,47 +705,22 @@ const HomeKonacno = () => {
               </button>
             </div>
 
-            {/* 🔥 RUČNI UNOS - DODATNO POLJE ZA BRZO DODAVANJE */}
-            <div className="mt-3 flex flex-col sm:flex-row gap-3">
-              <input 
-                type="text" 
-                value={manualItem} 
-                onChange={(e) => setManualItem(e.target.value)} 
-                placeholder={t('home.fridge.manual_placeholder', { defaultValue: 'Npr. piletina, luk, šargarepa...' })} 
-                className="flex-1 border rounded-lg px-4 py-2.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 w-full" 
-                onKeyPress={(e) => e.key === 'Enter' && handleManualAdd()} 
-              />
-              <button 
-                onClick={handleManualAdd} 
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg font-semibold transition text-sm w-full sm:w-auto"
-              >
-                ✏️ {t('home.fridge.manual_add', { defaultValue: 'Ručno dodaj' })}
-              </button>
-            </div>
-
-            {/* 🔥 LISTA NAMIRNICA */}
             <div className="mt-4 flex flex-wrap gap-2">
               {fridgeItems.map((item, i) => (
-                <span key={i} className="bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-3 sm:px-4 py-1.5 rounded-full text-sm sm:text-base break-words max-w-[150px] sm:max-w-none">
+                <span key={i} className="bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-4 py-1.5 rounded-full text-base">
                   {item}
                 </span>
               ))}
-              {fridgeItems.length === 0 && (
-                <p className="text-sm text-gray-400 dark:text-gray-500 w-full text-center py-2">
-                  {t('home.fridge.empty', { defaultValue: 'Još nema namirnica. Dodajte neke!' })}
-                </p>
-              )}
             </div>
 
-            {/* 🔥 SCAN RECEIPT - RESPONSIVE */}
             {user?.premium && (
-              <div className="mt-4 w-full overflow-hidden">
+              <div className="mt-4">
                 <ScanReceipt onNamirniceDodane={handleNamirniceDodane} />
               </div>
             )}
 
             {scanPoruka && (
-              <div className="mt-3 text-sm sm:text-base text-green-600 dark:text-green-400 font-semibold text-center">
+              <div className="mt-3 text-base text-green-600 dark:text-green-400 font-semibold">
                 {scanPoruka}
               </div>
             )}

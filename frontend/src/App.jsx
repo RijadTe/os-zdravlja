@@ -5,6 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient';
 import './i18n';
 
+// 🔥 DODAJ OVO - API_URL za dohvat profila
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 // Komponente
 import HomeKonacno from './pages/HomeKonacno';
 import Quiz from './pages/Quiz';
@@ -29,7 +32,7 @@ import NotificationBell from './components/NotificationBell';
 import LanguageSwitcher from './components/LanguageSwitcher';
 
 function App() {
-  const { t } = useTranslation(); // 🔥 IZBACI `ready`
+  const { t } = useTranslation();
   
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -39,16 +42,40 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   // ============================================================
-  // 🌙 TAMNA TEMA
+  // 🔥 NOVA FUNKCIJA - DOHVATI PROFIL IZ BAZE
   // ============================================================
-  useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(darkMode));
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+  const fetchUserProfile = async (email) => {
+    try {
+      console.log('📡 Dohvatam profil iz baze za:', email);
+      const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        console.log('✅ Profil dohvaćen iz baze:', data.data);
+        const userData = JSON.parse(localStorage.getItem('user'));
+        if (userData) {
+          const updatedUser = {
+            ...userData,
+            premium: data.data.premium || false,
+            kviz_zavrsen: data.data.kviz_zavrsen || false,
+            vrsta: data.data.vrsta || [],
+            izbjegava: data.data.izbjegava || [],
+            preferencije: data.data.preferencije || [],
+            vrijeme: data.data.vrijeme || '',
+            tezina: data.data.tezina || '',
+            kalorije: data.data.kalorije || ''
+          };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          return updatedUser;
+        }
+        return data.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('❌ Greška pri dohvatu profila:', error);
+      return null;
     }
-  }, [darkMode]);
+  };
 
   // ============================================================
   // 🔐 SUPABASE AUTH - PROVJERA KORISNIKA
@@ -63,6 +90,14 @@ function App() {
         if (userData?.email) {
           console.log('✅ Korisnik iz localStorage:', userData.email);
           setUser(userData);
+          
+          // 🔥 DODATO - OSVJEŽI PROFIL IZ BAZE (ZA PREMIUM STATUS)
+          const updatedUser = await fetchUserProfile(userData.email);
+          if (updatedUser) {
+            console.log('✅ Profil osvježen iz baze, premium:', updatedUser.premium);
+            setUser(updatedUser);
+          }
+          
           setLoading(false);
           return;
         }
@@ -80,7 +115,7 @@ function App() {
             id: session.user.id,
             email: session.user.email,
             ime: session.user.user_metadata?.ime || '',
-            premium: session.user.user_metadata?.premium || false
+            premium: false
           };
           
           setUser(userObj);
@@ -88,28 +123,12 @@ function App() {
           localStorage.setItem('userEmail', session.user.email);
           localStorage.setItem('userName', session.user.user_metadata?.ime || '');
           
-          try {
-            const { data: profile } = await supabase
-              .from('profili')
-              .select('*')
-              .eq('email', session.user.email)
-              .maybeSingle();
-            
-            if (profile) {
-              console.log('📋 Profil dohvaćen:', profile);
-              const updatedUser = { 
-                ...userObj, 
-                premium: profile.premium || false,
-                kviz_zavrsen: profile.kviz_zavrsen || false,
-                vrsta: profile.vrsta || [],
-                izbjegava: profile.izbjegava || [],
-                preferencije: profile.preferencije || []
-              };
-              setUser(updatedUser);
-              localStorage.setItem('user', JSON.stringify(updatedUser));
-            }
-          } catch (profileError) {
-            console.warn('⚠️ Greška pri dohvatu profila:', profileError);
+          // 🔥 DODATO - DOHVATI PROFIL IZ BAZE
+          const updatedUser = await fetchUserProfile(session.user.email);
+          if (updatedUser) {
+            console.log('✅ Profil dohvaćen iz baze, premium:', updatedUser.premium);
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
           }
           
         } else {
@@ -139,7 +158,7 @@ function App() {
           id: session.user.id,
           email: session.user.email,
           ime: session.user.user_metadata?.ime || '',
-          premium: session.user.user_metadata?.premium || false
+          premium: false
         };
         
         setUser(userObj);
@@ -147,24 +166,12 @@ function App() {
         localStorage.setItem('userEmail', session.user.email);
         localStorage.setItem('userName', session.user.user_metadata?.ime || '');
         
-        try {
-          const { data: profile } = await supabase
-            .from('profili')
-            .select('*')
-            .eq('email', session.user.email)
-            .maybeSingle();
-          
-          if (profile) {
-            const updatedUser = { 
-              ...userObj, 
-              premium: profile.premium || false,
-              kviz_zavrsen: profile.kviz_zavrsen || false
-            };
-            setUser(updatedUser);
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-          }
-        } catch (error) {
-          console.warn('⚠️ Greška pri dohvatu profila:', error);
+        // 🔥 DODATO - DOHVATI PROFIL IZ BAZE
+        const updatedUser = await fetchUserProfile(session.user.email);
+        if (updatedUser) {
+          console.log('✅ Profil dohvaćen iz baze, premium:', updatedUser.premium);
+          setUser(updatedUser);
+          localStorage.setItem('user', JSON.stringify(updatedUser));
         }
         
       } else if (event === 'SIGNED_OUT') {
@@ -181,12 +188,20 @@ function App() {
             id: session.user.id,
             email: session.user.email,
             ime: session.user.user_metadata?.ime || '',
-            premium: session.user.user_metadata?.premium || false
+            premium: false
           };
           setUser(userObj);
           localStorage.setItem('user', JSON.stringify(userObj));
           localStorage.setItem('userEmail', session.user.email);
           localStorage.setItem('userName', session.user.user_metadata?.ime || '');
+          
+          // 🔥 DODATO - DOHVATI PROFIL IZ BAZE
+          const updatedUser = await fetchUserProfile(session.user.email);
+          if (updatedUser) {
+            console.log('✅ Profil dohvaćen iz baze, premium:', updatedUser.premium);
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+          }
         }
       }
     });
@@ -198,28 +213,15 @@ function App() {
   }, []);
 
   // ============================================================
-  // 🔄 OSVJEŽAVANJE KORISNIKA
+  // 🔄 OSVJEŽAVANJE KORISNIKA (POZIVI IZ DRUGIH DIJELOVA)
   // ============================================================
   const refreshUser = async () => {
     try {
       const userData = JSON.parse(localStorage.getItem('user'));
       if (userData?.email) {
-        const { data: profile } = await supabase
-          .from('profili')
-          .select('*')
-          .eq('email', userData.email)
-          .maybeSingle();
-        
-        if (profile) {
-          const updatedUser = { 
-            ...userData, 
-            premium: profile.premium || false,
-            kviz_zavrsen: profile.kviz_zavrsen || false
-          };
+        const updatedUser = await fetchUserProfile(userData.email);
+        if (updatedUser) {
           setUser(updatedUser);
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-        } else {
-          setUser(userData);
         }
       }
     } catch (error) {
