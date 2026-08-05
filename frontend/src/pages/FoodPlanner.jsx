@@ -9,6 +9,16 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+// 🔥 MAPPING ZA DANE U SEDMICI
+const dayMapping = {
+  'Pon': 'mon', 'Uto': 'tue', 'Sri': 'wed', 'Čet': 'thu',
+  'Pet': 'fri', 'Sub': 'sat', 'Ned': 'sun',
+  'Mon': 'mon', 'Tue': 'tue', 'Wed': 'wed', 'Thu': 'thu',
+  'Fri': 'fri', 'Sat': 'sat', 'Sun': 'sun',
+  'Mo': 'mon', 'Di': 'tue', 'Mi': 'wed', 'Do': 'thu',
+  'Fr': 'fri', 'Sa': 'sat', 'So': 'sun'
+};
+
 const FoodPlanner = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState(0);
@@ -34,9 +44,9 @@ const FoodPlanner = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showRecipeDropdown, setShowRecipeDropdown] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
-  const [searchingRecipes, setSearchingRecipes] = useState(false); // 🔥 INDIKATOR PRETRAGE
-  const [recipesLoaded, setRecipesLoaded] = useState(false); // 🔥 DA LI SU RECEPTI DOHVAĆENI
-  const searchTimeoutRef = useRef(null); // 🔥 DEBOUNCE TIMER
+  const [searchingRecipes, setSearchingRecipes] = useState(false);
+  const [recipesLoaded, setRecipesLoaded] = useState(false);
+  const searchTimeoutRef = useRef(null);
   
   const [noviObrok, setNoviObrok] = useState({
     naziv: '',
@@ -65,8 +75,6 @@ const FoodPlanner = () => {
   const [weeklyPlan, setWeeklyPlan] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [fridgeItems, setFridgeItems] = useState([]);
-  
-  // 🔥 RESTRIKCIJE IZ PROFILA
   const [restrictions, setRestrictions] = useState([]);
 
   // ============================================================
@@ -99,6 +107,12 @@ const FoodPlanner = () => {
     setSelectedDate(new Date());
   };
 
+  // 🔥 FUNKCIJA ZA PREVOD DANA
+  const getTranslatedDay = (dayName) => {
+    const key = dayMapping[dayName];
+    return key ? t(`foodplanner.plan.days.${key}`) : dayName;
+  };
+
   // ============================================================
   // 🔥 FILTRIRAJ RECEPTE NA OSNOVU RESTRIKCIJA
   // ============================================================
@@ -118,7 +132,7 @@ const FoodPlanner = () => {
   // 🔥 DOHVATI RECEPTE - SAMO KAD JE POTREBNO (LAZY LOAD)
   // ============================================================
   const fetchRecipes = useCallback(async () => {
-    if (recipesLoaded) return; // 🔥 VEĆ SU DOHVAĆENI
+    if (recipesLoaded) return;
     
     try {
       setSearchingRecipes(true);
@@ -150,20 +164,17 @@ const FoodPlanner = () => {
     setSearchTerm(value);
     setShowRecipeDropdown(true);
     
-    // 🔥 OČISTI PREĐAŠNJI TIMER
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
     
-    // 🔥 AKO JE SEARCH PRAZAN, SAKRIJ DROPDOWN
     if (!value.trim()) {
       setShowRecipeDropdown(false);
       return;
     }
     
-    // 🔥 DEBOUNCE - SAČEKAJ 500ms PRIJE NEGO ŠTO DOHVAĆA RECEPTE
     searchTimeoutRef.current = setTimeout(() => {
-      fetchRecipes(); // 🔥 DOHVATI RECEPTE SAMO AKO SU POTREBNE
+      fetchRecipes();
     }, 500);
   };
 
@@ -220,7 +231,7 @@ const FoodPlanner = () => {
     };
 
     fetchProfile();
-  }, []); // 🔥 PRAZAN NIZ - DOHVAĆA SE SAMO JEDNOM
+  }, []);
 
   // ============================================================
   // DOHVATI OBROKE ZA ODABRANI DATUM
@@ -675,7 +686,7 @@ const FoodPlanner = () => {
           <form onSubmit={handleDodajObrok} className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-700">
             <h3 className="font-bold dark:text-white mb-2">{t('foodplanner.diary.add_meal')}</h3>
             
-            {/* 🔥 PRETRAGA RECEPATA - LAZY LOAD */}
+            {/* 🔥 PRETRAGA RECEPATA - SAMO LUPA 🔍 */}
             <div className="relative mb-2">
               <input
                 type="text"
@@ -948,7 +959,7 @@ const FoodPlanner = () => {
       )}
 
       {/* ============================================================ */}
-      {/* TAB 3: PLAN OBROKA */}
+      {/* TAB 3: PLAN OBROKA - SA PREVODOM DANA */}
       {/* ============================================================ */}
       {activeTab === 2 && (
         <div>
@@ -976,7 +987,7 @@ const FoodPlanner = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2">
               {weeklyPlan.dani?.map((dan, i) => (
                 <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-200 dark:border-gray-700">
-                  <h4 className="font-bold text-sm dark:text-white">{dan.naziv}</h4>
+                  <h4 className="font-bold text-sm dark:text-white">{getTranslatedDay(dan.naziv)}</h4>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">🌅 {dan.dorucak}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">☀️ {dan.rucak}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">🌙 {dan.vecera}</p>
@@ -985,9 +996,9 @@ const FoodPlanner = () => {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2">
-              {['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'].map((dan, i) => (
-                <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-200 dark:border-gray-700">
-                  <h4 className="font-bold text-sm dark:text-white">{dan}</h4>
+              {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map((dayKey) => (
+                <div key={dayKey} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-200 dark:border-gray-700">
+                  <h4 className="font-bold text-sm dark:text-white">{t(`foodplanner.plan.days.${dayKey}`)}</h4>
                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">🌅 ---</p>
                   <p className="text-xs text-gray-400 dark:text-gray-500">☀️ ---</p>
                   <p className="text-xs text-gray-400 dark:text-gray-500">🌙 ---</p>

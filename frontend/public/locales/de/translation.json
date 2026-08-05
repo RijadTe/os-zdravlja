@@ -401,7 +401,15 @@
       "title": "📅 Speiseplan",
       "generate": "Wöchentlichen Plan generieren",
       "generating": "Generiere...",
-      "week_days": ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
+      "days": {
+        "mon": "Mo",
+        "tue": "Di",
+        "wed": "Mi",
+        "thu": "Do",
+        "fri": "Fr",
+        "sat": "Sa",
+        "sun": "So"
+      },
       "hint": "💡 Der Plan wird basierend auf Ihren Kühlschrankzutaten generiert"
     },
     "chart": {

@@ -401,7 +401,15 @@
       "title": "📅 Meal Plan",
       "generate": "Generate weekly plan",
       "generating": "Generating...",
-      "week_days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      "days": {
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat",
+        "sun": "Sun"
+      },
       "hint": "💡 Plan is generated based on your fridge ingredients"
     },
     "chart": {

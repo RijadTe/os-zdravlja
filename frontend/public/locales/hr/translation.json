@@ -401,7 +401,15 @@
       "title": "📅 Plan obroka",
       "generate": "Generiši sedmični plan",
       "generating": "Generišem...",
-      "week_days": ["Pon", "Uto", "Sri", "Čet", "Pet", "Sub", "Ned"],
+      "days": {
+        "mon": "Pon",
+        "tue": "Uto",
+        "wed": "Sri",
+        "thu": "Čet",
+        "fri": "Pet",
+        "sat": "Sub",
+        "sun": "Ned"
+      },
       "hint": "💡 Plan se generiše na osnovu vaših namirnica u frižideru"
     },
     "chart": {
