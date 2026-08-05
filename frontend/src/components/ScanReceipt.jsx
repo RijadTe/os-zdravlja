@@ -1,15 +1,17 @@
 // frontend/src/components/ScanReceipt.jsx
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 
-// 🔥 SAMO OVO SAM PROMIJENIO - koristi VITE_API_URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const ScanReceipt = ({ onNamirniceDodane }) => {
+  const { t } = useTranslation();
   const [slika, setSlika] = useState(null);
   const [loading, setLoading] = useState(false);
   const [poruka, setPoruka] = useState('');
   const [prepoznate, setPrepoznate] = useState([]);
+  const fileInputRef = useRef(null);
 
   const handleScan = async () => {
     if (!slika) {
@@ -31,16 +33,15 @@ const ScanReceipt = ({ onNamirniceDodane }) => {
       formData.append('slika', slika);
       formData.append('email', user.email);
 
-      // 🔥 SAMO OVO SAM PROMIJENIO - localhost → API_URL
       const res = await axios.post(`${API_URL}/api/scan-receipt`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 30000
       });
 
-      setPrepoznate(res.data.namirnice);
-      setPoruka(res.data.poruka);
+      setPrepoznate(res.data.namirnice || []);
+      setPoruka(res.data.poruka || '✅ Račun uspješno skeniran!');
 
-      if (onNamirniceDodane) {
+      if (onNamirniceDodane && res.data.namirnice) {
         onNamirniceDodane(res.data.namirnice);
       }
 
@@ -53,30 +54,51 @@ const ScanReceipt = ({ onNamirniceDodane }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-200 dark:border-gray-700">
-      <h3 className="text-xl font-bold mb-4 dark:text-white flex items-center gap-2">
-        📸 Skeniraj račun
-        <span className="inline-block bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 text-[10px] px-2 py-0.5 rounded-full font-bold">⭐ PREMIUM</span>
-      </h3>
-      
-      <div className="flex flex-wrap gap-3">
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setSlika(e.target.files[0])}
-          className="flex-1 border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
-        />
+    <div className="w-full">
+      {/* RESPONZIVNI DIO - POPRAVLJEN! */}
+      <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+        
+        {/* File input - responzivan, bez "Nije izabran nijedan fajl" */}
+        <div className="w-full sm:flex-1">
+          <label 
+            className="flex flex-row items-center justify-center w-full px-3 py-2 sm:py-3 bg-white dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors gap-2"
+          >
+            <span className="text-xl sm:text-2xl">📷</span>
+            <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 text-center truncate max-w-[180px] sm:max-w-full">
+              {slika ? slika.name : t('scanreceipt.select_file', { defaultValue: 'Odaberi sliku računa' })}
+            </span>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) => setSlika(e.target.files[0])}
+              className="hidden"
+            />
+          </label>
+        </div>
+
+        {/* Scan dugme - responzivno */}
         <button
           onClick={handleScan}
-          disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition disabled:opacity-50"
+          disabled={!slika || loading}
+          className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition text-sm sm:text-base flex items-center justify-center gap-2"
         >
-          {loading ? '⏳ Skeniram...' : '📸 Skeniraj'}
+          {loading ? (
+            <>
+              <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+              ⏳ {t('scanreceipt.scanning', { defaultValue: 'Skeniram...' })}
+            </>
+          ) : (
+            <>
+              📸 {t('scanreceipt.scan', { defaultValue: 'Skeniraj' })}
+            </>
+          )}
         </button>
       </div>
 
+      {/* Poruka */}
       {poruka && (
-        <div className={`mt-3 p-3 rounded-xl text-sm ${
+        <div className={`mt-3 p-3 rounded-xl text-xs sm:text-sm ${
           poruka.includes('✅') ? 'bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-200' :
           poruka.includes('❌') || poruka.includes('⚠️') ? 'bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-200' :
           'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
@@ -85,18 +107,24 @@ const ScanReceipt = ({ onNamirniceDodane }) => {
         </div>
       )}
 
+      {/* Prepoznate namirnice */}
       {prepoznate.length > 0 && (
-        <div className="mt-4">
-          <h4 className="font-semibold dark:text-white mb-2">🛒 Prepoznate namirnice:</h4>
-          <div className="flex flex-wrap gap-2">
+        <div className="mt-3">
+          <h4 className="font-semibold dark:text-white text-sm mb-2">🛒 Prepoznate namirnice:</h4>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {prepoznate.map((item, i) => (
-              <span key={i} className="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full text-sm dark:text-white">
+              <span key={i} className="bg-gray-100 dark:bg-gray-700 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm dark:text-white">
                 {item}
               </span>
             ))}
           </div>
         </div>
       )}
+
+      {/* Info tekst */}
+      <p className="mt-2 text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 text-center">
+        {t('scanreceipt.info', { defaultValue: 'Uslikajte račun iz trgovine i automatski ćemo dodati namirnice u frižider.' })}
+      </p>
     </div>
   );
 };
