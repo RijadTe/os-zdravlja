@@ -6,7 +6,30 @@ import { useTranslation } from 'react-i18next';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
-// BREADCRUMB KOMPONENTA - ISTA KAO U HomeKonacno
+// MAPIRANJE NAZIVA U I18N KLJUČEVE
+// ============================================================
+const categoryKeyMap = {
+  'Hormonski ciklus': 'hormonal_cycle',
+  'Tiroida & Hashimoto': 'thyroid',
+  'Slabokrvnost (Anemija)': 'anemia',
+  'Kosti i zglobovi': 'bones',
+  'Menopauza': 'menopause',
+  'PCOS & Inzulinska rezistencija': 'pcos'
+};
+
+const phaseKeyMap = {
+  'Menstrualna faza': 'menstrual',
+  'Folikularna faza': 'follicular',
+  'Ovulacija': 'ovulation',
+  'Rana lutealna faza': 'early_luteal',
+  'PMS': 'pms',
+  'Perimenopauza': 'perimenopause',
+  'Menopauza': 'menopause',
+  'Postmenopauza': 'postmenopause'
+};
+
+// ============================================================
+// BREADCRUMB KOMPONENTA
 // ============================================================
 const Breadcrumb = ({ customLabels = {} }) => {
   const { t } = useTranslation();
@@ -72,7 +95,7 @@ const HealthyChef = () => {
   const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   // ============================================================
-  // BOJE ZA FAZE - koristi ID umjesto naziva za mapiranje
+  // BOJE ZA FAZE - koristi key umjesto naziva
   // ============================================================
   const phaseColors = {
     'menstrual': { bg: 'bg-red-500', border: 'border-red-600', hover: 'hover:bg-red-600', text: 'text-white' },
@@ -83,16 +106,10 @@ const HealthyChef = () => {
     'perimenopause': { bg: 'bg-pink-400', border: 'border-pink-500', hover: 'hover:bg-pink-500', text: 'text-gray-800' },
     'menopause': { bg: 'bg-rose-500', border: 'border-rose-600', hover: 'hover:bg-rose-600', text: 'text-white' },
     'postmenopause': { bg: 'bg-purple-500', border: 'border-purple-600', hover: 'hover:bg-purple-600', text: 'text-white' },
-    'tip1': { bg: 'bg-red-500', border: 'border-red-600', hover: 'hover:bg-red-600', text: 'text-white' },
-    'tip2': { bg: 'bg-orange-400', border: 'border-orange-500', hover: 'hover:bg-orange-500', text: 'text-white' },
-    'tip3': { bg: 'bg-yellow-400', border: 'border-yellow-500', hover: 'hover:bg-yellow-500', text: 'text-gray-800' },
-    'tip4': { bg: 'bg-green-400', border: 'border-green-500', hover: 'hover:bg-green-500', text: 'text-white' },
-    'tip5': { bg: 'bg-blue-500', border: 'border-blue-600', hover: 'hover:bg-blue-600', text: 'text-white' },
-    'tip6': { bg: 'bg-purple-500', border: 'border-purple-600', hover: 'hover:bg-purple-600', text: 'text-white' },
   };
 
-  const getPhaseColor = (id) => {
-    return phaseColors[id] || { bg: 'bg-gray-300', border: 'border-gray-400', hover: 'hover:bg-gray-400', text: 'text-gray-800' };
+  const getPhaseColor = (key) => {
+    return phaseColors[key] || { bg: 'bg-gray-300', border: 'border-gray-400', hover: 'hover:bg-gray-400', text: 'text-gray-800' };
   };
 
   // ============================================================
@@ -104,7 +121,7 @@ const HealthyChef = () => {
   }, []);
 
   // ============================================================
-  // DOHVATI KATEGORIJE I FAZE
+  // DOHVATI KATEGORIJE I FAZE - MAPIRAJ PO NAZIVU
   // ============================================================
   useEffect(() => {
     const fetchAllData = async (retry = 0) => {
@@ -114,12 +131,19 @@ const HealthyChef = () => {
         const katRes = await fetch(`${API_URL}/api/healthy-chef/kategorije`);
         const katData = await katRes.json();
         console.log('📊 Kategorije dohvaćene:', katData?.length || 0);
+        console.log('📊 Primjer kategorije:', katData[0]);
         
-        // ✅ MAPIRAJ KATEGORIJE - dodaj nazivKey za i18n
-        const mappedKategorije = katData.map(kat => ({
-          ...kat,
-          nazivKey: `healthychef.categories.items.${kat.id}`
-        }));
+        // ✅ MAPIRAJ KATEGORIJE - koristi naziv za mapiranje u key
+        const mappedKategorije = katData.map(kat => {
+          // Pronađi key za ovaj naziv
+          const key = categoryKeyMap[kat.naziv] || kat.naziv.toLowerCase().replace(/ /g, '_');
+          return {
+            ...kat,
+            key: key,  // ← DODAJ key (npr. 'hormonal_cycle')
+            nazivKey: `healthychef.categories.items.${key}`
+          };
+        });
+        console.log('📊 Mapped kategorije:', mappedKategorije.map(k => ({ naziv: k.naziv, key: k.key, nazivKey: k.nazivKey })));
         setKategorije(mappedKategorije);
         
         if (kategorijaId) {
@@ -127,18 +151,28 @@ const HealthyChef = () => {
           
           const fazeData = katData.filter(kat => kat.parent_id === kategorijaId);
           console.log('📊 Faze dohvaćene:', fazeData?.length || 0);
+          console.log('📊 Primjer faze:', fazeData[0]);
           
-          // ✅ MAPIRAJ FAZE - dodaj nazivKey za i18n
-          const mappedFaze = fazeData.map(faza => ({
-            ...faza,
-            nazivKey: `healthychef.phases.items.${kategorijaId}.${faza.id}`
-          }));
+          // ✅ MAPIRAJ FAZE - koristi naziv za mapiranje u key
+          const mappedFaze = fazeData.map(faza => {
+            const key = phaseKeyMap[faza.naziv] || faza.naziv.toLowerCase().replace(/ /g, '_');
+            // Pronađi key za parent kategoriju
+            const parentKat = mappedKategorije.find(k => k.id === faza.parent_id);
+            const parentKey = parentKat?.key || 'hormonal_cycle';
+            return {
+              ...faza,
+              key: key,
+              nazivKey: `healthychef.phases.items.${parentKey}.${key}`
+            };
+          });
+          console.log('📊 Mapped faze:', mappedFaze.map(f => ({ naziv: f.naziv, key: f.key, nazivKey: f.nazivKey })));
           setFaze(mappedFaze);
           
           const kat = mappedKategorije.find(k => k.id === kategorijaId);
           if (kat) {
             setCategoryNameKey(kat.nazivKey);
             setCategoryNameFallback(kat.naziv);
+            console.log('📊 Postavljen categoryNameKey:', kat.nazivKey);
           }
           
           if (fazaId) {
@@ -146,6 +180,7 @@ const HealthyChef = () => {
             if (faza) {
               setPhaseNameKey(faza.nazivKey);
               setPhaseNameFallback(faza.naziv);
+              console.log('📊 Postavljen phaseNameKey:', faza.nazivKey);
             }
           }
           
@@ -303,7 +338,7 @@ const HealthyChef = () => {
         ) : faze.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {faze.map(faza => {
-              const colors = getPhaseColor(faza.id);
+              const colors = getPhaseColor(faza.key);
               return (
                 <Link 
                   key={faza.id} 
