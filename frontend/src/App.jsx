@@ -42,26 +42,22 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
-  // 🔥 DODANO - i18n spreman
   const [i18nReady, setI18nReady] = useState(false);
 
   // ============================================================
   // 🔥 i18n - PROVJERA DA LI JE SPREMAN (BEZ ČEKANJA!)
   // ============================================================
   useEffect(() => {
-    // Provjeri da li je i18n već inicijaliziran
     if (i18n.isInitialized) {
       console.log('✅ i18n već inicijaliziran!');
       setI18nReady(true);
     } else {
-      // Ako nije, čekaj event
       const handleInitialized = () => {
         console.log('✅ i18n inicijaliziran!');
         setI18nReady(true);
       };
       i18n.on('initialized', handleInitialized);
       
-      // Fallback - ako se inicijalizacija dogodila prije nego smo stigli
       setTimeout(() => {
         if (i18n.isInitialized) {
           setI18nReady(true);
@@ -117,7 +113,6 @@ function App() {
       return null;
     }
 
-    // 🔥 PROVJERI DA LI JE TOKEN ISTEKAO (30 DANA)
     const tokenExpiry = userData.expires_at || userData.exp;
     if (tokenExpiry) {
       const now = Math.floor(Date.now() / 1000);
@@ -131,10 +126,8 @@ function App() {
       }
     }
 
-    // 🔥 DOHVATI PROFIL IZ BAZE
     const profile = await fetchUserProfile(userData.email);
     
-    // 🔥 ZADRŽI POSTOJEĆI expires_at (NE MIJENJAJ GA)
     const updatedUser = {
       ...userData,
       premium: profile?.premium || false,
@@ -145,10 +138,8 @@ function App() {
       vrijeme: profile?.vrijeme || '',
       tezina: profile?.tezina || '',
       kalorije: profile?.kalorije || '',
-      // ⬅️ ZADRŽI ORIGINALNI expires_at
     };
     
-    // 🔥 SPREMI U LOCALSTORAGE
     localStorage.setItem('user', JSON.stringify(updatedUser));
     if (updatedUser.email) {
       localStorage.setItem('userEmail', updatedUser.email);
@@ -171,12 +162,10 @@ function App() {
       
       console.log('🔄 Auto-refresh sessiona...');
       
-      // 🔥 DOHVATI SVJEŽI PROFIL IZ BAZE
       const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(parsed.email)}`);
       const data = await response.json();
       
       if (data.success && data.data) {
-        // 🔥 OSVJEŽI USER PODATKE (ZADRŽI expires_at)
         const updatedUser = {
           ...parsed,
           ime: data.data.ime || parsed.ime,
@@ -188,7 +177,6 @@ function App() {
           vrijeme: data.data.vrijeme || '',
           tezina: data.data.tezina || '',
           kalorije: data.data.kalorije || '',
-          // 🔥 PRODUŽI EXPIRATION (JOŠ 30 DANA)
           expires_at: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30),
           last_refresh: Math.floor(Date.now() / 1000)
         };
@@ -215,7 +203,6 @@ function App() {
         setLoading(true);
         console.log('🔍 Inicijalizacija auth-a...');
 
-        // 1. PROVJERI LOCALSTORAGE
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
           try {
@@ -223,7 +210,6 @@ function App() {
             if (parsed?.email) {
               console.log('📦 Korisnik iz localStorage:', parsed.email);
               
-              // 🔥 PROVJERI EXPIRATION
               const expiry = parsed.expires_at || parsed.exp;
               if (expiry) {
                 const now = Math.floor(Date.now() / 1000);
@@ -254,7 +240,6 @@ function App() {
           }
         }
 
-        // 2. PROVJERI SUPABASE SESSION
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -264,7 +249,6 @@ function App() {
         if (session?.user) {
           console.log('✅ Korisnik prijavljen preko Supabase:', session.user.email);
           
-          // 🔥 30 DANA EXPIRATION
           const expiresAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
           
           const userObj = {
@@ -299,10 +283,8 @@ function App() {
       }
     };
 
-    // 🔥 POKRENI AUTH
     initAuth();
 
-    // 🔥 PROVJERAVAJ SESSION SVAKIH 5 MINUTA (SAMO EXPIRATION)
     authInterval = setInterval(async () => {
       if (!isMounted) return;
       
@@ -311,7 +293,6 @@ function App() {
         try {
           const parsed = JSON.parse(storedUser);
           if (parsed?.email) {
-            // Provjeri expiration
             const expiry = parsed.expires_at || parsed.exp;
             if (expiry) {
               const now = Math.floor(Date.now() / 1000);
@@ -332,16 +313,14 @@ function App() {
           console.error('❌ Greška pri provjeri sessiona:', e);
         }
       }
-    }, 5 * 60 * 1000); // 5 minuta
+    }, 5 * 60 * 1000);
 
-    // 🔥 AUTO-REFRESH SESSIONA SVAKIH 30 MINUTA
     refreshInterval = setInterval(() => {
       if (isMounted) {
         refreshSession();
       }
-    }, 30 * 60 * 1000); // 30 minuta
+    }, 30 * 60 * 1000);
 
-    // 🔥 REFRESH KAD SE TAB VRATI U FOKUS
     const handleVisibility = () => {
       if (document.visibilityState === 'visible' && isMounted) {
         console.log('👁️ Tab u fokusu, refresh sessiona...');
@@ -350,9 +329,6 @@ function App() {
     };
     document.addEventListener('visibilitychange', handleVisibility);
 
-    // ============================================================
-    // 🔥 SUPABASE AUTH LISTENER
-    // ============================================================
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 Auth event:', event);
       
@@ -361,7 +337,6 @@ function App() {
       if (event === 'SIGNED_IN' && session?.user) {
         console.log('✅ Korisnik se prijavio:', session.user.email);
         
-        // 🔥 30 DANA EXPIRATION
         const expiresAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
         
         const userObj = {
@@ -403,9 +378,6 @@ function App() {
       }
     });
 
-    // ============================================================
-    // 🧹 CLEANUP
-    // ============================================================
     return () => {
       isMounted = false;
       if (authInterval) {
@@ -421,7 +393,7 @@ function App() {
   }, [checkAndSetUser, navigate, refreshSession]);
 
   // ============================================================
-  // 🔄 OSVJEŽAVANJE KORISNIKA (POZIVI IZ DRUGIH DIJELOVA)
+  // 🔄 OSVJEŽAVANJE KORISNIKA
   // ============================================================
   const refreshUser = useCallback(async () => {
     const storedUser = localStorage.getItem('user');
@@ -438,10 +410,9 @@ function App() {
   }, [checkAndSetUser]);
 
   // ============================================================
-  // 🖥️ RENDER - SA i18n READY PROVJEROM (BEZ VJEČNOG LOADINGA)
+  // 🖥️ RENDER
   // ============================================================
   
-  // 🔥 AKO i18n NIJE SPREMAN - PRIKAŽI LOADING (SAMO 100ms)
   if (!i18nReady) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
@@ -453,7 +424,6 @@ function App() {
     );
   }
 
-  // 🔥 AKO SE AUTH UČITAVA
   if (loading || !authChecked) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
@@ -465,7 +435,6 @@ function App() {
     );
   }
 
-  // 🔥 KORISTI user IZ STATE-A
   const currentUser = user;
 
   return (
