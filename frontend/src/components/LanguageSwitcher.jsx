@@ -1,6 +1,7 @@
 // frontend/src/components/LanguageSwitcher.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { changeLanguage } from '../i18n/index'; // 🔥 UVEZI FUNKCIJU
 
 const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
@@ -15,9 +16,8 @@ const LanguageSwitcher = () => {
 
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
 
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
-    localStorage.setItem('i18nextLng', lng);
+  const handleChangeLanguage = async (lng) => {
+    await changeLanguage(lng); // 🔥 KORISTI FUNKCIJU IZ i18n/index.js
     setIsOpen(false);
   };
 
@@ -59,7 +59,7 @@ const LanguageSwitcher = () => {
           {languages.map((lang) => (
             <button
               key={lang.code}
-              onClick={() => changeLanguage(lang.code)}
+              onClick={() => handleChangeLanguage(lang.code)}
               className={`w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm transition duration-150 ${
                 i18n.language === lang.code
                   ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
