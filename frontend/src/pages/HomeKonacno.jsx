@@ -106,6 +106,7 @@ const HomeKonacno = () => {
         // 🔥 PROVJERI DA LI JE RATE LIMIT (429)
         if (response.status === 429) {
           console.warn('⚠️ Rate limit (429) - koristim podatke iz localStorage');
+          // KORISTI PODATKE IZ LOCALSTORAGE
           const storedUser = JSON.parse(localStorage.getItem('user'));
           if (storedUser) {
             const fallbackProfil = {
@@ -119,13 +120,14 @@ const HomeKonacno = () => {
               vrijeme: storedUser.vrijeme || '',
               tezina: storedUser.tezina || '',
               kalorije: storedUser.kalorije || '',
-              namirnice: storedUser.namirnice || [] // ⬅️ PROMIJENJENO!
+              fridge: storedUser.fridge || []
             };
             setProfil(fallbackProfil);
-            if (fallbackProfil.namirnice) {
-              setFridgeItems(Array.isArray(fallbackProfil.namirnice) ? fallbackProfil.namirnice : []);
+            if (fallbackProfil.fridge) {
+              setFridgeItems(Array.isArray(fallbackProfil.fridge) ? fallbackProfil.fridge : []);
             }
             
+            // Postavi filtere iz fallback profila
             const noviFilteri = {};
             if (fallbackProfil.vrsta && fallbackProfil.vrsta.length > 0) {
               const odabraneVrste = fallbackProfil.vrsta.filter(v => v !== 'Svejedno');
@@ -156,11 +158,10 @@ const HomeKonacno = () => {
           console.log('✅ Profil dohvaćen:', data.data);
           setProfil(data.data);
           
-          // 🔥 DOHVATI NAMIRNICE IZ BAZE - PROMIJENJENO!
-          if (data.data.namirnice) {
-            const namirniceData = Array.isArray(data.data.namirnice) ? data.data.namirnice : [];
-            setFridgeItems(namirniceData);
-            console.log('🛒 Namirnice dohvaćene iz baze:', namirniceData);
+          if (data.data.fridge) {
+            const fridgeData = Array.isArray(data.data.fridge) ? data.data.fridge : [];
+            setFridgeItems(fridgeData);
+            console.log('🧊 Frižider dohvaćen iz baze:', fridgeData);
           } else {
             setFridgeItems([]);
           }
@@ -216,6 +217,7 @@ const HomeKonacno = () => {
         }
       } catch (error) {
         console.error('❌ Greška pri dohvatu profila:', error);
+        // 🔥 FALLBACK - pokušaj iz localStorage
         const storedUser = JSON.parse(localStorage.getItem('user'));
         if (storedUser) {
           const fallbackProfil = {
@@ -229,11 +231,11 @@ const HomeKonacno = () => {
             vrijeme: storedUser.vrijeme || '',
             tezina: storedUser.tezina || '',
             kalorije: storedUser.kalorije || '',
-            namirnice: storedUser.namirnice || [] // ⬅️ PROMIJENJENO!
+            fridge: storedUser.fridge || []
           };
           setProfil(fallbackProfil);
-          if (fallbackProfil.namirnice) {
-            setFridgeItems(Array.isArray(fallbackProfil.namirnice) ? fallbackProfil.namirnice : []);
+          if (fallbackProfil.fridge) {
+            setFridgeItems(Array.isArray(fallbackProfil.fridge) ? fallbackProfil.fridge : []);
           }
         }
       } finally {
@@ -251,6 +253,7 @@ const HomeKonacno = () => {
     try {
       const response = await fetch(`${API_URL}/api/recepti`);
       
+      // 🔥 PROVJERI DA LI JE RATE LIMIT (429)
       if (response.status === 429) {
         console.warn('⚠️ Rate limit (429) - koristim prazne recepte');
         setRecepti([]);
@@ -260,6 +263,7 @@ const HomeKonacno = () => {
       
       const data = await response.json();
       
+      // 🔥 SIGURNOSNA PROVJERA - osiguraj da je data array
       if (data && Array.isArray(data)) {
         setRecepti(data);
         console.log(`✅ Dohvaćeno ${data.length} recepata`);
@@ -335,6 +339,7 @@ const HomeKonacno = () => {
   // 5. FILTRIRANI RECEPTI - SA SIGURNOSNOM PROVJEROM
   // ============================================================
   const filteredReceptiMemo = useMemo(() => {
+    // 🔥 SIGURNOSNA PROVJERA - osiguraj da je recepti array
     let filtered = Array.isArray(recepti) ? recepti : [];
     
     if (filters.vrsta) {
@@ -517,7 +522,7 @@ const HomeKonacno = () => {
   // 7. FRIŽIDER FUNKCIJE - SA FREE/PREMIUM LIMITOM!
   // ============================================================
   
-  // 🔥 SPREMI NAMIRNICE U BAZU - PROMIJENJENO!
+  // 🔥 SPREMI FRIŽIDER U BAZU
   const saveFridgeToDatabase = useCallback(async (items) => {
     const email = user?.email || localStorage.getItem('userEmail');
     if (!email) return;
@@ -526,13 +531,11 @@ const HomeKonacno = () => {
       await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          namirnice: items || [] // ⬅️ PROMIJENJENO!
-        })
+        body: JSON.stringify({ fridge: items || [] })
       });
-      console.log('✅ Namirnice spremljene u bazu');
+      console.log('✅ Frižider spremljen u bazu');
     } catch (error) {
-      console.error('❌ Greška pri spremanju namirnica:', error);
+      console.error('❌ Greška pri spremanju frižidera:', error);
     }
   }, [user]);
 
@@ -540,6 +543,7 @@ const HomeKonacno = () => {
   const addFridgeItem = useCallback(() => {
     if (!newItem.trim()) return;
 
+    // 🔥 PROVJERI LIMIT ZA FREE KORISNIKE (MAX 5)
     const isPremium = user?.premium || false;
     const maxItems = isPremium ? Infinity : 5;
     
@@ -558,10 +562,10 @@ const HomeKonacno = () => {
     saveFridgeToDatabase(updatedItems);
   }, [newItem, fridgeItems, user, saveFridgeToDatabase]);
 
-  // 🔥 PRONAĐI RECEPTE NA OSNOVU NAMIRNICA
+  // 🔥 PRONAĐI RECEPTE NA OSNOVU FRIŽIDERA
   const findRecipesFromFridge = useCallback(async () => {
     if (fridgeItems.length === 0) {
-      alert('Dodajte barem jednu namirnicu!');
+      alert('Dodajte barem jednu namirnicu u frižider!');
       return;
     }
 
@@ -578,6 +582,7 @@ const HomeKonacno = () => {
         })
       });
 
+      // 🔥 PROVJERI DA LI JE RATE LIMIT (429)
       if (response.status === 429) {
         alert('Previše zahtjeva. Molimo sačekajte trenutak pa pokušajte ponovo.');
         setFridgeLoading(false);
@@ -601,8 +606,9 @@ const HomeKonacno = () => {
     }
   }, [fridgeItems, user]);
 
-  // 🔥 SKENIRAJ NAMIRNICE
+  // 🔥 SKENIRAJ NAMIRNICE (ZADRŽANO ZA PREMIUM)
   const handleNamirniceDodane = useCallback((namirnice) => {
+    // 🔥 PROVJERI LIMIT ZA FREE KORISNIKE
     const isPremium = user?.premium || false;
     const maxItems = isPremium ? Infinity : 5;
     
@@ -615,7 +621,7 @@ const HomeKonacno = () => {
 
     const updatedItems = [...fridgeItems, ...namirnice];
     setFridgeItems(updatedItems);
-    setScanPoruka(`✅ Dodano ${namirnice.length} namirnica!`);
+    setScanPoruka(`✅ Dodano ${namirnice.length} namirnica u frižider!`);
     setTimeout(() => setScanPoruka(''), 4000);
     saveFridgeToDatabase(updatedItems);
   }, [fridgeItems, user, saveFridgeToDatabase]);
@@ -630,7 +636,7 @@ const HomeKonacno = () => {
   // 🔥 OČISTI FRIŽIDER
   const clearFridge = useCallback(() => {
     if (fridgeItems.length === 0) return;
-    if (window.confirm('Jeste li sigurni da želite očistiti listu?')) {
+    if (window.confirm('Jeste li sigurni da želite očistiti frižider?')) {
       setFridgeItems([]);
       saveFridgeToDatabase([]);
     }
@@ -908,7 +914,7 @@ const HomeKonacno = () => {
         </div>
       </section>
 
-      {/* ===== VIRTUALNI FRIŽIDER - SA LIMITOM I NAMIRNICE POLJEM ===== */}
+      {/* ===== MOJ FRIŽIDER - NOVI, BEZ SCAN RECEIPT ===== */}
       <section className="py-12 md:py-20 px-4 flex justify-center bg-white dark:bg-gray-900">
         <div className="w-full max-w-3xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-gray-800 dark:text-white flex items-center justify-center gap-2 flex-wrap">
@@ -948,8 +954,8 @@ const HomeKonacno = () => {
               </div>
             )}
 
-            {/* PRIKAZ NAMIRNICA */}
-            <div className="mt-4 flex flex-wrap gap-2">
+            {/* LISTA NAMIRNICA */}
+            <div className="mt-4 flex flex-wrap gap-2 min-h-[60px]">
               {fridgeItems.length === 0 ? (
                 <p className="text-gray-400 dark:text-gray-500 text-sm w-full text-center py-4">
                   🧊 Frižider je prazan. Dodajte namirnice!
@@ -979,20 +985,6 @@ const HomeKonacno = () => {
                 {fridgeItems.length} namirnica u frižideru
                 {!isPremium && ` (maksimalno 5 za FREE korisnike)`}
               </p>
-            )}
-
-            {/* SCAN RECEIPT - SAMO ZA PREMIUM */}
-            {user?.premium && (
-              <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
-                <ScanReceipt onNamirniceDodane={handleNamirniceDodane} />
-              </div>
-            )}
-
-            {/* SCAN PORUKA */}
-            {scanPoruka && (
-              <div className="mt-3 text-base text-green-600 dark:text-green-400 font-semibold text-center">
-                {scanPoruka}
-              </div>
             )}
 
             {/* DUGMIĆI - PRONAĐI RECEPTE + OČISTI */}
@@ -1026,7 +1018,7 @@ const HomeKonacno = () => {
             {!user?.premium && (
               <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
                 <p className="text-xs text-center text-gray-600 dark:text-gray-300">
-                  ⭐ Postanite Premium za <strong>neograničenu</strong> listu namirnica i <strong>Scan Receipt</strong>!
+                  ⭐ Postanite Premium za <strong>neograničenu</strong> listu namirnica!
                 </p>
                 <Link 
                   to="/premium" 
