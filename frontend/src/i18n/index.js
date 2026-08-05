@@ -3,57 +3,71 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-// 🔥 INICIJALIZIRAJ SA PRAZNIM PREVODIMA (ODMAH)
-i18n
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
-    resources: {
+const loadTranslations = async () => {
+  try {
+    // 🔥 UČITAJ JSON FAJLOVE DIREKTNO PREKO FETCH-a
+    const [hr, en, de] = await Promise.all([
+      fetch('/locales/hr/translation.json').then(res => {
+        if (!res.ok) throw new Error('HR not found');
+        return res.json();
+      }),
+      fetch('/locales/en/translation.json').then(res => {
+        if (!res.ok) throw new Error('EN not found');
+        return res.json();
+      }),
+      fetch('/locales/de/translation.json').then(res => {
+        if (!res.ok) throw new Error('DE not found');
+        return res.json();
+      })
+    ]);
+
+    const resources = {
+      hr: { translation: hr },
+      en: { translation: en },
+      de: { translation: de },
+    };
+
+    await i18n
+      .use(LanguageDetector)
+      .use(initReactI18next)
+      .init({
+        resources,
+        fallbackLng: 'hr',
+        // 🔥 SAMO OVO DODAJ - lng: 'hr'
+        lng: 'hr',
+        interpolation: {
+          escapeValue: false,
+        },
+      });
+
+    console.log('✅ i18n inicijaliziran sa HR!');
+    return i18n;
+  } catch (error) {
+    console.error('❌ Greška pri učitavanju prevoda:', error);
+    // 🔥 FALLBACK - ako ne može da učita, koristi prazne prevode
+    const resources = {
       hr: { translation: {} },
       en: { translation: {} },
       de: { translation: {} },
-    },
-    fallbackLng: 'hr',
-    lng: 'hr',
-    interpolation: {
-      escapeValue: false,
-    },
-    react: {
-      useSuspense: false,
-    },
-  });
-
-// 🔥 UČITAVANJE PREVODA ASINHRONO (NE BLOKIRA)
-const loadTranslations = async () => {
-  try {
-    const [hr, en, de] = await Promise.all([
-      fetch('/locales/hr/translation.json').then(res => res.json()),
-      fetch('/locales/en/translation.json').then(res => res.json()),
-      fetch('/locales/de/translation.json').then(res => res.json())
-    ]);
-
-    i18n.addResourceBundle('hr', 'translation', hr);
-    i18n.addResourceBundle('en', 'translation', en);
-    i18n.addResourceBundle('de', 'translation', de);
-
-    // 🔥 PROVJERI SPREMLJENI JEZIK
-    const savedLanguage = localStorage.getItem('i18nextLng') || 'hr';
-    await i18n.changeLanguage(savedLanguage);
-
-    console.log(`✅ i18n inicijaliziran sa: ${savedLanguage}`);
-  } catch (error) {
-    console.error('❌ Greška pri učitavanju prevoda:', error);
-    // 🔥 FALLBACK NA HR
-    await i18n.changeLanguage('hr');
+    };
+    
+    await i18n
+      .use(LanguageDetector)
+      .use(initReactI18next)
+      .init({
+        resources,
+        fallbackLng: 'hr',
+        lng: 'hr',
+        interpolation: {
+          escapeValue: false,
+        },
+      });
+    
+    return i18n;
   }
 };
 
-// 🔥 POKRENI UČITAVANJE (NE ČEKA)
+// 🔥 POKRENI UČITAVANJE
 loadTranslations();
-
-// 🔥 SPREMI JEZIK KAD SE PROMIJENI
-i18n.on('languageChanged', (lng) => {
-  localStorage.setItem('i18nextLng', lng);
-});
 
 export default i18n;
