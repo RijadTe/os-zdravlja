@@ -4,7 +4,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient';
 
-// 🔥 KORISTI VITE_API_URL umjesto hard-coded localhost
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const Profile = () => {
@@ -84,57 +83,44 @@ const Profile = () => {
   }, [t, i18n.language]);
 
   // ============================================================
-  // 🔐 AUTH
-  // ============================================================
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          console.log('✅ Korisnik prijavljen (Supabase):', session.user.email);
-          setUser(session.user);
-          localStorage.setItem('user', JSON.stringify(session.user));
-          localStorage.setItem('userEmail', session.user.email);
-          localStorage.setItem('userName', session.user.user_metadata?.ime || '');
-          await fetchProfile(session.user.email);
-          return;
-        }
-        
-        const userData = JSON.parse(localStorage.getItem('user'));
-        if (!userData) {
-          navigate('/login');
-          return;
-        }
-        
-        setUser(userData);
-        const email = localStorage.getItem('userEmail') || userData?.email;
-        if (email) {
-          await fetchProfile(email);
-        } else {
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('❌ Greška:', error);
-        setLoading(false);
-      }
-    };
-
-    checkUser();
-  }, [navigate]);
-
-  // ============================================================
-  // 📊 DOHVATI PROFIL
+  // 📊 DOHVATI PROFIL - SA RATE LIMIT FALLBACKOM!
   // ============================================================
   const fetchProfile = async (email) => {
     try {
       console.log('📧 Dohvatam profil za:', email);
-      // 🔥 PROMIJENJENO - koristi API_URL
-      const res = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
-      const data = await res.json();
+      
+      const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
+      
+      // 🔥 PROVJERI DA LI JE RATE LIMIT (429)
+      if (response.status === 429) {
+        console.warn('⚠️ Rate limit (429) - koristim podatke iz localStorage');
+        // KORISTI PODATKE IZ LOCALSTORAGE
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        if (storedUser) {
+          const fallbackProfile = {
+            ime: storedUser.ime || 'Korisnik',
+            email: storedUser.email || email,
+            premium: storedUser.premium || false,
+            kviz_zavrsen: storedUser.kviz_zavrsen || false,
+            vrsta: storedUser.vrsta || [],
+            izbjegava: storedUser.izbjegava || [],
+            preferencije: storedUser.preferencije || [],
+            vrijeme: storedUser.vrijeme || '',
+            tezina: storedUser.tezina || '',
+            kalorije: storedUser.kalorije || '',
+            skuhano_recepata: storedUser.skuhano_recepata || 0
+          };
+          setProfile(fallbackProfile);
+          console.log('✅ Profil dohvaćen iz localStorage (fallback)');
+        }
+        setLoading(false);
+        return;
+      }
+      
+      const data = await response.json();
       console.log('📊 Profil dohvaćen:', data);
       
-      if (data.success) {
+      if (data.success && data.data) {
         setProfile(data.data);
       } else {
         console.error('❌ Profil nije pronađen');
@@ -142,7 +128,25 @@ const Profile = () => {
       }
     } catch (error) {
       console.error('❌ Greška pri dohvatu profila:', error);
-      if (error.message.includes('404')) {
+      // 🔥 FALLBACK - pokušaj iz localStorage
+      const storedUser = JSON.parse(localStorage.getItem('user'));
+      if (storedUser) {
+        const fallbackProfile = {
+          ime: storedUser.ime || 'Korisnik',
+          email: storedUser.email || email,
+          premium: storedUser.premium || false,
+          kviz_zavrsen: storedUser.kviz_zavrsen || false,
+          vrsta: storedUser.vrsta || [],
+          izbjegava: storedUser.izbjegava || [],
+          preferencije: storedUser.preferencije || [],
+          vrijeme: storedUser.vrijeme || '',
+          tezina: storedUser.tezina || '',
+          kalorije: storedUser.kalorije || '',
+          skuhano_recepata: storedUser.skuhano_recepata || 0
+        };
+        setProfile(fallbackProfile);
+        console.log('✅ Profil dohvaćen iz localStorage (fallback)');
+      } else {
         await createProfile(email);
       }
     } finally {
@@ -156,7 +160,6 @@ const Profile = () => {
   const createProfile = async (email) => {
     try {
       console.log('🆕 Kreiram profil za:', email);
-      // 🔥 PROMIJENJENO - koristi API_URL
       const res = await fetch(`${API_URL}/api/profil`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -182,6 +185,56 @@ const Profile = () => {
   };
 
   // ============================================================
+  // 🔐 AUTH - SA RATE LIMIT ZAŠTITOM
+  // ============================================================
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          console.log('✅ Korisnik prijavljen (Supabase):', session.user.email);
+          
+          // Spremi Supabase user podatke
+          const supabaseUser = {
+            id: session.user.id,
+            email: session.user.email,
+            ime: session.user.user_metadata?.ime || '',
+            premium: false
+          };
+          setUser(supabaseUser);
+          localStorage.setItem('user', JSON.stringify(supabaseUser));
+          localStorage.setItem('userEmail', session.user.email);
+          localStorage.setItem('userName', session.user.user_metadata?.ime || '');
+          
+          await fetchProfile(session.user.email);
+          return;
+        }
+        
+        // Provjeri localStorage
+        const userData = JSON.parse(localStorage.getItem('user'));
+        if (!userData) {
+          navigate('/login');
+          return;
+        }
+        
+        setUser(userData);
+        const email = localStorage.getItem('userEmail') || userData?.email;
+        if (email) {
+          await fetchProfile(email);
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('❌ Greška pri provjeri korisnika:', error);
+        setLoading(false);
+      }
+    };
+
+    checkUser();
+  }, [navigate]);
+
+  // ============================================================
   // 🗑️ IZBRIŠI SVE PODATKE
   // ============================================================
   const handleDeleteData = async () => {
@@ -190,7 +243,6 @@ const Profile = () => {
     setDeleting(true);
     try {
       const email = user?.email || localStorage.getItem('userEmail');
-      // 🔥 PROMIJENJENO - koristi API_URL
       await fetch(`${API_URL}/api/profil/${email}/delete`, { method: 'DELETE' });
       localStorage.clear();
       navigate('/login');
@@ -201,17 +253,27 @@ const Profile = () => {
   };
 
   // ============================================================
-  // 🚪 ODJAVA
+  // 🚪 ODJAVA - SA BRISANJEM SVIH PODATAKA
   // ============================================================
   const handleLogout = async () => {
+    // 🔥 PITAJ KORISNIKA DA LI JE SIGURAN
+    if (!window.confirm('Jeste li sigurni da se želite odjaviti?')) {
+      return;
+    }
+
     try {
       await supabase.auth.signOut();
     } catch (error) {
       console.error('❌ Greška pri odjavi:', error);
     }
+    
+    // 🔥 OBRISI SVE IZ LOCALSTORAGE
     localStorage.removeItem('user');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userName');
+    localStorage.removeItem('remember_me');
+    localStorage.removeItem('supabase_session');
+    
     navigate('/login');
   };
 

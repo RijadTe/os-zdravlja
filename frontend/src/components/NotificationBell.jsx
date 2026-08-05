@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-// 🔥 PROMIJENJENO - uklonjen /api sa kraja
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const NotificationBell = () => {
@@ -44,45 +43,70 @@ const NotificationBell = () => {
   }, []);
 
   // ============================================================
-  // DOHVATI NOTIFIKACIJE - 🔥 POPRAVLJENO!
+  // DOHVATI NOTIFIKACIJE - SA SIGURNOSNIM PROVJERAMA!
   // ============================================================
   const fetchNotifikacije = async (korisnikId) => {
     try {
       setLoading(true);
       const param = korisnikId.includes('@') ? korisnikId : korisnikId;
-      // 🔥 PROMIJENJENO - dodan /api
       const res = await fetch(`${API_URL}/api/notifikacije/${param}`);
+      
+      // 🔥 PROVJERI DA LI JE RATE LIMIT (429)
+      if (res.status === 429) {
+        console.warn('⚠️ Rate limit (429) - koristim prazne notifikacije');
+        setNotifikacije([]);
+        setUnreadCount(0);
+        setLoading(false);
+        return;
+      }
+      
       const data = await res.json();
-      setNotifikacije(data || []);
-      setUnreadCount(data.filter(n => !n.procitano).length);
+      
+      // 🔥 SIGURNOSNA PROVJERA - osiguraj da je data array
+      if (data && Array.isArray(data)) {
+        setNotifikacije(data);
+        setUnreadCount(data.filter(n => !n.procitano).length);
+      } else if (data && Array.isArray(data.data)) {
+        setNotifikacije(data.data);
+        setUnreadCount(data.data.filter(n => !n.procitano).length);
+      } else {
+        console.warn('⚠️ Notifikacije nisu array, postavljam prazan niz');
+        setNotifikacije([]);
+        setUnreadCount(0);
+      }
     } catch (error) {
       console.error('Greška pri dohvatanju notifikacija:', error);
       setNotifikacije([]);
+      setUnreadCount(0);
     } finally {
       setLoading(false);
     }
   };
 
   // ============================================================
-  // GENERIŠI AUTOMATSKE PREPORUKE - 🔥 POPRAVLJENO!
+  // GENERIŠI AUTOMATSKE PREPORUKE - SA RATE LIMIT ZAŠTITOM
   // ============================================================
   const generatePreporuke = async (korisnikId) => {
     try {
       const param = korisnikId.includes('@') ? korisnikId : korisnikId;
-      // 🔥 PROMIJENJENO - dodan /api
-      await fetch(`${API_URL}/api/notifikacije/preporuke/${param}`);
-      setTimeout(() => fetchNotifikacije(korisnikId), 1000);
+      const res = await fetch(`${API_URL}/api/notifikacije/preporuke/${param}`);
+      
+      // 🔥 AKO JE RATE LIMIT, NE ČEKAJ PREPORUKE
+      if (res.status !== 429) {
+        setTimeout(() => fetchNotifikacije(korisnikId), 1000);
+      } else {
+        console.warn('⚠️ Rate limit (429) - preskačem preporuke');
+      }
     } catch (error) {
       console.error('Greška pri generisanju preporuka:', error);
     }
   };
 
   // ============================================================
-  // OZNAČI KAO PROČITANO - 🔥 POPRAVLJENO!
+  // OZNAČI KAO PROČITANO
   // ============================================================
   const markAsRead = async (id) => {
     try {
-      // 🔥 PROMIJENJENO - dodan /api
       await fetch(`${API_URL}/api/notifikacije/${id}/read`, {
         method: 'PUT'
       });
@@ -106,11 +130,10 @@ const NotificationBell = () => {
   };
 
   // ============================================================
-  // IZBRIŠI NOTIFIKACIJU - 🔥 POPRAVLJENO!
+  // IZBRIŠI NOTIFIKACIJU
   // ============================================================
   const deleteNotification = async (id) => {
     try {
-      // 🔥 PROMIJENJENO - dodan /api
       await fetch(`${API_URL}/api/notifikacije/${id}`, {
         method: 'DELETE'
       });

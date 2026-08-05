@@ -1,6 +1,6 @@
 // frontend/src/pages/HomeKonacno.jsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // ⬅️ DODAJ useNavigate!
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import RecipeCard from '../components/RecipeCard';
 import ScanReceipt from '../components/ScanReceipt';
@@ -10,7 +10,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const HomeKonacno = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate(); // ⬅️ DODAJ OVO!
+  const navigate = useNavigate();
   
   const [recepti, setRecepti] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +37,7 @@ const HomeKonacno = () => {
   });
 
   // ============================================================
-  // 🔐 PROVJERA DA LI JE KORISNIK PRIJAVLJEN - SA useNavigate!
+  // 🔐 PROVJERA DA LI JE KORISNIK PRIJAVLJEN
   // ============================================================
   useEffect(() => {
     const checkUser = () => {
@@ -85,7 +85,7 @@ const HomeKonacno = () => {
   }, []);
 
   // ============================================================
-  // 2. DOHVATI PROFIL IZ BAZE I AUTOMATSKI POSTAVI FILTERE
+  // 2. DOHVATI PROFIL IZ BAZE - SA RATE LIMIT FALLBACKOM!
   // ============================================================
   useEffect(() => {
     const dohvatiProfil = async () => {
@@ -102,6 +102,56 @@ const HomeKonacno = () => {
         console.log('📧 Dohvatam profil za email:', email);
         
         const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
+        
+        // 🔥 PROVJERI DA LI JE RATE LIMIT (429)
+        if (response.status === 429) {
+          console.warn('⚠️ Rate limit (429) - koristim podatke iz localStorage');
+          // KORISTI PODATKE IZ LOCALSTORAGE
+          const storedUser = JSON.parse(localStorage.getItem('user'));
+          if (storedUser) {
+            const fallbackProfil = {
+              ime: storedUser.ime || 'Korisnik',
+              email: storedUser.email || email,
+              premium: storedUser.premium || false,
+              kviz_zavrsen: storedUser.kviz_zavrsen || false,
+              vrsta: storedUser.vrsta || [],
+              izbjegava: storedUser.izbjegava || [],
+              preferencije: storedUser.preferencije || [],
+              vrijeme: storedUser.vrijeme || '',
+              tezina: storedUser.tezina || '',
+              kalorije: storedUser.kalorije || '',
+              fridge: storedUser.fridge || []
+            };
+            setProfil(fallbackProfil);
+            if (fallbackProfil.fridge) {
+              setFridgeItems(Array.isArray(fallbackProfil.fridge) ? fallbackProfil.fridge : []);
+            }
+            
+            // Postavi filtere iz fallback profila
+            const noviFilteri = {};
+            if (fallbackProfil.vrsta && fallbackProfil.vrsta.length > 0) {
+              const odabraneVrste = fallbackProfil.vrsta.filter(v => v !== 'Svejedno');
+              if (odabraneVrste.length > 0) noviFilteri.vrsta = odabraneVrste[0];
+            }
+            if (fallbackProfil.preferencije && fallbackProfil.preferencije.length > 0) {
+              const odabranePref = fallbackProfil.preferencije.filter(p => p !== 'Svejedno');
+              if (odabranePref.length > 0) noviFilteri.preferencije = odabranePref[0];
+            }
+            if (fallbackProfil.izbjegava && fallbackProfil.izbjegava.length > 0) {
+              const restrikcije = fallbackProfil.izbjegava.filter(r => r !== 'Bez restrikcija');
+              if (restrikcije.length > 0) noviFilteri.restrikcije = restrikcije;
+            }
+            if (fallbackProfil.vrijeme) noviFilteri.vrijeme = fallbackProfil.vrijeme;
+            if (fallbackProfil.tezina) noviFilteri.tezina = fallbackProfil.tezina;
+            if (fallbackProfil.kalorije) noviFilteri.kalorije = fallbackProfil.kalorije;
+            
+            setFilters(prev => ({ ...prev, ...noviFilteri }));
+            console.log('✅ Profil dohvaćen iz localStorage (fallback)');
+          }
+          setProfilLoading(false);
+          return;
+        }
+        
         const data = await response.json();
         
         if (data.success && data.data) {
@@ -167,6 +217,27 @@ const HomeKonacno = () => {
         }
       } catch (error) {
         console.error('❌ Greška pri dohvatu profila:', error);
+        // 🔥 FALLBACK - pokušaj iz localStorage
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        if (storedUser) {
+          const fallbackProfil = {
+            ime: storedUser.ime || 'Korisnik',
+            email: storedUser.email || email,
+            premium: storedUser.premium || false,
+            kviz_zavrsen: storedUser.kviz_zavrsen || false,
+            vrsta: storedUser.vrsta || [],
+            izbjegava: storedUser.izbjegava || [],
+            preferencije: storedUser.preferencije || [],
+            vrijeme: storedUser.vrijeme || '',
+            tezina: storedUser.tezina || '',
+            kalorije: storedUser.kalorije || '',
+            fridge: storedUser.fridge || []
+          };
+          setProfil(fallbackProfil);
+          if (fallbackProfil.fridge) {
+            setFridgeItems(Array.isArray(fallbackProfil.fridge) ? fallbackProfil.fridge : []);
+          }
+        }
       } finally {
         setProfilLoading(false);
       }
@@ -176,16 +247,37 @@ const HomeKonacno = () => {
   }, [user]);
 
   // ============================================================
-  // 3. DOHVATI RECEPTE
+  // 3. DOHVATI RECEPTE - SA SIGURNOSNOM PROVJEROM
   // ============================================================
   const fetchRecipes = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/api/recepti`);
-      const data = await res.json();
-      setRecepti(data);
+      const response = await fetch(`${API_URL}/api/recepti`);
+      
+      // 🔥 PROVJERI DA LI JE RATE LIMIT (429)
+      if (response.status === 429) {
+        console.warn('⚠️ Rate limit (429) - koristim prazne recepte');
+        setRecepti([]);
+        setLoading(false);
+        return;
+      }
+      
+      const data = await response.json();
+      
+      // 🔥 SIGURNOSNA PROVJERA - osiguraj da je data array
+      if (data && Array.isArray(data)) {
+        setRecepti(data);
+        console.log(`✅ Dohvaćeno ${data.length} recepata`);
+      } else if (data && Array.isArray(data.data)) {
+        setRecepti(data.data);
+        console.log(`✅ Dohvaćeno ${data.data.length} recepata`);
+      } else {
+        console.warn('⚠️ Recepti nisu array, postavljam prazan niz');
+        setRecepti([]);
+      }
       setLoading(false);
     } catch (err) {
-      console.error('Greška:', err);
+      console.error('❌ Greška pri dohvatu recepata:', err);
+      setRecepti([]); // ⬅️ UVijek postavi prazan array
       setLoading(false);
     }
   }, []);
@@ -244,10 +336,11 @@ const HomeKonacno = () => {
   }, [profil]);
 
   // ============================================================
-  // 5. FILTRIRANI RECEPTI
+  // 5. FILTRIRANI RECEPTI - SA SIGURNOSNOM PROVJEROM
   // ============================================================
   const filteredReceptiMemo = useMemo(() => {
-    let filtered = recepti;
+    // 🔥 SIGURNOSNA PROVJERA - osiguraj da je recepti array
+    let filtered = Array.isArray(recepti) ? recepti : [];
     
     if (filters.vrsta) {
       filtered = filtered.filter(r => r.vrsta === filters.vrsta);
@@ -342,15 +435,17 @@ const HomeKonacno = () => {
       const isEnergyGood = energy === 'Pun/a' || energy === 'Osrednje';
       const isStressLow = stress === 'Nizak' || stress === 'Srednji';
 
-      if (recepti.length > 0) {
-        let baseRecipes = recepti;
+      const baseRecipes = Array.isArray(recepti) ? recepti : [];
+
+      if (baseRecipes.length > 0) {
+        let filteredBase = baseRecipes;
         
         if (filters.restrikcije && filters.restrikcije.length > 0) {
           const restrikcije = Array.isArray(filters.restrikcije) 
             ? filters.restrikcije 
             : [filters.restrikcije];
           
-          baseRecipes = baseRecipes.filter(recipe => {
+          filteredBase = filteredBase.filter(recipe => {
             const alergeni = recipe.alergeni || [];
             return !restrikcije.some(r => alergeni.includes(r));
           });
@@ -358,47 +453,47 @@ const HomeKonacno = () => {
 
         if (!isSleepGood && !isEnergyGood && !isStressLow) {
           advice = t('home.advice_tired_stressed');
-          filteredRecepti = baseRecipes.filter(r => 
+          filteredRecepti = filteredBase.filter(r => 
             r.vrsta === 'Dijetalni recepti' || 
             (r.kalorije || 0) < 400 || 
             r.vrijeme?.includes('Kratko')
           );
         } else if (!isSleepGood && !isEnergyGood) {
           advice = t('home.advice_bad_sleep_low_energy');
-          filteredRecepti = baseRecipes.filter(r => 
+          filteredRecepti = filteredBase.filter(r => 
             (r.proteini || 0) > 20 || 
             r.vrsta === 'Dijetalni recepti'
           );
         } else if (!isSleepGood && isStressLow) {
           advice = t('home.advice_bad_sleep_good_stress');
-          filteredRecepti = baseRecipes.filter(r => 
+          filteredRecepti = filteredBase.filter(r => 
             (r.kalorije || 0) < 500 || 
             r.vrijeme?.includes('Srednje') ||
             r.vrsta === 'Dijetalni recepti'
           );
         } else if (isEnergyGood && isStressLow) {
           advice = t('home.advice_good_energy_low_stress');
-          filteredRecepti = baseRecipes.filter(r => 
+          filteredRecepti = filteredBase.filter(r => 
             r.vrsta !== 'Dijetalni recepti' || 
             r.vrijeme?.includes('Duže')
           );
         } else if (isEnergyGood && !isStressLow) {
           advice = t('home.advice_good_energy_high_stress');
-          filteredRecepti = baseRecipes.filter(r => 
+          filteredRecepti = filteredBase.filter(r => 
             r.vrsta === 'Deserti' || 
             r.vrsta === 'Napitki' ||
             (r.kalorije || 0) < 400
           );
         } else if (!isEnergyGood && isStressLow) {
           advice = t('home.advice_low_energy_low_stress');
-          filteredRecepti = baseRecipes.filter(r => 
+          filteredRecepti = filteredBase.filter(r => 
             (r.proteini || 0) > 20 || 
             (r.ugljikohidrati || 0) > 30 ||
             r.vrsta === 'Slano'
           );
         } else {
           advice = t('home.advice_all_good');
-          filteredRecepti = baseRecipes.slice(0, 6);
+          filteredRecepti = filteredBase.slice(0, 6);
         }
 
         filteredRecepti = filteredRecepti.slice(0, 6);
@@ -470,6 +565,13 @@ const HomeKonacno = () => {
           email: user?.email || localStorage.getItem('userEmail')
         })
       });
+
+      // 🔥 PROVJERI DA LI JE RATE LIMIT (429)
+      if (response.status === 429) {
+        alert('Previše zahtjeva. Molimo sačekajte trenutak pa pokušajte ponovo.');
+        setFridgeLoading(false);
+        return;
+      }
 
       const data = await response.json();
       
