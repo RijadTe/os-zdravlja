@@ -50,7 +50,7 @@ const Breadcrumb = ({ customLabels = {} }) => {
 // GLAVNA KOMPONENTA
 // ============================================================
 const HealthyChef = () => {
-  const { t } = useTranslation(); // ← ISTO KAO HomeKonacno
+  const { t } = useTranslation();
   const { kategorijaId, fazaId } = useParams();
   const navigate = useNavigate();
   const [kategorije, setKategorije] = useState([]);
@@ -65,32 +65,34 @@ const HealthyChef = () => {
     tezina: ''
   });
 
-  const [categoryName, setCategoryName] = useState('');
-  const [phaseName, setPhaseName] = useState('');
+  const [categoryNameKey, setCategoryNameKey] = useState('');
+  const [categoryNameFallback, setCategoryNameFallback] = useState('');
+  const [phaseNameKey, setPhaseNameKey] = useState('');
+  const [phaseNameFallback, setPhaseNameFallback] = useState('');
   const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   // ============================================================
-  // BOJE ZA FAZE
+  // BOJE ZA FAZE - koristi ID umjesto naziva za mapiranje
   // ============================================================
   const phaseColors = {
-    'Menstrualna faza': { bg: 'bg-red-500', border: 'border-red-600', hover: 'hover:bg-red-600', text: 'text-white' },
-    'Folikularna faza': { bg: 'bg-orange-400', border: 'border-orange-500', hover: 'hover:bg-orange-500', text: 'text-white' },
-    'Ovulacija': { bg: 'bg-yellow-400', border: 'border-yellow-500', hover: 'hover:bg-yellow-500', text: 'text-gray-800' },
-    'Rana lutealna faza': { bg: 'bg-green-400', border: 'border-green-500', hover: 'hover:bg-green-500', text: 'text-white' },
-    'PMS': { bg: 'bg-purple-500', border: 'border-purple-600', hover: 'hover:bg-purple-600', text: 'text-white' },
-    'Perimenopauza': { bg: 'bg-pink-400', border: 'border-pink-500', hover: 'hover:bg-pink-500', text: 'text-gray-800' },
-    'Menopauza': { bg: 'bg-rose-500', border: 'border-rose-600', hover: 'hover:bg-rose-600', text: 'text-white' },
-    'Postmenopauza': { bg: 'bg-purple-500', border: 'border-purple-600', hover: 'hover:bg-purple-600', text: 'text-white' },
-    'Tip 1': { bg: 'bg-red-500', border: 'border-red-600', hover: 'hover:bg-red-600', text: 'text-white' },
-    'Tip 2': { bg: 'bg-orange-400', border: 'border-orange-500', hover: 'hover:bg-orange-500', text: 'text-white' },
-    'Tip 3': { bg: 'bg-yellow-400', border: 'border-yellow-500', hover: 'hover:bg-yellow-500', text: 'text-gray-800' },
-    'Tip 4': { bg: 'bg-green-400', border: 'border-green-500', hover: 'hover:bg-green-500', text: 'text-white' },
-    'Tip 5': { bg: 'bg-blue-500', border: 'border-blue-600', hover: 'hover:bg-blue-600', text: 'text-white' },
-    'Tip 6': { bg: 'bg-purple-500', border: 'border-purple-600', hover: 'hover:bg-purple-600', text: 'text-white' },
+    'menstrual': { bg: 'bg-red-500', border: 'border-red-600', hover: 'hover:bg-red-600', text: 'text-white' },
+    'follicular': { bg: 'bg-orange-400', border: 'border-orange-500', hover: 'hover:bg-orange-500', text: 'text-white' },
+    'ovulation': { bg: 'bg-yellow-400', border: 'border-yellow-500', hover: 'hover:bg-yellow-500', text: 'text-gray-800' },
+    'early_luteal': { bg: 'bg-green-400', border: 'border-green-500', hover: 'hover:bg-green-500', text: 'text-white' },
+    'pms': { bg: 'bg-purple-500', border: 'border-purple-600', hover: 'hover:bg-purple-600', text: 'text-white' },
+    'perimenopause': { bg: 'bg-pink-400', border: 'border-pink-500', hover: 'hover:bg-pink-500', text: 'text-gray-800' },
+    'menopause': { bg: 'bg-rose-500', border: 'border-rose-600', hover: 'hover:bg-rose-600', text: 'text-white' },
+    'postmenopause': { bg: 'bg-purple-500', border: 'border-purple-600', hover: 'hover:bg-purple-600', text: 'text-white' },
+    'tip1': { bg: 'bg-red-500', border: 'border-red-600', hover: 'hover:bg-red-600', text: 'text-white' },
+    'tip2': { bg: 'bg-orange-400', border: 'border-orange-500', hover: 'hover:bg-orange-500', text: 'text-white' },
+    'tip3': { bg: 'bg-yellow-400', border: 'border-yellow-500', hover: 'hover:bg-yellow-500', text: 'text-gray-800' },
+    'tip4': { bg: 'bg-green-400', border: 'border-green-500', hover: 'hover:bg-green-500', text: 'text-white' },
+    'tip5': { bg: 'bg-blue-500', border: 'border-blue-600', hover: 'hover:bg-blue-600', text: 'text-white' },
+    'tip6': { bg: 'bg-purple-500', border: 'border-purple-600', hover: 'hover:bg-purple-600', text: 'text-white' },
   };
 
-  const getPhaseColor = (naziv) => {
-    return phaseColors[naziv] || { bg: 'bg-gray-300', border: 'border-gray-400', hover: 'hover:bg-gray-400', text: 'text-gray-800' };
+  const getPhaseColor = (id) => {
+    return phaseColors[id] || { bg: 'bg-gray-300', border: 'border-gray-400', hover: 'hover:bg-gray-400', text: 'text-gray-800' };
   };
 
   // ============================================================
@@ -112,21 +114,39 @@ const HealthyChef = () => {
         const katRes = await fetch(`${API_URL}/api/healthy-chef/kategorije`);
         const katData = await katRes.json();
         console.log('📊 Kategorije dohvaćene:', katData?.length || 0);
-        setKategorije(katData);
+        
+        // ✅ MAPIRAJ KATEGORIJE - dodaj nazivKey za i18n
+        const mappedKategorije = katData.map(kat => ({
+          ...kat,
+          nazivKey: `healthychef.categories.items.${kat.id}`
+        }));
+        setKategorije(mappedKategorije);
         
         if (kategorijaId) {
           setLoadingFaze(true);
           
           const fazeData = katData.filter(kat => kat.parent_id === kategorijaId);
           console.log('📊 Faze dohvaćene:', fazeData?.length || 0);
-          setFaze(fazeData);
           
-          const kat = katData.find(k => k.id === kategorijaId);
-          if (kat) setCategoryName(kat.naziv);
+          // ✅ MAPIRAJ FAZE - dodaj nazivKey za i18n
+          const mappedFaze = fazeData.map(faza => ({
+            ...faza,
+            nazivKey: `healthychef.phases.items.${kategorijaId}.${faza.id}`
+          }));
+          setFaze(mappedFaze);
+          
+          const kat = mappedKategorije.find(k => k.id === kategorijaId);
+          if (kat) {
+            setCategoryNameKey(kat.nazivKey);
+            setCategoryNameFallback(kat.naziv);
+          }
           
           if (fazaId) {
-            const faza = fazeData.find(f => f.id === fazaId);
-            if (faza) setPhaseName(faza.naziv);
+            const faza = mappedFaze.find(f => f.id === fazaId);
+            if (faza) {
+              setPhaseNameKey(faza.nazivKey);
+              setPhaseNameFallback(faza.naziv);
+            }
           }
           
           setLoadingFaze(false);
@@ -241,7 +261,9 @@ const HealthyChef = () => {
                 className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-lg transition border border-gray-200 dark:border-gray-700 text-center hover:scale-105"
               >
                 <span className="text-4xl block mb-2">{kat.ikona || '🌿'}</span>
-                <h3 className="font-bold text-gray-800 dark:text-white">{kat.naziv}</h3>
+                <h3 className="font-bold text-gray-800 dark:text-white">
+                  {t(kat.nazivKey, { defaultValue: kat.naziv })}
+                </h3>
               </Link>
             ))}
           </div>
@@ -261,14 +283,16 @@ const HealthyChef = () => {
     const trenutnaKategorija = kategorije.find(k => k.id === kategorijaId);
     return (
       <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
-        <Breadcrumb customLabels={{ [kategorijaId]: categoryName || kategorijaId }} />
+        <Breadcrumb customLabels={{ [kategorijaId]: t(categoryNameKey, { defaultValue: categoryNameFallback || kategorijaId }) }} />
         <button 
           onClick={() => navigate('/healthy-chef')} 
           className="text-blue-500 dark:text-blue-400 hover:underline mb-4 flex items-center gap-2"
         >
           ⬅️ {t('healthychef.phases.back_to_categories', { defaultValue: 'Nazad na kategorije' })}
         </button>
-        <h1 className="text-3xl font-bold mb-2 dark:text-white">{trenutnaKategorija?.naziv || t('healthychef.phases.category', { defaultValue: 'Kategorija' })}</h1>
+        <h1 className="text-3xl font-bold mb-2 dark:text-white">
+          {t(categoryNameKey, { defaultValue: trenutnaKategorija?.naziv || t('healthychef.phases.category', { defaultValue: 'Kategorija' }) })}
+        </h1>
         <p className="text-gray-600 dark:text-gray-300 mb-6">{t('healthychef.phases.subtitle', { defaultValue: 'Odaberite fazu za koju želite recepte.' })}</p>
 
         {loadingFaze ? (
@@ -279,7 +303,7 @@ const HealthyChef = () => {
         ) : faze.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {faze.map(faza => {
-              const colors = getPhaseColor(faza.naziv);
+              const colors = getPhaseColor(faza.id);
               return (
                 <Link 
                   key={faza.id} 
@@ -287,7 +311,9 @@ const HealthyChef = () => {
                   className={`${colors.bg} ${colors.hover} rounded-xl p-4 shadow-md hover:shadow-lg transition border-2 ${colors.border} text-center hover:scale-105`}
                 >
                   <span className="text-2xl block mb-1">{faza.ikona || '🟢'}</span>
-                  <h3 className={`font-semibold ${colors.text}`}>{faza.naziv}</h3>
+                  <h3 className={`font-semibold ${colors.text}`}>
+                    {t(faza.nazivKey, { defaultValue: faza.naziv })}
+                  </h3>
                 </Link>
               );
             })}
@@ -311,8 +337,8 @@ const HealthyChef = () => {
     <div className="max-w-6xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
       <Breadcrumb 
         customLabels={{
-          [kategorijaId]: categoryName || kategorijaId,
-          [fazaId]: phaseName || fazaId
+          [kategorijaId]: t(categoryNameKey, { defaultValue: categoryNameFallback || kategorijaId }),
+          [fazaId]: t(phaseNameKey, { defaultValue: phaseNameFallback || fazaId })
         }} 
       />
       <button 
@@ -321,7 +347,9 @@ const HealthyChef = () => {
       >
         ⬅️ {t('healthychef.recipes.back_to_phases', { defaultValue: 'Nazad na faze' })}
       </button>
-      <h1 className="text-3xl font-bold mb-2 dark:text-white">{trenutnaFaza?.naziv || t('healthychef.recipes.title', { defaultValue: 'Recepti' })}</h1>
+      <h1 className="text-3xl font-bold mb-2 dark:text-white">
+        {t(phaseNameKey, { defaultValue: trenutnaFaza?.naziv || t('healthychef.recipes.title', { defaultValue: 'Recepti' }) })}
+      </h1>
       <p className="text-gray-600 dark:text-gray-300 mb-6">
         {t('healthychef.recipes.subtitle', { defaultValue: 'Recepti prilagođeni vašim preferencijama i zdravstvenim potrebama.' })}
         {activeFiltersCount > 0 && (
