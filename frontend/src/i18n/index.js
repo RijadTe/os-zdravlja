@@ -3,20 +3,22 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
+// 🔥 UČITAVANJE IZ PUBLIC FOLDER-a
 const loadTranslations = async () => {
   try {
-    // 🔥 UČITAJ JSON FAJLOVE DIREKTNO PREKO FETCH-a
+    console.log('🔄 Učitavam prevode iz public/locales/...');
+    
     const [hr, en, de] = await Promise.all([
       fetch('/locales/hr/translation.json').then(res => {
-        if (!res.ok) throw new Error('HR not found');
+        if (!res.ok) throw new Error('HR translation not found');
         return res.json();
       }),
       fetch('/locales/en/translation.json').then(res => {
-        if (!res.ok) throw new Error('EN not found');
+        if (!res.ok) throw new Error('EN translation not found');
         return res.json();
       }),
       fetch('/locales/de/translation.json').then(res => {
-        if (!res.ok) throw new Error('DE not found');
+        if (!res.ok) throw new Error('DE translation not found');
         return res.json();
       })
     ]);
@@ -36,12 +38,18 @@ const loadTranslations = async () => {
         interpolation: {
           escapeValue: false,
         },
+        detection: {
+          order: ['localStorage', 'navigator', 'htmlTag'],
+          caches: ['localStorage']
+        }
       });
 
     console.log('✅ i18n inicijaliziran!');
+    console.log('📊 Dostupni jezici:', Object.keys(resources));
     return i18n;
   } catch (error) {
     console.error('❌ Greška pri učitavanju prevoda:', error);
+    
     // 🔥 FALLBACK - ako ne može da učita, koristi prazne prevode
     const resources = {
       hr: { translation: {} },
@@ -60,6 +68,7 @@ const loadTranslations = async () => {
         },
       });
     
+    console.warn('⚠️ i18n inicijaliziran sa praznim prevodima (fallback)');
     return i18n;
   }
 };
