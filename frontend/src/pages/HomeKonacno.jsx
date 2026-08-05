@@ -6,7 +6,6 @@ import RecipeCard from '../components/RecipeCard';
 import ScanReceipt from '../components/ScanReceipt';
 import AdBanner from '../components/AdBanner';
 
-// 🔥 PROMIJENJENO - uklonjen /api sa kraja
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const HomeKonacno = () => {
@@ -68,10 +67,13 @@ const HomeKonacno = () => {
           console.log('✅ Profil dohvaćen:', data.data);
           setProfil(data.data);
           
-          // 🔥 DOHVATI FRIŽIDER IZ BAZE
-          if (data.data.fridge && Array.isArray(data.data.fridge)) {
-            setFridgeItems(data.data.fridge);
-            console.log('🧊 Frižider dohvaćen iz baze:', data.data.fridge);
+          // 🔥 DOHVATI FRIŽIDER IZ BAZE - SA SIGURNOSNOM PROVJEROM
+          if (data.data.fridge) {
+            const fridgeData = Array.isArray(data.data.fridge) ? data.data.fridge : [];
+            setFridgeItems(fridgeData);
+            console.log('🧊 Frižider dohvaćen iz baze:', fridgeData);
+          } else {
+            setFridgeItems([]);
           }
           
           const noviFilteri = {};
@@ -382,36 +384,35 @@ const HomeKonacno = () => {
   }, [sleep, energy, stress, user, recepti, filters.restrikcije, t]);
 
   // ============================================================
-  // 7. FRIŽIDER FUNKCIJE - NOVO!
+  // 7. FRIŽIDER FUNKCIJE - ISPRAVLJEN REDOSLIJED!
   // ============================================================
   
-  // 🔥 DODAJ NAMIRNICU U FRIŽIDER
-  const addFridgeItem = useCallback(() => {
-    if (newItem.trim()) {
-      const updatedItems = [...fridgeItems, newItem.trim()];
-      setFridgeItems(updatedItems);
-      setNewItem('');
-      // Spremi u bazu
-      saveFridgeToDatabase(updatedItems);
-    }
-  }, [newItem, fridgeItems]);
-
-  // 🔥 SPREMI FRIŽIDER U BAZU
+  // 🔥 SPREMI FRIŽIDER U BAZU - PRVO!
   const saveFridgeToDatabase = useCallback(async (items) => {
     const email = user?.email || localStorage.getItem('userEmail');
-    if (!email || items.length === 0) return;
+    if (!email) return;
 
     try {
       await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fridge: items })
+        body: JSON.stringify({ fridge: items || [] })
       });
       console.log('✅ Frižider spremljen u bazu');
     } catch (error) {
       console.error('❌ Greška pri spremanju frižidera:', error);
     }
   }, [user]);
+
+  // 🔥 DODAJ NAMIRNICU U FRIŽIDER - DRUGO!
+  const addFridgeItem = useCallback(() => {
+    if (newItem.trim()) {
+      const updatedItems = [...fridgeItems, newItem.trim()];
+      setFridgeItems(updatedItems);
+      setNewItem('');
+      saveFridgeToDatabase(updatedItems);
+    }
+  }, [newItem, fridgeItems, saveFridgeToDatabase]);
 
   // 🔥 PRONAĐI RECEPTE NA OSNOVU FRIŽIDERA
   const findRecipesFromFridge = useCallback(async () => {
@@ -438,7 +439,6 @@ const HomeKonacno = () => {
       if (data.success && data.recepti) {
         setRecepti(data.recepti);
         console.log('✅ Pronađeno recepata:', data.recepti.length);
-        // Skrolaj do recepata
         document.getElementById('recipes-section')?.scrollIntoView({ behavior: 'smooth' });
       } else {
         alert('Nema recepata za ove namirnice. Pokušajte dodati još namirnica.');
@@ -457,7 +457,6 @@ const HomeKonacno = () => {
     setFridgeItems(updatedItems);
     setScanPoruka(`✅ Dodano ${namirnice.length} namirnica u frižider!`);
     setTimeout(() => setScanPoruka(''), 4000);
-    // Spremi u bazu
     saveFridgeToDatabase(updatedItems);
   }, [fridgeItems, saveFridgeToDatabase]);
 
@@ -465,12 +464,7 @@ const HomeKonacno = () => {
   const removeFridgeItem = useCallback((index) => {
     const updatedItems = fridgeItems.filter((_, i) => i !== index);
     setFridgeItems(updatedItems);
-    if (updatedItems.length === 0) {
-      // Ako je prazan, obriši iz baze
-      saveFridgeToDatabase([]);
-    } else {
-      saveFridgeToDatabase(updatedItems);
-    }
+    saveFridgeToDatabase(updatedItems);
   }, [fridgeItems, saveFridgeToDatabase]);
 
   // 🔥 OČISTI FRIŽIDER
@@ -748,7 +742,7 @@ const HomeKonacno = () => {
         </div>
       </section>
 
-      {/* ===== VIRTUALNI FRIŽIDER - POTPUNO NOVI ===== */}
+      {/* ===== VIRTUALNI FRIŽIDER ===== */}
       <section className="py-12 md:py-20 px-4 flex justify-center bg-white dark:bg-gray-900">
         <div className="w-full max-w-3xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-gray-800 dark:text-white flex items-center justify-center gap-2 flex-wrap">
