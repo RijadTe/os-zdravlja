@@ -474,14 +474,31 @@
     },
     "categories": {
       "subtitle": "Choose a category for personalized recipes.",
-      "empty": "No categories available."
+      "empty": "No categories available.",
+      "items": {
+        "hormonal_cycle": "Hormonal Cycle",
+        "thyroid": "Thyroid & Hashimoto",
+        "anemia": "Anemia",
+        "bones": "Bones & Joints",
+        "menopause": "Menopause",
+        "pcos": "PCOS & Insulin Resistance"
+      }
     },
     "phases": {
       "back_to_categories": "Back to categories",
       "category": "Category",
       "subtitle": "Choose a phase for which you want recipes.",
       "loading": "Loading phases...",
-      "empty": "No phases available for this category."
+      "empty": "No phases available for this category.",
+      "items": {
+        "hormonal_cycle": {
+          "menstrual": "Menstrual Phase",
+          "follicular": "Follicular Phase",
+          "ovulation": "Ovulation",
+          "early_luteal": "Early Luteal Phase",
+          "pms": "PMS"
+        }
+      }
     },
     "recipes": {
       "back_to_phases": "Back to phases",

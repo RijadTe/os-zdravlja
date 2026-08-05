@@ -474,14 +474,31 @@
     },
     "categories": {
       "subtitle": "Odaberite kategoriju za personalizovane recepte.",
-      "empty": "Nema dostupnih kategorija."
+      "empty": "Nema dostupnih kategorija.",
+      "items": {
+        "hormonal_cycle": "Hormonski ciklus",
+        "thyroid": "Tiroida & Hashimoto",
+        "anemia": "Slabokrvnost (Anemija)",
+        "bones": "Kosti i zglobovi",
+        "menopause": "Menopauza",
+        "pcos": "PCOS & Inzulinska rezistencija"
+      }
     },
     "phases": {
       "back_to_categories": "Nazad na kategorije",
       "category": "Kategorija",
       "subtitle": "Odaberite fazu za koju želite recepte.",
       "loading": "Učitavanje faza...",
-      "empty": "Nema dostupnih faza za ovu kategoriju."
+      "empty": "Nema dostupnih faza za ovu kategoriju.",
+      "items": {
+        "hormonal_cycle": {
+          "menstrual": "Menstrualna faza",
+          "follicular": "Folikularna faza",
+          "ovulation": "Ovulacija",
+          "early_luteal": "Rana lutealna faza",
+          "pms": "PMS"
+        }
+      }
     },
     "recipes": {
       "back_to_phases": "Nazad na faze",
