@@ -6,22 +6,46 @@ import { useTranslation } from 'react-i18next';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
+// 🔥 SIGURAN PREVOD - uvijek vraća tekst, nikad ključ
+// ============================================================
+const useSafeTranslation = () => {
+  const { t, i18n, ready } = useTranslation();
+
+  const safeT = (key, fallback) => {
+    try {
+      if (!ready) {
+        return fallback || key;
+      }
+      const translated = t(key);
+      if (translated === key) {
+        return fallback || key;
+      }
+      return translated;
+    } catch (error) {
+      return fallback || key;
+    }
+  };
+
+  return { t: safeT, i18n, ready };
+};
+
+// ============================================================
 // BREADCRUMB KOMPONENTA
 // ============================================================
 const Breadcrumb = ({ customLabels = {} }) => {
-  const { t } = useTranslation();
+  const { t } = useSafeTranslation();
   const location = window.location;
   const pathnames = location.pathname.split('/').filter(x => x);
   
   const nameMap = {
-    'healthy-chef': '🌿 ' + t('healthychef.title'),
+    'healthy-chef': '🌿 ' + t('healthychef.title', 'HealthyChef'),
     ...customLabels
   };
 
   return (
     <nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4 flex-wrap">
       <Link to="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition flex items-center gap-1">
-        <span>🏠</span> {t('healthychef.breadcrumb.home')}
+        <span>🏠</span> {t('healthychef.breadcrumb.home', 'Početna')}
       </Link>
       
       {pathnames.map((value, index) => {
@@ -50,7 +74,7 @@ const Breadcrumb = ({ customLabels = {} }) => {
 // GLAVNA KOMPONENTA
 // ============================================================
 const HealthyChef = () => {
-  const { t } = useTranslation();
+  const { t } = useSafeTranslation();
   const { kategorijaId, fazaId } = useParams();
   const navigate = useNavigate();
   const [kategorije, setKategorije] = useState([]);
@@ -102,24 +126,21 @@ const HealthyChef = () => {
   }, []);
 
   // ============================================================
-  // DOHVATI KATEGORIJE I FAZE - POPRAVLJENO!
+  // DOHVATI KATEGORIJE I FAZE
   // ============================================================
   useEffect(() => {
     const fetchAllData = async (retry = 0) => {
       try {
         console.log(`🔄 Dohvatam podatke (pokušaj ${retry + 1})...`);
         
-        // 1. DOHVATI SVE KATEGORIJE
         const katRes = await fetch(`${API_URL}/api/healthy-chef/kategorije`);
         const katData = await katRes.json();
         console.log('📊 Kategorije dohvaćene:', katData?.length || 0);
         setKategorije(katData);
         
-        // 2. AKO IMAMO KATEGORIJU - FILTRIRAJ FAZE (parent_id)
         if (kategorijaId) {
           setLoadingFaze(true);
           
-          // 🔥 FAZE SU U ISTOJ TABELI - FILTRIRAMO PO parent_id
           const fazeData = katData.filter(kat => kat.parent_id === kategorijaId);
           console.log('📊 Faze dohvaćene:', fazeData?.length || 0);
           setFaze(fazeData);
@@ -154,16 +175,15 @@ const HealthyChef = () => {
   }, [kategorijaId, fazaId]);
 
   // ============================================================
-  // DOHVATI RECEPTE - POPRAVLJENO!
+  // DOHVATI RECEPTE
   // ============================================================
   useEffect(() => {
     if (fazaId && user && isDataLoaded) {
       const fetchRecepti = async () => {
         setLoading(true);
         try {
-          // 🔥 KORISTI fazaId ZA FILTRIRANJE RECEPATA
           const params = new URLSearchParams({
-            kategorijaId: fazaId, // ← fazaId je zapravo ID podkategorije
+            kategorijaId: fazaId,
             email: user.email,
             ...filters
           });
@@ -200,42 +220,42 @@ const HealthyChef = () => {
   const activeFiltersCount = Object.values(filters).filter(v => v !== '').length;
 
   // ============================================================
-  // 🖥️ RENDER - NIJE PREMIUM
+  // RENDER - NIJE PREMIUM
   // ============================================================
   if (!user?.premium) {
     return (
       <div className="max-w-4xl mx-auto py-12 text-center dark:bg-gray-900 dark:text-white">
-        <h1 className="text-3xl font-bold mb-4">🌿 {t('healthychef.title')}</h1>
-        <p className="text-gray-600 dark:text-gray-300 mb-6">{t('healthychef.premium.description')}</p>
+        <h1 className="text-3xl font-bold mb-4">🌿 {t('healthychef.title', 'HealthyChef')}</h1>
+        <p className="text-gray-600 dark:text-gray-300 mb-6">{t('healthychef.premium.description', 'Ova sekcija je dostupna samo za Premium korisnike.')}</p>
         <Link to="/premium" className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-3 rounded-full font-semibold transition inline-block">
-          ⭐ {t('healthychef.premium.button')}
+          ⭐ {t('healthychef.premium.button', 'Postani Premium')}
         </Link>
       </div>
     );
   }
 
   // ============================================================
-  // 🖥️ RENDER - LOADING
+  // RENDER - LOADING
   // ============================================================
   if (!isDataLoaded) {
     return (
       <div className="max-w-4xl mx-auto py-12 text-center dark:bg-gray-900 dark:text-white">
         <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-        <p className="text-gray-500 dark:text-gray-400 mt-4">⏳ {t('healthychef.loading')}</p>
+        <p className="text-gray-500 dark:text-gray-400 mt-4">⏳ {t('healthychef.loading', 'Učitavanje...')}</p>
       </div>
     );
   }
 
   // ============================================================
-  // 🖥️ RENDER - GLAVNE KATEGORIJE
+  // RENDER - GLAVNE KATEGORIJE
   // ============================================================
   if (!kategorijaId) {
     const glavneKategorije = kategorije.filter(kat => !kat.parent_id || kat.parent_id === null);
     return (
       <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
         <Breadcrumb />
-        <h1 className="text-3xl font-bold text-center mb-2">🌿 {t('healthychef.title')}</h1>
-        <p className="text-center text-gray-600 dark:text-gray-300 mb-8">{t('healthychef.categories.subtitle')}</p>
+        <h1 className="text-3xl font-bold text-center mb-2">🌿 {t('healthychef.title', 'HealthyChef')}</h1>
+        <p className="text-center text-gray-600 dark:text-gray-300 mb-8">{t('healthychef.categories.subtitle', 'Odaberite kategoriju za personalizovane recepte.')}</p>
         {glavneKategorije.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {glavneKategorije.map(kat => (
@@ -251,7 +271,7 @@ const HealthyChef = () => {
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-gray-500 dark:text-gray-400">{t('healthychef.categories.empty')}</p>
+            <p className="text-gray-500 dark:text-gray-400">{t('healthychef.categories.empty', 'Nema dostupnih kategorija.')}</p>
           </div>
         )}
       </div>
@@ -259,7 +279,7 @@ const HealthyChef = () => {
   }
 
   // ============================================================
-  // 🖥️ RENDER - FAZE
+  // RENDER - FAZE
   // ============================================================
   if (!fazaId) {
     const trenutnaKategorija = kategorije.find(k => k.id === kategorijaId);
@@ -270,15 +290,15 @@ const HealthyChef = () => {
           onClick={() => navigate('/healthy-chef')} 
           className="text-blue-500 dark:text-blue-400 hover:underline mb-4 flex items-center gap-2"
         >
-          ⬅️ {t('healthychef.phases.back_to_categories')}
+          ⬅️ {t('healthychef.phases.back_to_categories', 'Nazad na kategorije')}
         </button>
-        <h1 className="text-3xl font-bold mb-2 dark:text-white">{trenutnaKategorija?.naziv || t('healthychef.phases.category')}</h1>
-        <p className="text-gray-600 dark:text-gray-300 mb-6">{t('healthychef.phases.subtitle')}</p>
+        <h1 className="text-3xl font-bold mb-2 dark:text-white">{trenutnaKategorija?.naziv || t('healthychef.phases.category', 'Kategorija')}</h1>
+        <p className="text-gray-600 dark:text-gray-300 mb-6">{t('healthychef.phases.subtitle', 'Odaberite fazu za koju želite recepte.')}</p>
 
         {loadingFaze ? (
           <div className="text-center py-8">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">⏳ {t('healthychef.phases.loading')}</p>
+            <p className="text-gray-500 dark:text-gray-400 mt-2">⏳ {t('healthychef.phases.loading', 'Učitavanje faza...')}</p>
           </div>
         ) : faze.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -298,7 +318,7 @@ const HealthyChef = () => {
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-gray-500 dark:text-gray-400">{t('healthychef.phases.empty')}</p>
+            <p className="text-gray-500 dark:text-gray-400">{t('healthychef.phases.empty', 'Nema dostupnih faza za ovu kategoriju.')}</p>
           </div>
         )}
       </div>
@@ -306,7 +326,7 @@ const HealthyChef = () => {
   }
 
   // ============================================================
-  // 🖥️ RENDER - RECEPTI ZA FAZU
+  // RENDER - RECEPTI ZA FAZU
   // ============================================================
   const trenutnaFaza = faze.find(f => f.id === fazaId);
   const trenutnaKategorija = kategorije.find(k => k.id === kategorijaId);
@@ -323,14 +343,14 @@ const HealthyChef = () => {
         onClick={() => navigate(`/healthy-chef/${kategorijaId}`)} 
         className="text-blue-500 dark:text-blue-400 hover:underline mb-4 flex items-center gap-2"
       >
-        ⬅️ {t('healthychef.recipes.back_to_phases')}
+        ⬅️ {t('healthychef.recipes.back_to_phases', 'Nazad na faze')}
       </button>
-      <h1 className="text-3xl font-bold mb-2 dark:text-white">{trenutnaFaza?.naziv || t('healthychef.recipes.title')}</h1>
+      <h1 className="text-3xl font-bold mb-2 dark:text-white">{trenutnaFaza?.naziv || t('healthychef.recipes.title', 'Recepti')}</h1>
       <p className="text-gray-600 dark:text-gray-300 mb-6">
-        {t('healthychef.recipes.subtitle')}
+        {t('healthychef.recipes.subtitle', 'Recepti prilagođeni vašim preferencijama i zdravstvenim potrebama.')}
         {activeFiltersCount > 0 && (
           <span className="ml-2 text-sm bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full">
-            {activeFiltersCount} {t('healthychef.recipes.filters_active')}
+            {activeFiltersCount} {t('healthychef.recipes.filters_active', 'filtera aktivno')}
           </span>
         )}
       </p>
@@ -342,11 +362,11 @@ const HealthyChef = () => {
           value={filters.vrsta} 
           onChange={(e) => setFilters({ ...filters, vrsta: e.target.value })}
         >
-          <option value="">🍽️ {t('healthychef.filters.all_types')}</option>
-          <option value="Deserti">🍰 {t('healthychef.filters.desserts')}</option>
-          <option value="Slano">🍕 {t('healthychef.filters.savory')}</option>
-          <option value="Dijetalni recepti">🥗 {t('healthychef.filters.diet')}</option>
-          <option value="Napitki">🥤 {t('healthychef.filters.drinks')}</option>
+          <option value="">🍽️ {t('healthychef.filters.all_types', 'Sve vrste')}</option>
+          <option value="Deserti">🍰 {t('healthychef.filters.desserts', 'Deserti')}</option>
+          <option value="Slano">🍕 {t('healthychef.filters.savory', 'Slano')}</option>
+          <option value="Dijetalni recepti">🥗 {t('healthychef.filters.diet', 'Dijetalno')}</option>
+          <option value="Napitki">🥤 {t('healthychef.filters.drinks', 'Napitki')}</option>
         </select>
         
         <select 
@@ -354,10 +374,10 @@ const HealthyChef = () => {
           value={filters.vrijeme} 
           onChange={(e) => setFilters({ ...filters, vrijeme: e.target.value })}
         >
-          <option value="">⏱️ {t('healthychef.filters.all_time')}</option>
-          <option value="Kratko (15-30 min)">⚡ {t('healthychef.filters.short')}</option>
-          <option value="Srednje (30-45 min)">⏳ {t('healthychef.filters.medium')}</option>
-          <option value="Duže (45-60+ min)">🐢 {t('healthychef.filters.long')}</option>
+          <option value="">⏱️ {t('healthychef.filters.all_time', 'Svo vrijeme')}</option>
+          <option value="Kratko (15-30 min)">⚡ {t('healthychef.filters.short', 'Kratko')}</option>
+          <option value="Srednje (30-45 min)">⏳ {t('healthychef.filters.medium', 'Srednje')}</option>
+          <option value="Duže (45-60+ min)">🐢 {t('healthychef.filters.long', 'Duže')}</option>
         </select>
         
         <select 
@@ -365,10 +385,10 @@ const HealthyChef = () => {
           value={filters.tezina} 
           onChange={(e) => setFilters({ ...filters, tezina: e.target.value })}
         >
-          <option value="">🏋️ {t('healthychef.filters.all_difficulty')}</option>
-          <option value="Početnik">👶 {t('healthychef.filters.beginner')}</option>
-          <option value="Srednji">👨‍🍳 {t('healthychef.filters.intermediate')}</option>
-          <option value="Profesionalac">👨‍🍳⭐ {t('healthychef.filters.professional')}</option>
+          <option value="">🏋️ {t('healthychef.filters.all_difficulty', 'Sva težina')}</option>
+          <option value="Početnik">👶 {t('healthychef.filters.beginner', 'Početnik')}</option>
+          <option value="Srednji">👨‍🍳 {t('healthychef.filters.intermediate', 'Srednji')}</option>
+          <option value="Profesionalac">👨‍🍳⭐ {t('healthychef.filters.professional', 'Profesionalac')}</option>
         </select>
 
         {(filters.vrsta || filters.vrijeme || filters.tezina) && (
@@ -376,7 +396,7 @@ const HealthyChef = () => {
             onClick={resetFilters}
             className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition text-sm"
           >
-            🔄 {t('healthychef.filters.reset')}
+            🔄 {t('healthychef.filters.reset', 'Resetuj filtere')}
           </button>
         )}
       </div>
@@ -385,7 +405,7 @@ const HealthyChef = () => {
       {loading ? (
         <div className="text-center py-8">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">⏳ {t('healthychef.recipes.loading')}</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">⏳ {t('healthychef.recipes.loading', 'Učitavanje recepata...')}</p>
         </div>
       ) : recepti.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -414,12 +434,12 @@ const HealthyChef = () => {
         </div>
       ) : (
         <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-xl">
-          <p className="text-gray-500 dark:text-gray-400">😕 {t('healthychef.recipes.no_results')}</p>
+          <p className="text-gray-500 dark:text-gray-400">😕 {t('healthychef.recipes.no_results', 'Nema recepata za ovu fazu sa trenutnim filterima.')}</p>
           <button
             onClick={resetFilters}
             className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition"
           >
-            🔄 {t('healthychef.recipes.reset_filters')}
+            🔄 {t('healthychef.recipes.reset_filters', 'Resetuj filtere')}
           </button>
         </div>
       )}
