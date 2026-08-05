@@ -358,7 +358,7 @@
       "plan": "📅 Plan obroka"
     },
     "diary": {
-      "today": "📅 Danas, {date}",
+      "today": "📅 Danas,",
       "goal": "🎯 Dnevni cilj:",
       "consumed": "Uneseno:",
       "protein": "Proteini",

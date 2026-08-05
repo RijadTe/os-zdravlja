@@ -358,7 +358,7 @@
       "plan": "📅 Speiseplan"
     },
     "diary": {
-      "today": "📅 Heute, {date}",
+      "today": "📅 Heute,",
       "goal": "🎯 Tagesziel:",
       "consumed": "Verbraucht:",
       "protein": "Protein",
