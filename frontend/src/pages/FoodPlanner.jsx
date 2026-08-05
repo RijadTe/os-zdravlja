@@ -679,7 +679,7 @@ const FoodPlanner = () => {
             <div className="relative mb-2">
               <input
                 type="text"
-                placeholder="🔍 Pretraži recepte iz baze (počni kucati)..."
+                placeholder="🔍"
                 value={searchTerm}
                 onChange={handleSearchChange}
                 onFocus={() => {
