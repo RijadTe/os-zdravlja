@@ -6,21 +6,27 @@ import { useTranslation } from 'react-i18next';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const ScanReceipt = ({ onNamirniceDodane }) => {
-  const { t, ready } = useTranslation(); // ← DODAJ ready!
+  const { t } = useTranslation();
   const [slika, setSlika] = useState(null);
   const [loading, setLoading] = useState(false);
   const [poruka, setPoruka] = useState('');
   const [prepoznate, setPrepoznate] = useState([]);
   const fileInputRef = useRef(null);
 
-  // 🔥 AKO PREVODI NISU SPREMNI - NE RENDERIRAJ (ili prikaži loading)
-  if (!ready) {
-    return (
-      <div className="w-full text-center py-2">
-        <span className="text-gray-400">⏳ Učitavanje...</span>
-      </div>
-    );
-  }
+  // 🔥 SIGURAN PREVOD - uvijek vraća tekst, nikad ključ
+  const safeT = (key, fallback) => {
+    try {
+      const translated = t(key);
+      // Ako je translated === key (npr. "scanreceipt.scan"), vrati fallback
+      if (translated === key) {
+        return fallback || key;
+      }
+      return translated;
+    } catch (error) {
+      // Ako pukne, vrati fallback
+      return fallback || key;
+    }
+  };
 
   const handleScan = async () => {
     if (!slika) {
@@ -62,12 +68,9 @@ const ScanReceipt = ({ onNamirniceDodane }) => {
     }
   };
 
-  // ============================================================
-  // RESPOZIVNI RENDER - SA FALLBACK TEKSTOVIMA (bez t() ako nisu spremni)
-  // ============================================================
   return (
     <div className="w-full">
-      {/* RESPOZIVNI DIO - radi na svim uređajima */}
+      {/* RESPOZIVNI DIO */}
       <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
         
         {/* File input - responzivan */}
@@ -77,7 +80,7 @@ const ScanReceipt = ({ onNamirniceDodane }) => {
           >
             <span className="text-xl sm:text-2xl">📷</span>
             <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 text-center truncate max-w-[150px] sm:max-w-full">
-              {slika ? slika.name : '📎 Odaberi sliku računa'}
+              {slika ? slika.name : safeT('scanreceipt.select_file', 'Odaberi sliku računa')}
             </span>
             <input
               ref={fileInputRef}
@@ -98,10 +101,12 @@ const ScanReceipt = ({ onNamirniceDodane }) => {
           {loading ? (
             <>
               <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
-              ⏳ Skeniram...
+              ⏳ {safeT('scanreceipt.scanning', 'Skeniram...')}
             </>
           ) : (
-            '📸 Skeniraj'
+            <>
+              📸 {safeT('scanreceipt.scan', 'Skeniraj')}
+            </>
           )}
         </button>
       </div>
@@ -120,7 +125,7 @@ const ScanReceipt = ({ onNamirniceDodane }) => {
       {/* Prepoznate namirnice */}
       {prepoznate.length > 0 && (
         <div className="mt-3">
-          <h4 className="font-semibold dark:text-white text-sm mb-2">🛒 Prepoznate namirnice:</h4>
+          <h4 className="font-semibold dark:text-white text-sm mb-2">🛒 {safeT('scanreceipt.recognized_items', 'Prepoznate namirnice:')}</h4>
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {prepoznate.map((item, i) => (
               <span key={i} className="bg-gray-100 dark:bg-gray-700 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm dark:text-white">
@@ -133,7 +138,7 @@ const ScanReceipt = ({ onNamirniceDodane }) => {
 
       {/* Info tekst */}
       <p className="mt-2 text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 text-center">
-        📸 Uslikajte račun iz trgovine i automatski ćemo dodati namirnice u frižider.
+        📸 {safeT('scanreceipt.info', 'Uslikajte račun iz trgovine i automatski ćemo dodati namirnice u frižider.')}
       </p>
     </div>
   );
