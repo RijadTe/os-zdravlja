@@ -372,13 +372,15 @@ const FoodPlanner = () => {
   };
 
   // ============================================================
-  // 🔥 AI PLAN
+  // 🔥 WEEKLY PLAN - BIRA RECEPTE IZ BAZE (NE AI GENERIŠE)
   // ============================================================
   const generateWeeklyPlan = async () => {
     setLoadingPlan(true);
     try {
       const email = user?.email || localStorage.getItem('userEmail');
-      const res = await fetch(`${API_URL}/api/ai-weekly-plan`, {
+      
+      // 🔥 PROMIJENJEN ENDPOINT: /api/weekly-plan (bira iz baze)
+      const res = await fetch(`${API_URL}/api/weekly-plan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -392,11 +394,14 @@ const FoodPlanner = () => {
           datum: formatDateForAPI(selectedDate)
         })
       });
+      
       const data = await res.json();
+      console.log('📡 Weekly Plan (iz baze):', data);
       setWeeklyPlan(data);
     } catch (error) {
       console.error('❌ Greška:', error);
       alert(t('foodplanner.alerts.plan_error'));
+      // Fallback plan - hard-coded
       setWeeklyPlan({
         dani: [
           { naziv: 'Pon', dorucak: 'Ovsena kaša', rucak: 'Pileća prsa', vecera: 'Losos' },
@@ -1008,7 +1013,7 @@ const FoodPlanner = () => {
           )}
           
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-4 text-center">
-            🤖 Plan generiše AI FoodPlanner (Cilj: {dailyGoal.kalorije} kcal, {dailyGoal.proteini}g proteina)
+            🤖 Plan bira recepte iz baze (Cilj: {dailyGoal.kalorije} kcal, {dailyGoal.proteini}g proteina)
             {restrictions.length > 0 && ` 🔒 Restrikcije: ${restrictions.join(', ')}`}
           </p>
         </div>

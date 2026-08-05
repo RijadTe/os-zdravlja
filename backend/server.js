@@ -54,7 +54,7 @@ cloudinary.config({
 console.log('✅ Cloudinary povezan!');
 
 // ============================================================
-// 🔥 RATE LIMIT - POVEĆAN ZA BOLJE PERFORMANSE!
+// 🔥 RATE LIMIT
 // ============================================================
 console.log('🛡️ POSTAVLJAM RATE LIMIT...');
 
@@ -452,6 +452,99 @@ async function createNotification(email, tip, poruka, link = '/') {
     console.error('❌ Greška:', error);
     return null;
   }
+}
+
+// ============================================================
+// FALLBACK PLAN GENERATOR
+// ============================================================
+function generateFallbackPlan(kalorije, proteini, ugljikohidrati, masti, restrikcije) {
+  const hasRestriction = (food) => {
+    if (!restrikcije || restrikcije.length === 0) return false;
+    return restrikcije.some(r => 
+      food.toLowerCase().includes(r.toLowerCase()) || 
+      r.toLowerCase().includes(food.toLowerCase())
+    );
+  };
+  
+  const planovi = {
+    low: {
+      dani: [
+        { naziv: 'Pon', dorucak: 'Zobene pahuljice sa voćem', rucak: 'Pileća salata', vecera: 'Losos sa povrćem' },
+        { naziv: 'Uto', dorucak: 'Jaja na oko', rucak: 'Tuna salata', vecera: 'Tofu sa rižom' },
+        { naziv: 'Sri', dorucak: 'Smoothie bowl', rucak: 'Riba na žaru', vecera: 'Krompir sa povrćem' },
+        { naziv: 'Čet', dorucak: 'Palenta sa sirom', rucak: 'Piletina sa rižom', vecera: 'Povrće na žaru' },
+        { naziv: 'Pet', dorucak: 'Musli sa jogurtom', rucak: 'Burger sa salatom', vecera: 'Pizza sa povrćem' },
+        { naziv: 'Sub', dorucak: 'Palačinke', rucak: 'Ćevapi sa lukom', vecera: 'Riba sa blitvom' },
+        { naziv: 'Ned', dorucak: 'Kajgana sa šunkom', rucak: 'Pečenje sa krompirom', vecera: 'Salata sa piletinom' },
+      ]
+    },
+    medium: {
+      dani: [
+        { naziv: 'Pon', dorucak: 'Ovsena kaša sa medom', rucak: 'Pileća prsa sa povrćem', vecera: 'Losos sa krompirom' },
+        { naziv: 'Uto', dorucak: 'Jaja sa avokadom', rucak: 'Salata sa tunjevinom', vecera: 'Tofu sa povrćem' },
+        { naziv: 'Sri', dorucak: 'Smoothie bowl', rucak: 'Riba na žaru', vecera: 'Krompir sa povrćem' },
+        { naziv: 'Čet', dorucak: 'Palenta sa sirom', rucak: 'Piletina sa rižom', vecera: 'Povrće na žaru' },
+        { naziv: 'Pet', dorucak: 'Musli sa jogurtom', rucak: 'Burger sa salatom', vecera: 'Pizza sa povrćem' },
+        { naziv: 'Sub', dorucak: 'Palačinke', rucak: 'Ćevapi sa lukom', vecera: 'Riba sa blitvom' },
+        { naziv: 'Ned', dorucak: 'Kajgana sa šunkom', rucak: 'Pečenje sa krompirom', vecera: 'Salata sa piletinom' },
+      ]
+    },
+    high: {
+      dani: [
+        { naziv: 'Pon', dorucak: 'Proteinski omlet', rucak: 'Pileća prsa sa rižom', vecera: 'Govedina sa povrćem' },
+        { naziv: 'Uto', dorucak: 'Jaja sa sirom', rucak: 'Tuna sa tjesteninom', vecera: 'Losos sa krompirom' },
+        { naziv: 'Sri', dorucak: 'Zobene pahuljice sa proteinom', rucak: 'Riba na žaru', vecera: 'Piletina sa povrćem' },
+        { naziv: 'Čet', dorucak: 'Palenta sa jajima', rucak: 'Govedina sa rižom', vecera: 'Tofu sa povrćem' },
+        { naziv: 'Pet', dorucak: 'Musli sa voćem', rucak: 'Burger sa sirom', vecera: 'Pizza sa piletinom' },
+        { naziv: 'Sub', dorucak: 'Palačinke sa proteinom', rucak: 'Ćevapi sa povrćem', vecera: 'Riba sa blitvom' },
+        { naziv: 'Ned', dorucak: 'Kajgana sa sirom', rucak: 'Pečenje sa povrćem', vecera: 'Salata sa piletinom' },
+      ]
+    }
+  };
+  
+  let selectedPlan;
+  if (kalorije < 1800) {
+    selectedPlan = planovi.low;
+  } else if (kalorije < 2500) {
+    selectedPlan = planovi.medium;
+  } else {
+    selectedPlan = planovi.high;
+  }
+  
+  if (restrikcije && restrikcije.length > 0) {
+    selectedPlan.dani = selectedPlan.dani.map(dan => {
+      const newDan = { ...dan };
+      
+      ['dorucak', 'rucak', 'vecera'].forEach(obrok => {
+        if (hasRestriction(newDan[obrok])) {
+          const alternatives = {
+            'Pileća prsa': 'Pileći file',
+            'Losos': 'Riba',
+            'Tofu': 'Soja',
+            'Jaja': 'Tofu jaja',
+            'Mlijeko': 'Sojino mlijeko',
+            'Sir': 'Veganski sir',
+            'Pizza': 'Pizza bez glutena',
+            'Palačinke': 'Palačinke od heljde',
+            'Kajgana': 'Kajgana od tofua'
+          };
+          
+          for (const [key, value] of Object.entries(alternatives)) {
+            if (newDan[obrok].includes(key)) {
+              newDan[obrok] = newDan[obrok].replace(key, value);
+              break;
+            }
+          }
+        }
+      });
+      
+      return newDan;
+    });
+    
+    console.log('🔒 Restrikcije primijenjene na plan');
+  }
+  
+  return selectedPlan;
 }
 
 // ============================================================
@@ -1303,7 +1396,7 @@ app.get('/api/healthy-chef/recepti', async (req, res) => {
 });
 
 // ============================================================
-// 20. AI WEEKLY PLAN (FoodPlanner)
+// 20. AI WEEKLY PLAN (FoodPlanner) - OpenAI
 // ============================================================
 app.post('/api/ai-weekly-plan', async (req, res) => {
   try {
@@ -1431,97 +1524,264 @@ app.post('/api/ai-weekly-plan', async (req, res) => {
 });
 
 // ============================================================
-// FALLBACK PLAN GENERATOR
+// 20a. WEEKLY PLAN - HYBRID: Baza → OpenAI (fallback)
 // ============================================================
-function generateFallbackPlan(kalorije, proteini, ugljikohidrati, masti, restrikcije) {
-  const hasRestriction = (food) => {
-    if (!restrikcije || restrikcije.length === 0) return false;
-    return restrikcije.some(r => 
-      food.toLowerCase().includes(r.toLowerCase()) || 
-      r.toLowerCase().includes(food.toLowerCase())
-    );
-  };
-  
-  const planovi = {
-    low: {
-      dani: [
-        { naziv: 'Pon', dorucak: 'Zobene pahuljice sa voćem', rucak: 'Pileća salata', vecera: 'Losos sa povrćem' },
-        { naziv: 'Uto', dorucak: 'Jaja na oko', rucak: 'Tuna salata', vecera: 'Tofu sa rižom' },
-        { naziv: 'Sri', dorucak: 'Smoothie bowl', rucak: 'Riba na žaru', vecera: 'Krompir sa povrćem' },
-        { naziv: 'Čet', dorucak: 'Palenta sa sirom', rucak: 'Piletina sa rižom', vecera: 'Povrće na žaru' },
-        { naziv: 'Pet', dorucak: 'Musli sa jogurtom', rucak: 'Burger sa salatom', vecera: 'Pizza sa povrćem' },
-        { naziv: 'Sub', dorucak: 'Palačinke', rucak: 'Ćevapi sa lukom', vecera: 'Riba sa blitvom' },
-        { naziv: 'Ned', dorucak: 'Kajgana sa šunkom', rucak: 'Pečenje sa krompirom', vecera: 'Salata sa piletinom' },
-      ]
-    },
-    medium: {
-      dani: [
-        { naziv: 'Pon', dorucak: 'Ovsena kaša sa medom', rucak: 'Pileća prsa sa povrćem', vecera: 'Losos sa krompirom' },
-        { naziv: 'Uto', dorucak: 'Jaja sa avokadom', rucak: 'Salata sa tunjevinom', vecera: 'Tofu sa povrćem' },
-        { naziv: 'Sri', dorucak: 'Smoothie bowl', rucak: 'Riba na žaru', vecera: 'Krompir sa povrćem' },
-        { naziv: 'Čet', dorucak: 'Palenta sa sirom', rucak: 'Piletina sa rižom', vecera: 'Povrće na žaru' },
-        { naziv: 'Pet', dorucak: 'Musli sa jogurtom', rucak: 'Burger sa salatom', vecera: 'Pizza sa povrćem' },
-        { naziv: 'Sub', dorucak: 'Palačinke', rucak: 'Ćevapi sa lukom', vecera: 'Riba sa blitvom' },
-        { naziv: 'Ned', dorucak: 'Kajgana sa šunkom', rucak: 'Pečenje sa krompirom', vecera: 'Salata sa piletinom' },
-      ]
-    },
-    high: {
-      dani: [
-        { naziv: 'Pon', dorucak: 'Proteinski omlet', rucak: 'Pileća prsa sa rižom', vecera: 'Govedina sa povrćem' },
-        { naziv: 'Uto', dorucak: 'Jaja sa sirom', rucak: 'Tuna sa tjesteninom', vecera: 'Losos sa krompirom' },
-        { naziv: 'Sri', dorucak: 'Zobene pahuljice sa proteinom', rucak: 'Riba na žaru', vecera: 'Piletina sa povrćem' },
-        { naziv: 'Čet', dorucak: 'Palenta sa jajima', rucak: 'Govedina sa rižom', vecera: 'Tofu sa povrćem' },
-        { naziv: 'Pet', dorucak: 'Musli sa voćem', rucak: 'Burger sa sirom', vecera: 'Pizza sa piletinom' },
-        { naziv: 'Sub', dorucak: 'Palačinke sa proteinom', rucak: 'Ćevapi sa povrćem', vecera: 'Riba sa blitvom' },
-        { naziv: 'Ned', dorucak: 'Kajgana sa sirom', rucak: 'Pečenje sa povrćem', vecera: 'Salata sa piletinom' },
-      ]
+app.post('/api/weekly-plan', async (req, res) => {
+  try {
+    const { 
+      email, 
+      sastojci, 
+      kalorije, 
+      proteini, 
+      ugljikohidrati, 
+      masti, 
+      restrikcije,
+      datum 
+    } = req.body;
+    
+    console.log('📊 Generišem sedmični plan za:', email);
+    console.log('🔒 Restrikcije:', restrikcije);
+    console.log('📦 Sastojci:', sastojci?.length || 0);
+    console.log('🎯 Cilj kalorija:', kalorije);
+
+    // ============================================================
+    // 1. DOHVATI RECEPTE IZ BAZE
+    // ============================================================
+    const { data: recepti, error } = await supabase
+      .from('recepti')
+      .select('*');
+
+    if (error) {
+      console.error('❌ Supabase error:', error);
+      return res.status(500).json({ error: 'Greška pri dohvatu recepata' });
     }
-  };
-  
-  let selectedPlan;
-  if (kalorije < 1800) {
-    selectedPlan = planovi.low;
-  } else if (kalorije < 2500) {
-    selectedPlan = planovi.medium;
-  } else {
-    selectedPlan = planovi.high;
-  }
-  
-  if (restrikcije && restrikcije.length > 0) {
-    selectedPlan.dani = selectedPlan.dani.map(dan => {
-      const newDan = { ...dan };
+
+    console.log(`📚 Ukupno recepata u bazi: ${recepti?.length || 0}`);
+
+    // ============================================================
+    // 2. FILTRIRAJ RECEPTE
+    // ============================================================
+    let filtered = [...recepti];
+
+    // 2a. Restrikcije
+    if (restrikcije && restrikcije.length > 0) {
+      filtered = filtered.filter(recipe => {
+        const alergeni = recipe.alergeni || [];
+        return !restrikcije.some(r => alergeni.includes(r));
+      });
+      console.log(`📊 Nakon restrikcija: ${filtered.length} recepata`);
+    }
+
+    // 2b. Kalorije (50% - 130% od cilja po obroku)
+    const kalorijePoObroku = Math.round((kalorije || 2200) / 3);
+    const minKcal = Math.round(kalorijePoObroku * 0.5);
+    const maxKcal = Math.round(kalorijePoObroku * 1.3);
+    
+    filtered = filtered.filter(recipe => {
+      const kcal = recipe.kalorije || 0;
+      return kcal >= minKcal && kcal <= maxKcal;
+    });
+    console.log(`📊 Nakon kalorija (${minKcal}-${maxKcal} kcal): ${filtered.length} recepata`);
+
+    // 2c. Sastojci iz frižidera
+    if (sastojci && sastojci.length > 0) {
+      const sastojciLower = sastojci.map(s => s.toLowerCase());
+      filtered = filtered.filter(recipe => {
+        const recipeIngredients = recipe.sastojci || [];
+        return sastojciLower.some(s => 
+          recipeIngredients.some(ri => ri.toLowerCase().includes(s))
+        );
+      });
+      console.log(`📊 Nakon sastojaka: ${filtered.length} recepata`);
+    }
+
+    // ============================================================
+    // 3. AKO IMA DOVOLJNO RECEPATA → KORISTI BAZU
+    // ============================================================
+    if (filtered.length >= 7) {
+      console.log(`✅ Koristim bazu: ${filtered.length} recepata dostupno`);
       
-      ['dorucak', 'rucak', 'vecera'].forEach(obrok => {
-        if (hasRestriction(newDan[obrok])) {
-          const alternatives = {
-            'Pileća prsa': 'Pileći file',
-            'Losos': 'Riba',
-            'Tofu': 'Soja',
-            'Jaja': 'Tofu jaja',
-            'Mlijeko': 'Sojino mlijeko',
-            'Sir': 'Veganski sir',
-            'Pizza': 'Pizza bez glutena',
-            'Palačinke': 'Palačinke od heljde',
-            'Kajgana': 'Kajgana od tofua'
-          };
-          
-          for (const [key, value] of Object.entries(alternatives)) {
-            if (newDan[obrok].includes(key)) {
-              newDan[obrok] = newDan[obrok].replace(key, value);
-              break;
-            }
-          }
+      const dani = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'];
+      const shuffled = [...filtered].sort(() => 0.5 - Math.random());
+      
+      const plan = dani.map((dan, i) => {
+        const startIdx = (i * 3) % shuffled.length;
+        const dailyRecipes = [];
+        
+        for (let j = 0; j < 3; j++) {
+          const idx = (startIdx + j) % shuffled.length;
+          dailyRecipes.push(shuffled[idx]);
         }
+        
+        return {
+          naziv: dan,
+          dorucak: dailyRecipes[0]?.naziv || '---',
+          rucak: dailyRecipes[1]?.naziv || '---',
+          vecera: dailyRecipes[2]?.naziv || '---'
+        };
+      });
+
+      // Sačuvaj plan u bazu
+      try {
+        await supabase
+          .from('planovi_obroka')
+          .upsert({
+            korisnik_email: email,
+            datum: datum || new Date().toISOString().split('T')[0],
+            plan: { dani: plan },
+            ciljevi: { kalorije, proteini, ugljikohidrati, masti },
+            restrikcije: restrikcije || [],
+            izvor: 'baza',
+            created_at: new Date().toISOString()
+          }, { onConflict: 'korisnik_email, datum' });
+        console.log('✅ Plan iz baze sačuvan');
+      } catch (saveError) {
+        console.error('⚠️ Greška pri spremanju:', saveError);
+      }
+
+      return res.json({ dani: plan, _izvor: 'baza' });
+    }
+
+    // ============================================================
+    // 4. NEMA DOVOLJNO RECEPATA → OPENAI FALLBACK
+    // ============================================================
+    console.log(`⚠️ Premalo recepata u bazi (${filtered.length}), prelazim na OpenAI...`);
+
+    // Provjeri da li OpenAI radi
+    if (!openai) {
+      console.warn('⚠️ OpenAI nije dostupan, koristim fallback plan');
+      const fallbackPlan = generateFallbackPlan(kalorije, proteini, ugljikohidrati, masti, restrikcije);
+      
+      try {
+        await supabase
+          .from('planovi_obroka')
+          .upsert({
+            korisnik_email: email,
+            datum: datum || new Date().toISOString().split('T')[0],
+            plan: fallbackPlan,
+            ciljevi: { kalorije, proteini, ugljikohidrati, masti },
+            restrikcije: restrikcije || [],
+            izvor: 'fallback',
+            created_at: new Date().toISOString()
+          }, { onConflict: 'korisnik_email, datum' });
+      } catch (saveError) {
+        console.error('⚠️ Greška pri spremanju:', saveError);
+      }
+      
+      return res.json(fallbackPlan);
+    }
+
+    // OpenAI generisanje
+    try {
+      const ime = email?.split('@')[0] || 'Korisnik';
+      const restrikcijeTekst = restrikcije && restrikcije.length > 0 
+        ? `IZBJEGAVAJ: ${restrikcije.join(', ')}. Ove namirnice su ZABRANJENE!` 
+        : 'Nema posebnih restrikcija.';
+      
+      const sastojciTekst = sastojci && sastojci.length > 0
+        ? `Koristi dostupne namirnice: ${sastojci.join(', ')}.`
+        : 'Koristi uobičajene namirnice.';
+
+      const bazaPrimjeri = filtered.length > 0 
+        ? `\nDostupni recepti iz baze (možeš ih koristiti): ${filtered.slice(0, 10).map(r => r.naziv).join(', ')}`
+        : '';
+
+      const prompt = `
+        Kreiraj sedmični plan obroka za korisnika ${ime}.
+        
+        CILJEVI (DNEVNO):
+        - Kalorije: ${kalorije || 2200} kcal
+        - Proteini: ${proteini || 150}g
+        - Ugljikohidrati: ${ugljikohidrati || 250}g
+        - Masti: ${masti || 70}g
+        
+        RESTRIKCIJE (ZABRANJENE NAMIRNICE):
+        ${restrikcijeTekst}
+        
+        DOSTUPNE NAMIRNICE:
+        ${sastojciTekst}
+        ${bazaPrimjeri}
+        
+        Plan treba imati 7 dana (Pon-Ned) sa 3 obroka dnevno (doručak, ručak, večera).
+        Svaki obrok treba biti zdrav, ukusan i jednostavan za pripremu.
+        Poštuj sve restrikcije - NE KORISTI ZABRANJENE NAMIRNICE!
+        
+        Odgovori isključivo u JSON formatu:
+        {
+          "dani": [
+            {
+              "naziv": "Pon",
+              "dorucak": "Naziv jela",
+              "rucak": "Naziv jela",
+              "vecera": "Naziv jela"
+            }
+          ]
+        }
+      `;
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+        response_format: { type: "json_object" }
       });
       
-      return newDan;
+      const aiPlan = JSON.parse(response.choices[0].message.content);
+      console.log('✅ AI plan generiran sa OpenAI');
+
+      try {
+        await supabase
+          .from('planovi_obroka')
+          .upsert({
+            korisnik_email: email,
+            datum: datum || new Date().toISOString().split('T')[0],
+            plan: aiPlan,
+            ciljevi: { kalorije, proteini, ugljikohidrati, masti },
+            restrikcije: restrikcije || [],
+            izvor: 'openai',
+            created_at: new Date().toISOString()
+          }, { onConflict: 'korisnik_email, datum' });
+        console.log('✅ AI plan sačuvan u bazu');
+      } catch (saveError) {
+        console.error('⚠️ Greška pri spremanju:', saveError);
+      }
+
+      return res.json(aiPlan);
+
+    } catch (openaiError) {
+      console.error('❌ OpenAI greška:', openaiError.message);
+      console.log('🔄 Koristim fallback plan');
+      
+      const fallbackPlan = generateFallbackPlan(kalorije, proteini, ugljikohidrati, masti, restrikcije);
+      
+      try {
+        await supabase
+          .from('planovi_obroka')
+          .upsert({
+            korisnik_email: email,
+            datum: datum || new Date().toISOString().split('T')[0],
+            plan: fallbackPlan,
+            ciljevi: { kalorije, proteini, ugljikohidrati, masti },
+            restrikcije: restrikcije || [],
+            izvor: 'fallback',
+            created_at: new Date().toISOString()
+          }, { onConflict: 'korisnik_email, datum' });
+      } catch (saveError) {
+        console.error('⚠️ Greška pri spremanju:', saveError);
+      }
+      
+      return res.json(fallbackPlan);
+    }
+
+  } catch (error) {
+    console.error('❌ Greška pri generisanju plana:', error);
+    const fallbackPlan = generateFallbackPlan(2200, 150, 250, 70, []);
+    res.status(500).json({ 
+      error: error.message,
+      ...fallbackPlan
     });
-    
-    console.log('🔒 Restrikcije primijenjene na plan');
   }
-  
-  return selectedPlan;
-}
+});
 
 // ============================================================
 // 21. TAJNI RECEPT
