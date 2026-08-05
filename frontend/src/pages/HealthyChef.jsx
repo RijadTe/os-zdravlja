@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-// 🔥 PROMIJENJENO - uklonjen /api sa kraja
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
@@ -79,11 +78,6 @@ const HealthyChef = () => {
     'Ovulacija': { bg: 'bg-yellow-400', border: 'border-yellow-500', hover: 'hover:bg-yellow-500', text: 'text-gray-800' },
     'Rana lutealna faza': { bg: 'bg-green-400', border: 'border-green-500', hover: 'hover:bg-green-500', text: 'text-white' },
     'PMS': { bg: 'bg-purple-500', border: 'border-purple-600', hover: 'hover:bg-purple-600', text: 'text-white' },
-    'Faza 1': { bg: 'bg-red-500', border: 'border-red-600', hover: 'hover:bg-red-600', text: 'text-white' },
-    'Faza 2': { bg: 'bg-orange-400', border: 'border-orange-500', hover: 'hover:bg-orange-500', text: 'text-white' },
-    'Faza 3': { bg: 'bg-yellow-400', border: 'border-yellow-500', hover: 'hover:bg-yellow-500', text: 'text-gray-800' },
-    'Faza 4': { bg: 'bg-green-400', border: 'border-green-500', hover: 'hover:bg-green-500', text: 'text-white' },
-    'Faza 5': { bg: 'bg-blue-500', border: 'border-blue-600', hover: 'hover:bg-blue-600', text: 'text-white' },
     'Perimenopauza': { bg: 'bg-pink-400', border: 'border-pink-500', hover: 'hover:bg-pink-500', text: 'text-gray-800' },
     'Menopauza': { bg: 'bg-rose-500', border: 'border-rose-600', hover: 'hover:bg-rose-600', text: 'text-white' },
     'Postmenopauza': { bg: 'bg-purple-500', border: 'border-purple-600', hover: 'hover:bg-purple-600', text: 'text-white' },
@@ -108,41 +102,37 @@ const HealthyChef = () => {
   }, []);
 
   // ============================================================
-  // DOHVATI KATEGORIJE I FAZE
+  // DOHVATI KATEGORIJE I FAZE - POPRAVLJENO!
   // ============================================================
   useEffect(() => {
     const fetchAllData = async (retry = 0) => {
       try {
         console.log(`🔄 Dohvatam podatke (pokušaj ${retry + 1})...`);
         
-        // 🔥 PROMIJENJENO - dodan /api
+        // 1. DOHVATI SVE KATEGORIJE
         const katRes = await fetch(`${API_URL}/api/healthy-chef/kategorije`);
         const katData = await katRes.json();
         console.log('📊 Kategorije dohvaćene:', katData?.length || 0);
         setKategorije(katData);
         
+        // 2. AKO IMAMO KATEGORIJU - FILTRIRAJ FAZE (parent_id)
         if (kategorijaId) {
           setLoadingFaze(true);
-          try {
-            // 🔥 PROMIJENJENO - dodan /api
-            const fazeRes = await fetch(`${API_URL}/api/healthy-chef/faze/${kategorijaId}`);
-            const fazeData = await fazeRes.json();
-            console.log('📊 Faze dohvaćene:', fazeData?.length || 0);
-            setFaze(fazeData);
-            
-            const kat = katData.find(k => k.id === kategorijaId);
-            if (kat) setCategoryName(kat.naziv);
-            
-            if (fazaId) {
-              const faza = fazeData.find(f => f.id === fazaId);
-              if (faza) setPhaseName(faza.naziv);
-            }
-          } catch (fazeError) {
-            console.error('❌ Greška pri dohvatu faza:', fazeError);
-            setFaze([]);
-          } finally {
-            setLoadingFaze(false);
+          
+          // 🔥 FAZE SU U ISTOJ TABELI - FILTRIRAMO PO parent_id
+          const fazeData = katData.filter(kat => kat.parent_id === kategorijaId);
+          console.log('📊 Faze dohvaćene:', fazeData?.length || 0);
+          setFaze(fazeData);
+          
+          const kat = katData.find(k => k.id === kategorijaId);
+          if (kat) setCategoryName(kat.naziv);
+          
+          if (fazaId) {
+            const faza = fazeData.find(f => f.id === fazaId);
+            if (faza) setPhaseName(faza.naziv);
           }
+          
+          setLoadingFaze(false);
         }
         
         setIsDataLoaded(true);
@@ -164,19 +154,20 @@ const HealthyChef = () => {
   }, [kategorijaId, fazaId]);
 
   // ============================================================
-  // DOHVATI RECEPTE
+  // DOHVATI RECEPTE - POPRAVLJENO!
   // ============================================================
   useEffect(() => {
     if (fazaId && user && isDataLoaded) {
       const fetchRecepti = async () => {
         setLoading(true);
         try {
+          // 🔥 KORISTI fazaId ZA FILTRIRANJE RECEPATA
           const params = new URLSearchParams({
-            fazaId: fazaId,
+            kategorijaId: fazaId, // ← fazaId je zapravo ID podkategorije
             email: user.email,
             ...filters
           });
-          // 🔥 PROMIJENJENO - dodan /api
+          
           const res = await fetch(`${API_URL}/api/healthy-chef/recepti?${params}`);
           const data = await res.json();
           console.log('📊 Recepti dohvaćeni:', data?.length || 0);
