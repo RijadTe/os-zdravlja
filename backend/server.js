@@ -54,14 +54,14 @@ cloudinary.config({
 console.log('✅ Cloudinary povezan!');
 
 // ============================================================
-// RATE LIMIT - ZAŠTITA OD PREVIŠE ZAHTJEVA
+// 🔥 RATE LIMIT - POVEĆAN ZA BOLJE PERFORMANSE!
 // ============================================================
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 200,
+  windowMs: 1 * 60 * 1000,   // ⬅️ 1 minuta (brže resetiranje)
+  max: 500,                  // ⬅️ 500 zahtjeva po minuti
   message: {
     success: false,
-    error: '⏳ Previše zahtjeva. Pokušajte za 15 minuta.'
+    error: '⏳ Previše zahtjeva. Pokušajte za minutu.'
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -69,7 +69,7 @@ const apiLimiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: 50,                   // ⬅️ Povećano sa 20 na 50
   message: {
     success: false,
     error: '⏳ Previše pokušaja prijave. Pokušajte za 15 minuta.'
@@ -79,7 +79,7 @@ const authLimiter = rateLimit({
 
 const aiLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 50,
+  max: 200,                  // ⬅️ Povećano sa 50 na 200
   message: {
     success: false,
     error: '⏳ Previše AI pretraga. Pokušajte za sat vremena.'
