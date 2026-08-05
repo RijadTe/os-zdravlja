@@ -1,11 +1,12 @@
 // frontend/src/components/LanguageSwitcher.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { changeLanguage } from '../i18n/index'; // 🔥 UVEZI FUNKCIJU
+import { changeLanguage } from '../i18n/index';
 
 const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  const [updateKey, setUpdateKey] = useState(Date.now()); // 🔥 ZA RE-RENDER
   const dropdownRef = useRef(null);
 
   const languages = [
@@ -17,11 +18,23 @@ const LanguageSwitcher = () => {
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
 
   const handleChangeLanguage = async (lng) => {
-    await changeLanguage(lng); // 🔥 KORISTI FUNKCIJU IZ i18n/index.js
+    await changeLanguage(lng);
     setIsOpen(false);
+    setUpdateKey(Date.now()); // 🔥 FORSIRAJ RE-RENDER
   };
 
-  // Zatvori dropdown kad se klikne van
+  // 🔥 OSJEĆAJ NA PROMJENU JEZIKA
+  useEffect(() => {
+    const handleLanguageChange = () => {
+      setUpdateKey(Date.now());
+    };
+    i18n.on('languageChanged', handleLanguageChange);
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, [i18n]);
+
+  // 🔥 ZATVORI DROPDOWN
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -33,8 +46,7 @@ const LanguageSwitcher = () => {
   }, []);
 
   return (
-    <div className="relative inline-block" ref={dropdownRef}>
-      {/* DUGME ZA TRENUTNI JEZIK */}
+    <div key={updateKey} className="relative inline-block" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-1 sm:gap-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 transition duration-200"
@@ -53,7 +65,6 @@ const LanguageSwitcher = () => {
         </svg>
       </button>
 
-      {/* DROPDOWN LISTA */}
       {isOpen && (
         <div className="absolute right-0 mt-1 sm:mt-2 w-40 sm:w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50 animate-fadeIn">
           {languages.map((lang) => (

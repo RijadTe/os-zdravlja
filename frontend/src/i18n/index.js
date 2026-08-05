@@ -3,10 +3,10 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-// 🔥 PROVJERI DA LI KORISNIK IMA SPREMLJEN JEZIK
+// 🔥 PROVJERI SPREMLJENI JEZIK
 const savedLanguage = localStorage.getItem('i18nextLng') || 'hr';
 
-// 🔥 INICIJALIZIRAJ i18n BEZ PREVODA
+// 🔥 INICIJALIZIRAJ BEZ PREVODA
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -17,7 +17,7 @@ i18n
       de: { translation: {} },
     },
     fallbackLng: 'hr',
-    lng: 'hr',
+    lng: savedLanguage,
     interpolation: {
       escapeValue: false,
     },
@@ -26,44 +26,28 @@ i18n
     },
   });
 
-// 🔥 FUNKCIJA ZA UČITAVANJE PREVODA
+// 🔥 UČITAVANJE PREVODA
 const loadTranslations = async () => {
   try {
     // 🔥 HR UVEK PRVO
     const hrRes = await fetch('/locales/hr/translation.json');
     const hrData = await hrRes.json();
     i18n.addResourceBundle('hr', 'translation', hrData);
-    console.log('✅ HR prevod učitani!');
-
-    // 🔥 PROVJERI SPREMLJENI JEZIK
+    
+    // 🔥 AKO JE SPREMLJEN DRUGI JEZIK
     if (savedLanguage === 'en') {
-      try {
-        const enRes = await fetch('/locales/en/translation.json');
-        const enData = await enRes.json();
-        i18n.addResourceBundle('en', 'translation', enData);
-        await i18n.changeLanguage('en');
-        console.log('✅ EN prevod učitani!');
-      } catch (e) {
-        console.warn('⚠️ EN prevod nije dostupan');
-        await i18n.changeLanguage('hr');
-      }
+      const enRes = await fetch('/locales/en/translation.json');
+      const enData = await enRes.json();
+      i18n.addResourceBundle('en', 'translation', enData);
     } else if (savedLanguage === 'de') {
-      try {
-        const deRes = await fetch('/locales/de/translation.json');
-        const deData = await deRes.json();
-        i18n.addResourceBundle('de', 'translation', deData);
-        await i18n.changeLanguage('de');
-        console.log('✅ DE prevod učitani!');
-      } catch (e) {
-        console.warn('⚠️ DE prevod nije dostupan');
-        await i18n.changeLanguage('hr');
-      }
-    } else {
-      await i18n.changeLanguage('hr');
-      localStorage.setItem('i18nextLng', 'hr');
+      const deRes = await fetch('/locales/de/translation.json');
+      const deData = await deRes.json();
+      i18n.addResourceBundle('de', 'translation', deData);
     }
-
-    console.log(`✅ i18n inicijaliziran sa: ${i18n.language}`);
+    
+    // 🔥 POSTAVI JEZIK
+    await i18n.changeLanguage(savedLanguage);
+    console.log(`✅ i18n inicijaliziran sa: ${savedLanguage}`);
   } catch (error) {
     console.error('❌ Greška:', error);
     await i18n.changeLanguage('hr');
@@ -73,26 +57,26 @@ const loadTranslations = async () => {
 
 loadTranslations();
 
+// 🔥 FUNKCIJA ZA PROMJENU JEZIKA - ODMAH REAGUJE
 export const changeLanguage = async (lng) => {
-  if (lng === 'hr') {
-    localStorage.setItem('i18nextLng', 'hr');
-    await i18n.changeLanguage('hr');
-    return;
-  }
-  
   try {
+    // 🔥 UČITAJ PREVOD AKO NEMA
     if (!i18n.hasResourceBundle(lng, 'translation')) {
       const response = await fetch(`/locales/${lng}/translation.json`);
-      if (!response.ok) throw new Error(`Cannot load ${lng}`);
       const data = await response.json();
       i18n.addResourceBundle(lng, 'translation', data);
     }
+    
+    // 🔥 PROMIJENI JEZIK
     await i18n.changeLanguage(lng);
     localStorage.setItem('i18nextLng', lng);
+    
+    // 🔥 FORSIRAJ RE-RENDER SVIH KOMPONENTI
+    i18n.emit('languageChanged', lng);
+    
+    console.log(`✅ Jezik promijenjen na: ${lng}`);
   } catch (error) {
     console.error(`❌ Greška pri učitavanju ${lng}:`, error);
-    localStorage.setItem('i18nextLng', 'hr');
-    await i18n.changeLanguage('hr');
   }
 };
 
