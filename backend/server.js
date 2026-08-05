@@ -1772,7 +1772,7 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
 });
 
 // ============================================================
-// 24. AI CHEF - PRETRAGA
+// 🔥 24. AI CHEF - PRETRAGA (SA RESTRIKCIJAMA I SPAVANJEM!)
 // ============================================================
 app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
   try {
@@ -1780,6 +1780,45 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
     const slika = req.file;
     
     console.log(`🤖 AI Chef pretraga za: ${email}`);
+    
+    // 🔥 DOHVATI RESTRIKCIJE KORISNIKA
+    let restrikcije = [];
+    let zdravstveniPodaci = null;
+    
+    if (email) {
+      const { data: profil, error: profilError } = await supabase
+        .from('profili')
+        .select('izbjegava')
+        .eq('email', email)
+        .maybeSingle();
+      
+      if (profilError) {
+        console.error('❌ Greška pri dohvatu restrikcija:', profilError);
+      }
+      
+      if (profil?.izbjegava) {
+        restrikcije = profil.izbjegava;
+        console.log('🔒 Restrikcije korisnika:', restrikcije);
+      }
+      
+      // 🔥 DOHVATI ZDRAVSTVENE PODATKE (ZA SPAVANJE)
+      const { data: zdravstveni, error: zdravError } = await supabase
+        .from('zdravstveni_podaci')
+        .select('*')
+        .eq('korisnik_email', email)
+        .order('datum', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (zdravError) {
+        console.error('❌ Greška pri dohvatu zdravstvenih podataka:', zdravError);
+      }
+      
+      if (zdravstveni) {
+        zdravstveniPodaci = zdravstveni;
+        console.log('😴 Zdravstveni podaci:', zdravstveni);
+      }
+    }
     
     let inputText = tekst || '';
     let inputType = 'tekst';
@@ -1835,15 +1874,49 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
 
     if (error) throw error;
 
+    // 🔥 FILTRIRAJ RECEPTE - SASTOJCI + RESTRIKCIJE + ZDRAVSTVENI PODACI
     const filtrirani = recepti.filter(recept => {
+      // 1. PROVJERA SASTOJAKA
       if (!recept.sastojci || recept.sastojci.length === 0) return false;
       const receptSastojci = recept.sastojci.map(s => s.toLowerCase());
-      return sastojci.some(sastojak => 
+      const imaSastojak = sastojci.some(sastojak => 
         receptSastojci.some(rs => rs.includes(sastojak))
       );
+      if (!imaSastojak) return false;
+      
+      // 2. 🔥 PROVJERA RESTRIKCIJA
+      if (restrikcije && restrikcije.length > 0) {
+        const alergeni = recept.alergeni || [];
+        const imaRestrikciju = restrikcije.some(r => alergeni.includes(r));
+        if (imaRestrikciju) return false;
+      }
+      
+      // 3. 🔥 PROVJERA ZDRAVSTVENIH PODATAKA (SPAVANJE)
+      if (zdravstveniPodaci) {
+        const sanSati = zdravstveniPodaci.san_sati || 0;
+        
+        // Ako je san < 6 sati, preporuči laganije obroke
+        if (sanSati < 6) {
+          // Filtriraj recepte koji su laganiji (manje kalorija, kraće vrijeme pripreme)
+          const kalorije = recept.kalorije || 0;
+          const vrijeme = recept.vrijeme || '';
+          const jeLagano = kalorije < 500 || vrijeme.includes('Kratko') || vrijeme.includes('Srednje');
+          if (!jeLagano) return false;
+        }
+        
+        // Ako je san > 8 sati, preporuči energičnije obroke
+        if (sanSati > 8) {
+          const kalorije = recept.kalorije || 0;
+          const proteini = recept.proteini || 0;
+          const jeEnergijski = kalorije > 400 || proteini > 20;
+          if (!jeEnergijski) return false;
+        }
+      }
+      
+      return true;
     });
 
-    console.log(`✅ Pronađeno ${filtrirani.length} recepata`);
+    console.log(`✅ Pronađeno ${filtrirani.length} recepata (sa restrikcijama i zdravstvenim podacima)`);
 
     const results = filtrirani;
     const hashToSave = imageHash || textHash;
@@ -2093,7 +2166,7 @@ app.get('/api/zdravstveni-podaci/:email', async (req, res) => {
 });
 
 // ============================================================
-// 29. 🔥 NOTIFIKACIJE - GENERIŠI PREPORUKE (POVEĆANE!)
+// 29. 🔥 NOTIFIKACIJE - GENERIŠI PREPORUKE
 // ============================================================
 app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
   try {
