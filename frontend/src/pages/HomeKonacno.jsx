@@ -277,7 +277,7 @@ const HomeKonacno = () => {
       setLoading(false);
     } catch (err) {
       console.error('❌ Greška pri dohvatu recepata:', err);
-      setRecepti([]); // ⬅️ UVijek postavi prazan array
+      setRecepti([]);
       setLoading(false);
     }
   }, []);
@@ -630,12 +630,12 @@ const HomeKonacno = () => {
   ];
 
   const healthyChefCategories = [
-    { id: 'hormonski', icon: '🩸', label: t('home.healthychef.hormonal', { defaultValue: 'Hormonski' }), link: '/healthy-chef/hormonski' },
-    { id: 'tiroida', icon: '🦋', label: t('home.healthychef.thyroid', { defaultValue: 'Tiroida' }), link: '/healthy-chef/tiroida' },
-    { id: 'anemija', icon: '🩸', label: t('home.healthychef.anemia', { defaultValue: 'Anemija' }), link: '/healthy-chef/anemija' },
-    { id: 'kosti', icon: '🦴', label: t('home.healthychef.bones', { defaultValue: 'Kosti' }), link: '/healthy-chef/kosti' },
-    { id: 'menopauza', icon: '👵', label: t('home.healthychef.menopause', { defaultValue: 'Menopauza' }), link: '/healthy-chef/menopauza' },
-    { id: 'pcos', icon: '💉', label: t('home.healthychef.pcos', { defaultValue: 'PCOS' }), link: '/healthy-chef/pcos' },
+    { id: 'hormonski', icon: '🩸', label: t('home.healthychef.hormonal', { defaultValue: 'Hormonski' }) },
+    { id: 'tiroida', icon: '🦋', label: t('home.healthychef.thyroid', { defaultValue: 'Tiroida' }) },
+    { id: 'anemija', icon: '🩸', label: t('home.healthychef.anemia', { defaultValue: 'Anemija' }) },
+    { id: 'kosti', icon: '🦴', label: t('home.healthychef.bones', { defaultValue: 'Kosti' }) },
+    { id: 'menopauza', icon: '👵', label: t('home.healthychef.menopause', { defaultValue: 'Menopauza' }) },
+    { id: 'pcos', icon: '💉', label: t('home.healthychef.pcos', { defaultValue: 'PCOS' }) },
   ];
 
   const foodPlannerFeatures = [
@@ -1057,7 +1057,7 @@ const HomeKonacno = () => {
         </section>
       )}
 
-      {/* ===== HEALTHYCHEF ===== */}
+      {/* ===== HEALTHYCHEF - SA DUGMETOM "Otvori HealthyChef" ===== */}
       <section className="py-12 md:py-20 px-4 flex justify-center bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
         <div className="w-full max-w-4xl">
           <div className="text-center">
@@ -1065,20 +1065,30 @@ const HomeKonacno = () => {
               🌿 {t('home.healthychef.title', { defaultValue: 'HealthyChef' })}
               <span className="inline-block bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 px-3 py-1 rounded-full text-sm font-bold">⭐ PREMIUM</span>
             </h2>
-            <p className="text-gray-600 dark:text-gray-300 text-base md:text-xl mb-6">{t('home.healthychef.description', { defaultValue: 'Personalizovani recepti za vaše zdravstvene potrebe.' })}</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6">
+            <p className="text-gray-600 dark:text-gray-300 text-base md:text-xl mb-6">
+              {t('home.healthychef.description', { defaultValue: 'Personalizovani recepti za vaše zdravstvene potrebe.' })}
+            </p>
+            
+            {/* PRIKAZ KATEGORIJA (SAMO IKONE, BEZ LINKOVA) */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6 mb-8">
               {healthyChefCategories.map(cat => (
-                <Link 
+                <div 
                   key={cat.id} 
-                  to={cat.link} 
-                  className="flex flex-col items-center justify-center hover:scale-105 transition transform p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 shadow-md hover:shadow-xl border border-gray-100 dark:border-gray-700"
+                  className="flex flex-col items-center justify-center p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 opacity-80 cursor-default"
                 >
                   <span className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl mb-2 sm:mb-3">{cat.icon}</span>
                   <span className="font-bold text-gray-700 dark:text-gray-300 text-xs sm:text-sm md:text-base lg:text-lg text-center">{cat.label}</span>
-                </Link>
+                </div>
               ))}
             </div>
-            <Link to="/healthy-chef" className="inline-block mt-10 bg-yellow-500 hover:bg-yellow-600 text-white px-10 py-4 rounded-full text-base md:text-xl font-semibold transition shadow-md hover:shadow-lg">🌿 {t('home.healthychef.open', { defaultValue: 'Otvori HealthyChef' })}</Link>
+            
+            {/* DUGME "Otvori HealthyChef" - KAO I ZA FOOD PLANNER */}
+            <Link 
+              to="/healthy-chef" 
+              className="inline-block bg-yellow-500 hover:bg-yellow-600 text-white px-10 py-4 rounded-full text-base md:text-xl font-semibold transition shadow-md hover:shadow-lg"
+            >
+              🌿 {t('home.healthychef.open', { defaultValue: 'Otvori HealthyChef' })}
+            </Link>
           </div>
         </div>
       </section>
