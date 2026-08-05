@@ -348,18 +348,18 @@
   "foodplanner": {
     "title": "📊 Food Diary",
     "premium": {
-      "title": "📊 Food Diary",
+      "title": "Food Diary",
       "description": "This section is only available for Premium users.",
       "button": "Become Premium"
     },
     "tabs": {
-      "diary": "📝 Diary",
-      "analytics": "📈 Analytics",
-      "plan": "📅 Meal Plan"
+      "diary": "Diary",
+      "analytics": "Analytics",
+      "plan": "Meal Plan"
     },
     "diary": {
       "today": "Today,",
-      "goal": "🎯 Daily goal:",
+      "goal": "Daily goal:",
       "consumed": "Consumed:",
       "protein": "Protein",
       "carbs": "Carbs",

@@ -348,18 +348,18 @@
   "foodplanner": {
     "title": "📊 Dnevnik ishrane",
     "premium": {
-      "title": "📊 Dnevnik ishrane",
+      "title": "Dnevnik ishrane",
       "description": "Ova sekcija je dostupna samo za Premium korisnike.",
       "button": "Postani Premium"
     },
     "tabs": {
-      "diary": "📝 Dnevnik",
-      "analytics": "📈 Analitika",
-      "plan": "📅 Plan obroka"
+      "diary": "Dnevnik",
+      "analytics": "Analitika",
+      "plan": "Plan obroka"
     },
     "diary": {
       "today": "Danas,",
-      "goal": "🎯 Dnevni cilj:",
+      "goal": "Dnevni cilj:",
       "consumed": "Uneseno:",
       "protein": "Proteini",
       "carbs": "Uglj.",

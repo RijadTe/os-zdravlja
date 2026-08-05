@@ -348,18 +348,18 @@
   "foodplanner": {
     "title": "📊 Ernährungstagebuch",
     "premium": {
-      "title": "📊 Ernährungstagebuch",
+      "title": "Ernährungstagebuch",
       "description": "Dieser Bereich ist nur für Premium-Nutzer verfügbar.",
       "button": "Premium werden"
     },
     "tabs": {
-      "diary": "📝 Tagebuch",
-      "analytics": "📈 Analytik",
-      "plan": "📅 Speiseplan"
+      "diary": "Tagebuch",
+      "analytics": "Analytik",
+      "plan": "Speiseplan"
     },
     "diary": {
       "today": "Heute,",
-      "goal": "🎯 Tagesziel:",
+      "goal": "Tagesziel:",
       "consumed": "Verbraucht:",
       "protein": "Protein",
       "carbs": "Kohlenhydrate",
