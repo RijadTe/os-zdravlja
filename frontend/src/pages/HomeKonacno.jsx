@@ -106,7 +106,6 @@ const HomeKonacno = () => {
         // 🔥 PROVJERI DA LI JE RATE LIMIT (429)
         if (response.status === 429) {
           console.warn('⚠️ Rate limit (429) - koristim podatke iz localStorage');
-          // KORISTI PODATKE IZ LOCALSTORAGE
           const storedUser = JSON.parse(localStorage.getItem('user'));
           if (storedUser) {
             const fallbackProfil = {
@@ -127,7 +126,6 @@ const HomeKonacno = () => {
               setFridgeItems(Array.isArray(fallbackProfil.fridge) ? fallbackProfil.fridge : []);
             }
             
-            // Postavi filtere iz fallback profila
             const noviFilteri = {};
             if (fallbackProfil.vrsta && fallbackProfil.vrsta.length > 0) {
               const odabraneVrste = fallbackProfil.vrsta.filter(v => v !== 'Svejedno');
@@ -217,7 +215,6 @@ const HomeKonacno = () => {
         }
       } catch (error) {
         console.error('❌ Greška pri dohvatu profila:', error);
-        // 🔥 FALLBACK - pokušaj iz localStorage
         const storedUser = JSON.parse(localStorage.getItem('user'));
         if (storedUser) {
           const fallbackProfil = {
@@ -253,7 +250,6 @@ const HomeKonacno = () => {
     try {
       const response = await fetch(`${API_URL}/api/recepti`);
       
-      // 🔥 PROVJERI DA LI JE RATE LIMIT (429)
       if (response.status === 429) {
         console.warn('⚠️ Rate limit (429) - koristim prazne recepte');
         setRecepti([]);
@@ -263,7 +259,6 @@ const HomeKonacno = () => {
       
       const data = await response.json();
       
-      // 🔥 SIGURNOSNA PROVJERA - osiguraj da je data array
       if (data && Array.isArray(data)) {
         setRecepti(data);
         console.log(`✅ Dohvaćeno ${data.length} recepata`);
@@ -339,7 +334,6 @@ const HomeKonacno = () => {
   // 5. FILTRIRANI RECEPTI - SA SIGURNOSNOM PROVJEROM
   // ============================================================
   const filteredReceptiMemo = useMemo(() => {
-    // 🔥 SIGURNOSNA PROVJERA - osiguraj da je recepti array
     let filtered = Array.isArray(recepti) ? recepti : [];
     
     if (filters.vrsta) {
@@ -519,7 +513,7 @@ const HomeKonacno = () => {
   }, [sleep, energy, stress, user, recepti, filters.restrikcije, t]);
 
   // ============================================================
-  // 7. FRIŽIDER FUNKCIJE - SA FREE/PREMIUM LIMITOM!
+  // 7. FRIŽIDER FUNKCIJE - SA CHECKBOX ZA KUPLJENO
   // ============================================================
   
   // 🔥 SPREMI FRIŽIDER U BAZU
@@ -539,11 +533,10 @@ const HomeKonacno = () => {
     }
   }, [user]);
 
-  // 🔥 DODAJ NAMIRNICU - SA LIMITOM!
+  // 🔥 DODAJ NAMIRNICU - SA LIMITOM I OBJEKTOM
   const addFridgeItem = useCallback(() => {
     if (!newItem.trim()) return;
 
-    // 🔥 PROVJERI LIMIT ZA FREE KORISNIKE (MAX 5)
     const isPremium = user?.premium || false;
     const maxItems = isPremium ? Infinity : 5;
     
@@ -556,33 +549,58 @@ const HomeKonacno = () => {
       return;
     }
 
-    const updatedItems = [...fridgeItems, newItem.trim()];
+    // 🔥 SPREMI KAO OBJEKAT SA purchased: false
+    const newItemObj = { name: newItem.trim(), purchased: false };
+    const updatedItems = [...fridgeItems, newItemObj];
     setFridgeItems(updatedItems);
     setNewItem('');
     saveFridgeToDatabase(updatedItems);
   }, [newItem, fridgeItems, user, saveFridgeToDatabase]);
 
+  // 🔥 TOGGLE PURCHASED - OZNAČI KAO KUPLJENO
+  const togglePurchased = useCallback((index) => {
+    setFridgeItems(prev => {
+      const updated = [...prev];
+      // Ako je item string, pretvori u objekt
+      if (typeof updated[index] === 'string') {
+        updated[index] = { name: updated[index], purchased: false };
+      }
+      // Toggle purchased status
+      updated[index] = {
+        ...updated[index],
+        purchased: !updated[index].purchased
+      };
+      // Spremi u bazu
+      saveFridgeToDatabase(updated);
+      return updated;
+    });
+  }, [saveFridgeToDatabase]);
+
   // 🔥 PRONAĐI RECEPTE NA OSNOVU FRIŽIDERA
   const findRecipesFromFridge = useCallback(async () => {
-    if (fridgeItems.length === 0) {
-      alert('Dodajte barem jednu namirnicu u frižider!');
+    // 🔥 FILTRIRAJ SAMO NEOKUPLJENE NAMIRNICE ZA PRETRAGU
+    const activeItems = fridgeItems
+      .filter(item => typeof item === 'object' ? !item.purchased : true)
+      .map(item => typeof item === 'object' ? item.name : item);
+    
+    if (activeItems.length === 0) {
+      alert('Dodajte barem jednu nekupljenu namirnicu!');
       return;
     }
 
     try {
       setFridgeLoading(true);
-      console.log('🔍 Tražim recepte za:', fridgeItems);
+      console.log('🔍 Tražim recepte za:', activeItems);
       
       const response = await fetch(`${API_URL}/api/ai-chef`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sastojci: fridgeItems.join(', '),
+          sastojci: activeItems.join(', '),
           email: user?.email || localStorage.getItem('userEmail')
         })
       });
 
-      // 🔥 PROVJERI DA LI JE RATE LIMIT (429)
       if (response.status === 429) {
         alert('Previše zahtjeva. Molimo sačekajte trenutak pa pokušajte ponovo.');
         setFridgeLoading(false);
@@ -606,9 +624,8 @@ const HomeKonacno = () => {
     }
   }, [fridgeItems, user]);
 
-  // 🔥 SKENIRAJ NAMIRNICE (ZADRŽANO ZA PREMIUM)
+  // 🔥 SKENIRAJ NAMIRNICE
   const handleNamirniceDodane = useCallback((namirnice) => {
-    // 🔥 PROVJERI LIMIT ZA FREE KORISNIKE
     const isPremium = user?.premium || false;
     const maxItems = isPremium ? Infinity : 5;
     
@@ -619,7 +636,9 @@ const HomeKonacno = () => {
       }
     }
 
-    const updatedItems = [...fridgeItems, ...namirnice];
+    // 🔥 SPREMI KAO OBJEKTE
+    const newItems = namirnice.map(item => ({ name: item, purchased: false }));
+    const updatedItems = [...fridgeItems, ...newItems];
     setFridgeItems(updatedItems);
     setScanPoruka(`✅ Dodano ${namirnice.length} namirnica u frižider!`);
     setTimeout(() => setScanPoruka(''), 4000);
@@ -647,6 +666,14 @@ const HomeKonacno = () => {
     if (user?.premium) return Infinity;
     return Math.max(0, 5 - fridgeItems.length);
   }, [user?.premium, fridgeItems.length]);
+
+  // 🔥 BROJ NEOKUPLJENIH NAMIRNICA
+  const remainingToBuy = useMemo(() => {
+    return fridgeItems.filter(item => {
+      if (typeof item === 'object') return !item.purchased;
+      return true;
+    }).length;
+  }, [fridgeItems]);
 
   const activeFiltersCount = Object.values(filters).filter(v => {
     if (Array.isArray(v)) return v.length > 0;
@@ -914,11 +941,11 @@ const HomeKonacno = () => {
         </div>
       </section>
 
-      {/* ===== MOJ FRIŽIDER - NOVI, BEZ SCAN RECEIPT ===== */}
+      {/* ===== MOJ FRIŽIDER - SA CHECKBOX I BROJAČEM ===== */}
       <section className="py-12 md:py-20 px-4 flex justify-center bg-white dark:bg-gray-900">
         <div className="w-full max-w-3xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-gray-800 dark:text-white flex items-center justify-center gap-2 flex-wrap">
-            🧊 {t('home.fridge.title', { defaultValue: 'Moj frižider' })}
+            🛒 {t('home.fridge.title', { defaultValue: 'Moj frižider' })}
             <span className="inline-block bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 px-3 py-1 rounded-full text-sm font-bold">⭐ PREMIUM</span>
           </h2>
           <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 md:p-8 shadow-md border border-gray-200 dark:border-gray-700">
@@ -954,40 +981,79 @@ const HomeKonacno = () => {
               </div>
             )}
 
-            {/* LISTA NAMIRNICA */}
-            <div className="mt-4 flex flex-wrap gap-2 min-h-[60px]">
-              {fridgeItems.length === 0 ? (
-                <p className="text-gray-400 dark:text-gray-500 text-sm w-full text-center py-4">
-                  🧊 Frižider je prazan. Dodajte namirnice!
-                </p>
-              ) : (
-                fridgeItems.map((item, i) => (
-                  <span 
-                    key={i} 
-                    className="bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 border border-blue-200 dark:border-blue-700"
-                  >
-                    {item}
-                    <button 
-                      onClick={() => removeFridgeItem(i)}
-                      className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm font-bold hover:scale-110 transition"
-                      title="Obriši namirnicu"
-                    >
-                      ✕
-                    </button>
+            {/* 🔥 BROJAČ NAMIRNICA - PREOSTALO ZA KUPOVINU */}
+            {fridgeItems.length > 0 && (
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    📋 Ukupno: {fridgeItems.length} namirnica
                   </span>
-                ))
+                  <span className="text-sm font-semibold text-yellow-600 dark:text-yellow-400">
+                    ⏳ Preostalo za kupovinu: {remainingToBuy}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* 🔥 LISTA NAMIRNICA - VERTIKALNO, SA CHECKBOX */}
+            <div className="mt-4 space-y-2">
+              {fridgeItems.length === 0 ? (
+                <div className="text-center py-8 text-gray-400 dark:text-gray-500">
+                  <span className="text-4xl block mb-2">🛒</span>
+                  <p>{t('home.fridge.empty', { defaultValue: 'Frižider je prazan.' })}</p>
+                  <p className="text-sm">{t('home.fridge.empty_hint', { defaultValue: 'Dodajte namirnice koje trebate kupiti.' })}</p>
+                </div>
+              ) : (
+                fridgeItems.map((item, index) => {
+                  // 🔥 PODRŽAVA I STRING I OBJEKAT { name, purchased }
+                  const isPurchased = typeof item === 'object' ? item.purchased : false;
+                  const itemName = typeof item === 'object' ? item.name : item;
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 hover:shadow-md transition group"
+                    >
+                      <div className="flex items-center gap-3 flex-1">
+                        {/* 🔥 CHECKBOX - OZNAČI KUPLJENO */}
+                        <button
+                          onClick={() => togglePurchased(index)}
+                          className={`w-5 h-5 rounded border-2 flex items-center justify-center transition flex-shrink-0 ${
+                            isPurchased 
+                              ? 'bg-green-500 border-green-500' 
+                              : 'border-gray-300 dark:border-gray-500 hover:border-blue-500'
+                          }`}
+                        >
+                          {isPurchased && (
+                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </button>
+                        
+                        {/* 🔥 NAZIV NAMIRNICE */}
+                        <span className={`text-base dark:text-white flex-1 ${
+                          isPurchased ? 'line-through text-gray-400 dark:text-gray-500' : ''
+                        }`}>
+                          {itemName}
+                        </span>
+                      </div>
+                      
+                      {/* 🔥 DUGME ZA BRISANJE */}
+                      <button
+                        onClick={() => removeFridgeItem(index)}
+                        className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition opacity-0 group-hover:opacity-100"
+                        title={t('home.fridge.delete', { defaultValue: 'Obriši' })}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  );
+                })
               )}
             </div>
 
-            {/* BROJ NAMIRNICA */}
-            {fridgeItems.length > 0 && (
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 text-center">
-                {fridgeItems.length} namirnica u frižideru
-                {!isPremium && ` (maksimalno 5 za FREE korisnike)`}
-              </p>
-            )}
-
-            {/* DUGMIĆI - PRONAĐI RECEPTE + OČISTI */}
+            {/* 🔥 DUGMIĆI - PRONAĐI RECEPTE + OČISTI */}
             <div className="mt-4 flex flex-col sm:flex-row gap-3">
               <button 
                 onClick={findRecipesFromFridge}
