@@ -21,6 +21,7 @@ const LanguageSwitcher = () => {
     setIsOpen(false);
   };
 
+  // Zatvori dropdown kad se klikne van
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -33,6 +34,7 @@ const LanguageSwitcher = () => {
 
   return (
     <div className="relative inline-block" ref={dropdownRef}>
+      {/* DUGME ZA TRENUTNI JEZIK */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-1 sm:gap-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm text-gray-700 dark:text-gray-300 transition duration-200"
@@ -51,6 +53,7 @@ const LanguageSwitcher = () => {
         </svg>
       </button>
 
+      {/* DROPDOWN LISTA */}
       {isOpen && (
         <div className="absolute right-0 mt-1 sm:mt-2 w-40 sm:w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50 animate-fadeIn">
           {languages.map((lang) => (
