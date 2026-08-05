@@ -3,67 +3,33 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-const loadTranslations = async () => {
-  try {
-    const [hr, en, de] = await Promise.all([
-      fetch('/locales/hr/translation.json').then(res => {
-        if (!res.ok) throw new Error('HR not found');
-        return res.json();
-      }),
-      fetch('/locales/en/translation.json').then(res => {
-        if (!res.ok) throw new Error('EN not found');
-        return res.json();
-      }),
-      fetch('/locales/de/translation.json').then(res => {
-        if (!res.ok) throw new Error('DE not found');
-        return res.json();
-      })
-    ]);
+// 🔥 UVOZI DIREKTNO - BEZ FETCH-A!
+import hrTranslation from '../locales/hr/translation.json';
+import enTranslation from '../locales/en/translation.json';
+import deTranslation from '../locales/de/translation.json';
 
-    const resources = {
-      hr: { translation: hr },
-      en: { translation: en },
-      de: { translation: de },
-    };
-
-    await i18n
-      .use(LanguageDetector)
-      .use(initReactI18next)
-      .init({
-        resources,
-        fallbackLng: 'hr',
-        lng: 'hr',
-        interpolation: {
-          escapeValue: false,
-        },
-      });
-
-    console.log('✅ i18n inicijaliziran sa HR!');
-    return i18n;
-  } catch (error) {
-    console.error('❌ Greška:', error);
-    const resources = {
-      hr: { translation: {} },
-      en: { translation: {} },
-      de: { translation: {} },
-    };
-    
-    await i18n
-      .use(LanguageDetector)
-      .use(initReactI18next)
-      .init({
-        resources,
-        fallbackLng: 'hr',
-        lng: 'hr',
-        interpolation: {
-          escapeValue: false,
-        },
-      });
-    
-    return i18n;
-  }
+const resources = {
+  hr: { translation: hrTranslation },
+  en: { translation: enTranslation },
+  de: { translation: deTranslation },
 };
 
-loadTranslations();
+// 🔥 SINHRONO INICIJALIZIRAJ - ODMAH!
+i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources,
+    fallbackLng: 'hr',
+    lng: 'hr',
+    interpolation: {
+      escapeValue: false,
+    },
+    react: {
+      useSuspense: false,
+    },
+  });
+
+console.log('✅ i18n inicijaliziran sa HR!');
 
 export default i18n;
