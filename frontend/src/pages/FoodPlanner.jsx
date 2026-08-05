@@ -1,5 +1,5 @@
 // frontend/src/pages/FoodPlanner.jsx
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Line, Doughnut } from 'react-chartjs-2';
@@ -19,7 +19,7 @@ const FoodPlanner = () => {
   const [loadingObroci, setLoadingObroci] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
   
-  // 🔥 DNEVNI CILJ - OTAKLJUČAN ZA UNOS
+  // 🔥 DNEVNI CILJ
   const [dailyGoal, setDailyGoal] = useState({
     kalorije: 2200,
     proteini: 150,
@@ -28,12 +28,15 @@ const FoodPlanner = () => {
   });
   const [editingGoal, setEditingGoal] = useState(false);
   
-  // 🔥 RECEPTI IZ BAZE - SA FILTRIRANJEM
+  // 🔥 RECEPTI - LAZY LOAD (NE DOHVAĆAJU SE ODMAH!)
   const [allRecipes, setAllRecipes] = useState([]);
   const [filteredRecipes, setFilteredRecipes] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showRecipeDropdown, setShowRecipeDropdown] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [searchingRecipes, setSearchingRecipes] = useState(false); // 🔥 INDIKATOR PRETRAGE
+  const [recipesLoaded, setRecipesLoaded] = useState(false); // 🔥 DA LI SU RECEPTI DOHVAĆENI
+  const searchTimeoutRef = useRef(null); // 🔥 DEBOUNCE TIMER
   
   const [noviObrok, setNoviObrok] = useState({
     naziv: '',
@@ -67,7 +70,7 @@ const FoodPlanner = () => {
   const [restrictions, setRestrictions] = useState([]);
 
   // ============================================================
-  // 🔥 HELPER FUNKCIJE ZA DATUM - BINARNI FORMAT (DD.MM.YYYY)
+  // HELPER FUNKCIJE ZA DATUM - BINARNI FORMAT (DD.MM.YYYY)
   // ============================================================
   const formatDate = (date) => {
     const day = String(date.getDate()).padStart(2, '0');
@@ -112,10 +115,74 @@ const FoodPlanner = () => {
   }, [restrictions]);
 
   // ============================================================
-  // DOHVATI KORISNIKA, PROFIL I RECEPTE
+  // 🔥 DOHVATI RECEPTE - SAMO KAD JE POTREBNO (LAZY LOAD)
+  // ============================================================
+  const fetchRecipes = useCallback(async () => {
+    if (recipesLoaded) return; // 🔥 VEĆ SU DOHVAĆENI
+    
+    try {
+      setSearchingRecipes(true);
+      console.log('📡 Dohvatam recepte (prvi put)...');
+      
+      const res = await fetch(`${API_URL}/api/recepti`);
+      const data = await res.json();
+      
+      if (Array.isArray(data)) {
+        setAllRecipes(data);
+        const filtered = filterRecipesByRestrictions(data);
+        setFilteredRecipes(filtered);
+        setRecipesLoaded(true);
+        console.log('✅ Dohvaćeno recepata:', data.length);
+        console.log('✅ Filtrirano recepata (bez restrikcija):', filtered.length);
+      }
+    } catch (error) {
+      console.error('❌ Greška pri dohvatu recepata:', error);
+    } finally {
+      setSearchingRecipes(false);
+    }
+  }, [filterRecipesByRestrictions, recipesLoaded]);
+
+  // ============================================================
+  // 🔥 SEARCH - SA DEBOUNCE (ČEKA 500ms NAKON PRESTANKA KUCANJA)
+  // ============================================================
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setShowRecipeDropdown(true);
+    
+    // 🔥 OČISTI PREĐAŠNJI TIMER
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // 🔥 AKO JE SEARCH PRAZAN, SAKRIJ DROPDOWN
+    if (!value.trim()) {
+      setShowRecipeDropdown(false);
+      return;
+    }
+    
+    // 🔥 DEBOUNCE - SAČEKAJ 500ms PRIJE NEGO ŠTO DOHVAĆA RECEPTE
+    searchTimeoutRef.current = setTimeout(() => {
+      fetchRecipes(); // 🔥 DOHVATI RECEPTE SAMO AKO SU POTREBNE
+    }, 500);
+  };
+
+  // ============================================================
+  // 🔥 SEARCH REZULTATI - FILTRIRAJ LOKALNO
+  // ============================================================
+  const searchResults = useMemo(() => {
+    if (!searchTerm.trim() || !recipesLoaded) return [];
+    const term = searchTerm.toLowerCase();
+    return filteredRecipes.filter(r => 
+      r.naziv?.toLowerCase().includes(term)
+    ).slice(0, 15);
+  }, [filteredRecipes, searchTerm, recipesLoaded]);
+
+  // ============================================================
+  // DOHVATI PROFIL (BEZ RECEPATA!)
   // ============================================================
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchProfile = async () => {
       const userData = JSON.parse(localStorage.getItem('user'));
       const email = localStorage.getItem('userEmail');
       
@@ -142,21 +209,6 @@ const FoodPlanner = () => {
         }
       }
 
-      try {
-        const res = await fetch(`${API_URL}/api/recepti`);
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setAllRecipes(data);
-          console.log('✅ Dohvaćeno recepata:', data.length);
-          
-          const filtered = filterRecipesByRestrictions(data);
-          setFilteredRecipes(filtered);
-          console.log('✅ Filtrirano recepata (bez restrikcija):', filtered.length);
-        }
-      } catch (error) {
-        console.error('❌ Greška pri dohvatu recepata:', error);
-      }
-
       const saved = localStorage.getItem('fridgeItems');
       if (saved) {
         try {
@@ -167,19 +219,8 @@ const FoodPlanner = () => {
       }
     };
 
-    fetchData();
-  }, [filterRecipesByRestrictions]);
-
-  // ============================================================
-  // 🔥 SEARCH - FILTRIRAJ RECEPTE PO NAZIVU
-  // ============================================================
-  const searchResults = useMemo(() => {
-    if (!searchTerm.trim()) return [];
-    const term = searchTerm.toLowerCase();
-    return filteredRecipes.filter(r => 
-      r.naziv?.toLowerCase().includes(term)
-    ).slice(0, 15);
-  }, [filteredRecipes, searchTerm]);
+    fetchProfile();
+  }, []); // 🔥 PRAZAN NIZ - DOHVAĆA SE SAMO JEDNOM
 
   // ============================================================
   // DOHVATI OBROKE ZA ODABRANI DATUM
@@ -270,6 +311,7 @@ const FoodPlanner = () => {
       setNoviObrok({ naziv: '', kalorije: '', proteini: '', ugljikohidrati: '', masti: '', tip: 'Ručak' });
       setSelectedRecipe(null);
       setSearchTerm('');
+      setShowRecipeDropdown(false);
       setMoodBefore('');
       setMoodAfter('');
       setMoodNote('');
@@ -319,7 +361,7 @@ const FoodPlanner = () => {
   };
 
   // ============================================================
-  // 🔥 AI PLAN - SA KORISNIKOVIM ŽELJAMA I RESTRIKCIJAMA
+  // 🔥 AI PLAN
   // ============================================================
   const generateWeeklyPlan = async () => {
     setLoadingPlan(true);
@@ -488,7 +530,7 @@ const FoodPlanner = () => {
       {activeTab === 0 && (
         <div>
           <div className="mb-6">
-            {/* 🔥 KALENDAR NAVIGACIJA - BINARNI FORMAT DATUMA */}
+            {/* KALENDAR NAVIGACIJA */}
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <h2 className="text-xl font-bold dark:text-white">
                 📅 {formatDate(selectedDate)}
@@ -520,7 +562,7 @@ const FoodPlanner = () => {
               </div>
             </div>
             
-            {/* DNEVNI CILJ - OTAKLJUČAN ZA UNOS */}
+            {/* DNEVNI CILJ */}
             <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-4">
               <div className="flex justify-between items-center mb-2">
                 <span className="font-semibold dark:text-white">🎯 {t('foodplanner.diary.goal')}</span>
@@ -629,46 +671,64 @@ const FoodPlanner = () => {
             </div>
           </div>
 
-          {/* FORMA ZA UNOS - SA DROPDOWN ZA RECEPTE (FILTRIRANO) */}
+          {/* 🔥 FORMA ZA UNOS - SA LAZY LOAD RECEPTIMA */}
           <form onSubmit={handleDodajObrok} className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-700">
             <h3 className="font-bold dark:text-white mb-2">{t('foodplanner.diary.add_meal')}</h3>
             
+            {/* 🔥 PRETRAGA RECEPATA - LAZY LOAD */}
             <div className="relative mb-2">
               <input
                 type="text"
-                placeholder="🔍 Pretraži recepte iz baze (poštuju se tvoje restrikcije)..."
+                placeholder="🔍 Pretraži recepte iz baze (počni kucati)..."
                 value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setShowRecipeDropdown(true);
+                onChange={handleSearchChange}
+                onFocus={() => {
+                  if (searchTerm.trim()) {
+                    setShowRecipeDropdown(true);
+                  }
                 }}
-                onFocus={() => setShowRecipeDropdown(true)}
                 className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
-              {showRecipeDropdown && searchResults.length > 0 && (
-                <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                  {searchResults.map(recipe => (
-                    <button
-                      key={recipe.id}
-                      type="button"
-                      onClick={() => handleSelectRecipe(recipe)}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition flex justify-between items-center border-b border-gray-100 dark:border-gray-700 last:border-0"
-                    >
-                      <div className="flex flex-col items-start">
-                        <span className="dark:text-white font-medium">{recipe.naziv}</span>
-                        <span className="text-xs text-gray-400 dark:text-gray-500">
-                          {recipe.vrsta || 'Općenito'} • {recipe.vrijeme || '30 min'}
-                        </span>
-                      </div>
-                      <span className="text-sm font-semibold text-blue-500">{recipe.kalorije} kcal</span>
-                    </button>
-                  ))}
+              
+              {/* 🔥 INDIKATOR PRETRAGE */}
+              {searchingRecipes && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
                 </div>
               )}
-              {showRecipeDropdown && searchTerm && searchResults.length === 0 && (
-                <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 text-center text-gray-500 dark:text-gray-400">
-                  ❌ Nema recepata za "{searchTerm}" (provjeri restrikcije)
-                </div>
+              
+              {/* 🔥 DROPDOWN REZULTATI */}
+              {showRecipeDropdown && (
+                <>
+                  {searchResults.length > 0 ? (
+                    <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {searchResults.map(recipe => (
+                        <button
+                          key={recipe.id}
+                          type="button"
+                          onClick={() => handleSelectRecipe(recipe)}
+                          className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition flex justify-between items-center border-b border-gray-100 dark:border-gray-700 last:border-0"
+                        >
+                          <div className="flex flex-col items-start">
+                            <span className="dark:text-white font-medium">{recipe.naziv}</span>
+                            <span className="text-xs text-gray-400 dark:text-gray-500">
+                              {recipe.vrsta || 'Općenito'} • {recipe.vrijeme || '30 min'}
+                            </span>
+                          </div>
+                          <span className="text-sm font-semibold text-blue-500">{recipe.kalorije} kcal</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : searchTerm && !searchingRecipes && recipesLoaded ? (
+                    <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 text-center text-gray-500 dark:text-gray-400">
+                      ❌ Nema recepata za "{searchTerm}" (provjeri restrikcije)
+                    </div>
+                  ) : searchTerm && searchingRecipes ? (
+                    <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 text-center text-gray-500 dark:text-gray-400">
+                      ⏳ Pretražujem recepte...
+                    </div>
+                  ) : null}
+                </>
               )}
             </div>
 
@@ -888,7 +948,7 @@ const FoodPlanner = () => {
       )}
 
       {/* ============================================================ */}
-      {/* 🔥 TAB 3: PLAN OBROKA - IZMJENJEN TEKST */}
+      {/* TAB 3: PLAN OBROKA */}
       {/* ============================================================ */}
       {activeTab === 2 && (
         <div>
@@ -936,7 +996,6 @@ const FoodPlanner = () => {
             </div>
           )}
           
-          {/* 🔥 IZMJENJEN TEKST */}
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-4 text-center">
             🤖 Plan generiše AI FoodPlanner (Cilj: {dailyGoal.kalorije} kcal, {dailyGoal.proteini}g proteina)
             {restrictions.length > 0 && ` 🔒 Restrikcije: ${restrictions.join(', ')}`}
