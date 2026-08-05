@@ -1,6 +1,6 @@
 // frontend/src/pages/HomeKonacno.jsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // ⬅️ DODAJ useNavigate!
 import { useTranslation } from 'react-i18next';
 import RecipeCard from '../components/RecipeCard';
 import ScanReceipt from '../components/ScanReceipt';
@@ -10,6 +10,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const HomeKonacno = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate(); // ⬅️ DODAJ OVO!
   
   const [recepti, setRecepti] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,20 +37,19 @@ const HomeKonacno = () => {
   });
 
   // ============================================================
-  // 🔐 PROVJERA DA LI JE KORISNIK PRIJAVLJEN - NOVO!
+  // 🔐 PROVJERA DA LI JE KORISNIK PRIJAVLJEN - SA useNavigate!
   // ============================================================
   useEffect(() => {
     const checkUser = () => {
       const userData = localStorage.getItem('user');
       if (!userData) {
         console.log('⚠️ Nema korisnika, preusmjeravam na login');
-        window.location.href = '/login';
+        navigate('/login');
         return;
       }
 
       try {
         const parsed = JSON.parse(userData);
-        // Provjeri da li je token istekao
         const expiry = parsed.expires_at || parsed.exp;
         if (expiry) {
           const now = Math.floor(Date.now() / 1000);
@@ -58,24 +58,23 @@ const HomeKonacno = () => {
             localStorage.removeItem('user');
             localStorage.removeItem('userEmail');
             localStorage.removeItem('remember_me');
-            window.location.href = '/login';
+            navigate('/login');
             return;
           }
         }
-        // Ako nema emaila, preusmjeri na login
         if (!parsed?.email) {
           console.log('⚠️ Nema emaila, preusmjeravam na login');
-          window.location.href = '/login';
+          navigate('/login');
         }
       } catch (error) {
         console.error('❌ Greška pri provjeri korisnika:', error);
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        navigate('/login');
       }
     };
 
     checkUser();
-  }, []);
+  }, [navigate]);
 
   // ============================================================
   // 1. DOHVATI KORISNIKA IZ LOCALSTORAGE
@@ -109,7 +108,6 @@ const HomeKonacno = () => {
           console.log('✅ Profil dohvaćen:', data.data);
           setProfil(data.data);
           
-          // 🔥 DOHVATI FRIŽIDER IZ BAZE - SA SIGURNOSNOM PROVJEROM
           if (data.data.fridge) {
             const fridgeData = Array.isArray(data.data.fridge) ? data.data.fridge : [];
             setFridgeItems(fridgeData);
@@ -246,7 +244,7 @@ const HomeKonacno = () => {
   }, [profil]);
 
   // ============================================================
-  // 5. FILTRIRANI RECEPTI - SA RESTRIKCIJAMA!
+  // 5. FILTRIRANI RECEPTI
   // ============================================================
   const filteredReceptiMemo = useMemo(() => {
     let filtered = recepti;
@@ -310,7 +308,7 @@ const HomeKonacno = () => {
   }, [recepti, filters]);
 
   // ============================================================
-  // 6. LIFESTYLE COACH - AI PREPORUKE NA OSNOVU RASPOLOŽENJA
+  // 6. LIFESTYLE COACH
   // ============================================================
   const getCoachAdvice = useCallback(async () => {
     if (!sleep || !energy || !stress) {
@@ -426,10 +424,9 @@ const HomeKonacno = () => {
   }, [sleep, energy, stress, user, recepti, filters.restrikcije, t]);
 
   // ============================================================
-  // 7. FRIŽIDER FUNKCIJE - ISPRAVLJEN REDOSLIJED!
+  // 7. FRIŽIDER FUNKCIJE
   // ============================================================
   
-  // 🔥 SPREMI FRIŽIDER U BAZU - PRVO!
   const saveFridgeToDatabase = useCallback(async (items) => {
     const email = user?.email || localStorage.getItem('userEmail');
     if (!email) return;
@@ -446,7 +443,6 @@ const HomeKonacno = () => {
     }
   }, [user]);
 
-  // 🔥 DODAJ NAMIRNICU U FRIŽIDER - DRUGO!
   const addFridgeItem = useCallback(() => {
     if (newItem.trim()) {
       const updatedItems = [...fridgeItems, newItem.trim()];
@@ -456,7 +452,6 @@ const HomeKonacno = () => {
     }
   }, [newItem, fridgeItems, saveFridgeToDatabase]);
 
-  // 🔥 PRONAĐI RECEPTE NA OSNOVU FRIŽIDERA
   const findRecipesFromFridge = useCallback(async () => {
     if (fridgeItems.length === 0) {
       alert('Dodajte barem jednu namirnicu u frižider!');
@@ -493,7 +488,6 @@ const HomeKonacno = () => {
     }
   }, [fridgeItems, user]);
 
-  // 🔥 SKENIRAJ NAMIRNICE
   const handleNamirniceDodane = useCallback((namirnice) => {
     const updatedItems = [...fridgeItems, ...namirnice];
     setFridgeItems(updatedItems);
@@ -502,14 +496,12 @@ const HomeKonacno = () => {
     saveFridgeToDatabase(updatedItems);
   }, [fridgeItems, saveFridgeToDatabase]);
 
-  // 🔥 OBRIŠI NAMIRNICU
   const removeFridgeItem = useCallback((index) => {
     const updatedItems = fridgeItems.filter((_, i) => i !== index);
     setFridgeItems(updatedItems);
     saveFridgeToDatabase(updatedItems);
   }, [fridgeItems, saveFridgeToDatabase]);
 
-  // 🔥 OČISTI FRIŽIDER
   const clearFridge = useCallback(() => {
     if (fridgeItems.length === 0) return;
     if (window.confirm('Jeste li sigurni da želite očistiti frižider?')) {
@@ -577,7 +569,7 @@ const HomeKonacno = () => {
   // ============================================================
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* ===== HERO SEKCIJA - SA FALLBACK PREVODIMA ===== */}
+      {/* ===== HERO SEKCIJA ===== */}
       <section className="text-center py-12 md:py-20 px-4 bg-gradient-to-b from-blue-50 to-white dark:from-gray-800 dark:to-gray-900">
         <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold text-gray-800 dark:text-white mb-2 leading-tight">
           {t('home.hero.title', { defaultValue: 'OS Zdravlja' })}
@@ -793,7 +785,6 @@ const HomeKonacno = () => {
           </h2>
           <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 md:p-8 shadow-md border border-gray-200 dark:border-gray-700">
             
-            {/* INPUT ZA DODAVANJE NAMIRNICA */}
             <div className="flex flex-col sm:flex-row gap-3">
               <input 
                 type="text" 
@@ -812,7 +803,6 @@ const HomeKonacno = () => {
               </button>
             </div>
 
-            {/* PRIKAZ NAMIRNICA */}
             <div className="mt-4 flex flex-wrap gap-2">
               {fridgeItems.length === 0 ? (
                 <p className="text-gray-400 dark:text-gray-500 text-sm w-full text-center py-4">
@@ -837,28 +827,24 @@ const HomeKonacno = () => {
               )}
             </div>
 
-            {/* BROJ NAMIRNICA */}
             {fridgeItems.length > 0 && (
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 text-center">
                 {fridgeItems.length} namirnica u frižideru
               </p>
             )}
 
-            {/* SCAN RECEIPT - SAMO ZA PREMIUM */}
             {user?.premium && (
               <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
                 <ScanReceipt onNamirniceDodane={handleNamirniceDodane} />
               </div>
             )}
 
-            {/* SCAN PORUKA */}
             {scanPoruka && (
               <div className="mt-3 text-base text-green-600 dark:text-green-400 font-semibold text-center">
                 {scanPoruka}
               </div>
             )}
 
-            {/* DUGMIĆI - PRONAĐI RECEPTE + OČISTI */}
             <div className="mt-4 flex flex-col sm:flex-row gap-3">
               <button 
                 onClick={findRecipesFromFridge}
@@ -885,7 +871,6 @@ const HomeKonacno = () => {
               )}
             </div>
 
-            {/* PREMIUM HINT */}
             {!user?.premium && (
               <p className="text-xs text-center text-gray-400 dark:text-gray-500 mt-3">
                 ⭐ Postanite Premium za <strong>Scan Receipt</strong> i <strong>neograničene</strong> AI pretrage!
@@ -996,7 +981,7 @@ const HomeKonacno = () => {
         </div>
       </section>
 
-      {/* ===== PREPORUČENI RECEPTI - SA ID ZA SKROL ===== */}
+      {/* ===== PREPORUČENI RECEPTI ===== */}
       <section id="recipes-section" className="py-12 md:py-20 px-4 max-w-7xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-6 md:mb-8 text-gray-800 dark:text-white">
           🍽️ {t('home.recipes.title', { defaultValue: 'Preporučeni recepti' })}
