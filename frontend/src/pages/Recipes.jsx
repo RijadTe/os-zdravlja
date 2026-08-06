@@ -1,10 +1,9 @@
-// frontend/src/pages/Recipes.jsx
+// frontend/src/pages/Recipes.jsx - ISPRAVNA VERZIJA
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import RecipeCard from '../components/RecipeCard';
 
-// 🔥 PROMIJENJENO - uklonjen /api sa kraja
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const Recipes = () => {
@@ -14,54 +13,51 @@ const Recipes = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [userEmail, setUserEmail] = useState(null);
+  const [userRestrictions, setUserRestrictions] = useState([]); // 🔥 NIZ, ne string!
   const [filters, setFilters] = useState({
     vrijeme: '',
     tezina: '',
     preferencije: '',
-    restrikcije: '',
     kalorije: ''
   });
 
   // ============================================================
-  // 🔥 AUTOMATSKI DOHVATI PROFIL I POSTAVI FILTERE - POPRAVLJENO!
+  // 🔥 DOHVATI KORISNIKA I NJEGOVE RESTRIKCIJE
   // ============================================================
   useEffect(() => {
-    const dohvatiProfil = async () => {
+    const dohvatiKorisnika = async () => {
       const email = localStorage.getItem('userEmail');
-      if (!email) return;
-
+      if (!email) {
+        console.log('ℹ️ Korisnik nije prijavljen');
+        setUserEmail(null);
+        setUserRestrictions([]);
+        return;
+      }
+      
+      setUserEmail(email);
+      
       try {
-        // 🔥 PROMIJENJENO - dodan /api
+        console.log(`🔍 Dohvatam profil za: ${email}`);
         const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
         const data = await response.json();
         
         if (data.success && data.data) {
           const profil = data.data;
+          
+          // 🔥🔥🔥 DOHVATI SVE RESTRIKCIJE (CIJELI NIZ)
+          const restrikcije = profil.izbjegava || [];
+          setUserRestrictions(restrikcije); // 🔥 NIZ, NE SAMO PRVI ELEMENT!
+          
+          // POSTAVI FILTERE IZ PROFILA
           const noviFilteri = {};
-          
-          if (profil.vrsta && profil.vrsta.length > 0) {
-            const odabraneVrste = profil.vrsta.filter(v => v !== 'Svejedno');
-            if (odabraneVrste.length > 0) {
-              noviFilteri.vrsta = odabraneVrste[0];
-            }
-          }
-          
-          if (profil.preferencije && profil.preferencije.length > 0) {
-            const odabranePref = profil.preferencije.filter(p => p !== 'Svejedno');
-            if (odabranePref.length > 0) {
-              noviFilteri.preferencije = odabranePref[0];
-            }
-          }
-          
           if (profil.vrijeme) noviFilteri.vrijeme = profil.vrijeme;
           if (profil.tezina) noviFilteri.tezina = profil.tezina;
           if (profil.kalorije) noviFilteri.kalorije = profil.kalorije;
           
-          if (profil.izbjegava && profil.izbjegava.length > 0) {
-            noviFilteri.restrikcije = profil.izbjegava[0];
-          }
+          console.log('🔍 Korisničke restrikcije (SVE):', restrikcije);
+          console.log('🔍 Filteri iz profila:', noviFilteri);
           
-          console.log('🔍 Recipes - Automatski postavljeni filteri:', noviFilteri);
           setFilters(prev => ({ ...prev, ...noviFilteri }));
         }
       } catch (error) {
@@ -69,10 +65,12 @@ const Recipes = () => {
       }
     };
 
-    dohvatiProfil();
+    dohvatiKorisnika();
   }, []);
 
-  // Dohvati filter iz URL parametara
+  // ============================================================
+  // 🔥 DOHVATI FILTER IZ URL PARAMETARA (VRSTA)
+  // ============================================================
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const vrsta = params.get('vrsta');
@@ -81,115 +79,118 @@ const Recipes = () => {
     }
   }, [location]);
 
-  // Dohvati recepte (osvježi kad se promijeni jezik) - POPRAVLJENO!
+  // ============================================================
+  // 🔥 DOHVATI RECEPTE SA BACKENDA (SA FILTRIRANJEM)
+  // ============================================================
   useEffect(() => {
     const fetchRecipes = async () => {
       try {
         setLoading(true);
-        console.log('🔍 Dohvatam recepte...');
-        // 🔥 PROMIJENJENO - dodan /api
-        const res = await fetch(`${API_URL}/api/recepti`);
+        console.log('🔍 Dohvatam recepte sa filterima...');
+        
+        let url = `${API_URL}/api/recepti`;
+        const queryParams = new URLSearchParams();
+        
+        // 🔥 DODAJ EMAIL AKO KORISNIK POSTOJI
+        if (userEmail) {
+          queryParams.append('email', userEmail);
+        }
+        
+        // 🔥 DODAJ FILTERE
+        if (filter) {
+          queryParams.append('vrsta', filter);
+        }
+        if (filters.vrijeme) {
+          queryParams.append('vrijeme', filters.vrijeme);
+        }
+        if (filters.tezina) {
+          queryParams.append('tezina', filters.tezina);
+        }
+        if (filters.kalorije) {
+          queryParams.append('kalorije', filters.kalorije);
+        }
+        
+        // 🔥🔥🔥 DODAJ SVE RESTRIKCIJE KAO NIZ
+        if (userRestrictions.length > 0) {
+          // PROVJERI DA LI KORISNIK IMA 'Bez restrikcija'
+          const hasNoRestrictions = userRestrictions.some(r => 
+            r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
+          );
+          
+          if (!hasNoRestrictions) {
+            // 🔥 ŠALJI SVE RESTRIKCIJE (NE SAMO PRVU!)
+            queryParams.append('restrikcije', userRestrictions.join(','));
+            console.log('🔒 Šaljem sve restrikcije na backend:', userRestrictions);
+          } else {
+            console.log('✅ Korisnik nema restrikcija');
+          }
+        }
+        
+        const queryString = queryParams.toString();
+        if (queryString) {
+          url += `?${queryString}`;
+        }
+        
+        console.log('📡 URL:', url);
+        
+        const res = await fetch(url);
         const data = await res.json();
         console.log('📊 Dohvaćeno recepata:', data?.length || 0);
+        
+        // 🔥 BACKEND JE VEĆ FILTRIRAO - SAMO PRIKAŽI
         setRecepti(data || []);
         setLoading(false);
+        
       } catch (error) {
         console.error('❌ Greška pri dohvatu recepata:', error);
         setRecepti([]);
         setLoading(false);
       }
     };
+    
     fetchRecipes();
-  }, [i18n.language]);
+  }, [userEmail, userRestrictions, filter, filters.vrijeme, filters.tezina, filters.kalorije]);
 
-  // Funkcija za resetovanje svih filtera
-  const resetAllFilters = () => {
-    setFilter('');
-    setFilters({ 
-      vrijeme: '', 
-      tezina: '', 
-      preferencije: '',
-      restrikcije: '',
-      kalorije: ''
-    });
-    setSearchTerm('');
-  };
-
-  // Filtrirani recepti
+  // ============================================================
+  // 🔥 FILTRIRANJE NA FRONTENDU - SAMO PRETRAGA
+  // ============================================================
   const filteredRecipes = recepti.filter(recipe => {
-    // Filter po vrsti (iz URL-a)
-    if (filter && recipe.vrsta !== filter) {
-      return false;
-    }
-    // Filter po vremenu
-    if (filters.vrijeme && recipe.vrijeme !== filters.vrijeme) {
-      return false;
-    }
-    // Filter po težini
-    if (filters.tezina && recipe.tezina !== filters.tezina) {
-      return false;
-    }
-    // Filter po preferencijama
-    if (filters.preferencije) {
-      const pref = filters.preferencije;
-      if (pref === 'Visokoproteinski' && (recipe.proteini || 0) < 25) {
-        return false;
-      }
-      if (pref === 'Bogat vlaknima' && (recipe.vlakna || 0) < 10) {
-        return false;
-      }
-      if (pref === 'Bogat ugljikohidratima' && (recipe.ugljikohidrati || 0) < 40) {
-        return false;
-      }
-    }
-    // Filter po restrikcijama
-    if (filters.restrikcije) {
-      const alergeni = recipe.alergeni || [];
-      if (alergeni.includes(filters.restrikcije)) {
-        return false;
-      }
-    }
-    // Filter po kalorijama
-    if (filters.kalorije) {
-      const kalorijeMap = {
-        'Nisko (do 300 kcal)': { max: 300 },
-        'Umjereno (300-500 kcal)': { min: 300, max: 500 },
-        'Srednje (500-700 kcal)': { min: 500, max: 700 },
-        'Visoko (900+ kcal)': { min: 900 }
-      };
-      
-      const range = kalorijeMap[filters.kalorije];
-      if (range) {
-        const kal = recipe.kalorije || 0;
-        if (range.min && range.max) {
-          if (kal < range.min || kal > range.max) return false;
-        } else if (range.min) {
-          if (kal < range.min) return false;
-        } else if (range.max) {
-          if (kal > range.max) return false;
-        }
-      }
-    }
-    // Filter po pretrazi
+    // 🔥 SAMO PRETRAGA PO NAZIVU (SVE OSTALO RADI BACKEND)
     if (searchTerm && !recipe.naziv?.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
     return true;
   });
 
-  // Mapiranje naziva kategorija
-  const categoryNames = {
-    'Dijetalni recepti': '🥗 ' + t('recipes.categories.diet'),
-    'Deserti': '🍰 ' + t('recipes.categories.desserts'),
-    'Slano': '🍕 ' + t('recipes.categories.savory'),
-    'Napitki': '🍹 ' + t('recipes.categories.drinks')
+  // ============================================================
+  // 🔥 RESET FILTERA
+  // ============================================================
+  const resetAllFilters = () => {
+    setFilter('');
+    setFilters({ 
+      vrijeme: '', 
+      tezina: '', 
+      preferencije: '',
+      kalorije: ''
+    });
+    setSearchTerm('');
   };
 
-  // Broj aktivnih filtera
-  const activeFiltersCount = Object.values(filters).filter(v => v !== '').length + (filter ? 1 : 0);
+  // ============================================================
+  // 🔥 BROJ AKTIVNIH FILTERA
+  // ============================================================
+  const activeFiltersCount = () => {
+    let count = 0;
+    if (filter) count++;
+    if (filters.vrijeme) count++;
+    if (filters.tezina) count++;
+    if (filters.kalorije) count++;
+    if (filters.preferencije) count++;
+    return count;
+  };
 
   // ============================================================
-  // 🖥️ RENDER - LOADING
+  // 🖥️ RENDER
   // ============================================================
   if (loading) {
     return (
@@ -202,9 +203,6 @@ const Recipes = () => {
     );
   }
 
-  // ============================================================
-  // 🖥️ RENDER - NEMA RECEPATA
-  // ============================================================
   if (recepti.length === 0) {
     return (
       <div className="max-w-6xl mx-auto py-12 px-4 text-center">
@@ -225,12 +223,17 @@ const Recipes = () => {
     );
   }
 
-  // ============================================================
-  // 🖥️ RENDER - GLAVNI UI
-  // ============================================================
+  // Mapiranje naziva kategorija
+  const categoryNames = {
+    'Dijetalni recepti': '🥗 ' + t('recipes.categories.diet'),
+    'Deserti': '🍰 ' + t('recipes.categories.desserts'),
+    'Slano': '🍕 ' + t('recipes.categories.savory'),
+    'Napitki': '🍹 ' + t('recipes.categories.drinks')
+  };
+
   return (
     <div className="max-w-6xl mx-auto py-8 px-4">
-      {/* BREADCRUMB NAVIGACIJA */}
+      {/* BREADCRUMB */}
       <nav className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4 flex-wrap">
         <Link to="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition flex items-center gap-1">
           <span>🏠</span> {t('nav.home')}
@@ -249,13 +252,10 @@ const Recipes = () => {
         ) : (
           <span className="text-gray-700 dark:text-gray-300 font-medium">{t('recipes.all')}</span>
         )}
-        {activeFiltersCount > 0 && (
-          <>
-            <span className="text-gray-400 dark:text-gray-600">•</span>
-            <span className="text-blue-600 dark:text-blue-400 text-xs bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">
-              {activeFiltersCount} {t('recipes.filters')}
-            </span>
-          </>
+        {activeFiltersCount() > 0 && (
+          <span className="text-blue-600 dark:text-blue-400 text-xs bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">
+            {activeFiltersCount()} {t('recipes.filters')}
+          </span>
         )}
       </nav>
 
@@ -267,9 +267,13 @@ const Recipes = () => {
         {filter 
           ? t('recipes.category_recipes', { category: filter })
           : t('recipes.all_recipes')}
-        {activeFiltersCount > 0 && (
-          <span className="ml-2 text-sm bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full">
-            {activeFiltersCount} {t('recipes.filters_active')}
+        
+        {/* 🔥 PRIKAŽI RESTRIKCIJE AKO POSTOJE */}
+        {userRestrictions.length > 0 && !userRestrictions.some(r => 
+          r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
+        ) && (
+          <span className="ml-2 text-sm bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-3 py-1 rounded-full">
+            🚫 {t('recipes.excluding')}: {userRestrictions.join(', ')}
           </span>
         )}
       </p>
@@ -319,7 +323,7 @@ const Recipes = () => {
           <option value="Bogat ugljikohidratima">🍞 {t('recipes.high_carb')}</option>
         </select>
 
-        {(filter || filters.vrijeme || filters.tezina || filters.preferencije || filters.restrikcije || filters.kalorije || searchTerm) && (
+        {(filter || filters.vrijeme || filters.tezina || filters.preferencije || filters.kalorije || searchTerm) && (
           <button
             onClick={resetAllFilters}
             className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition text-sm flex items-center gap-1"
@@ -332,7 +336,15 @@ const Recipes = () => {
       {/* BROJ RECEPATA */}
       <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">
         {t('recipes.showing')} {filteredRecipes.length} {t('recipes.of')} {recepti.length} {t('recipes.recipes')}
-        {activeFiltersCount > 0 && ` (${activeFiltersCount} ${t('recipes.filters_active')})`}
+        
+        {/* 🔥 PRIKAŽI RESTRIKCIJE AKO POSTOJE */}
+        {userRestrictions.length > 0 && !userRestrictions.some(r => 
+          r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
+        ) && (
+          <span className="ml-2 text-red-500 dark:text-red-400">
+            🚫 {t('recipes.excluding')}: {userRestrictions.join(', ')}
+          </span>
+        )}
       </p>
 
       {/* RECEPTI */}
