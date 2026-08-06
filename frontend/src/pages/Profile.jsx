@@ -94,7 +94,6 @@ const Profile = () => {
       // 🔥 PROVJERI DA LI JE RATE LIMIT (429)
       if (response.status === 429) {
         console.warn('⚠️ Rate limit (429) - koristim podatke iz localStorage');
-        // KORISTI PODATKE IZ LOCALSTORAGE
         const storedUser = JSON.parse(localStorage.getItem('user'));
         if (storedUser) {
           const fallbackProfile = {
@@ -122,13 +121,19 @@ const Profile = () => {
       
       if (data.success && data.data) {
         setProfile(data.data);
+        // 🔥 AŽURIRAJ LOCALSTORAGE SA PRAVIM PREMIUM STATUSOM
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        if (storedUser) {
+          storedUser.premium = data.data.premium || false;
+          storedUser.profile = data.data;
+          localStorage.setItem('user', JSON.stringify(storedUser));
+        }
       } else {
         console.error('❌ Profil nije pronađen');
         await createProfile(email);
       }
     } catch (error) {
       console.error('❌ Greška pri dohvatu profila:', error);
-      // 🔥 FALLBACK - pokušaj iz localStorage
       const storedUser = JSON.parse(localStorage.getItem('user'));
       if (storedUser) {
         const fallbackProfile = {
@@ -185,7 +190,7 @@ const Profile = () => {
   };
 
   // ============================================================
-  // 🔐 AUTH - SA RATE LIMIT ZAŠTITOM
+  // 🔐 AUTH - SA DOHVATOM PREMIUM STATUSA IZ BAZE!
   // ============================================================
   useEffect(() => {
     const checkUser = async () => {
@@ -195,19 +200,47 @@ const Profile = () => {
         if (session?.user) {
           console.log('✅ Korisnik prijavljen (Supabase):', session.user.email);
           
-          // Spremi Supabase user podatke
+          const email = session.user.email;
+          
+          // 🔥 PRVO DOHVATI PROFIL DA DOBIJEŠ PREMIUM STATUS
+          let premiumStatus = false;
+          let profileData = null;
+          
+          try {
+            const profileResponse = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
+            
+            if (profileResponse.ok) {
+              const profileResult = await profileResponse.json();
+              if (profileResult.success && profileResult.data) {
+                premiumStatus = profileResult.data.premium || false;
+                profileData = profileResult.data;
+                console.log('✅ Premium status iz baze:', premiumStatus);
+              }
+            }
+          } catch (profileError) {
+            console.warn('⚠️ Greška pri dohvatu profila:', profileError);
+          }
+          
+          // 🔥 SADA KREIRAJ USER OBJEKAT SA PRAVIM PREMIUM STATUSOM
           const supabaseUser = {
             id: session.user.id,
             email: session.user.email,
             ime: session.user.user_metadata?.ime || '',
-            premium: false
+            premium: premiumStatus,
+            profile: profileData
           };
+          
           setUser(supabaseUser);
           localStorage.setItem('user', JSON.stringify(supabaseUser));
           localStorage.setItem('userEmail', session.user.email);
           localStorage.setItem('userName', session.user.user_metadata?.ime || '');
           
-          await fetchProfile(session.user.email);
+          if (profileData) {
+            setProfile(profileData);
+            setLoading(false);
+          } else {
+            await fetchProfile(session.user.email);
+          }
           return;
         }
         
@@ -253,10 +286,9 @@ const Profile = () => {
   };
 
   // ============================================================
-  // 🚪 ODJAVA - SA BRISANJEM SVIH PODATAKA
+  // 🚪 ODJAVA
   // ============================================================
   const handleLogout = async () => {
-    // 🔥 PITAJ KORISNIKA DA LI JE SIGURAN
     if (!window.confirm('Jeste li sigurni da se želite odjaviti?')) {
       return;
     }
@@ -267,7 +299,6 @@ const Profile = () => {
       console.error('❌ Greška pri odjavi:', error);
     }
     
-    // 🔥 OBRISI SVE IZ LOCALSTORAGE
     localStorage.removeItem('user');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userName');
