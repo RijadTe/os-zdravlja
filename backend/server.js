@@ -1784,14 +1784,33 @@ app.post('/api/weekly-plan', async (req, res) => {
 });
 
 // ============================================================
-// 21. TAJNI RECEPT
+// 21. TAJNI RECEPT - SA RESTRIKCIJAMA KORISNIKA!
 // ============================================================
 app.get('/api/tajni-recept', async (req, res) => {
   try {
     console.log('🔮 Dohvatam današnji tajni recept...');
     
+    // 🔥 DOHVATI EMAIL IZ QUERY PARAMETRA
+    const email = req.query.email;
+    let restrikcije = [];
+    
+    // 🔥 DOHVATI RESTRIKCIJE KORISNIKA
+    if (email) {
+      const { data: profil, error: profilError } = await supabase
+        .from('profili')
+        .select('izbjegava')
+        .eq('email', email)
+        .maybeSingle();
+      
+      if (!profilError && profil) {
+        restrikcije = profil.izbjegava || [];
+        console.log('🔒 Restrikcije korisnika:', restrikcije);
+      }
+    }
+    
     const danas = new Date().toISOString().split('T')[0];
     
+    // 🔥 PROVJERI DA LI POSTOJI TAJNI RECEPT ZA DANAS
     const { data: tajni, error: tajniError } = await supabase
       .from('tajni_recepti')
       .select('recept_id, datum')
@@ -1821,18 +1840,39 @@ app.get('/api/tajni-recept', async (req, res) => {
         return res.status(404).json({ error: 'Recept nije pronađen.' });
       }
 
-      return res.json({
-        ...recept,
-        _tajni_datum: tajni.datum
-      });
+      // 🔥 PROVJERI RESTRIKCIJE ZA TAJNI RECEPT
+      if (restrikcije.length > 0) {
+        const alergeni = recept.alergeni || [];
+        const imaRestrikciju = restrikcije.some(r => alergeni.includes(r));
+        if (imaRestrikciju) {
+          console.log('⚠️ Tajni recept sadrži restrikcije, biram novi...');
+          // 🔥 IZBRIŠI TAJNI RECEPT I BIRAJ NOVI
+          await supabase
+            .from('tajni_recepti')
+            .delete()
+            .eq('datum', danas);
+          
+          // 🔥 NASTAVI SA BIRANJEM NOVOG (fallthrough)
+        } else {
+          return res.json({
+            ...recept,
+            _tajni_datum: tajni.datum
+          });
+        }
+      } else {
+        return res.json({
+          ...recept,
+          _tajni_datum: tajni.datum
+        });
+      }
     }
 
-    console.log('🔄 Nema tajnog recepta za danas, biram novi...');
+    console.log('🔄 Nema tajnog recepta za danas (ili ne odgovara restrikcijama), biram novi...');
     
+    // 🔥 DOHVATI SVE RECEPTE IZ BAZE
     const { data: sviRecepti, error: sviError } = await supabase
       .from('recepti')
-      .select('id')
-      .limit(100);
+      .select('id, alergeni, naziv');
 
     if (sviError) {
       console.error('❌ Greška pri dohvatu recepata:', sviError);
@@ -1843,9 +1883,28 @@ app.get('/api/tajni-recept', async (req, res) => {
       return res.status(404).json({ error: 'Nema recepata u bazi.' });
     }
 
-    const randomIndex = Math.floor(Math.random() * sviRecepti.length);
-    const odabraniId = sviRecepti[randomIndex].id;
+    // 🔥 FILTRIRAJ RECEPTE KOJI NE SADRŽE RESTRIKCIJE
+    let dozvoljeniRecepti = sviRecepti;
+    
+    if (restrikcije.length > 0) {
+      dozvoljeniRecepti = sviRecepti.filter(r => {
+        const alergeni = r.alergeni || [];
+        return !restrikcije.some(rest => alergeni.includes(rest));
+      });
+      
+      console.log(`📊 Nakon restrikcija: ${dozvoljeniRecepti.length} recepata`);
+    }
+    
+    if (dozvoljeniRecepti.length === 0) {
+      console.log('⚠️ Nema recepata bez restrikcija, biram bilo koji...');
+      dozvoljeniRecepti = sviRecepti;
+    }
+    
+    // 🔥 NASUMIČNO IZABERI JEDAN OD DOZVOLJENIH
+    const randomIndex = Math.floor(Math.random() * dozvoljeniRecepti.length);
+    const odabraniId = dozvoljeniRecepti[randomIndex].id;
 
+    // 🔥 SAČUVAJ KAO TAJNI RECEPT
     const { data: noviTajni, error: insertError } = await supabase
       .from('tajni_recepti')
       .insert([{
@@ -1857,6 +1916,7 @@ app.get('/api/tajni-recept', async (req, res) => {
 
     if (insertError) {
       console.error('❌ Greška pri kreiranju tajnog recepta:', insertError);
+      // Ako je greška jer već postoji, dohvati postojeći
       if (insertError.code === '23505') {
         const { data: existing, error: existingError } = await supabase
           .from('tajni_recepti')

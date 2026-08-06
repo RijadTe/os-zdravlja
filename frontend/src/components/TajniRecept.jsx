@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { supabase } from '../supabaseClient';
 
 // 🔥 PROMIJENJENO - uklonjen /api sa kraja
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -13,12 +14,66 @@ const TajniRecept = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [shareMessage, setShareMessage] = useState('');
+  const [user, setUser] = useState(null);
+  const [email, setEmail] = useState(null);
 
+  // 🔥 DOHVATI KORISNIKA IZ SUPABASE
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        // 1. Pokušaj dohvatiti session iz Supabase
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('❌ Greška pri dohvatu session-a:', sessionError);
+        }
+        
+        if (session?.user) {
+          console.log('✅ Korisnik dohvaćen iz Supabase:', session.user.email);
+          setUser(session.user);
+          setEmail(session.user.email);
+          return;
+        }
+        
+        // 2. Fallback - pokušaj iz localStorage (ako Supabase ne radi)
+        const userData = JSON.parse(localStorage.getItem('user'));
+        const userEmail = localStorage.getItem('userEmail');
+        
+        if (userData) {
+          console.log('ℹ️ Korisnik dohvaćen iz localStorage (fallback):', userEmail);
+          setUser(userData);
+          setEmail(userEmail || userData.email);
+        } else {
+          console.log('ℹ️ Nema prijavljenog korisnika');
+          setEmail(null);
+        }
+      } catch (error) {
+        console.error('❌ Greška pri dohvatu korisnika:', error);
+        // Fallback - pokušaj iz localStorage
+        const userData = JSON.parse(localStorage.getItem('user'));
+        const userEmail = localStorage.getItem('userEmail');
+        if (userData) {
+          setUser(userData);
+          setEmail(userEmail || userData.email);
+        }
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  // 🔥 DOHVATI TAJNI RECEPT SA EMAILOM
   useEffect(() => {
     const fetchTajniRecept = async () => {
       try {
-        // 🔥 PROMIJENJENO - koristi API_URL sa /api
-        const res = await axios.get(`${API_URL}/api/tajni-recept`);
+        // 🔥 POŠALJI EMAIL U QUERY PARAMETAR (ako postoji)
+        const url = email 
+          ? `${API_URL}/api/tajni-recept?email=${encodeURIComponent(email)}`
+          : `${API_URL}/api/tajni-recept`;
+        
+        console.log('🔮 Dohvatam tajni recept sa emailom:', email || 'bez emaila');
+        
+        const res = await axios.get(url);
         setRecept(res.data);
       } catch (err) {
         console.error('Greška:', err);
@@ -27,8 +82,12 @@ const TajniRecept = () => {
         setLoading(false);
       }
     };
-    fetchTajniRecept();
-  }, [t]);
+    
+    // 🔥 SAČEKAJ DA SE EMAIL UČITA (ili da se utvrdi da nema korisnika)
+    if (email !== null) {
+      fetchTajniRecept();
+    }
+  }, [t, email]);
 
   // 🆕 DIJELJENJE TAJNOG RECEPTA
   const shareRecipe = async () => {
