@@ -502,7 +502,7 @@ const AIChef = () => {
             {/* 🔥 INDIKATOR LIMITA */}
             {user?.premium ? (
               <p className="text-xs text-center text-blue-600 dark:text-blue-400">
-                ⭐ Premium: {dailyLimit.preostalo}/{dailyLimit.max_pretraga} fotografija danas
+                ⭐ Premium: {dailyLimit.preostalo}/{dailyLimit.max_pretraga} 
               </p>
             ) : (
               <p className="text-xs text-center text-gray-500 dark:text-gray-400">
