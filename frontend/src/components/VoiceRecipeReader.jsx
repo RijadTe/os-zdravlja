@@ -3,13 +3,23 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const VoiceRecipeReader = ({ recipe }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation(); // 🔥 DODAJ i18n
   const [isReading, setIsReading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
   const utteranceRef = useRef(null);
   const steps = recipe?.upute || [];
+
+  // 🔥 MAPIRANJE JEZIKA ZA SPEECH SYNTHESIS
+  const getSpeechLang = () => {
+    const langMap = {
+      'hr': 'hr-HR',
+      'en': 'en-US',
+      'de': 'de-DE'
+    };
+    return langMap[i18n.language] || 'hr-HR';
+  };
 
   useEffect(() => {
     if (!('speechSynthesis' in window)) {
@@ -38,9 +48,11 @@ const VoiceRecipeReader = ({ recipe }) => {
       return;
     }
 
+    // 🔥 KORISTI TRENUTNI JEZIK
+    const speechLang = getSpeechLang();
     const text = `${t('recipe.step')} ${stepIndex + 1}: ${steps[stepIndex]}`;
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'hr';
+    utterance.lang = speechLang; // 🔥 DINAMIČKI JEZIK!
     utterance.rate = 0.85;
     utterance.pitch = 1;
     utteranceRef.current = utterance;
