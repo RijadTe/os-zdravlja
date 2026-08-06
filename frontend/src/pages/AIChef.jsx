@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { ADSENSE_CLIENT, ADSENSE_ENABLED, DEFAULT_SLOTS } from '../config/adsense';
 
 // 🔥 PROMIJENJENO - koristi VITE_API_URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -48,11 +49,11 @@ const AIChef = () => {
   const [vrijemeCekanja, setVrijemeCekanja] = useState(0);
   const [status, setStatus] = useState('');
 
-  // Daily limit state
+  // 🔥 DAILY LIMIT - PREMIUM 15, FREE 3
   const [dailyLimit, setDailyLimit] = useState({ 
     broj_pretraga: 0, 
-    max_pretraga: 3, 
-    preostalo: 3, 
+    max_pretraga: user?.premium ? 15 : 3, 
+    preostalo: user?.premium ? 15 : 3, 
     moze: false 
   });
   const [loadingLimit, setLoadingLimit] = useState(false);
@@ -118,10 +119,8 @@ const AIChef = () => {
       
       setUser(finalUserData);
 
-      // 🔥 DOHVATI PROFIL I RESTRIKCIJE - POPRAVLJENO!
       if (email) {
         try {
-          // 🔥 PROMIJENJENO - dodan /api
           const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
           const data = await response.json();
           if (data.success && data.data) {
@@ -154,14 +153,17 @@ const AIChef = () => {
     if (!email) return;
     
     try {
-      // 🔥 PROMIJENJENO - dodan /api
       const res = await fetch(`${API_URL}/api/ai-chef/limit/${email}`);
       const data = await res.json();
+      
+      // 🔥 PREMIUM: 15, FREE: 3
+      const maxPretraga = user?.premium ? 15 : 3;
+      
       setDailyLimit({
         broj_pretraga: data.broj_pretraga || 0,
-        max_pretraga: data.max_pretraga || 3,
-        preostalo: data.preostalo || 3,
-        moze: (data.preostalo || 0) > 0
+        max_pretraga: maxPretraga,
+        preostalo: Math.max(maxPretraga - (data.broj_pretraga || 0), 0),
+        moze: (maxPretraga - (data.broj_pretraga || 0)) > 0
       });
     } catch (error) {
       console.error('❌ Greška pri dohvatanju limita:', error);
@@ -177,7 +179,61 @@ const AIChef = () => {
   }, [user, fetchDailyLimit]);
 
   // ============================================================
-  // OTKLJUČAJ PRETRAGU NAKON VIDA
+  // 🔥 PRIKAŽI VIDEO REKLAMU (ADSENSE BANNER KAO SIMULACIJA)
+  // ============================================================
+  const showVideoAd = () => {
+    return new Promise((resolve) => {
+      setPoruka('🎬 Učitavam video reklamu... Molimo sačekajte.');
+      
+      const adContainer = document.getElementById('video-ad-container');
+      if (adContainer && ADSENSE_ENABLED) {
+        adContainer.innerHTML = '';
+        
+        const ins = document.createElement('ins');
+        ins.className = 'adsbygoogle';
+        ins.style.display = 'block';
+        ins.setAttribute('data-ad-client', ADSENSE_CLIENT);
+        ins.setAttribute('data-ad-slot', DEFAULT_SLOTS.video || '1234567892');
+        ins.setAttribute('data-ad-format', 'auto');
+        ins.setAttribute('data-full-width-responsive', 'true');
+        adContainer.appendChild(ins);
+        
+        try {
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+        } catch (e) {
+          console.log('AdSense greška:', e);
+        }
+        
+        let seconds = 0;
+        const interval = setInterval(() => {
+          seconds++;
+          setPoruka(`🎬 Video reklama... ${seconds}/5 sekundi`);
+          if (seconds >= 5) {
+            clearInterval(interval);
+            setPoruka('✅ Video reklama završena!');
+            setTimeout(() => setPoruka(''), 1000);
+            resolve(true);
+          }
+        }, 1000);
+      } else {
+        let seconds = 0;
+        setPoruka('🎬 Simulirana video reklama...');
+        const interval = setInterval(() => {
+          seconds++;
+          setPoruka(`🎬 Simulirana reklama... ${seconds}/3 sekundi`);
+          if (seconds >= 3) {
+            clearInterval(interval);
+            setPoruka('✅ Simulirana reklama završena!');
+            setTimeout(() => setPoruka(''), 1000);
+            resolve(true);
+          }
+        }, 1000);
+      }
+    });
+  };
+
+  // ============================================================
+  // OTKLJUČAJ PRETRAGU NAKON VIDEO REKLAME
   // ============================================================
   const handleUnlockWithVideo = async () => {
     const email = user?.email || localStorage.getItem('userEmail');
@@ -191,10 +247,24 @@ const AIChef = () => {
       return;
     }
 
+    if (dailyLimit.preostalo <= 0) {
+      setPoruka(t('aichef.unlock.max_reached'));
+      setTimeout(() => setPoruka(''), 3000);
+      return;
+    }
+
     setLoadingLimit(true);
     try {
+      const videoCompleted = await showVideoAd();
+      
+      if (!videoCompleted) {
+        setPoruka('❌ Video reklama nije završena. Pokušajte ponovo.');
+        setLoadingLimit(false);
+        setTimeout(() => setPoruka(''), 3000);
+        return;
+      }
+
       console.log('📤 Šaljem zahtjev na /api/ai-chef/unlock');
-      // 🔥 PROMIJENJENO - dodan /api
       const res = await fetch(`${API_URL}/api/ai-chef/unlock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -203,11 +273,12 @@ const AIChef = () => {
       const data = await res.json();
       console.log('📥 Odgovor:', data);
       
+      const maxPretraga = user?.premium ? 15 : 3;
       setDailyLimit({
         broj_pretraga: data.broj_pretraga || 0,
-        max_pretraga: data.max_pretraga || 3,
-        preostalo: data.preostalo || 1,
-        moze: (data.preostalo || 0) > 0
+        max_pretraga: maxPretraga,
+        preostalo: Math.max(maxPretraga - (data.broj_pretraga || 0), 0),
+        moze: (maxPretraga - (data.broj_pretraga || 0)) > 0
       });
       setVideoWatched(true);
       setPoruka(t('aichef.unlock.success'));
@@ -236,7 +307,6 @@ const AIChef = () => {
   useEffect(() => {
     let filtered = rezultati;
     
-    // 🔥 FILTER PO VRSTI
     if (filteri.vrsta) {
       filtered = filtered.filter(r => r.vrsta === filteri.vrsta);
     }
@@ -247,7 +317,6 @@ const AIChef = () => {
       filtered = filtered.filter(r => r.tezina === filteri.tezina);
     }
     
-    // 🔥 FILTER PO RESTRIKCIJAMA IZ PROFILA
     if (profil?.izbjegava && profil.izbjegava.length > 0) {
       const restrikcije = profil.izbjegava.filter(r => r !== 'Bez restrikcija');
       if (restrikcije.length > 0) {
@@ -262,7 +331,7 @@ const AIChef = () => {
   }, [filteri, rezultati, profil]);
 
   // ============================================================
-  // GLAVNA PRETRAGA
+  // GLAVNA PRETRAGA - SA AI CACHE PODRŠKOM!
   // ============================================================
   const handlePretraga = async () => {
     if (loading) return;
@@ -275,9 +344,17 @@ const AIChef = () => {
 
     const email = user?.email || localStorage.getItem('userEmail');
 
+    // 🔥 PROVJERA LIMITA ZA PREMIUM (15) I FREE (3)
     if (slika && !user?.premium && !(dailyLimit.moze && videoWatched)) {
       setPoruka(t('aichef.errors.photo_premium'));
       setTimeout(() => setPoruka(''), 3000);
+      return;
+    }
+
+    // 🔥 PROVJERA LIMITA ZA PREMIUM (15 slika dnevno)
+    if (slika && user?.premium && dailyLimit.preostalo <= 0) {
+      setPoruka('⚠️ Dostigli ste dnevni limit od 15 fotografija. Pokušajte sutra!');
+      setTimeout(() => setPoruka(''), 4000);
       return;
     }
 
@@ -295,7 +372,7 @@ const AIChef = () => {
       setProgress(30);
       setStatus(t('aichef.status.analyzing'));
 
-      // 🔥 PROMIJENJENO - dodan /api
+      // 🔥 BACKEND KORISTI AI_CACHE - AUTOMATSKI!
       const res = await fetch(`${API_URL}/api/ai-chef`, {
         method: 'POST',
         body: formData
@@ -305,7 +382,13 @@ const AIChef = () => {
       setStatus(t('aichef.status.done'));
       const data = await res.json();
       setRezultati(data);
-      setPoruka(t('aichef.results.found', { count: data.length }));
+      
+      // 🔥 PROVJERA DA LI SU REZULTATI IZ CACHE-A
+      if (res.headers.get('X-Cache') === 'HIT') {
+        setPoruka('💾 Rezultati dohvaćeni iz keša (ista slika/tekst)');
+      } else {
+        setPoruka(t('aichef.results.found', { count: data.length }));
+      }
 
       setSlika(null);
       
@@ -389,6 +472,7 @@ const AIChef = () => {
         <div className={`text-center p-3 mb-4 rounded-xl ${
           poruka.includes('✅') ? 'bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-200' : 
           poruka.includes('❌') || poruka.includes('⚠️') ? 'bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-200' : 
+          poruka.includes('💾') ? 'bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-200' :
           'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
         }`}>
           {poruka}
@@ -399,9 +483,7 @@ const AIChef = () => {
       <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 shadow-md mb-6">
         <div className="flex flex-wrap gap-4 justify-center mb-4">
           
-          {/* ============================================================
-              📸 FOTOGRAFIŠI - SAMO JEDAN FOTOAPARAT!
-              ============================================================ */}
+          {/* 📸 FOTOGRAFIŠI - SA VIDEO REKLAMOM ZA OTKLJUČAVANJE */}
           <div className="flex flex-col gap-2">
             <button
               className={`px-8 py-4 rounded-2xl text-lg font-semibold transition shadow-md hover:shadow-lg flex items-center gap-3 ${
@@ -417,8 +499,12 @@ const AIChef = () => {
               <span className="text-3xl">📸</span> {user?.premium ? t('aichef.buttons.photo_premium') : t('aichef.buttons.photo')}
             </button>
             
-            {/* 🔥 MALA PORUKA ISPOD - SAMO AKO NIJE PREMIUM */}
-            {!user?.premium && (
+            {/* 🔥 INDIKATOR LIMITA */}
+            {user?.premium ? (
+              <p className="text-xs text-center text-blue-600 dark:text-blue-400">
+                ⭐ Premium: {dailyLimit.preostalo}/{dailyLimit.max_pretraga} fotografija danas
+              </p>
+            ) : (
               <p className="text-xs text-center text-gray-500 dark:text-gray-400">
                 {dailyLimit.preostalo > 0 
                   ? t('aichef.buttons.remaining', { remaining: dailyLimit.preostalo, max: dailyLimit.max_pretraga })
@@ -438,17 +524,24 @@ const AIChef = () => {
               }}
             />
 
+            {/* 🔥 VIDEO REKLAMA ZA OTKLJUČAVANJE - SAMO ZA FREE KORISNIKE */}
             {!user?.premium && (
               <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-xl border border-yellow-200 dark:border-yellow-600">
-                <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-                  {t('aichef.unlock.watch_video')}
+                <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                  <span>📺</span> {t('aichef.unlock.watch_video')}
+                  {!ADSENSE_ENABLED && (
+                    <span className="text-xs text-yellow-600 dark:text-yellow-400">(simulirano)</span>
+                  )}
                 </p>
+                
+                <div id="video-ad-container" className="mb-3 min-h-[60px]"></div>
+                
                 <button
                   onClick={handleUnlockWithVideo}
-                  disabled={loadingLimit || dailyLimit.preostalo <= 0}
+                  disabled={loadingLimit || dailyLimit.preostalo <= 0 || videoWatched}
                   className="w-full bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-semibold transition disabled:opacity-50 text-sm"
                 >
-                  {loadingLimit ? t('aichef.unlock.loading') : dailyLimit.preostalo > 0 ? t('aichef.unlock.watch_button') : t('aichef.unlock.max_reached')}
+                  {loadingLimit ? t('aichef.unlock.loading') : dailyLimit.preostalo <= 0 ? t('aichef.unlock.max_reached') : videoWatched ? '✅ Otključano!' : t('aichef.unlock.watch_button')}
                 </button>
                 {dailyLimit.preostalo <= 0 && (
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">

@@ -1226,6 +1226,13 @@ app.put('/api/profil/:email', async (req, res) => {
     
     console.log(`📝 Ažuriranje profila: ${email}`);
     
+    // 🔥 DODAJ PREMIUM_DO AKO SE PREMIUM POSTAVLJA NA TRUE
+    if (updates.premium === true) {
+      const premiumDo = new Date();
+      premiumDo.setDate(premiumDo.getDate() + 30);
+      updates.premium_do = premiumDo.toISOString().split('T')[0];
+    }
+    
     const { data, error } = await supabase
       .from('profili')
       .update({
@@ -3322,7 +3329,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
 });
 
 // ============================================================
-// 47. VERIFIKACIJA PLAĆANJA
+// 47. VERIFIKACIJA PLAĆANJA - SA PREMIUM_DO!
 // ============================================================
 app.get('/api/verify-payment', async (req, res) => {
   try {
@@ -3340,11 +3347,16 @@ app.get('/api/verify-payment', async (req, res) => {
       const email = session.metadata.email || session.customer_email;
       console.log('💰 Plaćanje potvrđeno za:', email);
       
+      // 🔥 POSTAVI PREMIUM_DO NA 30 DANA
+      const premiumDo = new Date();
+      premiumDo.setDate(premiumDo.getDate() + 30);
+      const premiumDoStr = premiumDo.toISOString().split('T')[0];
+      
       const { error } = await supabase
         .from('profili')
         .update({ 
           premium: true,
-          updated_at: new Date().toISOString()
+          premium_do: premiumDoStr
         })
         .eq('email', email);
 
@@ -3354,7 +3366,8 @@ app.get('/api/verify-payment', async (req, res) => {
       }
 
       console.log('✅ Premium aktiviran za:', email);
-      return res.json({ success: true, premium: true });
+      console.log('📅 Premium važi do:', premiumDoStr);
+      return res.json({ success: true, premium: true, premium_do: premiumDoStr });
     }
 
     res.json({ success: false, premium: false });
@@ -3389,11 +3402,16 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
     console.log('💰 Plaćanje (webhook) za:', email);
 
     try {
+      // 🔥 POSTAVI PREMIUM_DO NA 30 DANA
+      const premiumDo = new Date();
+      premiumDo.setDate(premiumDo.getDate() + 30);
+      const premiumDoStr = premiumDo.toISOString().split('T')[0];
+      
       const { error } = await supabase
         .from('profili')
         .update({ 
           premium: true,
-          updated_at: new Date().toISOString()
+          premium_do: premiumDoStr
         })
         .eq('email', email);
 
@@ -3401,11 +3419,12 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
         console.error('❌ Greška pri ažuriranju profila:', error);
       } else {
         console.log('✅ Premium aktiviran (webhook) za:', email);
+        console.log('📅 Premium važi do:', premiumDoStr);
         
         await createNotification(
           email,
           'motivacija',
-          '🎉 Čestitamo! Vaš Premium nalog je aktiviran. Sada imate pristup svim Premium funkcionalnostima!',
+          `🎉 Čestitamo! Vaš Premium nalog je aktiviran do ${premiumDoStr}. Sada imate pristup svim Premium funkcionalnostima!`,
           '/profile'
         );
       }
@@ -3567,7 +3586,65 @@ app.post('/api/recepti/translate', async (req, res) => {
 });
 
 // ============================================================
-// 51. FALLBACK RUTA
+// 51. 🔥 CRON JOB - PREMIUM ISTEK (SVAKI DAN U 00:00)
+// ============================================================
+const cron = require('node-cron');
+
+cron.schedule('0 0 * * *', async () => {
+  try {
+    console.log('🔄 Provjeravam Premium istoke...');
+    
+    const danas = new Date();
+    const danasStr = danas.toISOString().split('T')[0];
+    
+    // 🔥 DOHVATI KORISNIKE KOJIMA JE PREMIUM ISTEKAO
+    const { data: expiredUsers, error } = await supabase
+      .from('profili')
+      .select('email, ime')
+      .eq('premium', true)
+      .lt('premium_do', danasStr);
+    
+    if (error) {
+      console.error('❌ Greška pri dohvatu:', error);
+      return;
+    }
+    
+    if (expiredUsers.length === 0) {
+      console.log('✅ Nema isteklih Premium korisnika');
+      return;
+    }
+    
+    console.log(`⏰ Pronađeno ${expiredUsers.length} korisnika sa isteklim Premiumom`);
+    
+    // 🔥 DEAKTIVIRAJ SVAKOG KORISNIKA
+    for (const user of expiredUsers) {
+      console.log(`   - ${user.email} (${user.ime || 'Bez imena'})`);
+      
+      const { error: updateError } = await supabase
+        .from('profili')
+        .update({ 
+          premium: false,
+          premium_do: null
+        })
+        .eq('email', user.email);
+      
+      if (updateError) {
+        console.error(`❌ Greška pri deaktivaciji ${user.email}:`, updateError);
+      } else {
+        console.log(`✅ Deaktiviran: ${user.email}`);
+      }
+    }
+    
+    console.log(`✅ Završeno. Deaktivirano ${expiredUsers.length} korisnika.`);
+  } catch (error) {
+    console.error('❌ Cron greška:', error);
+  }
+});
+
+console.log('⏰ Cron job za Premium istok postavljen (svaki dan u 00:00)');
+
+// ============================================================
+// 52. FALLBACK RUTA
 // ============================================================
 app.use('/*path', (req, res) => {
   res.status(404).json({ 
