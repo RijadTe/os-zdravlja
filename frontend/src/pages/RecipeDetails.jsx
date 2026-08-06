@@ -8,13 +8,23 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // --- VOICE RECIPE READER KOMPONENTA ---
 const VoiceRecipeReader = ({ recipe }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation(); // 🔥 DODAJ i18n
   const [isReading, setIsReading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
   const utteranceRef = useRef(null);
   const steps = recipe?.upute || [];
+
+  // 🔥 MAPIRANJE JEZIKA ZA SPEECH SYNTHESIS
+  const getSpeechLang = () => {
+    const langMap = {
+      'hr': 'hr-HR',
+      'en': 'en-US',
+      'de': 'de-DE'
+    };
+    return langMap[i18n.language] || 'hr-HR';
+  };
 
   useEffect(() => {
     if (!('speechSynthesis' in window)) {
@@ -42,9 +52,11 @@ const VoiceRecipeReader = ({ recipe }) => {
       return;
     }
 
+    // 🔥 KORISTI TRENUTNI JEZIK
+    const speechLang = getSpeechLang();
     const text = `${t('recipe.step')} ${stepIndex + 1}: ${steps[stepIndex]}`;
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'hr';
+    utterance.lang = speechLang; // 🔥 DINAMIČKI JEZIK!
     utterance.rate = 0.85;
     utterance.pitch = 1;
     utteranceRef.current = utterance;
@@ -329,7 +341,7 @@ const RecipeDetails = () => {
   }, []);
 
   // ============================================================
-  // 📥 DOHVATI RECEPT SA PREVODOM - 🔥 POPRAVLJENO!
+  // 📥 DOHVATI RECEPT SA PREVODOM
   // ============================================================
   useEffect(() => {
     const fetchRecipe = async () => {
@@ -337,7 +349,6 @@ const RecipeDetails = () => {
         setLoading(true);
         console.log('🔍 Dohvatam recept ID:', id);
         
-        // 🔥 PROMIJENJENO - dodan /api
         const res = await fetch(`${API_URL}/api/recepti/${id}`);
         const data = await res.json();
         console.log('📊 Recept dohvaćen:', data);
@@ -349,10 +360,9 @@ const RecipeDetails = () => {
           sastojci: data.sastojci || []
         });
 
-        // 🔥 AKO NIJE HRVATSKI, DOHVATI PREVOD - POPRAVLJENO!
+        // 🔥 AKO NIJE HRVATSKI, DOHVATI PREVOD
         if (i18n.language !== 'hr') {
           try {
-            // 🔥 PROMIJENJENO - dodan /api
             const translateRes = await fetch(`${API_URL}/api/recepti/translate`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -371,9 +381,8 @@ const RecipeDetails = () => {
           }
         }
 
-        // 🔥 DOHVATI SLIČNE RECEPTE - POPRAVLJENO!
+        // 🔥 DOHVATI SLIČNE RECEPTE
         if (data?.vrsta) {
-          // 🔥 PROMIJENJENO - dodan /api
           const slicniRes = await fetch(`${API_URL}/api/recepti?vrsta=${encodeURIComponent(data.vrsta)}`);
           const slicniData = await slicniRes.json();
           setSlicniRecepti(slicniData.filter(r => r.id !== id).slice(0, 3));
@@ -423,13 +432,12 @@ const RecipeDetails = () => {
   };
 
   // ============================================================
-  // 🍷 AI SOMELIJER SA KEŠIRANJEM! - POPRAVLJENO!
+  // 🍷 AI SOMELIJER SA KEŠIRANJEM!
   // ============================================================
   const fetchSommelier = async () => {
     setLoadingSommelier(true);
     setSommelierError(null);
     try {
-      // 🔥 PROMIJENJENO - dodan /api
       const res = await fetch(`${API_URL}/api/ai-sommelier`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -677,7 +685,7 @@ const RecipeDetails = () => {
         </p>
       </div>
 
-      {/* GLASOVNO KUHANJE */}
+      {/* 🔥 GLASOVNO KUHANJE - SADA PRATI JEZIK! */}
       {user?.premium ? (
         <div className="mt-6">
           <VoiceRecipeReader recipe={recipe} />
