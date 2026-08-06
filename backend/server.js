@@ -1061,7 +1061,7 @@ app.post('/api/quiz', async (req, res) => {
 });
 
 // ============================================================
-// 10. 🔥 DOHVATI RECEPTE SA FILTERIMA (ISPRAVLJENO!)
+// 10. 🔥 DOHVATI RECEPTE SA FILTERIMA + PAGINACIJA
 // ============================================================
 app.get('/api/recepti', async (req, res) => {
   try {
@@ -1072,16 +1072,21 @@ app.get('/api/recepti', async (req, res) => {
       preferencije, 
       vrijeme, 
       tezina, 
-      kalorije 
+      kalorije,
+      page = 1,
+      limit = 20,
+      search
     } = req.query;
     
-    console.log('📊 Dohvatam recepte sa filterima:');
+    console.log('📊 Dohvatam recepte sa paginacijom:');
+    console.log('   Page:', page);
+    console.log('   Limit:', limit);
+    console.log('   Search:', search);
     console.log('   Email:', email);
     console.log('   Vrsta:', vrsta);
     console.log('   Restrikcije:', restrikcije);
-    console.log('   Vrijeme:', vrijeme);
-    console.log('   Težina:', tezina);
-    console.log('   Kalorije:', kalorije);
+    
+    const offset = (parseInt(page) - 1) * parseInt(limit);
     
     let userRestrictions = [];
     let userPreferences = [];
@@ -1090,7 +1095,7 @@ app.get('/api/recepti', async (req, res) => {
     let userTezina = '';
     let userKalorije = '';
     
-    // 🔥 1. DOHVATI RESTRIKCIJE IZ PROFILA (ako je poslan email)
+    // 🔥 1. DOHVATI RESTRIKCIJE IZ PROFILA
     if (email) {
       const { data: profil, error: profilError } = await supabase
         .from('profili')
@@ -1109,7 +1114,7 @@ app.get('/api/recepti', async (req, res) => {
       }
     }
     
-    // 🔥 2. RESTRIKCIJE IZ QUERY PARAMETRA (prepisuju profil)
+    // 🔥 2. RESTRIKCIJE IZ QUERY PARAMETRA
     let restrikcijeArray = [];
     if (restrikcije) {
       restrikcijeArray = Array.isArray(restrikcije) 
@@ -1120,12 +1125,12 @@ app.get('/api/recepti', async (req, res) => {
       restrikcijeArray = userRestrictions;
     }
     
-    // 🔥 3. KREIRAJ QUERY
+    // 🔥 3. KREIRAJ QUERY SA BROJANJEM
     let query = supabase
       .from('recepti')
-      .select('*');
+      .select('*', { count: 'exact' });
 
-    // FILTRIRAJ PO VRSTI (prvo iz query, onda iz profila)
+    // FILTRIRAJ PO VRSTI
     let vrstaFilter = vrsta ? vrsta.split(',') : [];
     if (vrstaFilter.length === 0 && userVrsta.length > 0) {
       vrstaFilter = userVrsta.filter(v => v !== 'Svejedno');
@@ -1164,15 +1169,13 @@ app.get('/api/recepti', async (req, res) => {
       console.log('✅ Filtriram po kalorijama:', kalorijeFilter);
     }
 
-    // 🔥🔥🔥 FILTRIRAJ PO RESTRIKCIJAMA (ALERGENIMA) - ISPRAVLJENO!
+    // 🔥🔥🔥 FILTRIRAJ PO RESTRIKCIJAMA
     if (restrikcijeArray.length > 0) {
-      // AKO KORISNIK IMA 'Bez restrikcija', NE FILTRIRAJ
       const hasNoRestrictions = restrikcijeArray.some(r => 
         r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
       );
       
       if (!hasNoRestrictions) {
-        // 🔥 ISPRAVNO: FILTRIRAJ PO 'alergeni' KOLONI!
         query = query.not('alergeni', '&&', restrikcijeArray);
         console.log('✅ Filtriram po restrikcijama (alergeni):', restrikcijeArray);
       } else {
@@ -1200,16 +1203,39 @@ app.get('/api/recepti', async (req, res) => {
       }
     }
 
+    // 🔥 PRETRAGA
+    if (search && search.trim()) {
+      query = query.ilike('naziv', `%${search.trim()}%`);
+      console.log('✅ Pretraga:', search.trim());
+    }
+
+    // 🔥 SORTIRANJE
+    query = query.order('created_at', { ascending: false });
+
+    // 🔥🔥🔥 PAGINACIJA
+    query = query.range(offset, offset + parseInt(limit) - 1);
+
     // IZVRŠI QUERY
-    const { data, error } = await query;
+    const { data, error, count } = await query;
 
     if (error) {
       console.error('❌ Greška:', error);
       return res.status(500).json({ error: error.message });
     }
     
-    console.log(`✅ Dohvaćeno ${data?.length || 0} recepata`);
-    res.json(data || []);
+    console.log(`✅ Dohvaćeno ${data?.length || 0} recepata (od ${count || 0} ukupno)`);
+    
+    // 🔥 VRATI SA PAGINACIJOM
+    res.json({
+      success: true,
+      data: data || [],
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: count || 0,
+        pages: Math.ceil((count || 0) / parseInt(limit))
+      }
+    });
     
   } catch (error) {
     console.error('❌ Greška:', error);
@@ -1546,18 +1572,29 @@ app.get('/api/healthy-chef/faze/:kategorijaId', async (req, res) => {
 });
 
 // ============================================================
-// 19. HEALTHY CHEF - RECEPTI ZA FAZU
+// 19. HEALTHY CHEF - RECEPTI ZA FAZU (SA PAGINACIJOM)
 // ============================================================
 app.get('/api/healthy-chef/recepti', async (req, res) => {
   try {
-    const { fazaId, email, vrsta, vrijeme, tezina } = req.query;
+    const { 
+      fazaId, 
+      email, 
+      vrsta, 
+      vrijeme, 
+      tezina,
+      page = 1,
+      limit = 20
+    } = req.query;
     
     console.log(`🌿 Dohvatam recepte za fazu: ${fazaId}`);
     console.log('📦 Filteri:', { vrsta, vrijeme, tezina });
+    console.log('📦 Page:', page, 'Limit:', limit);
+    
+    const offset = (parseInt(page) - 1) * parseInt(limit);
     
     let query = supabase
       .from('recepti')
-      .select('*');
+      .select('*', { count: 'exact' });
 
     if (fazaId) {
       query = query.eq('faza_id', fazaId);
@@ -1567,11 +1604,28 @@ app.get('/api/healthy-chef/recepti', async (req, res) => {
     if (vrijeme) query = query.eq('vrijeme', vrijeme);
     if (tezina) query = query.eq('tezina', tezina);
 
-    const { data, error } = await query;
+    // 🔥 SORTIRANJE
+    query = query.order('created_at', { ascending: false });
+
+    // 🔥 PAGINACIJA
+    query = query.range(offset, offset + parseInt(limit) - 1);
+
+    const { data, error, count } = await query;
 
     if (error) throw error;
-    console.log(`✅ Dohvaćeno ${data?.length || 0} recepata`);
-    res.json(data || []);
+    
+    console.log(`✅ Dohvaćeno ${data?.length || 0} recepata (od ${count || 0} ukupno)`);
+    
+    res.json({
+      success: true,
+      data: data || [],
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: count || 0,
+        pages: Math.ceil((count || 0) / parseInt(limit))
+      }
+    });
   } catch (error) {
     console.error('❌ Greška pri dohvatu recepata:', error);
     res.status(500).json({ error: error.message });
@@ -3065,19 +3119,34 @@ app.delete('/api/obroci/:id', async (req, res) => {
 });
 
 // ============================================================
-// 37. COMMUNITY - DOHVATI OBJAVE
+// 37. COMMUNITY - DOHVATI OBJAVE (SA PAGINACIJOM)
 // ============================================================
 app.get('/api/community/objave', async (req, res) => {
   try {
-    console.log('📝 Dohvatam sve objave...');
+    const { page = 1, limit = 20 } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
     
-    const { data, error } = await supabase
+    console.log('📝 Dohvatam objave sa paginacijom...');
+    console.log('   Page:', page, 'Limit:', limit);
+    
+    const { data, error, count } = await supabase
       .from('objave')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + parseInt(limit) - 1);
 
     if (error) throw error;
-    res.json(data || []);
+    
+    res.json({
+      success: true,
+      data: data || [],
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: count || 0,
+        pages: Math.ceil((count || 0) / parseInt(limit))
+      }
+    });
   } catch (error) {
     console.error('❌ Greška:', error);
     res.status(500).json({ error: error.message });

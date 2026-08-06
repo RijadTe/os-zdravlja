@@ -1,4 +1,4 @@
-// frontend/src/pages/Recipes.jsx - ISPRAVNA VERZIJA
+// frontend/src/pages/Recipes.jsx
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -14,7 +14,17 @@ const Recipes = () => {
   const [filter, setFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [userEmail, setUserEmail] = useState(null);
-  const [userRestrictions, setUserRestrictions] = useState([]); // 🔥 NIZ, ne string!
+  const [userRestrictions, setUserRestrictions] = useState([]);
+  
+  // 🔥 NOVI STATE ZA PAGINACIJU
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    pages: 0
+  });
+  const [currentPage, setCurrentPage] = useState(1);
+  
   const [filters, setFilters] = useState({
     vrijeme: '',
     tezina: '',
@@ -45,11 +55,9 @@ const Recipes = () => {
         if (data.success && data.data) {
           const profil = data.data;
           
-          // 🔥🔥🔥 DOHVATI SVE RESTRIKCIJE (CIJELI NIZ)
           const restrikcije = profil.izbjegava || [];
-          setUserRestrictions(restrikcije); // 🔥 NIZ, NE SAMO PRVI ELEMENT!
+          setUserRestrictions(restrikcije);
           
-          // POSTAVI FILTERE IZ PROFILA
           const noviFilteri = {};
           if (profil.vrijeme) noviFilteri.vrijeme = profil.vrijeme;
           if (profil.tezina) noviFilteri.tezina = profil.tezina;
@@ -80,87 +88,114 @@ const Recipes = () => {
   }, [location]);
 
   // ============================================================
-  // 🔥 DOHVATI RECEPTE SA BACKENDA (SA FILTRIRANJEM)
+  // 🔥 DOHVATI RECEPTE SA BACKENDA (SA PAGINACIJOM)
   // ============================================================
-  useEffect(() => {
-    const fetchRecipes = async () => {
-      try {
-        setLoading(true);
-        console.log('🔍 Dohvatam recepte sa filterima...');
-        
-        let url = `${API_URL}/api/recepti`;
-        const queryParams = new URLSearchParams();
-        
-        // 🔥 DODAJ EMAIL AKO KORISNIK POSTOJI
-        if (userEmail) {
-          queryParams.append('email', userEmail);
-        }
-        
-        // 🔥 DODAJ FILTERE
-        if (filter) {
-          queryParams.append('vrsta', filter);
-        }
-        if (filters.vrijeme) {
-          queryParams.append('vrijeme', filters.vrijeme);
-        }
-        if (filters.tezina) {
-          queryParams.append('tezina', filters.tezina);
-        }
-        if (filters.kalorije) {
-          queryParams.append('kalorije', filters.kalorije);
-        }
-        
-        // 🔥🔥🔥 DODAJ SVE RESTRIKCIJE KAO NIZ
-        if (userRestrictions.length > 0) {
-          // PROVJERI DA LI KORISNIK IMA 'Bez restrikcija'
-          const hasNoRestrictions = userRestrictions.some(r => 
-            r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
-          );
-          
-          if (!hasNoRestrictions) {
-            // 🔥 ŠALJI SVE RESTRIKCIJE (NE SAMO PRVU!)
-            queryParams.append('restrikcije', userRestrictions.join(','));
-            console.log('🔒 Šaljem sve restrikcije na backend:', userRestrictions);
-          } else {
-            console.log('✅ Korisnik nema restrikcija');
-          }
-        }
-        
-        const queryString = queryParams.toString();
-        if (queryString) {
-          url += `?${queryString}`;
-        }
-        
-        console.log('📡 URL:', url);
-        
-        const res = await fetch(url);
-        const data = await res.json();
-        console.log('📊 Dohvaćeno recepata:', data?.length || 0);
-        
-        // 🔥 BACKEND JE VEĆ FILTRIRAO - SAMO PRIKAŽI
-        setRecepti(data || []);
-        setLoading(false);
-        
-      } catch (error) {
-        console.error('❌ Greška pri dohvatu recepata:', error);
-        setRecepti([]);
-        setLoading(false);
+  const fetchRecipes = async (page = 1) => {
+    try {
+      setLoading(true);
+      console.log('🔍 Dohvatam recepte sa paginacijom...');
+      
+      let url = `${API_URL}/api/recepti`;
+      const queryParams = new URLSearchParams();
+      
+      // 🔥 DODAJ PAGINACIJU
+      queryParams.append('page', page);
+      queryParams.append('limit', 20);
+      
+      // 🔥 DODAJ EMAIL AKO KORISNIK POSTOJI
+      if (userEmail) {
+        queryParams.append('email', userEmail);
       }
-    };
-    
-    fetchRecipes();
-  }, [userEmail, userRestrictions, filter, filters.vrijeme, filters.tezina, filters.kalorije]);
+      
+      // 🔥 DODAJ FILTERE
+      if (filter) {
+        queryParams.append('vrsta', filter);
+      }
+      if (filters.vrijeme) {
+        queryParams.append('vrijeme', filters.vrijeme);
+      }
+      if (filters.tezina) {
+        queryParams.append('tezina', filters.tezina);
+      }
+      if (filters.kalorije) {
+        queryParams.append('kalorije', filters.kalorije);
+      }
+      
+      // 🔥 DODAJ PRETRAGU (ako postoji)
+      if (searchTerm && searchTerm.trim()) {
+        queryParams.append('search', searchTerm.trim());
+      }
+      
+      // 🔥 DODAJ SVE RESTRIKCIJE KAO NIZ
+      if (userRestrictions.length > 0) {
+        const hasNoRestrictions = userRestrictions.some(r => 
+          r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
+        );
+        
+        if (!hasNoRestrictions) {
+          queryParams.append('restrikcije', userRestrictions.join(','));
+          console.log('🔒 Šaljem sve restrikcije na backend:', userRestrictions);
+        } else {
+          console.log('✅ Korisnik nema restrikcija');
+        }
+      }
+      
+      const queryString = queryParams.toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+      
+      console.log('📡 URL:', url);
+      
+      const res = await fetch(url);
+      const data = await res.json();
+      
+      // 🔥 NOVI RESPONSE FORMAT SA PAGINACIJOM
+      if (data.data && Array.isArray(data.data)) {
+        setRecepti(data.data);
+        setPagination(data.pagination);
+        setCurrentPage(data.pagination.page);
+        console.log('📊 Dohvaćeno recepata:', data.data.length);
+        console.log('📊 Ukupno:', data.pagination.total);
+        console.log('📊 Stranica:', data.pagination.page, '/', data.pagination.pages);
+      } else if (Array.isArray(data)) {
+        // FALLBACK za stari format (ako backend još nije ažuriran)
+        setRecepti(data);
+        setPagination({
+          page: 1,
+          limit: 20,
+          total: data.length,
+          pages: 1
+        });
+        setCurrentPage(1);
+      } else {
+        setRecepti([]);
+        setPagination({
+          page: 1,
+          limit: 20,
+          total: 0,
+          pages: 0
+        });
+      }
+      setLoading(false);
+      
+    } catch (error) {
+      console.error('❌ Greška pri dohvatu recepata:', error);
+      setRecepti([]);
+      setLoading(false);
+    }
+  };
+
+  // 🔥 POKRENI DOHVAT KADA SE PROMIJENE FILTERI
+  useEffect(() => {
+    fetchRecipes(1);
+  }, [userEmail, userRestrictions, filter, filters.vrijeme, filters.tezina, filters.kalorije, searchTerm]);
 
   // ============================================================
-  // 🔥 FILTRIRANJE NA FRONTENDU - SAMO PRETRAGA
+  // 🔥 FILTRIRANJE NA FRONTENDU - SAMO PRETRAGA (VEĆ RADI BACKEND)
   // ============================================================
-  const filteredRecipes = recepti.filter(recipe => {
-    // 🔥 SAMO PRETRAGA PO NAZIVU (SVE OSTALO RADI BACKEND)
-    if (searchTerm && !recipe.naziv?.toLowerCase().includes(searchTerm.toLowerCase())) {
-      return false;
-    }
-    return true;
-  });
+  // 🔥 SADA JE searchTerm VEĆ POSLAN NA BACKEND, OVDJE SAMO PRIKAZUJEMO
+  const filteredRecipes = recepti; // Backend je već filtrirao
 
   // ============================================================
   // 🔥 RESET FILTERA
@@ -174,6 +209,8 @@ const Recipes = () => {
       kalorije: ''
     });
     setSearchTerm('');
+    setCurrentPage(1);
+    fetchRecipes(1);
   };
 
   // ============================================================
@@ -186,11 +223,20 @@ const Recipes = () => {
     if (filters.tezina) count++;
     if (filters.kalorije) count++;
     if (filters.preferencije) count++;
+    if (searchTerm && searchTerm.trim()) count++;
     return count;
   };
 
   // ============================================================
-  // 🖥️ RENDER
+  // 🔥 PROMIJENI STRANICU
+  // ============================================================
+  const goToPage = (page) => {
+    if (page < 1 || page > pagination.pages) return;
+    fetchRecipes(page);
+  };
+
+  // ============================================================
+  // 🖥️ RENDER - LOADING
   // ============================================================
   if (loading) {
     return (
@@ -203,7 +249,10 @@ const Recipes = () => {
     );
   }
 
-  if (recepti.length === 0) {
+  // ============================================================
+  // 🖥️ RENDER - NEMA RECEPATA
+  // ============================================================
+  if (recepti.length === 0 && pagination.total === 0) {
     return (
       <div className="max-w-6xl mx-auto py-12 px-4 text-center">
         <p className="text-4xl mb-4">😢</p>
@@ -276,6 +325,13 @@ const Recipes = () => {
             🚫 {t('recipes.excluding')}: {userRestrictions.join(', ')}
           </span>
         )}
+        
+        {/* 🔥 PRIKAŽI BROJ STRANICA */}
+        {pagination.pages > 1 && (
+          <span className="ml-2 text-sm bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full">
+            📄 {pagination.page} / {pagination.pages}
+          </span>
+        )}
       </p>
 
       {/* PRETRAGA I FILTERI */}
@@ -335,7 +391,12 @@ const Recipes = () => {
 
       {/* BROJ RECEPATA */}
       <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">
-        {t('recipes.showing')} {filteredRecipes.length} {t('recipes.of')} {recepti.length} {t('recipes.recipes')}
+        {t('recipes.showing')} {recepti.length} {t('recipes.of')} {pagination.total} {t('recipes.recipes')}
+        {pagination.pages > 1 && (
+          <span className="ml-2 text-xs text-gray-400">
+            (Stranica {pagination.page} od {pagination.pages})
+          </span>
+        )}
         
         {/* 🔥 PRIKAŽI RESTRIKCIJE AKO POSTOJE */}
         {userRestrictions.length > 0 && !userRestrictions.some(r => 
@@ -348,12 +409,66 @@ const Recipes = () => {
       </p>
 
       {/* RECEPTI */}
-      {filteredRecipes.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredRecipes.map(recipe => (
-            <RecipeCard key={recipe.id} recipe={recipe} />
-          ))}
-        </div>
+      {recepti.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {recepti.map(recipe => (
+              <RecipeCard key={recipe.id} recipe={recipe} />
+            ))}
+          </div>
+
+          {/* 🔥🔥🔥 PAGINACIJA */}
+          {pagination.pages > 1 && (
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                Prikazano {recepti.length} od {pagination.total} recepata
+              </div>
+              
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* DUGME ZA PRVU STRANICU */}
+                <button
+                  onClick={() => goToPage(1)}
+                  disabled={pagination.page === 1}
+                  className="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                >
+                  ⏮
+                </button>
+                
+                {/* DUGME ZA PREVIOUS */}
+                <button
+                  onClick={() => goToPage(pagination.page - 1)}
+                  disabled={pagination.page === 1}
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                >
+                  ⬅️ Prethodna
+                </button>
+                
+                {/* BROJ STRANICA */}
+                <span className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-sm font-semibold">
+                  {pagination.page} / {pagination.pages}
+                </span>
+                
+                {/* DUGME ZA NEXT */}
+                <button
+                  onClick={() => goToPage(pagination.page + 1)}
+                  disabled={pagination.page === pagination.pages}
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                >
+                  Sljedeća ➡️
+                </button>
+                
+                {/* DUGME ZA ZADNJU STRANICU */}
+                <button
+                  onClick={() => goToPage(pagination.pages)}
+                  disabled={pagination.page === pagination.pages}
+                  className="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                >
+                  ⏭
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       ) : (
         <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-xl">
           <p className="text-gray-500 dark:text-gray-400 text-lg">

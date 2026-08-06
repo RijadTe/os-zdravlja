@@ -244,11 +244,12 @@ const HomeKonacno = () => {
   }, [user]);
 
   // ============================================================
-  // 3. DOHVATI RECEPTE - SA SIGURNOSNOM PROVJEROM
+  // 3. DOHVATI RECEPTE - SA PAGINACIJOM (SAMO PRVIH 50)
   // ============================================================
   const fetchRecipes = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/api/recepti`);
+      // 🔥 DODAJ PAGINACIJU (dohvati do 50 recepata, prikazujemo samo 6)
+      const response = await fetch(`${API_URL}/api/recepti?page=1&limit=50`);
       
       if (response.status === 429) {
         console.warn('⚠️ Rate limit (429) - koristim prazne recepte');
@@ -259,12 +260,14 @@ const HomeKonacno = () => {
       
       const data = await response.json();
       
-      if (data && Array.isArray(data)) {
-        setRecepti(data);
-        console.log(`✅ Dohvaćeno ${data.length} recepata`);
-      } else if (data && Array.isArray(data.data)) {
+      // 🔥 NOVI FORMAT SA PAGINACIJOM
+      if (data && data.data && Array.isArray(data.data)) {
         setRecepti(data.data);
-        console.log(`✅ Dohvaćeno ${data.data.length} recepata`);
+        console.log(`✅ Dohvaćeno ${data.data.length} recepata (od ${data.pagination?.total || 0} ukupno)`);
+      } else if (data && Array.isArray(data)) {
+        // FALLBACK za stari format
+        setRecepti(data);
+        console.log(`✅ Dohvaćeno ${data.length} recepata (stari format)`);
       } else {
         console.warn('⚠️ Recepti nisu array, postavljam prazan niz');
         setRecepti([]);
