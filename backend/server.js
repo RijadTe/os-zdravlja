@@ -2486,7 +2486,7 @@ app.get('/api/zdravstveni-podaci/:email', async (req, res) => {
 });
 
 // ============================================================
-// 29. 🔥 NOTIFIKACIJE - GENERIŠI PREPORUKE
+// 29. 🔥 NOTIFIKACIJE - GENERIŠI PREPORUKE SA PREMIUM DODACIMA!
 // ============================================================
 app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
   try {
@@ -2505,6 +2505,7 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
     }
 
     const ime = profil.ime || 'Prijatelju';
+    const isPremium = profil.premium || false; // 🔥 PROVJERA PREMIUM
     const preporuke = [];
     const sat = new Date().getHours();
 
@@ -2566,12 +2567,14 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       });
     }
 
-    // 🍽️ REDOVNI OBROCI - DORUČAK, RUČAK, VEČERA
+    // 🍽️ REDOVNI OBROCI - SA PREMIUM DODACIMA!
+    const danas = new Date().toISOString().split('T')[0];
+    
     const { data: danasnjiObroci, error: obrociError } = await supabase
       .from('obroci')
-      .select('tip, created_at, datum')
+      .select('*')
       .eq('email', email)
-      .eq('datum', new Date().toISOString().split('T')[0]);
+      .eq('datum', danas);
 
     if (obrociError) throw obrociError;
 
@@ -2579,47 +2582,120 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
     const imaRučak = danasnjiObroci?.some(o => o.tip === 'Ručak') || false;
     const imaVečeru = danasnjiObroci?.some(o => o.tip === 'Večera') || false;
 
+    // 🔥 IZRAČUNAJ UKUPNE KALORIJE ZA DANAS
+    const ukupneKalorije = danasnjiObroci?.reduce((sum, o) => sum + (o.kalorije || 0), 0) || 0;
+
+    // 🔥 PRONAĐI ZADNJI OBROK SA RASPOLOŽENJEM
+    const zadnjiObrok = danasnjiObroci?.sort((a, b) => 
+      new Date(b.created_at) - new Date(a.created_at)
+    )[0];
+
     // 🌅 DORUČAK - 7-10h
     if (sat >= 7 && sat <= 10 && !imaDoručak) {
+      let poruka = `🌅 ${ime}, vrijeme je za doručak! Dobre jutarnje navike počinju obrokom bogatim proteinima.`;
+      if (isPremium) {
+        poruka += ` 📊 Danas si uneo/la ${ukupneKalorije} kcal.`;
+      }
       preporuke.push({
         tip: 'dorucak',
-        poruka: `🌅 ${ime}, vrijeme je za doručak! Dobre jutarnje navike počinju obrokom bogatim proteinima.`,
+        poruka: poruka,
         link: '/food-planner'
       });
     }
 
     // 🍽️ RUČAK - 12-15h
     if (sat >= 12 && sat <= 15 && !imaRučak) {
+      let poruka = `🍽️ ${ime}, vrijeme je za ručak! Ne preskači glavni obrok u danu.`;
+      if (isPremium) {
+        poruka += ` 📊 Danas si uneo/la ${ukupneKalorije} kcal.`;
+      }
       preporuke.push({
         tip: 'rucak',
-        poruka: `🍽️ ${ime}, vrijeme je za ručak! Ne preskači glavni obrok u danu.`,
+        poruka: poruka,
         link: '/food-planner'
       });
     }
 
     // 🌙 VEČERA - 18-21h
     if (sat >= 18 && sat <= 21 && !imaVečeru) {
+      let poruka = `🌙 ${ime}, vrijeme je za laganu večeru! Izbjegavaj tešku hranu prije spavanja.`;
+      if (isPremium) {
+        poruka += ` 📊 Danas si uneo/la ${ukupneKalorije} kcal.`;
+      }
       preporuke.push({
         tip: 'vecera',
-        poruka: `🌙 ${ime}, vrijeme je za laganu večeru! Izbjegavaj tešku hranu prije spavanja.`,
+        poruka: poruka,
         link: '/food-planner'
       });
     }
 
+    // 🔥 PREMIUM DODACI - KADA JE OBROK UNESEN!
+    if (isPremium && zadnjiObrok) {
+      const moodBefore = zadnjiObrok.mood_before || '😐';
+      const moodAfter = zadnjiObrok.mood_after || '😐';
+      const kalorije = zadnjiObrok.kalorije || 0;
+      const naziv = zadnjiObrok.naziv || 'obrok';
+
+      // 🔥 PREPORUKA ZA RASPOLOŽENJE POSLIJE JELA
+      let moodPoruka = '';
+      if (moodAfter === '😊' || moodAfter === '🤩') {
+        moodPoruka = `😊 Odlično se osjećaš nakon jela! Nastavi sa zdravim navikama.`;
+      } else if (moodAfter === '😞' || moodAfter === '😡') {
+        moodPoruka = `😔 Primjećujem da si loše raspoložen/a nakon jela. Možda probaj laganiji obrok sljedeći put?`;
+      } else if (moodAfter === '😴') {
+        moodPoruka = `😴 Osjećaš se umorno nakon jela. Probaj manje porcije ili lakšu hranu.`;
+      } else if (moodAfter === '😌') {
+        moodPoruka = `😌 Opušten/a si nakon jela. To je odličan znak da ti hrana prija!`;
+      }
+
+      if (moodPoruka) {
+        preporuke.push({
+          tip: 'motivacija',
+          poruka: `🍽️ Nakon jela "${naziv}" (${kalorije} kcal): ${moodPoruka}`,
+          link: '/food-planner'
+        });
+      }
+
+      // 🔥 PREPORUKA ZA KALORIJE
+      if (ukupneKalorije > 0) {
+        let kalorijePoruka = '';
+        const cilj = 2200; // Možeš uzeti iz profila
+        const preostalo = cilj - ukupneKalorije;
+        
+        if (preostalo > 500) {
+          kalorijePoruka = `📊 Danas si uneo/la ${ukupneKalorije} kcal. Preostalo ti je ${preostalo} kcal do cilja (${cilj} kcal).`;
+        } else if (preostalo > 0) {
+          kalorijePoruka = `📊 Danas si uneo/la ${ukupneKalorije} kcal. Odlično, blizu si cilja (${cilj} kcal)!`;
+        } else {
+          kalorijePoruka = `📊 Danas si uneo/la ${ukupneKalorije} kcal. Prešao/la si cilj (${cilj} kcal) za ${Math.abs(preostalo)} kcal.`;
+        }
+
+        preporuke.push({
+          tip: 'energija',
+          poruka: kalorijePoruka,
+          link: '/food-planner'
+        });
+      }
+    }
+
     // ⏰ PROŠLO VIŠE OD 5 SATI OD ZADNJEG OBROKA
     if (danasnjiObroci && danasnjiObroci.length > 0) {
-      const zadnjiObrok = danasnjiObroci.sort((a, b) => 
+      const zadnji = danasnjiObroci.sort((a, b) => 
         new Date(b.created_at) - new Date(a.created_at)
       )[0];
       
-      if (zadnjiObrok) {
-        const vrijemeZadnjeg = new Date(zadnjiObrok.created_at);
+      if (zadnji) {
+        const vrijemeZadnjeg = new Date(zadnji.created_at);
         const satiOdZadnjeg = (Date.now() - vrijemeZadnjeg.getTime()) / (1000 * 60 * 60);
         
         if (satiOdZadnjeg > 5) {
+          let poruka = `⏰ ${ime}, prošlo je više od 5 sati od zadnjeg obroka. Vrijeme je za nešto zdravo!`;
+          if (isPremium) {
+            poruka += ` 📊 Danas si uneo/la ${ukupneKalorije} kcal.`;
+          }
           preporuke.push({
             tip: 'podsjetnik',
-            poruka: `⏰ ${ime}, prošlo je više od 5 sati od zadnjeg obroka. Vrijeme je za nešto zdravo!`,
+            poruka: poruka,
             link: '/food-planner'
           });
         }
