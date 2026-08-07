@@ -32,6 +32,29 @@
     "light": "Light",
     "dark": "Dark"
   },
+  "labels": {
+    "vrijeme": {
+      "kratko": "Short",
+      "srednje": "Medium",
+      "dugo": "Long"
+    },
+    "tezina": {
+      "lagani": "Easy",
+      "srednji": "Medium",
+      "teski": "Hard"
+    },
+    "kalorije": {
+      "nisko": "Low",
+      "srednje": "Medium",
+      "visoko": "High"
+    },
+    "kategorija": {
+      "dijeta": "Diet",
+      "deserti": "Desserts",
+      "slano": "Savory",
+      "napici": "Drinks"
+    }
+  },
   "home": {
     "hero": {
       "title": "OS Health",

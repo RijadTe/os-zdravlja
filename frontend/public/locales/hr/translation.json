@@ -32,6 +32,29 @@
     "light": "Svijetlo",
     "dark": "Tamno"
   },
+  "labels": {
+    "vrijeme": {
+      "kratko": "Kratko",
+      "srednje": "Srednje",
+      "dugo": "Dugo"
+    },
+    "tezina": {
+      "lagani": "Lagani",
+      "srednji": "Srednji",
+      "teski": "Teški"
+    },
+    "kalorije": {
+      "nisko": "Nisko",
+      "srednje": "Srednje",
+      "visoko": "Visoko"
+    },
+    "kategorija": {
+      "dijeta": "Dijetalno",
+      "deserti": "Deserti",
+      "slano": "Slana jela",
+      "napici": "Napitki"
+    }
+  },
   "home": {
     "hero": {
       "title": "OS Zdravlja",

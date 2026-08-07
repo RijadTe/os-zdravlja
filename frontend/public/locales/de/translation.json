@@ -32,6 +32,29 @@
     "light": "Hell",
     "dark": "Dunkel"
   },
+  "labels": {
+    "vrijeme": {
+      "kratko": "Kurz",
+      "srednje": "Mittel",
+      "dugo": "Lang"
+    },
+    "tezina": {
+      "lagani": "Leicht",
+      "srednji": "Mittel",
+      "teski": "Schwer"
+    },
+    "kalorije": {
+      "nisko": "Niedrig",
+      "srednje": "Mittel",
+      "visoko": "Hoch"
+    },
+    "kategorija": {
+      "dijeta": "Diät",
+      "deserti": "Desserts",
+      "slano": "Herzhaft",
+      "napici": "Getränke"
+    }
+  },
   "home": {
     "hero": {
       "title": "OS Gesundheit",
