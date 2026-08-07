@@ -164,6 +164,17 @@ const Quiz = () => {
       const currentLang = i18n.language;
       console.log('🌍 Jezik promijenjen na:', currentLang);
       
+      // 🔥 PROVJERI DA LI SU OPCIJE UČITANE
+      const vrstaOptions = t('quiz.options.vrsta', { returnObjects: true });
+      const preferencijeOptions = t('quiz.options.preferencije', { returnObjects: true });
+      const restrikcijeOptions = t('quiz.options.restrikcije', { returnObjects: true });
+      
+      // Ako opcije nisu učitane (ili su prazne), preskoči postavljanje
+      if (!vrstaOptions || vrstaOptions.length === 0) {
+        console.log('⏳ Opcije još nisu učitane, preskačem...');
+        return;
+      }
+      
       // Ako je jezik EN ili DE, postavi default vrijednosti (samo ako su prazne)
       if (currentLang === 'en' || currentLang === 'de') {
         setFormData(prev => {
@@ -173,25 +184,32 @@ const Quiz = () => {
           // Ako vrsta nema ništa odabrano, postavi "Svejedno" (na odgovarajućem jeziku)
           if (!prev.vrsta || prev.vrsta.length === 0) {
             const anythingOption = currentLang === 'en' ? 'Anything' : 'Alles';
-            newData.vrsta = [anythingOption];
-            changed = true;
-            console.log('✅ Postavljeno Svejedno za vrsta:', anythingOption);
+            // 🔥 PROVJERI DA LI OPCIJA POSTOJI U LISTI
+            if (vrstaOptions.includes(anythingOption)) {
+              newData.vrsta = [anythingOption];
+              changed = true;
+              console.log('✅ Postavljeno Svejedno za vrsta:', anythingOption);
+            }
           }
           
           // Ako preferencije nemaju ništa odabrano, postavi "Svejedno" (na odgovarajućem jeziku)
           if (!prev.preferencije || prev.preferencije.length === 0) {
             const anythingOption = currentLang === 'en' ? 'Anything' : 'Alles';
-            newData.preferencije = [anythingOption];
-            changed = true;
-            console.log('✅ Postavljeno Svejedno za preferencije:', anythingOption);
+            if (preferencijeOptions && preferencijeOptions.includes(anythingOption)) {
+              newData.preferencije = [anythingOption];
+              changed = true;
+              console.log('✅ Postavljeno Svejedno za preferencije:', anythingOption);
+            }
           }
           
           // Ako restrikcije nemaju ništa odabrano, postavi "Bez restrikcija" (na odgovarajućem jeziku)
           if (!prev.restrikcije || prev.restrikcije.length === 0) {
             const noRestrictionOption = currentLang === 'en' ? 'No restrictions' : 'Keine Einschränkungen';
-            newData.restrikcije = [noRestrictionOption];
-            changed = true;
-            console.log('✅ Postavljeno Bez restrikcija za restrikcije:', noRestrictionOption);
+            if (restrikcijeOptions && restrikcijeOptions.includes(noRestrictionOption)) {
+              newData.restrikcije = [noRestrictionOption];
+              changed = true;
+              console.log('✅ Postavljeno Bez restrikcija za restrikcije:', noRestrictionOption);
+            }
           }
           
           return changed ? newData : prev;
@@ -202,14 +220,16 @@ const Quiz = () => {
     // 🔥 Registruj listener za promjenu jezika
     i18n.on('languageChanged', handleLanguageChange);
     
-    // 🔥 Pokreni i odmah na mount-u
-    handleLanguageChange();
+    // 🔥 Pokreni i odmah na mount-u (sa malom odgodom da se opcije učitaju)
+    setTimeout(() => {
+      handleLanguageChange();
+    }, 100);
 
     // 🔥 Očisti listener kad se komponenta unmounta
     return () => {
       i18n.off('languageChanged', handleLanguageChange);
     };
-  }, [i18n]);
+  }, [i18n, t]);
 
   // ============================================================
   // 📋 PITANJA ZA KVIZ
