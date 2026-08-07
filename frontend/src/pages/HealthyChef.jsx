@@ -70,10 +70,36 @@ const Breadcrumb = ({ customLabels = {} }) => {
 };
 
 // ============================================================
+// CSS STILOVI ZA NJEMAČKI JEZIK (dodato)
+// ============================================================
+const germanStyles = `
+  .de-text .category-card-title {
+    font-size: 1rem !important;
+  }
+  .de-text .category-card-desc {
+    font-size: 0.8rem !important;
+  }
+  .de-text .category-card-btn {
+    font-size: 0.8rem !important;
+    padding: 4px 10px !important;
+  }
+  .de-text.phase-card-title {
+    font-size: 0.9rem !important;
+  }
+  .de-text.recipe-card-title {
+    font-size: 1rem !important;
+  }
+  .de-text.recipe-card-meta {
+    font-size: 0.75rem !important;
+  }
+`;
+
+// ============================================================
 // GLAVNA KOMPONENTA
 // ============================================================
 const HealthyChef = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isGerman = i18n.language === 'de'; // 👈 DODATO ZA NJEMAČKI
   const { kategorijaId, fazaId } = useParams();
   const navigate = useNavigate();
   const [kategorije, setKategorije] = useState([]);
@@ -284,6 +310,7 @@ const HealthyChef = () => {
     const glavneKategorije = kategorije.filter(kat => !kat.parent_id || kat.parent_id === null);
     return (
       <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
+        <style>{germanStyles}</style> {/* 👈 DODATO */}
         <Breadcrumb />
         <h1 className="text-3xl font-bold text-center mb-2">🌿 {t('healthychef.title', { defaultValue: 'HealthyChef' })}</h1>
         <p className="text-center text-gray-600 dark:text-gray-300 mb-8">{t('healthychef.categories.subtitle', { defaultValue: 'Odaberite kategoriju za personalizovane recepte.' })}</p>
@@ -293,10 +320,10 @@ const HealthyChef = () => {
               <Link 
                 key={kat.id} 
                 to={`/healthy-chef/${kat.id}`} 
-                className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-lg transition border border-gray-200 dark:border-gray-700 text-center hover:scale-105"
+                className={`bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-lg transition border border-gray-200 dark:border-gray-700 text-center hover:scale-105 ${isGerman ? 'de-text' : ''}`} // 👈 DODATA KLASA
               >
                 <span className="text-4xl block mb-2">{kat.ikona || '🌿'}</span>
-                <h3 className="font-bold text-gray-800 dark:text-white">
+                <h3 className="font-bold text-gray-800 dark:text-white category-card-title">
                   {t(kat.nazivKey, { defaultValue: kat.naziv })}
                 </h3>
               </Link>
@@ -318,6 +345,7 @@ const HealthyChef = () => {
     const trenutnaKategorija = kategorije.find(k => k.id === kategorijaId);
     return (
       <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
+        <style>{germanStyles}</style> {/* 👈 DODATO */}
         <Breadcrumb customLabels={{ [kategorijaId]: t(categoryNameKey, { defaultValue: categoryNameFallback || kategorijaId }) }} />
         <button 
           onClick={() => navigate('/healthy-chef')} 
@@ -343,7 +371,7 @@ const HealthyChef = () => {
                 <Link 
                   key={faza.id} 
                   to={`/healthy-chef/${kategorijaId}/${faza.id}`} 
-                  className={`${colors.bg} ${colors.hover} rounded-xl p-4 shadow-md hover:shadow-lg transition border-2 ${colors.border} text-center hover:scale-105`}
+                  className={`${colors.bg} ${colors.hover} rounded-xl p-4 shadow-md hover:shadow-lg transition border-2 ${colors.border} text-center hover:scale-105 ${isGerman ? 'de-text phase-card-title' : ''}`} // 👈 DODATA KLASA
                 >
                   <span className="text-2xl block mb-1">{faza.ikona || '🟢'}</span>
                   <h3 className={`font-semibold ${colors.text}`}>
@@ -370,6 +398,7 @@ const HealthyChef = () => {
 
   return (
     <div className="max-w-6xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
+      <style>{germanStyles}</style> {/* 👈 DODATO */}
       <Breadcrumb 
         customLabels={{
           [kategorijaId]: t(categoryNameKey, { defaultValue: categoryNameFallback || kategorijaId }),
@@ -452,7 +481,7 @@ const HealthyChef = () => {
             <Link 
               key={recipe.id} 
               to={`/recipes/${recipe.id}`} 
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition overflow-hidden border border-gray-100 dark:border-gray-700 hover:scale-105 duration-200"
+              className={`bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition overflow-hidden border border-gray-100 dark:border-gray-700 hover:scale-105 duration-200 ${isGerman ? 'de-text' : ''}`} // 👈 DODATA KLASA
             >
               <img 
                 src={recipe.slika || 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Recept'} 
@@ -460,8 +489,8 @@ const HealthyChef = () => {
                 className="w-full h-48 object-cover" 
               />
               <div className="p-4">
-                <h3 className="font-bold text-lg dark:text-white">{recipe.naziv}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{recipe.vrijeme} · {recipe.kalorije}</p>
+                <h3 className="font-bold text-lg dark:text-white recipe-card-title">{recipe.naziv}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 recipe-card-meta">{recipe.vrijeme} · {recipe.kalorije}</p>
                 {recipe.premium && (
                   <span className="inline-block mt-1 bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 text-xs px-2 py-0.5 rounded-full font-semibold">
                     ⭐ Premium
