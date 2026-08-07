@@ -59,11 +59,21 @@ function App() {
         setLoading(true);
         console.log('🔍 Provjera korisnika...');
 
+        // 🔥 PRVO PROVJERI LOCALSTORAGE
         const userData = JSON.parse(localStorage.getItem('user'));
         if (userData?.email) {
           console.log('✅ Korisnik iz localStorage:', userData.email);
-          setUser(userData);
+          console.log('📋 kviz_zavrsen iz localStorage:', userData.kviz_zavrsen);
+          
+          // 🔥 AŽURIRAJ STATE IZ LOCALSTORAGE
+          setUser({
+            ...userData,
+            kviz_zavrsen: userData.kviz_zavrsen || false
+          });
           setLoading(false);
+          
+          // 🔥 Osvježi profil iz baze u pozadini (da bude sigurno)
+          refreshUserInBackground(userData.email);
           return;
         }
 
@@ -80,13 +90,9 @@ function App() {
             id: session.user.id,
             email: session.user.email,
             ime: session.user.user_metadata?.ime || '',
-            premium: session.user.user_metadata?.premium || false
+            premium: session.user.user_metadata?.premium || false,
+            kviz_zavrsen: false // default
           };
-          
-          setUser(userObj);
-          localStorage.setItem('user', JSON.stringify(userObj));
-          localStorage.setItem('userEmail', session.user.email);
-          localStorage.setItem('userName', session.user.user_metadata?.ime || '');
           
           try {
             const { data: profile } = await supabase
@@ -97,6 +103,8 @@ function App() {
             
             if (profile) {
               console.log('📋 Profil dohvaćen:', profile);
+              console.log('📋 kviz_zavrsen iz baze:', profile.kviz_zavrsen);
+              
               const updatedUser = { 
                 ...userObj, 
                 premium: profile.premium || false,
@@ -107,9 +115,19 @@ function App() {
               };
               setUser(updatedUser);
               localStorage.setItem('user', JSON.stringify(updatedUser));
+              localStorage.setItem('userEmail', session.user.email);
+              localStorage.setItem('userName', session.user.user_metadata?.ime || '');
+            } else {
+              // Ako nema profila, postavi default
+              setUser(userObj);
+              localStorage.setItem('user', JSON.stringify(userObj));
+              localStorage.setItem('userEmail', session.user.email);
+              localStorage.setItem('userName', session.user.user_metadata?.ime || '');
             }
           } catch (profileError) {
             console.warn('⚠️ Greška pri dohvatu profila:', profileError);
+            setUser(userObj);
+            localStorage.setItem('user', JSON.stringify(userObj));
           }
           
         } else {
@@ -127,6 +145,36 @@ function App() {
       }
     };
 
+    // 🔥 POZADINSKO OSVJEŽAVANJE PROFILA
+    const refreshUserInBackground = async (email) => {
+      try {
+        const { data: profile } = await supabase
+          .from('profili')
+          .select('*')
+          .eq('email', email)
+          .maybeSingle();
+        
+        if (profile) {
+          const currentUser = JSON.parse(localStorage.getItem('user'));
+          if (currentUser) {
+            const updatedUser = { 
+              ...currentUser, 
+              premium: profile.premium || false,
+              kviz_zavrsen: profile.kviz_zavrsen || false,
+              vrsta: profile.vrsta || [],
+              izbjegava: profile.izbjegava || [],
+              preferencije: profile.preferencije || []
+            };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            console.log('🔄 Profil osvježen u pozadini, kviz_zavrsen:', profile.kviz_zavrsen);
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Greška pri pozadinskom osvježavanju:', error);
+      }
+    };
+
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -139,13 +187,9 @@ function App() {
           id: session.user.id,
           email: session.user.email,
           ime: session.user.user_metadata?.ime || '',
-          premium: session.user.user_metadata?.premium || false
+          premium: session.user.user_metadata?.premium || false,
+          kviz_zavrsen: false
         };
-        
-        setUser(userObj);
-        localStorage.setItem('user', JSON.stringify(userObj));
-        localStorage.setItem('userEmail', session.user.email);
-        localStorage.setItem('userName', session.user.user_metadata?.ime || '');
         
         try {
           const { data: profile } = await supabase
@@ -162,10 +206,18 @@ function App() {
             };
             setUser(updatedUser);
             localStorage.setItem('user', JSON.stringify(updatedUser));
+          } else {
+            setUser(userObj);
+            localStorage.setItem('user', JSON.stringify(userObj));
           }
         } catch (error) {
           console.warn('⚠️ Greška pri dohvatu profila:', error);
+          setUser(userObj);
+          localStorage.setItem('user', JSON.stringify(userObj));
         }
+        
+        localStorage.setItem('userEmail', session.user.email);
+        localStorage.setItem('userName', session.user.user_metadata?.ime || '');
         
       } else if (event === 'SIGNED_OUT') {
         console.log('🚪 Korisnik se odjavio');
@@ -218,6 +270,7 @@ function App() {
           };
           setUser(updatedUser);
           localStorage.setItem('user', JSON.stringify(updatedUser));
+          console.log('🔄 Korisnik osvježen, kviz_zavrsen:', profile.kviz_zavrsen);
         } else {
           setUser(userData);
         }
@@ -242,6 +295,10 @@ function App() {
   }
 
   const currentUser = user || JSON.parse(localStorage.getItem('user'));
+
+  // 🔥 DODAJ DEBUG LOG
+  console.log('🔍 currentUser:', currentUser);
+  console.log('🔍 kviz_zavrsen:', currentUser?.kviz_zavrsen);
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
