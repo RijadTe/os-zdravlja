@@ -157,81 +157,6 @@ const Quiz = () => {
   }, [navigate, t]);
 
   // ============================================================
-  // 🌍 KADA SE JEZIK PROMIJENI - POSTAVI DEFAULT VRIJEDNOSTI ZA EN/DE
-  // ============================================================
-  useEffect(() => {
-    const handleLanguageChange = () => {
-      const currentLang = i18n.language;
-      console.log('🌍 Jezik promijenjen na:', currentLang);
-      
-      // 🔥 PROVJERI DA LI SU OPCIJE UČITANE
-      const vrstaOptions = t('quiz.options.vrsta', { returnObjects: true });
-      const preferencijeOptions = t('quiz.options.preferencije', { returnObjects: true });
-      const restrikcijeOptions = t('quiz.options.restrikcije', { returnObjects: true });
-      
-      // Ako opcije nisu učitane (ili su prazne), preskoči postavljanje
-      if (!vrstaOptions || vrstaOptions.length === 0) {
-        console.log('⏳ Opcije još nisu učitane, preskačem...');
-        return;
-      }
-      
-      // Ako je jezik EN ili DE, postavi default vrijednosti (samo ako su prazne)
-      if (currentLang === 'en' || currentLang === 'de') {
-        setFormData(prev => {
-          const newData = { ...prev };
-          let changed = false;
-          
-          // Ako vrsta nema ništa odabrano, postavi "Svejedno" (na odgovarajućem jeziku)
-          if (!prev.vrsta || prev.vrsta.length === 0) {
-            const anythingOption = currentLang === 'en' ? 'Anything' : 'Alles';
-            // 🔥 PROVJERI DA LI OPCIJA POSTOJI U LISTI
-            if (vrstaOptions.includes(anythingOption)) {
-              newData.vrsta = [anythingOption];
-              changed = true;
-              console.log('✅ Postavljeno Svejedno za vrsta:', anythingOption);
-            }
-          }
-          
-          // Ako preferencije nemaju ništa odabrano, postavi "Svejedno" (na odgovarajućem jeziku)
-          if (!prev.preferencije || prev.preferencije.length === 0) {
-            const anythingOption = currentLang === 'en' ? 'Anything' : 'Alles';
-            if (preferencijeOptions && preferencijeOptions.includes(anythingOption)) {
-              newData.preferencije = [anythingOption];
-              changed = true;
-              console.log('✅ Postavljeno Svejedno za preferencije:', anythingOption);
-            }
-          }
-          
-          // Ako restrikcije nemaju ništa odabrano, postavi "Bez restrikcija" (na odgovarajućem jeziku)
-          if (!prev.restrikcije || prev.restrikcije.length === 0) {
-            const noRestrictionOption = currentLang === 'en' ? 'No restrictions' : 'Keine Einschränkungen';
-            if (restrikcijeOptions && restrikcijeOptions.includes(noRestrictionOption)) {
-              newData.restrikcije = [noRestrictionOption];
-              changed = true;
-              console.log('✅ Postavljeno Bez restrikcija za restrikcije:', noRestrictionOption);
-            }
-          }
-          
-          return changed ? newData : prev;
-        });
-      }
-    };
-
-    // 🔥 Registruj listener za promjenu jezika
-    i18n.on('languageChanged', handleLanguageChange);
-    
-    // 🔥 Pokreni i odmah na mount-u (sa malom odgodom da se opcije učitaju)
-    setTimeout(() => {
-      handleLanguageChange();
-    }, 100);
-
-    // 🔥 Očisti listener kad se komponenta unmounta
-    return () => {
-      i18n.off('languageChanged', handleLanguageChange);
-    };
-  }, [i18n, t]);
-
-  // ============================================================
   // 📋 PITANJA ZA KVIZ
   // ============================================================
   const questions = [
@@ -287,23 +212,26 @@ const Quiz = () => {
   };
 
   // ============================================================
-  // 🎯 LOGIKA ZA MULTI-SELECT - ISTA ZA SVE JEZIKE
+  // 🎯 LOGIKA ZA MULTI-SELECT - UNIVERZALNA ZA SVE JEZIKE!
   // ============================================================
   const handleMultiSelect = (field, option) => {
     const current = formData[field] || [];
     const max = questions.find(q => q.id === field)?.maxSelect || 3;
     
-    // 🔥 DEFINIRAJ "SVEJEDNO" NA SVIM JEZICIMA (case-insensitive)
+    // 🔥 UNIVERZALNA PROVJERA - radi na SVAKOM jeziku!
     const isAnything = (val) => {
       if (!val) return false;
       const lower = val.toLowerCase().trim();
-      return lower === 'svejedno' || lower === 'anything' || lower === 'alles';
+      return lower === 'svejedno' || lower === 'anything' || lower === 'alles' || 
+             lower === 'any' || lower === 'all';
     };
     
     const isNoRestriction = (val) => {
       if (!val) return false;
       const lower = val.toLowerCase().trim();
-      return lower === 'bez restrikcija' || lower === 'no restrictions' || lower === 'keine einschränkungen';
+      return lower === 'bez restrikcija' || lower === 'no restrictions' || 
+             lower === 'keine einschränkungen' || lower === 'no restriction' ||
+             lower === 'none';
     };
     
     // ============================================================
@@ -400,21 +328,25 @@ const Quiz = () => {
   };
 
   // ============================================================
-  // 📤 SLANJE KVIZA
+  // 📤 SLANJE KVIZA - NE DIRA BAZU DOK SE NE POŠALJE!
   // ============================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // 🔥 UNIVERZALNA PROVJERA - radi na SVAKOM jeziku!
     const isAnything = (val) => {
       if (!val) return false;
       const lower = val.toLowerCase().trim();
-      return lower === 'svejedno' || lower === 'anything' || lower === 'alles';
+      return lower === 'svejedno' || lower === 'anything' || lower === 'alles' || 
+             lower === 'any' || lower === 'all';
     };
     
     const isNoRestriction = (val) => {
       if (!val) return false;
       const lower = val.toLowerCase().trim();
-      return lower === 'bez restrikcija' || lower === 'no restrictions' || lower === 'keine einschränkungen';
+      return lower === 'bez restrikcija' || lower === 'no restrictions' || 
+             lower === 'keine einschränkungen' || lower === 'no restriction' ||
+             lower === 'none';
     };
     
     let restrikcijeZaSlanje = formData.restrikcije;
