@@ -221,13 +221,13 @@ const Quiz = () => {
     // 🔥 DEFINIRAJ "SVEJEDNO" NA SVIM JEZICIMA (case-insensitive)
     const isAnything = (val) => {
       if (!val) return false;
-      const lower = val.toLowerCase();
+      const lower = val.toLowerCase().trim();
       return lower === 'svejedno' || lower === 'anything' || lower === 'alles';
     };
     
     const isNoRestriction = (val) => {
       if (!val) return false;
-      const lower = val.toLowerCase();
+      const lower = val.toLowerCase().trim();
       return lower === 'bez restrikcija' || lower === 'no restrictions' || lower === 'keine einschränkungen';
     };
     
@@ -332,13 +332,13 @@ const Quiz = () => {
     
     const isAnything = (val) => {
       if (!val) return false;
-      const lower = val.toLowerCase();
+      const lower = val.toLowerCase().trim();
       return lower === 'svejedno' || lower === 'anything' || lower === 'alles';
     };
     
     const isNoRestriction = (val) => {
       if (!val) return false;
-      const lower = val.toLowerCase();
+      const lower = val.toLowerCase().trim();
       return lower === 'bez restrikcija' || lower === 'no restrictions' || lower === 'keine einschränkungen';
     };
     
