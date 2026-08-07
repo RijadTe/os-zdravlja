@@ -9,13 +9,13 @@ import AdBanner from '../components/AdBanner';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
-// MAPIRANJE ZA PRIJEVOD PROFILA (POPRAVLJENO)
+// 🔥 MAPIRANJE ZA PRIJEVOD PROFILA (POTPUNO POPRAVLJENO)
 // ============================================================
 const profilKeyMap = {
   // Vrijeme
   'Kratko (15-30 min)': 'labels.vrijeme.kratko',
   'Srednje (30-45 min)': 'labels.vrijeme.srednje',
-  'Duže (45-60+ min)': 'labels.vrijeme.dugo', // ✅ POPRAVLJENO (bio 'duze')
+  'Duže (45-60+ min)': 'labels.vrijeme.dugo', // ✅ POPRAVLJENO
   
   // Težina
   'Početnik': 'labels.tezina.pocetnik',
@@ -27,6 +27,68 @@ const profilKeyMap = {
   'Umjereno (300-500 kcal)': 'labels.kalorije.umjereno',
   'Srednje (500-700 kcal)': 'labels.kalorije.srednje',
   'Visoko (900+ kcal)': 'labels.kalorije.visoko'
+};
+
+// ============================================================
+// 🔥 MAPIRANJE ZA KATEGORIJE, PREFERENCIJE, TEŽINU, KALORIJE (ISTO KAO U KVIZU)
+// ============================================================
+const getCategoryLabel = (value, t) => {
+  if (!value) return '';
+  const map = {
+    'Deserti': t('categories.desserts'),
+    'Slano': t('categories.savory'),
+    'Bez glutena': t('categories.gluten_free'),
+    'Dijeta': t('categories.diet'),
+    'Doručak': t('categories.breakfast'),
+    'Ručak': t('categories.lunch'),
+    'Večera': t('categories.dinner'),
+    'Bez laktoze': t('categories.lactose_free'),
+    'Vegansko': t('categories.vegan'),
+    'Keto': t('categories.keto'),
+  };
+  return map[value] || value;
+};
+
+const getPreferenceLabel = (value, t) => {
+  if (!value) return '';
+  const map = {
+    'Bogat ugljikohidratima': t('preferences.rich_in_carbs'),
+    'Bogat vlaknima': t('preferences.rich_in_fiber'),
+    'Visokoproteinski': t('preferences.high_protein'),
+    'Niskomasni': t('preferences.low_fat'),
+  };
+  return map[value] || value;
+};
+
+const getDifficultyLabel = (value, t) => {
+  if (!value) return '';
+  const map = {
+    'Početnik': t('labels.tezina.pocetnik'),
+    'Srednji': t('labels.tezina.srednji'),
+    'Profesionalac': t('labels.tezina.napredni'),
+  };
+  return map[value] || value;
+};
+
+const getCaloriesLabel = (value, t) => {
+  if (!value) return '';
+  const map = {
+    'Nisko (do 300 kcal)': t('labels.kalorije.nisko'),
+    'Umjereno (300-500 kcal)': t('labels.kalorije.umjereno'),
+    'Srednje (500-700 kcal)': t('labels.kalorije.srednje'),
+    'Visoko (900+ kcal)': t('labels.kalorije.visoko'),
+  };
+  return map[value] || value;
+};
+
+const getTimeLabel = (value, t) => {
+  if (!value) return '';
+  const map = {
+    'Kratko (15-30 min)': t('labels.vrijeme.kratko'),
+    'Srednje (30-45 min)': t('labels.vrijeme.srednje'),
+    'Duže (45-60+ min)': t('labels.vrijeme.dugo'),
+  };
+  return map[value] || value;
 };
 
 // ============================================================
@@ -61,7 +123,7 @@ const HomeKonacno = () => {
   });
 
   // ============================================================
-  // HELPER FUNKCIJA ZA PRIJEVOD PROFIL VRIJEDNOSTI (POPRAVLJENO)
+  // 🔥 HELPER FUNKCIJA ZA PRIJEVOD PROFIL VRIJEDNOSTI (POPRAVLJENO)
   // ============================================================
   const translateProfilValue = (value) => {
     if (!value) return t('home.profile.not_set', { defaultValue: 'Nije uneseno' });
@@ -136,7 +198,6 @@ const HomeKonacno = () => {
         
         const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
         
-        // 🔥 PROVJERI DA LI JE RATE LIMIT (429)
         if (response.status === 429) {
           console.warn('⚠️ Rate limit (429) - koristim podatke iz localStorage');
           const storedUser = JSON.parse(localStorage.getItem('user'));
@@ -281,7 +342,6 @@ const HomeKonacno = () => {
   // ============================================================
   const fetchRecipes = useCallback(async () => {
     try {
-      // 🔥 DODAJ PAGINACIJU (dohvati do 50 recepata, prikazujemo samo 6)
       const response = await fetch(`${API_URL}/api/recepti?page=1&limit=50`);
       
       if (response.status === 429) {
@@ -293,12 +353,10 @@ const HomeKonacno = () => {
       
       const data = await response.json();
       
-      // 🔥 NOVI FORMAT SA PAGINACIJOM
       if (data && data.data && Array.isArray(data.data)) {
         setRecepti(data.data);
         console.log(`✅ Dohvaćeno ${data.data.length} recepata (od ${data.pagination?.total || 0} ukupno)`);
       } else if (data && Array.isArray(data)) {
-        // FALLBACK za stari format
         setRecepti(data);
         console.log(`✅ Dohvaćeno ${data.length} recepata (stari format)`);
       } else {
@@ -552,7 +610,6 @@ const HomeKonacno = () => {
   // 7. FRIŽIDER FUNKCIJE - SA CHECKBOX ZA KUPLJENO
   // ============================================================
   
-  // 🔥 SPREMI FRIŽIDER U BAZU
   const saveFridgeToDatabase = useCallback(async (items) => {
     const email = user?.email || localStorage.getItem('userEmail');
     if (!email) return;
@@ -569,7 +626,6 @@ const HomeKonacno = () => {
     }
   }, [user]);
 
-  // 🔥 DODAJ NAMIRNICU - SA LIMITOM I OBJEKTOM
   const addFridgeItem = useCallback(() => {
     if (!newItem.trim()) return;
 
@@ -585,7 +641,6 @@ const HomeKonacno = () => {
       return;
     }
 
-    // 🔥 SPREMI KAO OBJEKAT SA purchased: false
     const newItemObj = { name: newItem.trim(), purchased: false };
     const updatedItems = [...fridgeItems, newItemObj];
     setFridgeItems(updatedItems);
@@ -593,28 +648,22 @@ const HomeKonacno = () => {
     saveFridgeToDatabase(updatedItems);
   }, [newItem, fridgeItems, user, saveFridgeToDatabase]);
 
-  // 🔥 TOGGLE PURCHASED - OZNAČI KAO KUPLJENO
   const togglePurchased = useCallback((index) => {
     setFridgeItems(prev => {
       const updated = [...prev];
-      // Ako je item string, pretvori u objekt
       if (typeof updated[index] === 'string') {
         updated[index] = { name: updated[index], purchased: false };
       }
-      // Toggle purchased status
       updated[index] = {
         ...updated[index],
         purchased: !updated[index].purchased
       };
-      // Spremi u bazu
       saveFridgeToDatabase(updated);
       return updated;
     });
   }, [saveFridgeToDatabase]);
 
-  // 🔥 PRONAĐI RECEPTE NA OSNOVU FRIŽIDERA
   const findRecipesFromFridge = useCallback(async () => {
-    // 🔥 FILTRIRAJ SAMO NEOKUPLJENE NAMIRNICE ZA PRETRAGU
     const activeItems = fridgeItems
       .filter(item => typeof item === 'object' ? !item.purchased : true)
       .map(item => typeof item === 'object' ? item.name : item);
@@ -660,7 +709,6 @@ const HomeKonacno = () => {
     }
   }, [fridgeItems, user]);
 
-  // 🔥 SKENIRAJ NAMIRNICE
   const handleNamirniceDodane = useCallback((namirnice) => {
     const isPremium = user?.premium || false;
     const maxItems = isPremium ? Infinity : 5;
@@ -672,7 +720,6 @@ const HomeKonacno = () => {
       }
     }
 
-    // 🔥 SPREMI KAO OBJEKTE
     const newItems = namirnice.map(item => ({ name: item, purchased: false }));
     const updatedItems = [...fridgeItems, ...newItems];
     setFridgeItems(updatedItems);
@@ -681,14 +728,12 @@ const HomeKonacno = () => {
     saveFridgeToDatabase(updatedItems);
   }, [fridgeItems, user, saveFridgeToDatabase]);
 
-  // 🔥 OBRIŠI NAMIRNICU
   const removeFridgeItem = useCallback((index) => {
     const updatedItems = fridgeItems.filter((_, i) => i !== index);
     setFridgeItems(updatedItems);
     saveFridgeToDatabase(updatedItems);
   }, [fridgeItems, saveFridgeToDatabase]);
 
-  // 🔥 OČISTI FRIŽIDER
   const clearFridge = useCallback(() => {
     if (fridgeItems.length === 0) return;
     if (window.confirm('Jeste li sigurni da želite očistiti frižider?')) {
@@ -697,13 +742,11 @@ const HomeKonacno = () => {
     }
   }, [fridgeItems, saveFridgeToDatabase]);
 
-  // 🔥 BROJ PREOSTALIH NAMIRNICA ZA FREE KORISNIKE
   const remainingFreeSlots = useMemo(() => {
     if (user?.premium) return Infinity;
     return Math.max(0, 5 - fridgeItems.length);
   }, [user?.premium, fridgeItems.length]);
 
-  // 🔥 BROJ NEOKUPLJENIH NAMIRNICA
   const remainingToBuy = useMemo(() => {
     return fridgeItems.filter(item => {
       if (typeof item === 'object') return !item.purchased;
@@ -812,7 +855,7 @@ const HomeKonacno = () => {
         </section>
       )}
 
-      {/* ===== PRIKAZ PROFILA IZ KVIZA (POPRAVLJENO) ===== */}
+      {/* ===== 🔥 PRIKAZ PROFILA IZ KVIZA (POTPUNO POPRAVLJENO) ===== */}
       {!profilLoading && profil && (
         <section className="py-6 px-4 max-w-7xl mx-auto">
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-6 shadow-lg border border-blue-200 dark:border-blue-800">
@@ -835,7 +878,7 @@ const HomeKonacno = () => {
                   {profil.vrsta && profil.vrsta.length > 0 ? (
                     profil.vrsta.map(item => (
                       <span key={item} className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full text-xs">
-                        {item}
+                        {getCategoryLabel(item, t) || item}
                       </span>
                     ))
                   ) : (
@@ -849,7 +892,7 @@ const HomeKonacno = () => {
                   {profil.preferencije && profil.preferencije.length > 0 ? (
                     profil.preferencije.map(item => (
                       <span key={item} className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-0.5 rounded-full text-xs">
-                        {item}
+                        {getPreferenceLabel(item, t) || item}
                       </span>
                     ))
                   ) : (
@@ -863,7 +906,7 @@ const HomeKonacno = () => {
                   {profil.izbjegava && profil.izbjegava.length > 0 ? (
                     profil.izbjegava.map(item => (
                       <span key={item} className="bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full text-xs">
-                        {item}
+                        {getCategoryLabel(item, t) || item}
                       </span>
                     ))
                   ) : (
@@ -979,7 +1022,7 @@ const HomeKonacno = () => {
         </div>
       </section>
 
-      {/* ===== MOJ FRIŽIDER - SA CHECKBOX I BROJAČEM ===== */}
+      {/* ===== MOJ FRIŽIDER ===== */}
       <section className="py-12 md:py-20 px-4 flex justify-center bg-white dark:bg-gray-900">
         <div className="w-full max-w-3xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-gray-800 dark:text-white flex items-center justify-center gap-2 flex-wrap">
@@ -988,7 +1031,6 @@ const HomeKonacno = () => {
           </h2>
           <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 md:p-8 shadow-md border border-gray-200 dark:border-gray-700">
             
-            {/* INPUT ZA DODAVANJE NAMIRNICA */}
             <div className="flex flex-col sm:flex-row gap-3">
               <input 
                 type="text" 
@@ -1007,7 +1049,6 @@ const HomeKonacno = () => {
               </button>
             </div>
 
-            {/* INDIKATOR LIMITA ZA FREE KORISNIKE */}
             {!isPremium && (
               <div className="mt-2 flex justify-between items-center">
                 <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -1019,7 +1060,6 @@ const HomeKonacno = () => {
               </div>
             )}
 
-            {/* 🔥 BROJAČ NAMIRNICA - PREOSTALO ZA KUPOVINU */}
             {fridgeItems.length > 0 && (
               <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
                 <div className="flex justify-between items-center">
@@ -1033,7 +1073,6 @@ const HomeKonacno = () => {
               </div>
             )}
 
-            {/* 🔥 LISTA NAMIRNICA - VERTIKALNO, SA CHECKBOX */}
             <div className="mt-4 space-y-2">
               {fridgeItems.length === 0 ? (
                 <div className="text-center py-8 text-gray-400 dark:text-gray-500">
@@ -1043,7 +1082,6 @@ const HomeKonacno = () => {
                 </div>
               ) : (
                 fridgeItems.map((item, index) => {
-                  // 🔥 PODRŽAVA I STRING I OBJEKAT { name, purchased }
                   const isPurchased = typeof item === 'object' ? item.purchased : false;
                   const itemName = typeof item === 'object' ? item.name : item;
                   
@@ -1053,7 +1091,6 @@ const HomeKonacno = () => {
                       className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 hover:shadow-md transition group"
                     >
                       <div className="flex items-center gap-3 flex-1">
-                        {/* 🔥 CHECKBOX - OZNAČI KUPLJENO */}
                         <button
                           onClick={() => togglePurchased(index)}
                           className={`w-5 h-5 rounded border-2 flex items-center justify-center transition flex-shrink-0 ${
@@ -1069,7 +1106,6 @@ const HomeKonacno = () => {
                           )}
                         </button>
                         
-                        {/* 🔥 NAZIV NAMIRNICE */}
                         <span className={`text-base dark:text-white flex-1 ${
                           isPurchased ? 'line-through text-gray-400 dark:text-gray-500' : ''
                         }`}>
@@ -1077,7 +1113,6 @@ const HomeKonacno = () => {
                         </span>
                       </div>
                       
-                      {/* 🔥 DUGME ZA BRISANJE */}
                       <button
                         onClick={() => removeFridgeItem(index)}
                         className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition opacity-0 group-hover:opacity-100"
@@ -1091,7 +1126,6 @@ const HomeKonacno = () => {
               )}
             </div>
 
-            {/* 🔥 DUGMIĆI - PRONAĐI RECEPTE + OČISTI */}
             <div className="mt-4 flex flex-col sm:flex-row gap-3">
               <button 
                 onClick={findRecipesFromFridge}
@@ -1118,7 +1152,6 @@ const HomeKonacno = () => {
               )}
             </div>
 
-            {/* PREMIUM HINT */}
             {!user?.premium && (
               <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
                 <p className="text-xs text-center text-gray-600 dark:text-gray-300">
@@ -1211,7 +1244,7 @@ const HomeKonacno = () => {
         </section>
       )}
 
-      {/* ===== HEALTHYCHEF - SA DUGMETOM "Otvori HealthyChef" ===== */}
+      {/* ===== HEALTHYCHEF ===== */}
       <section className="py-12 md:py-20 px-4 flex justify-center bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
         <div className="w-full max-w-4xl">
           <div className="text-center">
@@ -1223,7 +1256,6 @@ const HomeKonacno = () => {
               {t('home.healthychef.description', { defaultValue: 'Personalizovani recepti za vaše zdravstvene potrebe.' })}
             </p>
             
-            {/* PRIKAZ KATEGORIJA (SAMO IKONE, BEZ LINKOVA) */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6 mb-8">
               {healthyChefCategories.map(cat => (
                 <div 
@@ -1236,7 +1268,6 @@ const HomeKonacno = () => {
               ))}
             </div>
             
-            {/* DUGME "Otvori HealthyChef" - KAO I ZA FOOD PLANNER */}
             <Link 
               to="/healthy-chef" 
               className="inline-block bg-yellow-500 hover:bg-yellow-600 text-white px-10 py-4 rounded-full text-base md:text-xl font-semibold transition shadow-md hover:shadow-lg"
