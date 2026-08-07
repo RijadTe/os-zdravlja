@@ -1,6 +1,6 @@
 // frontend/src/App.jsx
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient';
 import './i18n';
@@ -29,7 +29,8 @@ import NotificationBell from './components/NotificationBell';
 import LanguageSwitcher from './components/LanguageSwitcher';
 
 function App() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const location = useLocation();
   
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -65,11 +66,21 @@ function App() {
           console.log('✅ Korisnik iz localStorage:', userData.email);
           console.log('📋 kviz_zavrsen iz localStorage:', userData.kviz_zavrsen);
           
+          // 🔥 DODAJ preferred_language
+          const preferredLanguage = userData.preferred_language || localStorage.getItem('preferredLanguage') || 'hr';
+          
           // 🔥 AŽURIRAJ STATE IZ LOCALSTORAGE
           setUser({
             ...userData,
-            kviz_zavrsen: userData.kviz_zavrsen || false
+            kviz_zavrsen: userData.kviz_zavrsen || false,
+            preferred_language: preferredLanguage
           });
+          
+          // 🔥 AUTOMATSKI PREBACI NA SAČUVANI JEZIK
+          if (i18n.language !== preferredLanguage) {
+            i18n.changeLanguage(preferredLanguage);
+          }
+          
           setLoading(false);
           
           // 🔥 Osvježi profil iz baze u pozadini (da bude sigurno)
@@ -91,7 +102,8 @@ function App() {
             email: session.user.email,
             ime: session.user.user_metadata?.ime || '',
             premium: session.user.user_metadata?.premium || false,
-            kviz_zavrsen: false // default
+            kviz_zavrsen: false,
+            preferred_language: 'hr' // default
           };
           
           try {
@@ -105,10 +117,13 @@ function App() {
               console.log('📋 Profil dohvaćen:', profile);
               console.log('📋 kviz_zavrsen iz baze:', profile.kviz_zavrsen);
               
+              const preferredLanguage = profile.preferred_language || 'hr';
+              
               const updatedUser = { 
                 ...userObj, 
                 premium: profile.premium || false,
                 kviz_zavrsen: profile.kviz_zavrsen || false,
+                preferred_language: preferredLanguage,
                 vrsta: profile.vrsta || [],
                 izbjegava: profile.izbjegava || [],
                 preferencije: profile.preferencije || []
@@ -117,6 +132,12 @@ function App() {
               localStorage.setItem('user', JSON.stringify(updatedUser));
               localStorage.setItem('userEmail', session.user.email);
               localStorage.setItem('userName', session.user.user_metadata?.ime || '');
+              localStorage.setItem('preferredLanguage', preferredLanguage);
+              
+              // 🔥 AUTOMATSKI PREBACI NA SAČUVANI JEZIK
+              if (i18n.language !== preferredLanguage) {
+                i18n.changeLanguage(preferredLanguage);
+              }
             } else {
               // Ako nema profila, postavi default
               setUser(userObj);
@@ -157,16 +178,26 @@ function App() {
         if (profile) {
           const currentUser = JSON.parse(localStorage.getItem('user'));
           if (currentUser) {
+            const preferredLanguage = profile.preferred_language || 'hr';
+            
             const updatedUser = { 
               ...currentUser, 
               premium: profile.premium || false,
               kviz_zavrsen: profile.kviz_zavrsen || false,
+              preferred_language: preferredLanguage,
               vrsta: profile.vrsta || [],
               izbjegava: profile.izbjegava || [],
               preferencije: profile.preferencije || []
             };
             setUser(updatedUser);
             localStorage.setItem('user', JSON.stringify(updatedUser));
+            localStorage.setItem('preferredLanguage', preferredLanguage);
+            
+            // 🔥 AUTOMATSKI PREBACI NA SAČUVANI JEZIK
+            if (i18n.language !== preferredLanguage) {
+              i18n.changeLanguage(preferredLanguage);
+            }
+            
             console.log('🔄 Profil osvježen u pozadini, kviz_zavrsen:', profile.kviz_zavrsen);
           }
         }
@@ -188,7 +219,8 @@ function App() {
           email: session.user.email,
           ime: session.user.user_metadata?.ime || '',
           premium: session.user.user_metadata?.premium || false,
-          kviz_zavrsen: false
+          kviz_zavrsen: false,
+          preferred_language: 'hr'
         };
         
         try {
@@ -199,13 +231,20 @@ function App() {
             .maybeSingle();
           
           if (profile) {
+            const preferredLanguage = profile.preferred_language || 'hr';
             const updatedUser = { 
               ...userObj, 
               premium: profile.premium || false,
-              kviz_zavrsen: profile.kviz_zavrsen || false
+              kviz_zavrsen: profile.kviz_zavrsen || false,
+              preferred_language: preferredLanguage
             };
             setUser(updatedUser);
             localStorage.setItem('user', JSON.stringify(updatedUser));
+            localStorage.setItem('preferredLanguage', preferredLanguage);
+            
+            if (i18n.language !== preferredLanguage) {
+              i18n.changeLanguage(preferredLanguage);
+            }
           } else {
             setUser(userObj);
             localStorage.setItem('user', JSON.stringify(userObj));
@@ -226,6 +265,7 @@ function App() {
         localStorage.removeItem('userEmail');
         localStorage.removeItem('userName');
         localStorage.removeItem('supabase_session');
+        localStorage.removeItem('preferredLanguage');
       } else if (event === 'USER_UPDATED') {
         console.log('📝 Korisnik ažuriran');
         if (session?.user) {
@@ -247,7 +287,7 @@ function App() {
       console.log('🧹 Čišćenje auth subscription-a');
       subscription.unsubscribe();
     };
-  }, []);
+  }, [i18n]);
 
   // ============================================================
   // 🔄 OSVJEŽAVANJE KORISNIKA
@@ -263,13 +303,21 @@ function App() {
           .maybeSingle();
         
         if (profile) {
+          const preferredLanguage = profile.preferred_language || 'hr';
           const updatedUser = { 
             ...userData, 
             premium: profile.premium || false,
-            kviz_zavrsen: profile.kviz_zavrsen || false
+            kviz_zavrsen: profile.kviz_zavrsen || false,
+            preferred_language: preferredLanguage
           };
           setUser(updatedUser);
           localStorage.setItem('user', JSON.stringify(updatedUser));
+          localStorage.setItem('preferredLanguage', preferredLanguage);
+          
+          if (i18n.language !== preferredLanguage) {
+            i18n.changeLanguage(preferredLanguage);
+          }
+          
           console.log('🔄 Korisnik osvježen, kviz_zavrsen:', profile.kviz_zavrsen);
         } else {
           setUser(userData);
@@ -299,6 +347,10 @@ function App() {
   // 🔥 DODAJ DEBUG LOG
   console.log('🔍 currentUser:', currentUser);
   console.log('🔍 kviz_zavrsen:', currentUser?.kviz_zavrsen);
+  console.log('🔍 preferred_language:', currentUser?.preferred_language);
+
+  // 🔥 DA LI JE NA LOGIN ILI REGISTER STRANICI
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
@@ -355,10 +407,8 @@ function App() {
                 {currentUser && <NotificationBell />}
               </div>
 
-              {/* ===== 🔥 LANGUAGE SWITCHER - SAKRIVEN AKO JE KVIZ ZAVRŠEN ===== */}
-              {(!currentUser || !currentUser.kviz_zavrsen) && (
-                <LanguageSwitcher />
-              )}
+              {/* ===== 🔥 LANGUAGE SWITCHER - SAMO NA LOGIN I REGISTER ===== */}
+              {isAuthPage && <LanguageSwitcher />}
 
               <button
                 onClick={() => setDarkMode(!darkMode)}

@@ -106,7 +106,8 @@ const Profile = () => {
             vrijeme: storedUser.vrijeme || '',
             tezina: storedUser.tezina || '',
             kalorije: storedUser.kalorije || '',
-            skuhano_recepata: storedUser.skuhano_recepata || 0
+            skuhano_recepata: storedUser.skuhano_recepata || 0,
+            preferred_language: storedUser.preferred_language || 'hr'
           };
           setProfile(fallbackProfile);
           console.log('✅ Profil dohvaćen iz localStorage (fallback)');
@@ -124,6 +125,7 @@ const Profile = () => {
         if (storedUser) {
           storedUser.premium = data.data.premium || false;
           storedUser.profile = data.data;
+          storedUser.preferred_language = data.data.preferred_language || 'hr';
           localStorage.setItem('user', JSON.stringify(storedUser));
         }
       } else {
@@ -145,7 +147,8 @@ const Profile = () => {
           vrijeme: storedUser.vrijeme || '',
           tezina: storedUser.tezina || '',
           kalorije: storedUser.kalorije || '',
-          skuhano_recepata: storedUser.skuhano_recepata || 0
+          skuhano_recepata: storedUser.skuhano_recepata || 0,
+          preferred_language: storedUser.preferred_language || 'hr'
         };
         setProfile(fallbackProfile);
         console.log('✅ Profil dohvaćen iz localStorage (fallback)');
@@ -163,6 +166,10 @@ const Profile = () => {
   const createProfile = async (email) => {
     try {
       console.log('🆕 Kreiram profil za:', email);
+      
+      // 🔥 DOHVATI PREFERRED LANGUAGE IZ LOCALSTORAGE
+      const preferredLanguage = localStorage.getItem('preferredLanguage') || 'hr';
+      
       const res = await fetch(`${API_URL}/api/profil`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -173,7 +180,8 @@ const Profile = () => {
           kviz_zavrsen: false,
           vrsta: [],
           izbjegava: [],
-          preferencije: []
+          preferencije: [],
+          preferred_language: preferredLanguage // 👈 DODAJ OVO
         })
       });
       const data = await res.json();
@@ -223,7 +231,8 @@ const Profile = () => {
             email: session.user.email,
             ime: session.user.user_metadata?.ime || '',
             premium: premiumStatus,
-            profile: profileData
+            profile: profileData,
+            preferred_language: profileData?.preferred_language || 'hr'
           };
           
           setUser(supabaseUser);
@@ -261,66 +270,6 @@ const Profile = () => {
 
     checkUser();
   }, [navigate]);
-
-  // ============================================================
-  // 🌍 RESET JEZIKA - OMOGUĆAVA PONOVNI KVIZ NA NOVOM JEZIKU
-  // ============================================================
-  const handleResetLanguage = async () => {
-    if (!window.confirm(
-      '🌍 Želite li promijeniti jezik i ponovo napraviti kviz?\n\n' +
-      '✅ Vaši trenutni odgovori će ostati sačuvani.\n' +
-      '✅ Moći ćete odabrati novi jezik.\n' +
-      '✅ Nakon novog kviza, odgovori će biti ažurirani.\n\n' +
-      'Želite li nastaviti?'
-    )) {
-      return;
-    }
-
-    try {
-      const email = user?.email || localStorage.getItem('userEmail');
-      
-      if (!email) {
-        alert('❌ Niste prijavljeni. Molimo prijavite se.');
-        return;
-      }
-
-      // 🔥 SAMO POSTAVI kviz_zavrsen na FALSE - NE DIRAJ ODGOVORE!
-      const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          kviz_zavrsen: false
-          // NE ŠALJEMO vrsta, izbjegava, preferencije, vrijeme, tezina, kalorije
-          // tako da ostaju NETAKNUTI u bazi
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Greška pri resetiranju jezika');
-      }
-
-      // 🔥 Ažuriraj localStorage
-      const userData = JSON.parse(localStorage.getItem('user'));
-      if (userData) {
-        userData.kviz_zavrsen = false;
-        localStorage.setItem('user', JSON.stringify(userData));
-      }
-
-      // 🔥 Ažuriraj profile state
-      if (profile) {
-        setProfile({ ...profile, kviz_zavrsen: false });
-      }
-
-      alert('✅ Jezik je resetiran! Sada možete odabrati novi jezik i ponovo napraviti kviz.');
-
-      // 🔥 Preusmjeri na kviz
-      navigate('/quiz');
-      
-    } catch (error) {
-      console.error('❌ Greška pri resetiranju jezika:', error);
-      alert('❌ Došlo je do greške. Pokušajte ponovo.');
-    }
-  };
 
   // ============================================================
   // 🗑️ IZBRIŠI SVE PODATKE - SA PORUKOM I PREUSMJERAVANJEM NA REGISTRACIJU
@@ -467,6 +416,10 @@ const Profile = () => {
             )}
           </div>
         </div>
+        {/* 🔥 PRIKAŽI TRENUTNI JEZIK */}
+        <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          🌍 {t('profile.language')}: {profile.preferred_language === 'hr' ? 'Hrvatski' : profile.preferred_language === 'en' ? 'English' : 'Deutsch'}
+        </div>
       </div>
 
       {/* ===== NAPREDAK ===== */}
@@ -576,8 +529,8 @@ const Profile = () => {
           {profile.kviz_zavrsen ? t('profile.edit_filters') : t('profile.take_quiz')}
         </Link>
         
-        {/* 🔥 DUGME ZA RESET JEZIKA - SAMO AKO JE KVIZ ZAVRŠEN */}
-        {profile.kviz_zavrsen && (
+        {/* 🔥 DUGME ZA RESET JEZIKA - UKLONJENO! */}
+        {/* {profile.kviz_zavrsen && (
           <button
             onClick={handleResetLanguage}
             className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-full text-sm font-semibold transition flex items-center gap-2"
@@ -585,7 +538,7 @@ const Profile = () => {
             <span>🌍</span>
             {t('profile.reset_language')}
           </button>
-        )}
+        )} */}
         
         {!profile.premium && (
           <Link

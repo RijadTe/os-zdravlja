@@ -8,7 +8,7 @@ import { supabase } from '../supabaseClient';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const Register = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
@@ -95,6 +95,10 @@ const Register = () => {
 
       console.log('✅ Auth korisnik kreiran:', authData.user?.id);
 
+      // 🔥 DODAJ SELECTED LANGUAGE
+      const selectedLanguage = i18n.language || 'hr';
+      localStorage.setItem('preferredLanguage', selectedLanguage);
+
       // 🔥 PROMIJENJENO - koristi API umjesto direktnog Supabase poziva
       try {
         console.log('📡 Kreiram profil preko API-ja...');
@@ -109,7 +113,8 @@ const Register = () => {
             kviz_zavrsen: false,
             vrsta: [],
             izbjegava: [],
-            preferencije: []
+            preferencije: [],
+            preferred_language: selectedLanguage // 👈 DODAJ OVO
           })
         });
 
@@ -131,6 +136,7 @@ const Register = () => {
               vrsta: [],
               izbjegava: [],
               preferencije: [],
+              preferred_language: selectedLanguage, // 👈 DODAJ OVO
               created_at: new Date().toISOString()
             }])
             .select();
@@ -158,6 +164,7 @@ const Register = () => {
             vrsta: [],
             izbjegava: [],
             preferencije: [],
+            preferred_language: selectedLanguage, // 👈 DODAJ OVO
             created_at: new Date().toISOString()
           }])
           .select();
@@ -176,7 +183,8 @@ const Register = () => {
         id: authData.user?.id || '',
         email: formData.email,
         ime: formData.ime,
-        premium: false
+        premium: false,
+        preferred_language: selectedLanguage // 👈 DODAJ OVO
       };
       
       localStorage.setItem('user', JSON.stringify(userData));
@@ -188,6 +196,7 @@ const Register = () => {
       }
 
       console.log('👤 Sačuvan user:', userData);
+      console.log('🌍 Odabrani jezik:', selectedLanguage);
 
       setSuccess(t('register.success'));
 
@@ -206,6 +215,22 @@ const Register = () => {
   return (
     <div className="flex justify-center items-start min-h-screen bg-white dark:bg-gray-900 p-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 mt-6">
+        {/* 🔥 IZBOR JEZIKA NA VRHU */}
+        <div className="mb-4 flex justify-end">
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <span>🌍</span>
+            <select
+              value={i18n.language}
+              onChange={(e) => i18n.changeLanguage(e.target.value)}
+              className="bg-transparent border-none focus:ring-0 text-gray-700 dark:text-gray-300 font-semibold cursor-pointer"
+            >
+              <option value="hr">🇭🇷 Hrvatski</option>
+              <option value="en">🇬🇧 English</option>
+              <option value="de">🇩🇪 Deutsch</option>
+            </select>
+          </div>
+        </div>
+
         <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-2">
           👋 {t('register.title')}
         </h1>

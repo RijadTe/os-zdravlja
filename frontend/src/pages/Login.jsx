@@ -7,7 +7,7 @@ import { supabase } from '../supabaseClient';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const Login = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
@@ -63,7 +63,8 @@ const Login = () => {
           preferencije: [],
           vrijeme: '',
           tezina: '',
-          kalorije: ''
+          kalorije: '',
+          preferred_language: i18n.language || 'hr' // 👈 DODAJ OVO
         })
       });
       
@@ -140,6 +141,10 @@ const Login = () => {
       // 🔥 PROFIL POSTOJI - NASTAVI SA PRIJAVOM
       console.log('✅ Profil postoji u bazi, nastavljam sa prijavom');
 
+      // 🔥 SPREMI PREFERRED LANGUAGE
+      const selectedLanguage = i18n.language || profile.preferred_language || 'hr';
+      localStorage.setItem('preferredLanguage', selectedLanguage);
+
       // 🔥 EXPIRATION - 30 DANA
       const expiresAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
       const now = Math.floor(Date.now() / 1000);
@@ -151,6 +156,7 @@ const Login = () => {
         ime: data.user?.user_metadata?.ime || profile?.ime || 'Korisnik',
         premium: profile?.premium || false,
         kviz_zavrsen: profile?.kviz_zavrsen || false,
+        preferred_language: selectedLanguage, // 👈 DODAJ OVO
         vrsta: profile?.vrsta || [],
         izbjegava: profile?.izbjegava || [],
         preferencije: profile?.preferencije || [],
@@ -174,6 +180,7 @@ const Login = () => {
 
       console.log('👤 Sačuvan user:', userData);
       console.log('⏰ Session traje do:', new Date(expiresAt * 1000).toLocaleString());
+      console.log('🌍 Odabrani jezik:', selectedLanguage);
       console.log('✅ PERMANENTNA PRIJAVA - korisnik ostaje prijavljen');
 
       setSuccess(t('login.success'));
@@ -193,6 +200,22 @@ const Login = () => {
   return (
     <div className="flex justify-center items-start min-h-screen bg-white dark:bg-gray-900 p-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 mt-6">
+        {/* 🔥 IZBOR JEZIKA NA VRHU */}
+        <div className="mb-4 flex justify-end">
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <span>🌍</span>
+            <select
+              value={i18n.language}
+              onChange={(e) => i18n.changeLanguage(e.target.value)}
+              className="bg-transparent border-none focus:ring-0 text-gray-700 dark:text-gray-300 font-semibold cursor-pointer"
+            >
+              <option value="hr">🇭🇷 Hrvatski</option>
+              <option value="en">🇬🇧 English</option>
+              <option value="de">🇩🇪 Deutsch</option>
+            </select>
+          </div>
+        </div>
+
         <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-2">
           🔐 {t('login.title')}
         </h1>
