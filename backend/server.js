@@ -1061,7 +1061,7 @@ app.post('/api/quiz', async (req, res) => {
 });
 
 // ============================================================
-// 10. 🔥 DOHVATI RECEPTE SA FILTERIMA + PAGINACIJA
+// 10. 🔥 DOHVATI RECEPTE SA FILTERIMA + PAGINACIJA (POPRAVLJENO SA dijetne_oznake!)
 // ============================================================
 app.get('/api/recepti', async (req, res) => {
   try {
@@ -1169,15 +1169,44 @@ app.get('/api/recepti', async (req, res) => {
       console.log('✅ Filtriram po kalorijama:', kalorijeFilter);
     }
 
-    // 🔥🔥🔥 FILTRIRAJ PO RESTRIKCIJAMA
+    // 🔥🔥🔥 FILTRIRAJ PO RESTRIKCIJAMA (NADGRADNJA ZA dijetne_oznake!)
     if (restrikcijeArray.length > 0) {
       const hasNoRestrictions = restrikcijeArray.some(r => 
         r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
       );
       
       if (!hasNoRestrictions) {
-        query = query.not('alergeni', '&&', restrikcijeArray);
-        console.log('✅ Filtriram po restrikcijama (alergeni):', restrikcijeArray);
+        // Podijeli restrikcije na alergene i dijetne oznake
+        const alergeniRestrikcije = [];
+        const dijetneRestrikcije = [];
+        
+        const alergeniList = ['gluten', 'laktoza', 'jaja', 'orašasti', 'orasasti', 'soja', 'kikiriki', 'morski plodovi'];
+        
+        restrikcijeArray.forEach(r => {
+          const rLower = r.toLowerCase();
+          const jeAlergen = alergeniList.some(a => rLower.includes(a));
+          
+          if (jeAlergen) {
+            alergeniRestrikcije.push(r);
+          } else {
+            dijetneRestrikcije.push(r);
+          }
+        });
+        
+        console.log('🔒 Alergeni za izbjegavanje:', alergeniRestrikcije);
+        console.log('🌱 Dijetne oznake za filtriranje:', dijetneRestrikcije);
+        
+        // FILTER ZA ALERGENE - izbaci recepte koji sadrže alergen
+        if (alergeniRestrikcije.length > 0) {
+          query = query.not('alergeni', '&&', alergeniRestrikcije);
+          console.log('✅ Filtriram po alergenima (izbacujem):', alergeniRestrikcije);
+        }
+        
+        // FILTER ZA DIJETNE OZNAKE - prikaži samo one koji imaju OVU oznaku
+        if (dijetneRestrikcije.length > 0) {
+          query = query.overlaps('dijetne_oznake', dijetneRestrikcije);
+          console.log('✅ Filtriram po dijetnim oznakama:', dijetneRestrikcije);
+        }
       } else {
         console.log('✅ Korisnik nema restrikcija - prikazujem sve');
       }
@@ -1244,7 +1273,7 @@ app.get('/api/recepti', async (req, res) => {
 });
 
 // ============================================================
-// 11. 🔥 DOHVATI RECEPTE ZA KORISNIKA (ISPRAVLJENO!)
+// 11. 🔥 DOHVATI RECEPTE ZA KORISNIKA (POPRAVLJENO SA dijetne_oznake!)
 // ============================================================
 app.get('/api/recepti/korisnik/:email', async (req, res) => {
   try {
@@ -1320,7 +1349,7 @@ app.get('/api/recepti/korisnik/:email', async (req, res) => {
       console.log('✅ Filtriram po kalorijama:', minKcal, '-', maxKcal);
     }
 
-    // 🔥🔥🔥 FILTRIRAJ PO RESTRIKCIJAMA (ALERGENIMA) - ISPRAVLJENO!
+    // 🔥🔥🔥 FILTRIRAJ PO RESTRIKCIJAMA (NADGRADNJA ZA dijetne_oznake!)
     const restrikcije = profil.izbjegava || [];
     if (restrikcije.length > 0) {
       const hasNoRestrictions = restrikcije.some(r => 
@@ -1328,9 +1357,32 @@ app.get('/api/recepti/korisnik/:email', async (req, res) => {
       );
       
       if (!hasNoRestrictions) {
-        // 🔥 ISPRAVNO: FILTRIRAJ PO 'alergeni' KOLONI!
-        query = query.not('alergeni', '&&', restrikcije);
-        console.log('✅ Filtriram po restrikcijama (alergeni):', restrikcije);
+        // Podijeli restrikcije na alergene i dijetne oznake
+        const alergeniRestrikcije = [];
+        const dijetneRestrikcije = [];
+        
+        const alergeniList = ['gluten', 'laktoza', 'jaja', 'orašasti', 'orasasti', 'soja', 'kikiriki', 'morski plodovi'];
+        
+        restrikcije.forEach(r => {
+          const rLower = r.toLowerCase();
+          const jeAlergen = alergeniList.some(a => rLower.includes(a));
+          
+          if (jeAlergen) {
+            alergeniRestrikcije.push(r);
+          } else {
+            dijetneRestrikcije.push(r);
+          }
+        });
+        
+        if (alergeniRestrikcije.length > 0) {
+          query = query.not('alergeni', '&&', alergeniRestrikcije);
+          console.log('✅ Filtriram po alergenima (izbacujem):', alergeniRestrikcije);
+        }
+        
+        if (dijetneRestrikcije.length > 0) {
+          query = query.overlaps('dijetne_oznake', dijetneRestrikcije);
+          console.log('✅ Filtriram po dijetnim oznakama:', dijetneRestrikcije);
+        }
       } else {
         console.log('✅ Korisnik nema restrikcija - prikazujem sve');
       }
@@ -1796,15 +1848,42 @@ app.post('/api/weekly-plan', async (req, res) => {
     console.log(`📚 Ukupno recepata u bazi: ${recepti?.length || 0}`);
 
     // ============================================================
-    // 2. FILTRIRAJ RECEPTE
+    // 2. FILTRIRAJ RECEPTE (POPRAVLJENO SA dijetne_oznake!)
     // ============================================================
     let filtered = [...recepti];
 
-    // 2a. Restrikcije
+    // 2a. Restrikcije - sada podržava i alergene i dijetne oznake
     if (restrikcije && restrikcije.length > 0) {
+      const alergeniList = ['gluten', 'laktoza', 'jaja', 'orašasti', 'orasasti', 'soja', 'kikiriki', 'morski plodovi'];
+      const alergeniRestrikcije = [];
+      const dijetneRestrikcije = [];
+      
+      restrikcije.forEach(r => {
+        const rLower = r.toLowerCase();
+        const jeAlergen = alergeniList.some(a => rLower.includes(a));
+        if (jeAlergen) {
+          alergeniRestrikcije.push(r);
+        } else {
+          dijetneRestrikcije.push(r);
+        }
+      });
+      
       filtered = filtered.filter(recipe => {
-        const alergeni = recipe.alergeni || [];
-        return !restrikcije.some(r => alergeni.includes(r));
+        // Provjeri alergene
+        if (alergeniRestrikcije.length > 0) {
+          const alergeni = recipe.alergeni || [];
+          const imaRestrikciju = alergeniRestrikcije.some(r => alergeni.includes(r));
+          if (imaRestrikciju) return false;
+        }
+        
+        // Provjeri dijetne oznake
+        if (dijetneRestrikcije.length > 0) {
+          const dijetne = recipe.dijetne_oznake || [];
+          const imaOznaku = dijetneRestrikcije.some(r => dijetne.includes(r));
+          if (!imaOznaku) return false;
+        }
+        
+        return true;
       });
       console.log(`📊 Nakon restrikcija: ${filtered.length} recepata`);
     }
@@ -2317,7 +2396,7 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
 });
 
 // ============================================================
-// 🔥 24. AI CHEF - PRETRAGA (SA RESTRIKCIJAMA I SPAVANJEM!)
+// 🔥 24. AI CHEF - PRETRAGA (POPRAVLJENO SA dijetne_oznake!)
 // ============================================================
 app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
   try {
@@ -2417,6 +2496,23 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
 
     if (error) throw error;
 
+    // Podijeli restrikcije na alergene i dijetne oznake
+    const alergeniList = ['gluten', 'laktoza', 'jaja', 'orašasti', 'orasasti', 'soja', 'kikiriki', 'morski plodovi'];
+    const alergeniRestrikcije = [];
+    const dijetneRestrikcije = [];
+    
+    if (restrikcije && restrikcije.length > 0) {
+      restrikcije.forEach(r => {
+        const rLower = r.toLowerCase();
+        const jeAlergen = alergeniList.some(a => rLower.includes(a));
+        if (jeAlergen) {
+          alergeniRestrikcije.push(r);
+        } else {
+          dijetneRestrikcije.push(r);
+        }
+      });
+    }
+
     const filtrirani = recepti.filter(recept => {
       if (!recept.sastojci || recept.sastojci.length === 0) return false;
       const receptSastojci = recept.sastojci.map(s => s.toLowerCase());
@@ -2425,10 +2521,18 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
       );
       if (!imaSastojak) return false;
       
-      if (restrikcije && restrikcije.length > 0) {
+      // ALERGENI - izbaci ako sadrži alergen
+      if (alergeniRestrikcije.length > 0) {
         const alergeni = recept.alergeni || [];
-        const imaRestrikciju = restrikcije.some(r => alergeni.includes(r));
+        const imaRestrikciju = alergeniRestrikcije.some(r => alergeni.includes(r));
         if (imaRestrikciju) return false;
+      }
+      
+      // DIJETNE OZNAKE - prikaži samo ako ima oznaku
+      if (dijetneRestrikcije.length > 0) {
+        const dijetne = recept.dijetne_oznake || [];
+        const imaOznaku = dijetneRestrikcije.some(r => dijetne.includes(r));
+        if (!imaOznaku) return false;
       }
       
       if (zdravstveniPodaci) {

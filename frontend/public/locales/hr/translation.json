@@ -187,7 +187,7 @@
     },
     "options": {
       "vrsta": ["Deserti", "Slano", "Dijetalni recepti", "Napitki", "Svejedno"],
-      "restrikcije": ["Bez restrikcija", "Bez glutena", "Bez laktoze", "Bez šećera", "Veganski", "Orašasti plodovi"],
+      "restrikcije": ["Bez restrikcija", "Bez glutena", "Bez laktoze", "Bez šećera", "Veganski", "Bez orašastih plodova"],
       "preferencije": ["Visokoproteinski", "Bogat vlaknima", "Bogat ugljikohidratima", "Svejedno"],
       "vrijeme": ["Kratko (15-30 min)", "Srednje (30-45 min)", "Duže (45-60+ min)"],
       "tezina": ["Početnik", "Srednji", "Profesionalac"],
@@ -202,7 +202,7 @@
     "toast": {
       "already_completed": "ℹ️ Već ste popunili kviz. Možete ponovo promijeniti svoje preferencije.",
       "login_required": "🔒 Molimo prijavite se za pristup kvizu.",
-      "max_selected": "Možete izabrati maksimalno {max} opcije.",
+      "max_selected": "Možete izabrati maksimalno {max} opcija.",
       "fill_all_fields": "Molimo popunite sva polja.",
       "not_logged_in": "❌ Niste prijavljeni. Molimo prijavite se.",
       "success": "✅ Kviz završen! Filteri su sačuvani.",
