@@ -9,89 +9,6 @@ import AdBanner from '../components/AdBanner';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
-// 🔥 MAPIRANJE ZA PRIJEVOD PROFILA (POTPUNO POPRAVLJENO)
-// ============================================================
-const profilKeyMap = {
-  // Vrijeme
-  'Kratko (15-30 min)': 'labels.vrijeme.kratko',
-  'Srednje (30-45 min)': 'labels.vrijeme.srednje',
-  'Duže (45-60+ min)': 'labels.vrijeme.dugo', // ✅ POPRAVLJENO
-  
-  // Težina
-  'Početnik': 'labels.tezina.pocetnik',
-  'Srednji': 'labels.tezina.srednji',
-  'Profesionalac': 'labels.tezina.napredni',
-  
-  // Kalorije
-  'Nisko (do 300 kcal)': 'labels.kalorije.nisko',
-  'Umjereno (300-500 kcal)': 'labels.kalorije.umjereno',
-  'Srednje (500-700 kcal)': 'labels.kalorije.srednje',
-  'Visoko (900+ kcal)': 'labels.kalorije.visoko'
-};
-
-// ============================================================
-// 🔥 MAPIRANJE ZA KATEGORIJE, PREFERENCIJE, TEŽINU, KALORIJE (ISTO KAO U KVIZU)
-// ============================================================
-const getCategoryLabel = (value, t) => {
-  if (!value) return '';
-  const map = {
-    'Deserti': t('categories.desserts'),
-    'Slano': t('categories.savory'),
-    'Bez glutena': t('categories.gluten_free'),
-    'Dijeta': t('categories.diet'),
-    'Doručak': t('categories.breakfast'),
-    'Ručak': t('categories.lunch'),
-    'Večera': t('categories.dinner'),
-    'Bez laktoze': t('categories.lactose_free'),
-    'Vegansko': t('categories.vegan'),
-    'Keto': t('categories.keto'),
-  };
-  return map[value] || value;
-};
-
-const getPreferenceLabel = (value, t) => {
-  if (!value) return '';
-  const map = {
-    'Bogat ugljikohidratima': t('preferences.rich_in_carbs'),
-    'Bogat vlaknima': t('preferences.rich_in_fiber'),
-    'Visokoproteinski': t('preferences.high_protein'),
-    'Niskomasni': t('preferences.low_fat'),
-  };
-  return map[value] || value;
-};
-
-const getDifficultyLabel = (value, t) => {
-  if (!value) return '';
-  const map = {
-    'Početnik': t('labels.tezina.pocetnik'),
-    'Srednji': t('labels.tezina.srednji'),
-    'Profesionalac': t('labels.tezina.napredni'),
-  };
-  return map[value] || value;
-};
-
-const getCaloriesLabel = (value, t) => {
-  if (!value) return '';
-  const map = {
-    'Nisko (do 300 kcal)': t('labels.kalorije.nisko'),
-    'Umjereno (300-500 kcal)': t('labels.kalorije.umjereno'),
-    'Srednje (500-700 kcal)': t('labels.kalorije.srednje'),
-    'Visoko (900+ kcal)': t('labels.kalorije.visoko'),
-  };
-  return map[value] || value;
-};
-
-const getTimeLabel = (value, t) => {
-  if (!value) return '';
-  const map = {
-    'Kratko (15-30 min)': t('labels.vrijeme.kratko'),
-    'Srednje (30-45 min)': t('labels.vrijeme.srednje'),
-    'Duže (45-60+ min)': t('labels.vrijeme.dugo'),
-  };
-  return map[value] || value;
-};
-
-// ============================================================
 // GLAVNA KOMPONENTA
 // ============================================================
 const HomeKonacno = () => {
@@ -123,12 +40,59 @@ const HomeKonacno = () => {
   });
 
   // ============================================================
-  // 🔥 HELPER FUNKCIJA ZA PRIJEVOD PROFIL VRIJEDNOSTI (POPRAVLJENO)
+  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA (ISTO KAO U PROFILU)
   // ============================================================
-  const translateProfilValue = (value) => {
-    if (!value) return t('home.profile.not_set', { defaultValue: 'Nije uneseno' });
-    const key = profilKeyMap[value];
-    return key ? t(key) : value;
+  const translateValue = (value, type) => {
+    if (!value) return t('profile.not_selected');
+    
+    const maps = {
+      vrsta: {
+        'Slano': t('quiz.options.vrsta.0'),
+        'Deserti': t('quiz.options.vrsta.1'),
+        'Dijetalni recepti': t('quiz.options.vrsta.2'),
+        'Napitki': t('quiz.options.vrsta.3'),
+        'Svejedno': t('quiz.options.vrsta.4')
+      },
+      restrikcije: {
+        'Bez restrikcija': t('quiz.options.restrikcije.0'),
+        'Bez glutena': t('quiz.options.restrikcije.1'),
+        'Bez laktoze': t('quiz.options.restrikcije.2'),
+        'Bez šećera': t('quiz.options.restrikcije.3'),
+        'Veganski': t('quiz.options.restrikcije.4'),
+        'Orašasti plodovi': t('quiz.options.restrikcije.5')
+      },
+      preferencije: {
+        'Visokoproteinski': t('quiz.options.preferencije.0'),
+        'Bogat vlaknima': t('quiz.options.preferencije.1'),
+        'Bogat ugljikohidratima': t('quiz.options.preferencije.2'),
+        'Svejedno': t('quiz.options.preferencije.3')
+      },
+      vrijeme: {
+        'Kratko (15-30 min)': t('quiz.options.vrijeme.0'),
+        'Srednje (30-45 min)': t('quiz.options.vrijeme.1'),
+        'Duže (45-60+ min)': t('quiz.options.vrijeme.2')
+      },
+      tezina: {
+        'Početnik': t('quiz.options.tezina.0'),
+        'Srednji': t('quiz.options.tezina.1'),
+        'Profesionalac': t('quiz.options.tezina.2')
+      },
+      kalorije: {
+        'Nisko (do 300 kcal)': t('quiz.options.kalorije.0'),
+        'Umjereno (300-500 kcal)': t('quiz.options.kalorije.1'),
+        'Srednje (500-700 kcal)': t('quiz.options.kalorije.2'),
+        'Visoko (900+ kcal)': t('quiz.options.kalorije.3')
+      }
+    };
+
+    const map = maps[type];
+    if (!map) return value;
+    
+    if (Array.isArray(value)) {
+      return value.map(v => map[v] || v).join(', ');
+    }
+    
+    return map[value] || value;
   };
 
   // ============================================================
@@ -855,7 +819,7 @@ const HomeKonacno = () => {
         </section>
       )}
 
-      {/* ===== 🔥 PRIKAZ PROFILA IZ KVIZA (POTPUNO POPRAVLJENO) ===== */}
+      {/* ===== 🔥 PRIKAZ PROFILA IZ KVIZA - SADA ISTO KAO U PROFILU ===== */}
       {!profilLoading && profil && (
         <section className="py-6 px-4 max-w-7xl mx-auto">
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-6 shadow-lg border border-blue-200 dark:border-blue-800">
@@ -878,7 +842,7 @@ const HomeKonacno = () => {
                   {profil.vrsta && profil.vrsta.length > 0 ? (
                     profil.vrsta.map(item => (
                       <span key={item} className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full text-xs">
-                        {getCategoryLabel(item, t) || item}
+                        {translateValue(item, 'vrsta')}
                       </span>
                     ))
                   ) : (
@@ -892,7 +856,7 @@ const HomeKonacno = () => {
                   {profil.preferencije && profil.preferencije.length > 0 ? (
                     profil.preferencije.map(item => (
                       <span key={item} className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-0.5 rounded-full text-xs">
-                        {getPreferenceLabel(item, t) || item}
+                        {translateValue(item, 'preferencije')}
                       </span>
                     ))
                   ) : (
@@ -906,7 +870,7 @@ const HomeKonacno = () => {
                   {profil.izbjegava && profil.izbjegava.length > 0 ? (
                     profil.izbjegava.map(item => (
                       <span key={item} className="bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full text-xs">
-                        {getCategoryLabel(item, t) || item}
+                        {translateValue(item, 'restrikcije')}
                       </span>
                     ))
                   ) : (
@@ -916,7 +880,7 @@ const HomeKonacno = () => {
               </div>
             </div>
             
-             {/* 🔥 SADA KORISTI translateValue ISTO KAO U PROFILU */}
+            {/* 🔥 SADA KORISTI translateValue ISTO KAO U PROFILU */}
             <div className="flex flex-wrap gap-3 mt-3 text-xs text-gray-500 dark:text-gray-400">
               <span>⏱️ {translateValue(profil.vrijeme, 'vrijeme')}</span>
               <span>👨‍🍳 {translateValue(profil.tezina, 'tezina')}</span>
