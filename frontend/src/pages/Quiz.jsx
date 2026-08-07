@@ -74,7 +74,7 @@ const getIconForOption = (option) => {
 };
 
 const Quiz = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -157,6 +157,48 @@ const Quiz = () => {
   }, [navigate, t]);
 
   // ============================================================
+  // 🌍 KADA SE JEZIK PROMIJENI - POSTAVI DEFAULT VRIJEDNOSTI ZA EN/DE
+  // ============================================================
+  useEffect(() => {
+    const currentLang = i18n.language;
+    
+    // Ako je jezik EN ili DE, postavi default vrijednosti (samo ako su prazne)
+    if (currentLang === 'en' || currentLang === 'de') {
+      setFormData(prev => {
+        const newData = { ...prev };
+        let changed = false;
+        
+        // Ako vrsta nema ništa odabrano, postavi "Svejedno" (na odgovarajućem jeziku)
+        if (!prev.vrsta || prev.vrsta.length === 0) {
+          const anythingOption = currentLang === 'en' ? 'Anything' : 'Alles';
+          newData.vrsta = [anythingOption];
+          changed = true;
+        }
+        
+        // Ako preferencije nemaju ništa odabrano, postavi "Svejedno" (na odgovarajućem jeziku)
+        if (!prev.preferencije || prev.preferencije.length === 0) {
+          const anythingOption = currentLang === 'en' ? 'Anything' : 'Alles';
+          newData.preferencije = [anythingOption];
+          changed = true;
+        }
+        
+        // Ako restrikcije nemaju ništa odabrano, postavi "Bez restrikcija" (na odgovarajućem jeziku)
+        if (!prev.restrikcije || prev.restrikcije.length === 0) {
+          const noRestrictionOption = currentLang === 'en' ? 'No restrictions' : 'Keine Einschränkungen';
+          newData.restrikcije = [noRestrictionOption];
+          changed = true;
+        }
+        
+        if (changed) {
+          console.log('🌍 Default vrijednosti postavljene za jezik:', currentLang);
+        }
+        
+        return newData;
+      });
+    }
+  }, [i18n.language]);
+
+  // ============================================================
   // 📋 PITANJA ZA KVIZ
   // ============================================================
   const questions = [
@@ -212,7 +254,7 @@ const Quiz = () => {
   };
 
   // ============================================================
-  // 🎯 LOGIKA ZA MULTI-SELECT - POPRAVLJENA ZA SVE JEZIKE!
+  // 🎯 LOGIKA ZA MULTI-SELECT - ISTA ZA SVE JEZIKE
   // ============================================================
   const handleMultiSelect = (field, option) => {
     const current = formData[field] || [];
