@@ -9,17 +9,19 @@ import AdBanner from '../components/AdBanner';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
-// MAPIRANJE ZA PRIJEVOD PROFILA (DODATO)
+// MAPIRANJE ZA PRIJEVOD PROFILA (POPRAVLJENO)
 // ============================================================
 const profilKeyMap = {
   // Vrijeme
   'Kratko (15-30 min)': 'labels.vrijeme.kratko',
   'Srednje (30-45 min)': 'labels.vrijeme.srednje',
-  'Duže (45-60+ min)': 'labels.vrijeme.duze',
+  'Duže (45-60+ min)': 'labels.vrijeme.dugo', // ✅ POPRAVLJENO (bio 'duze')
+  
   // Težina
   'Početnik': 'labels.tezina.pocetnik',
   'Srednji': 'labels.tezina.srednji',
   'Profesionalac': 'labels.tezina.napredni',
+  
   // Kalorije
   'Nisko (do 300 kcal)': 'labels.kalorije.nisko',
   'Umjereno (300-500 kcal)': 'labels.kalorije.umjereno',
@@ -59,7 +61,7 @@ const HomeKonacno = () => {
   });
 
   // ============================================================
-  // HELPER FUNKCIJA ZA PRIJEVOD PROFIL VRIJEDNOSTI (DODATO)
+  // HELPER FUNKCIJA ZA PRIJEVOD PROFIL VRIJEDNOSTI (POPRAVLJENO)
   // ============================================================
   const translateProfilValue = (value) => {
     if (!value) return t('home.profile.not_set', { defaultValue: 'Nije uneseno' });
@@ -810,7 +812,7 @@ const HomeKonacno = () => {
         </section>
       )}
 
-      {/* ===== PRIKAZ PROFILA IZ KVIZA ===== */}
+      {/* ===== PRIKAZ PROFILA IZ KVIZA (POPRAVLJENO) ===== */}
       {!profilLoading && profil && (
         <section className="py-6 px-4 max-w-7xl mx-auto">
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-6 shadow-lg border border-blue-200 dark:border-blue-800">
@@ -871,7 +873,7 @@ const HomeKonacno = () => {
               </div>
             </div>
             
-            {/* 🔥 POPRAVLJENI DIO - SA PREVODIMA */}
+            {/* 🔥 POPRAVLJENI DIO - SA PREVODIMA (koristi translateProfilValue) */}
             <div className="flex flex-wrap gap-3 mt-3 text-xs text-gray-500 dark:text-gray-400">
               <span>⏱️ {translateProfilValue(profil.vrijeme)}</span>
               <span>👨‍🍳 {translateProfilValue(profil.tezina)}</span>
