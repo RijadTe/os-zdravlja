@@ -916,11 +916,11 @@ const HomeKonacno = () => {
               </div>
             </div>
             
-            {/* 🔥 POPRAVLJENI DIO - SA PREVODIMA (koristi translateProfilValue) */}
+             {/* 🔥 SADA KORISTI translateValue ISTO KAO U PROFILU */}
             <div className="flex flex-wrap gap-3 mt-3 text-xs text-gray-500 dark:text-gray-400">
-              <span>⏱️ {translateProfilValue(profil.vrijeme)}</span>
-              <span>👨‍🍳 {translateProfilValue(profil.tezina)}</span>
-              <span>🔥 {translateProfilValue(profil.kalorije)}</span>
+              <span>⏱️ {translateValue(profil.vrijeme, 'vrijeme')}</span>
+              <span>👨‍🍳 {translateValue(profil.tezina, 'tezina')}</span>
+              <span>🔥 {translateValue(profil.kalorije, 'kalorije')}</span>
             </div>
           </div>
         </section>
