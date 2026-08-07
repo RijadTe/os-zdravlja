@@ -26,6 +26,13 @@ const Login = () => {
     try {
       console.log('📡 Dohvatam profil iz baze za:', email);
       const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
+      
+      // 🔥 Ako je 404, profil ne postoji
+      if (response.status === 404) {
+        console.log('ℹ️ Profil ne postoji u bazi');
+        return null;
+      }
+      
       const data = await response.json();
       
       if (data.success && data.data) {
@@ -105,42 +112,61 @@ const Login = () => {
 
       console.log('✅ Prijava uspješna:', data.user?.id);
 
-      // 🔥 EXPIRATION - 30 DANA (umjesto 7)
+      // 🔥 PROVJERI DA LI PROFIL POSTOJI U BAZI
+      const profile = await fetchUserProfile(formData.email);
+      
+      // 🔥 AKO PROFIL NE POSTOJI (404) - PREUSMJERI NA REGISTRACIJU
+      if (!profile) {
+        console.log('⚠️ Profil ne postoji u bazi - preusmjeravam na registraciju');
+        
+        // Odjavi korisnika iz Supabase
+        await supabase.auth.signOut();
+        
+        setError(
+          '❌ Vaš profil je izbrisan iz baze.\n\n' +
+          '📝 Molimo da se ponovno registrujete.\n' +
+          '🔒 Ne možete se prijaviti sa starim podacima.'
+        );
+        
+        // Preusmjeri na registraciju nakon 2 sekunde
+        setTimeout(() => {
+          navigate('/register');
+        }, 2000);
+        
+        setLoading(false);
+        return;
+      }
+
+      // 🔥 PROFIL POSTOJI - NASTAVI SA PRIJAVOM
+      console.log('✅ Profil postoji u bazi, nastavljam sa prijavom');
+
+      // 🔥 EXPIRATION - 30 DANA
       const expiresAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
       const now = Math.floor(Date.now() / 1000);
 
-      // 🔥 DOHVATI PROFIL IZ BAZE
-      const profile = await fetchUserProfile(formData.email);
-      
-      // 🔥 KREIRAJ PROFIL AKO NE POSTOJI
-      let userProfile = profile;
-      if (!profile) {
-        userProfile = await createProfile(formData.email, data.user?.user_metadata?.ime || 'Korisnik');
-      }
-
-      // 🔥 SPREMI KORISNIKA SA DUGIM TRAJANJEM
+      // 🔥 KREIRAJ USER OBJEKAT
       const userData = {
         id: data.user?.id || '',
         email: data.user?.email || formData.email,
-        ime: data.user?.user_metadata?.ime || userProfile?.ime || 'Korisnik',
-        premium: userProfile?.premium || false,
-        kviz_zavrsen: userProfile?.kviz_zavrsen || false,
-        vrsta: userProfile?.vrsta || [],
-        izbjegava: userProfile?.izbjegava || [],
-        preferencije: userProfile?.preferencije || [],
-        vrijeme: userProfile?.vrijeme || '',
-        tezina: userProfile?.tezina || '',
-        kalorije: userProfile?.kalorije || '',
-        expires_at: expiresAt, // ⬅️ 30 dana
+        ime: data.user?.user_metadata?.ime || profile?.ime || 'Korisnik',
+        premium: profile?.premium || false,
+        kviz_zavrsen: profile?.kviz_zavrsen || false,
+        vrsta: profile?.vrsta || [],
+        izbjegava: profile?.izbjegava || [],
+        preferencije: profile?.preferencije || [],
+        vrijeme: profile?.vrijeme || '',
+        tezina: profile?.tezina || '',
+        kalorije: profile?.kalorije || '',
+        expires_at: expiresAt,
         login_time: now,
-        remember_me: true // ⬅️ PERMANENTNA PRIJAVA
+        remember_me: true
       };
       
       // 🔥 SPREMI U LOCALSTORAGE
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('userEmail', formData.email);
       localStorage.setItem('userName', userData.ime || '');
-      localStorage.setItem('remember_me', 'true'); // ⬅️ PERMANENTNA PRIJAVA
+      localStorage.setItem('remember_me', 'true');
       
       if (data.session) {
         localStorage.setItem('supabase_session', JSON.stringify(data.session));
@@ -175,7 +201,7 @@ const Login = () => {
         </p>
 
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-600 dark:text-red-300 p-3 rounded-xl mb-4">
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-600 dark:text-red-300 p-3 rounded-xl mb-4 whitespace-pre-line">
             {error}
           </div>
         )}
@@ -222,7 +248,7 @@ const Login = () => {
               <input
                 type="checkbox"
                 name="rememberMe"
-                defaultChecked={true} // ⬅️ UVJEK UPALJENO
+                defaultChecked={true}
                 className="w-4 h-4 accent-blue-500"
               />
               {t('login.remember_me')}

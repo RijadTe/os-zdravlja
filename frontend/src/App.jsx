@@ -298,7 +298,10 @@ function App() {
                 {currentUser && <NotificationBell />}
               </div>
 
-              <LanguageSwitcher />
+              {/* ===== 🔥 LANGUAGE SWITCHER - SAKRIVEN AKO JE KVIZ ZAVRŠEN ===== */}
+              {(!currentUser || !currentUser.kviz_zavrsen) && (
+                <LanguageSwitcher />
+              )}
 
               <button
                 onClick={() => setDarkMode(!darkMode)}

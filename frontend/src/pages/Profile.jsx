@@ -91,7 +91,6 @@ const Profile = () => {
       
       const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
       
-      // 🔥 PROVJERI DA LI JE RATE LIMIT (429)
       if (response.status === 429) {
         console.warn('⚠️ Rate limit (429) - koristim podatke iz localStorage');
         const storedUser = JSON.parse(localStorage.getItem('user'));
@@ -121,7 +120,6 @@ const Profile = () => {
       
       if (data.success && data.data) {
         setProfile(data.data);
-        // 🔥 AŽURIRAJ LOCALSTORAGE SA PRAVIM PREMIUM STATUSOM
         const storedUser = JSON.parse(localStorage.getItem('user'));
         if (storedUser) {
           storedUser.premium = data.data.premium || false;
@@ -202,7 +200,6 @@ const Profile = () => {
           
           const email = session.user.email;
           
-          // 🔥 PRVO DOHVATI PROFIL DA DOBIJEŠ PREMIUM STATUS
           let premiumStatus = false;
           let profileData = null;
           
@@ -221,7 +218,6 @@ const Profile = () => {
             console.warn('⚠️ Greška pri dohvatu profila:', profileError);
           }
           
-          // 🔥 SADA KREIRAJ USER OBJEKAT SA PRAVIM PREMIUM STATUSOM
           const supabaseUser = {
             id: session.user.id,
             email: session.user.email,
@@ -244,7 +240,6 @@ const Profile = () => {
           return;
         }
         
-        // Provjeri localStorage
         const userData = JSON.parse(localStorage.getItem('user'));
         if (!userData) {
           navigate('/login');
@@ -268,19 +263,130 @@ const Profile = () => {
   }, [navigate]);
 
   // ============================================================
-  // 🗑️ IZBRIŠI SVE PODATKE
+  // 🌍 RESET JEZIKA - OMOGUĆAVA PONOVNI KVIZ NA NOVOM JEZIKU
+  // ============================================================
+  const handleResetLanguage = async () => {
+    if (!window.confirm(
+      '🌍 Želite li promijeniti jezik i ponovo napraviti kviz?\n\n' +
+      '✅ Vaši trenutni odgovori će ostati sačuvani.\n' +
+      '✅ Moći ćete odabrati novi jezik.\n' +
+      '✅ Nakon novog kviza, odgovori će biti ažurirani.\n\n' +
+      'Želite li nastaviti?'
+    )) {
+      return;
+    }
+
+    try {
+      const email = user?.email || localStorage.getItem('userEmail');
+      
+      if (!email) {
+        alert('❌ Niste prijavljeni. Molimo prijavite se.');
+        return;
+      }
+
+      // 🔥 SAMO POSTAVI kviz_zavrsen na FALSE - NE DIRAJ ODGOVORE!
+      const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kviz_zavrsen: false
+          // NE ŠALJEMO vrsta, izbjegava, preferencije, vrijeme, tezina, kalorije
+          // tako da ostaju NETAKNUTI u bazi
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Greška pri resetiranju jezika');
+      }
+
+      // 🔥 Ažuriraj localStorage
+      const userData = JSON.parse(localStorage.getItem('user'));
+      if (userData) {
+        userData.kviz_zavrsen = false;
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
+
+      // 🔥 Ažuriraj profile state
+      if (profile) {
+        setProfile({ ...profile, kviz_zavrsen: false });
+      }
+
+      alert('✅ Jezik je resetiran! Sada možete odabrati novi jezik i ponovo napraviti kviz.');
+
+      // 🔥 Preusmjeri na kviz
+      navigate('/quiz');
+      
+    } catch (error) {
+      console.error('❌ Greška pri resetiranju jezika:', error);
+      alert('❌ Došlo je do greške. Pokušajte ponovo.');
+    }
+  };
+
+  // ============================================================
+  // 🗑️ IZBRIŠI SVE PODATKE - SA PORUKOM I PREUSMJERAVANJEM NA REGISTRACIJU
   // ============================================================
   const handleDeleteData = async () => {
-    if (!window.confirm(t('profile.delete_confirm'))) return;
+    if (!window.confirm(
+      '⚠️ Jeste li sigurni da želite izbrisati SVE svoje podatke?\n\n' +
+      '🗑️ Ova radnja je NEPOVRATNA!\n' +
+      '📝 Nakon brisanja, morat ćete se ponovno registrirati.\n' +
+      '🔒 Nećete se moći prijaviti sa starim podacima.\n\n' +
+      'Želite li nastaviti?'
+    )) {
+      return;
+    }
     
     setDeleting(true);
     try {
       const email = user?.email || localStorage.getItem('userEmail');
-      await fetch(`${API_URL}/api/profil/${email}/delete`, { method: 'DELETE' });
+      
+      if (!email) {
+        alert('❌ Niste prijavljeni. Molimo prijavite se.');
+        setDeleting(false);
+        return;
+      }
+
+      // 🔥 1. IZBRIŠI PROFIL IZ BAZE
+      console.log('🗑️ Brišem profil za:', email);
+      const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}/delete`, { 
+        method: 'DELETE' 
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Greška pri brisanju profila');
+      }
+
+      const result = await response.json();
+      console.log('✅ Profil izbrisan:', result);
+
+      // 🔥 2. IZBRIŠI SVE IZ LOCALSTORAGE
       localStorage.clear();
-      navigate('/login');
+      console.log('🧹 localStorage očišćen');
+
+      // 🔥 3. ODJAVI KORISNIKA IZ SUPABASE
+      try {
+        await supabase.auth.signOut();
+        console.log('🚪 Korisnik odjavljen iz Supabase');
+      } catch (signOutError) {
+        console.warn('⚠️ Greška pri odjavi:', signOutError);
+      }
+
+      // 🔥 4. PRIKAŽI PORUKU KORISNIKU
+      alert(
+        '🗑️ Vaš profil je uspješno izbrisan iz baze korisnika.\n\n' +
+        '📝 Molimo da se ponovno izvršite registraciju.\n' +
+        '🔒 Ne možete se prijaviti sa starim podacima.\n\n' +
+        '✅ Svi vaši podaci su sigurno obrisani.\n' +
+        'Hvala na razumijevanju!'
+      );
+
+      // 🔥 5. PREUSMJERI NA REGISTRACIJU (ne na login!)
+      navigate('/register');
+      
     } catch (error) {
-      alert(t('profile.delete_error'));
+      console.error('❌ Greška pri brisanju:', error);
+      alert('❌ Došlo je do greške prilikom brisanja profila.\n\n' + error.message);
       setDeleting(false);
     }
   };
@@ -469,6 +575,17 @@ const Profile = () => {
           <span>🔄</span>
           {profile.kviz_zavrsen ? t('profile.edit_filters') : t('profile.take_quiz')}
         </Link>
+        
+        {/* 🔥 DUGME ZA RESET JEZIKA - SAMO AKO JE KVIZ ZAVRŠEN */}
+        {profile.kviz_zavrsen && (
+          <button
+            onClick={handleResetLanguage}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-full text-sm font-semibold transition flex items-center gap-2"
+          >
+            <span>🌍</span>
+            {t('profile.reset_language')}
+          </button>
+        )}
         
         {!profile.premium && (
           <Link
