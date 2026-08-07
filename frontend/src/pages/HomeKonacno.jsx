@@ -8,6 +8,28 @@ import AdBanner from '../components/AdBanner';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+// ============================================================
+// MAPIRANJE ZA PRIJEVOD PROFILA (DODATO)
+// ============================================================
+const profilKeyMap = {
+  // Vrijeme
+  'Kratko (15-30 min)': 'labels.vrijeme.kratko',
+  'Srednje (30-45 min)': 'labels.vrijeme.srednje',
+  'Duže (45-60+ min)': 'labels.vrijeme.duze',
+  // Težina
+  'Početnik': 'labels.tezina.pocetnik',
+  'Srednji': 'labels.tezina.srednji',
+  'Profesionalac': 'labels.tezina.napredni',
+  // Kalorije
+  'Nisko (do 300 kcal)': 'labels.kalorije.nisko',
+  'Umjereno (300-500 kcal)': 'labels.kalorije.umjereno',
+  'Srednje (500-700 kcal)': 'labels.kalorije.srednje',
+  'Visoko (900+ kcal)': 'labels.kalorije.visoko'
+};
+
+// ============================================================
+// GLAVNA KOMPONENTA
+// ============================================================
 const HomeKonacno = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -35,6 +57,15 @@ const HomeKonacno = () => {
     restrikcije: [],
     kalorije: ''
   });
+
+  // ============================================================
+  // HELPER FUNKCIJA ZA PRIJEVOD PROFIL VRIJEDNOSTI (DODATO)
+  // ============================================================
+  const translateProfilValue = (value) => {
+    if (!value) return t('home.profile.not_set', { defaultValue: 'Nije uneseno' });
+    const key = profilKeyMap[value];
+    return key ? t(key) : value;
+  };
 
   // ============================================================
   // 🔐 PROVJERA DA LI JE KORISNIK PRIJAVLJEN
@@ -839,10 +870,12 @@ const HomeKonacno = () => {
                 </div>
               </div>
             </div>
+            
+            {/* 🔥 POPRAVLJENI DIO - SA PREVODIMA */}
             <div className="flex flex-wrap gap-3 mt-3 text-xs text-gray-500 dark:text-gray-400">
-              <span>⏱️ {profil.vrijeme || t('home.profile.not_set', { defaultValue: 'Nije uneseno' })}</span>
-              <span>👨‍🍳 {profil.tezina || t('home.profile.not_set', { defaultValue: 'Nije uneseno' })}</span>
-              <span>🔥 {profil.kalorije || t('home.profile.not_set', { defaultValue: 'Nije uneseno' })}</span>
+              <span>⏱️ {translateProfilValue(profil.vrijeme)}</span>
+              <span>👨‍🍳 {translateProfilValue(profil.tezina)}</span>
+              <span>🔥 {translateProfilValue(profil.kalorije)}</span>
             </div>
           </div>
         </section>
