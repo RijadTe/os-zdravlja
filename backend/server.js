@@ -236,6 +236,57 @@ async function deleteFromCloudinary(publicId) {
 }
 
 // ============================================================
+// 🔧 POMOĆNA FUNKCIJA ZA PREVOD TEKSTA
+// ============================================================
+async function translateRecipeText(recipe, targetLang) {
+  const langMap = {
+    'en': 'engleski',
+    'de': 'njemački'
+  };
+  const langName = langMap[targetLang] || targetLang;
+
+  if (!openai) {
+    return {
+      naziv: recipe.naziv,
+      opis: recipe.opis || '',
+      sastojci: recipe.sastojci || [],
+      upute: recipe.upute || [],
+      nacin_pripreme: recipe.nacin_pripreme || ''
+    };
+  }
+
+  const prompt = `
+    Prevedi sljedeći recept na ${langName} jezik.
+    
+    Naziv: ${recipe.naziv}
+    Opis: ${recipe.opis || ''}
+    Sastojci: ${recipe.sastojci?.join(', ') || ''}
+    Upute: ${recipe.upute?.join('. ') || ''}
+    Način pripreme: ${recipe.nacin_pripreme || ''}
+    
+    Odgovori isključivo u JSON formatu:
+    {
+      "naziv": "...",
+      "opis": "...",
+      "sastojci": ["...", "..."],
+      "upute": ["...", "..."],
+      "nacin_pripreme": "..."
+    }
+    
+    Prevedi prirodno i sačuvaj kontekst kulinarskih termina.
+  `;
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0.3,
+    response_format: { type: "json_object" }
+  });
+
+  return JSON.parse(response.choices[0].message.content);
+}
+
+// ============================================================
 // AI CHEF HELPER FUNKCIJE
 // ============================================================
 function generateHash(input, type = 'tekst') {
@@ -1061,7 +1112,7 @@ app.post('/api/quiz', async (req, res) => {
 });
 
 // ============================================================
-// 10. 🔥 DOHVATI RECEPTE SA FILTERIMA + PAGINACIJA (POPRAVLJENO SA dijetne_oznake!)
+// 10. 🔥 DOHVATI RECEPTE SA FILTERIMA + PAGINACIJA + PREVODI!
 // ============================================================
 app.get('/api/recepti', async (req, res) => {
   try {
@@ -1075,7 +1126,8 @@ app.get('/api/recepti', async (req, res) => {
       kalorije,
       page = 1,
       limit = 20,
-      search
+      search,
+      jezik = 'hr'
     } = req.query;
     
     console.log('📊 Dohvatam recepte sa paginacijom:');
@@ -1083,8 +1135,7 @@ app.get('/api/recepti', async (req, res) => {
     console.log('   Limit:', limit);
     console.log('   Search:', search);
     console.log('   Email:', email);
-    console.log('   Vrsta:', vrsta);
-    console.log('   Restrikcije:', restrikcije);
+    console.log('   Jezik:', jezik);
     
     const offset = (parseInt(page) - 1) * parseInt(limit);
     
@@ -1125,10 +1176,24 @@ app.get('/api/recepti', async (req, res) => {
       restrikcijeArray = userRestrictions;
     }
     
-    // 🔥 3. KREIRAJ QUERY SA BROJANJEM
+    // 🔥 3. KREIRAJ QUERY SA PREVODIMA
     let query = supabase
       .from('recepti')
-      .select('*', { count: 'exact' });
+      .select(`
+        *,
+        prevod:recepti_prevodi!recept_id(
+          naziv,
+          opis,
+          sastojci,
+          upute,
+          nacin_pripreme
+        )
+      `, { count: 'exact' });
+
+    // 🔥🔥🔥 DODAJ FILTER ZA JEZIK
+    if (jezik !== 'hr') {
+      query = query.eq('prevod.jezik', jezik);
+    }
 
     // FILTRIRAJ PO VRSTI
     let vrstaFilter = vrsta ? vrsta.split(',') : [];
@@ -1169,23 +1234,20 @@ app.get('/api/recepti', async (req, res) => {
       console.log('✅ Filtriram po kalorijama:', kalorijeFilter);
     }
 
-    // 🔥🔥🔥 FILTRIRAJ PO RESTRIKCIJAMA (NADGRADNJA ZA dijetne_oznake!)
+    // FILTRIRAJ PO RESTRIKCIJAMA
     if (restrikcijeArray.length > 0) {
       const hasNoRestrictions = restrikcijeArray.some(r => 
         r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
       );
       
       if (!hasNoRestrictions) {
-        // Podijeli restrikcije na alergene i dijetne oznake
+        const alergeniList = ['gluten', 'laktoza', 'jaja', 'orašasti', 'orasasti', 'soja', 'kikiriki', 'morski plodovi'];
         const alergeniRestrikcije = [];
         const dijetneRestrikcije = [];
-        
-        const alergeniList = ['gluten', 'laktoza', 'jaja', 'orašasti', 'orasasti', 'soja', 'kikiriki', 'morski plodovi'];
         
         restrikcijeArray.forEach(r => {
           const rLower = r.toLowerCase();
           const jeAlergen = alergeniList.some(a => rLower.includes(a));
-          
           if (jeAlergen) {
             alergeniRestrikcije.push(r);
           } else {
@@ -1193,16 +1255,11 @@ app.get('/api/recepti', async (req, res) => {
           }
         });
         
-        console.log('🔒 Alergeni za izbjegavanje:', alergeniRestrikcije);
-        console.log('🌱 Dijetne oznake za filtriranje:', dijetneRestrikcije);
-        
-        // FILTER ZA ALERGENE - izbaci recepte koji sadrže alergen
         if (alergeniRestrikcije.length > 0) {
           query = query.not('alergeni', '&&', alergeniRestrikcije);
           console.log('✅ Filtriram po alergenima (izbacujem):', alergeniRestrikcije);
         }
         
-        // FILTER ZA DIJETNE OZNAKE - prikaži samo one koji imaju OVU oznaku
         if (dijetneRestrikcije.length > 0) {
           query = query.overlaps('dijetne_oznake', dijetneRestrikcije);
           console.log('✅ Filtriram po dijetnim oznakama:', dijetneRestrikcije);
@@ -1232,19 +1289,14 @@ app.get('/api/recepti', async (req, res) => {
       }
     }
 
-    // 🔥 PRETRAGA
     if (search && search.trim()) {
       query = query.ilike('naziv', `%${search.trim()}%`);
       console.log('✅ Pretraga:', search.trim());
     }
 
-    // 🔥 SORTIRANJE
     query = query.order('created_at', { ascending: false });
-
-    // 🔥🔥🔥 PAGINACIJA
     query = query.range(offset, offset + parseInt(limit) - 1);
 
-    // IZVRŠI QUERY
     const { data, error, count } = await query;
 
     if (error) {
@@ -1252,12 +1304,30 @@ app.get('/api/recepti', async (req, res) => {
       return res.status(500).json({ error: error.message });
     }
     
+    // 🔥 OBRADI PREVODE
+    const processedRecipes = data.map(recipe => {
+      if (recipe.prevod && jezik !== 'hr') {
+        return {
+          ...recipe,
+          naziv: recipe.prevod.naziv || recipe.naziv,
+          opis: recipe.prevod.opis || recipe.opis,
+          sastojci: recipe.prevod.sastojci || recipe.sastojci,
+          upute: recipe.prevod.upute || recipe.upute,
+          nacin_pripreme: recipe.prevod.nacin_pripreme || recipe.nacin_pripreme,
+          prevod: undefined
+        };
+      }
+      return {
+        ...recipe,
+        prevod: undefined
+      };
+    });
+    
     console.log(`✅ Dohvaćeno ${data?.length || 0} recepata (od ${count || 0} ukupno)`);
     
-    // 🔥 VRATI SA PAGINACIJOM
     res.json({
       success: true,
-      data: data || [],
+      data: processedRecipes || [],
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -1273,14 +1343,65 @@ app.get('/api/recepti', async (req, res) => {
 });
 
 // ============================================================
-// 11. 🔥 DOHVATI RECEPTE ZA KORISNIKA (POPRAVLJENO SA dijetne_oznake!)
+// 11. DOHVATI JEDAN RECEPT (SA PREVODOM)
+// ============================================================
+app.get('/api/recepti/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { jezik = 'hr' } = req.query;
+
+    let query = supabase
+      .from('recepti')
+      .select(`
+        *,
+        prevod:recepti_prevodi!recept_id(
+          naziv,
+          opis,
+          sastojci,
+          upute,
+          nacin_pripreme
+        )
+      `)
+      .eq('id', id);
+
+    if (jezik !== 'hr') {
+      query = query.eq('prevod.jezik', jezik);
+    }
+
+    const { data: recipe, error } = await query.single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return res.status(404).json({ error: 'Recept nije pronađen' });
+      }
+      throw error;
+    }
+
+    if (recipe.prevod && jezik !== 'hr') {
+      recipe.naziv = recipe.prevod.naziv || recipe.naziv;
+      recipe.opis = recipe.prevod.opis || recipe.opis;
+      recipe.sastojci = recipe.prevod.sastojci || recipe.sastojci;
+      recipe.upute = recipe.prevod.upute || recipe.upute;
+      recipe.nacin_pripreme = recipe.prevod.nacin_pripreme || recipe.nacin_pripreme;
+    }
+
+    delete recipe.prevod;
+
+    res.json({ success: true, data: recipe });
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// 12. DOHVATI RECEPTE ZA KORISNIKA
 // ============================================================
 app.get('/api/recepti/korisnik/:email', async (req, res) => {
   try {
     const { email } = req.params;
     console.log(`👤 Dohvatam recepte za korisnika: ${email}`);
     
-    // 1. DOHVATI KORISNIKOV PROFIL
     const { data: profil, error: profilError } = await supabase
       .from('profili')
       .select('vrsta, izbjegava, preferencije, vrijeme, tezina, kalorije')
@@ -1300,12 +1421,10 @@ app.get('/api/recepti/korisnik/:email', async (req, res) => {
     console.log('📋 Korisničke preferencije:', profil.preferencije);
     console.log('📋 Korisnička vrsta:', profil.vrsta);
 
-    // 2. KREIRAJ QUERY
     let query = supabase
       .from('recepti')
       .select('*');
 
-    // FILTRIRAJ PO VRSTI
     if (profil.vrsta && profil.vrsta.length > 0) {
       const vrste = profil.vrsta.filter(v => v !== 'Svejedno');
       if (vrste.length > 0) {
@@ -1314,19 +1433,16 @@ app.get('/api/recepti/korisnik/:email', async (req, res) => {
       }
     }
 
-    // FILTRIRAJ PO VREMENU
     if (profil.vrijeme && profil.vrijeme !== '') {
       query = query.eq('vrijeme', profil.vrijeme);
       console.log('✅ Filtriram po vremenu:', profil.vrijeme);
     }
 
-    // FILTRIRAJ PO TEŽINI
     if (profil.tezina && profil.tezina !== '') {
       query = query.eq('tezina', profil.tezina);
       console.log('✅ Filtriram po težini:', profil.tezina);
     }
 
-    // FILTRIRAJ PO KALORIJAMA
     if (profil.kalorije && profil.kalorije !== '') {
       const kalorijeValue = profil.kalorije;
       let minKcal = 0;
@@ -1349,7 +1465,6 @@ app.get('/api/recepti/korisnik/:email', async (req, res) => {
       console.log('✅ Filtriram po kalorijama:', minKcal, '-', maxKcal);
     }
 
-    // 🔥🔥🔥 FILTRIRAJ PO RESTRIKCIJAMA (NADGRADNJA ZA dijetne_oznake!)
     const restrikcije = profil.izbjegava || [];
     if (restrikcije.length > 0) {
       const hasNoRestrictions = restrikcije.some(r => 
@@ -1357,16 +1472,13 @@ app.get('/api/recepti/korisnik/:email', async (req, res) => {
       );
       
       if (!hasNoRestrictions) {
-        // Podijeli restrikcije na alergene i dijetne oznake
+        const alergeniList = ['gluten', 'laktoza', 'jaja', 'orašasti', 'orasasti', 'soja', 'kikiriki', 'morski plodovi'];
         const alergeniRestrikcije = [];
         const dijetneRestrikcije = [];
-        
-        const alergeniList = ['gluten', 'laktoza', 'jaja', 'orašasti', 'orasasti', 'soja', 'kikiriki', 'morski plodovi'];
         
         restrikcije.forEach(r => {
           const rLower = r.toLowerCase();
           const jeAlergen = alergeniList.some(a => rLower.includes(a));
-          
           if (jeAlergen) {
             alergeniRestrikcije.push(r);
           } else {
@@ -1388,7 +1500,6 @@ app.get('/api/recepti/korisnik/:email', async (req, res) => {
       }
     }
 
-    // FILTRIRAJ PO PREFERENCIJAMA
     if (profil.preferencije && profil.preferencije.length > 0) {
       if (profil.preferencije.includes('Visokoproteinski')) {
         query = query.gte('proteini', 20);
@@ -1404,7 +1515,6 @@ app.get('/api/recepti/korisnik/:email', async (req, res) => {
       }
     }
 
-    // IZVRŠI QUERY
     const { data, error } = await query;
 
     if (error) {
@@ -1415,31 +1525,6 @@ app.get('/api/recepti/korisnik/:email', async (req, res) => {
     console.log(`✅ Dohvaćeno ${data?.length || 0} recepata za korisnika`);
     res.json(data || []);
     
-  } catch (error) {
-    console.error('❌ Greška:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ============================================================
-// 12. DOHVATI JEDAN RECEPT
-// ============================================================
-app.get('/api/recepti/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { data, error } = await supabase
-      .from('recepti')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return res.status(404).json({ error: 'Recept nije pronađen' });
-      }
-      throw error;
-    }
-    res.json(data);
   } catch (error) {
     console.error('❌ Greška:', error);
     res.status(500).json({ error: error.message });
@@ -1656,10 +1741,7 @@ app.get('/api/healthy-chef/recepti', async (req, res) => {
     if (vrijeme) query = query.eq('vrijeme', vrijeme);
     if (tezina) query = query.eq('tezina', tezina);
 
-    // 🔥 SORTIRANJE
     query = query.order('created_at', { ascending: false });
-
-    // 🔥 PAGINACIJA
     query = query.range(offset, offset + parseInt(limit) - 1);
 
     const { data, error, count } = await query;
@@ -1733,8 +1815,7 @@ app.post('/api/ai-weekly-plan', async (req, res) => {
           Kreiraj sedmični plan obroka za korisnika ${ime}.
           
           CILJEVI (DNEVNO):
-          - Kalorije: ${kalorije || 2200} kcal
-          - Proteini: ${proteini || 150}g
+          - Kalorije: ${kalorije || 2200} kcal          - Proteini: ${proteini || 150}g
           - Ugljikohidrati: ${ugljikohidrati || 250}g
           - Masti: ${masti || 70}g
           
@@ -1833,9 +1914,6 @@ app.post('/api/weekly-plan', async (req, res) => {
     console.log('📦 Sastojci:', sastojci?.length || 0);
     console.log('🎯 Cilj kalorija:', kalorije);
 
-    // ============================================================
-    // 1. DOHVATI RECEPTE IZ BAZE
-    // ============================================================
     const { data: recepti, error } = await supabase
       .from('recepti')
       .select('*');
@@ -1847,12 +1925,8 @@ app.post('/api/weekly-plan', async (req, res) => {
 
     console.log(`📚 Ukupno recepata u bazi: ${recepti?.length || 0}`);
 
-    // ============================================================
-    // 2. FILTRIRAJ RECEPTE (POPRAVLJENO SA dijetne_oznake!)
-    // ============================================================
     let filtered = [...recepti];
 
-    // 2a. Restrikcije - sada podržava i alergene i dijetne oznake
     if (restrikcije && restrikcije.length > 0) {
       const alergeniList = ['gluten', 'laktoza', 'jaja', 'orašasti', 'orasasti', 'soja', 'kikiriki', 'morski plodovi'];
       const alergeniRestrikcije = [];
@@ -1869,14 +1943,12 @@ app.post('/api/weekly-plan', async (req, res) => {
       });
       
       filtered = filtered.filter(recipe => {
-        // Provjeri alergene
         if (alergeniRestrikcije.length > 0) {
           const alergeni = recipe.alergeni || [];
           const imaRestrikciju = alergeniRestrikcije.some(r => alergeni.includes(r));
           if (imaRestrikciju) return false;
         }
         
-        // Provjeri dijetne oznake
         if (dijetneRestrikcije.length > 0) {
           const dijetne = recipe.dijetne_oznake || [];
           const imaOznaku = dijetneRestrikcije.some(r => dijetne.includes(r));
@@ -1888,7 +1960,6 @@ app.post('/api/weekly-plan', async (req, res) => {
       console.log(`📊 Nakon restrikcija: ${filtered.length} recepata`);
     }
 
-    // 2b. Kalorije (50% - 130% od cilja po obroku)
     const kalorijePoObroku = Math.round((kalorije || 2200) / 3);
     const minKcal = Math.round(kalorijePoObroku * 0.5);
     const maxKcal = Math.round(kalorijePoObroku * 1.3);
@@ -1899,7 +1970,6 @@ app.post('/api/weekly-plan', async (req, res) => {
     });
     console.log(`📊 Nakon kalorija (${minKcal}-${maxKcal} kcal): ${filtered.length} recepata`);
 
-    // 2c. Sastojci iz frižidera
     if (sastojci && sastojci.length > 0) {
       const sastojciLower = sastojci.map(s => s.toLowerCase());
       filtered = filtered.filter(recipe => {
@@ -1911,9 +1981,6 @@ app.post('/api/weekly-plan', async (req, res) => {
       console.log(`📊 Nakon sastojaka: ${filtered.length} recepata`);
     }
 
-    // ============================================================
-    // 3. AKO IMA DOVOLJNO RECEPATA → KORISTI BAZU
-    // ============================================================
     if (filtered.length >= 7) {
       console.log(`✅ Koristim bazu: ${filtered.length} recepata dostupno`);
       
@@ -1937,7 +2004,6 @@ app.post('/api/weekly-plan', async (req, res) => {
         };
       });
 
-      // Sačuvaj plan u bazu
       try {
         await supabase
           .from('planovi_obroka')
@@ -1958,12 +2024,8 @@ app.post('/api/weekly-plan', async (req, res) => {
       return res.json({ dani: plan, _izvor: 'baza' });
     }
 
-    // ============================================================
-    // 4. NEMA DOVOLJNO RECEPATA → OPENAI FALLBACK
-    // ============================================================
     console.log(`⚠️ Premalo recepata u bazi (${filtered.length}), prelazim na OpenAI...`);
 
-    // Provjeri da li OpenAI radi
     if (!openai) {
       console.warn('⚠️ OpenAI nije dostupan, koristim fallback plan');
       const fallbackPlan = generateFallbackPlan(kalorije, proteini, ugljikohidrati, masti, restrikcije);
@@ -1987,7 +2049,6 @@ app.post('/api/weekly-plan', async (req, res) => {
       return res.json(fallbackPlan);
     }
 
-    // OpenAI generisanje
     try {
       const ime = email?.split('@')[0] || 'Korisnik';
       const restrikcijeTekst = restrikcije && restrikcije.length > 0 
@@ -2100,7 +2161,7 @@ app.post('/api/weekly-plan', async (req, res) => {
 });
 
 // ============================================================
-// 21. TAJNI RECEPT - SA RESTRIKCIJAMA KORISNIKA!
+// 21. TAJNI RECEPT
 // ============================================================
 app.get('/api/tajni-recept', async (req, res) => {
   try {
@@ -2396,7 +2457,7 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
 });
 
 // ============================================================
-// 🔥 24. AI CHEF - PRETRAGA (POPRAVLJENO SA dijetne_oznake!)
+// 24. AI CHEF - PRETRAGA
 // ============================================================
 app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
   try {
@@ -2496,7 +2557,6 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
 
     if (error) throw error;
 
-    // Podijeli restrikcije na alergene i dijetne oznake
     const alergeniList = ['gluten', 'laktoza', 'jaja', 'orašasti', 'orasasti', 'soja', 'kikiriki', 'morski plodovi'];
     const alergeniRestrikcije = [];
     const dijetneRestrikcije = [];
@@ -2521,14 +2581,12 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
       );
       if (!imaSastojak) return false;
       
-      // ALERGENI - izbaci ako sadrži alergen
       if (alergeniRestrikcije.length > 0) {
         const alergeni = recept.alergeni || [];
         const imaRestrikciju = alergeniRestrikcije.some(r => alergeni.includes(r));
         if (imaRestrikciju) return false;
       }
       
-      // DIJETNE OZNAKE - prikaži samo ako ima oznaku
       if (dijetneRestrikcije.length > 0) {
         const dijetne = recept.dijetne_oznake || [];
         const imaOznaku = dijetneRestrikcije.some(r => dijetne.includes(r));
@@ -2805,7 +2863,7 @@ app.get('/api/zdravstveni-podaci/:email', async (req, res) => {
 });
 
 // ============================================================
-// 29. 🔥 NOTIFIKACIJE - GENERIŠI PREPORUKE SA PREMIUM DODACIMA!
+// 29. NOTIFIKACIJE - GENERIŠI PREPORUKE
 // ============================================================
 app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
   try {
@@ -3223,7 +3281,7 @@ app.delete('/api/obroci/:id', async (req, res) => {
 });
 
 // ============================================================
-// 37. COMMUNITY - DOHVATI OBJAVE (SA PAGINACIJOM)
+// 37. COMMUNITY - DOHVATI OBJAVE
 // ============================================================
 app.get('/api/community/objave', async (req, res) => {
   try {
@@ -3773,7 +3831,7 @@ app.post('/api/notifikacije/subscribe', async (req, res) => {
 });
 
 // ============================================================
-// 50. PREVOD RECEPATA (i18n)
+// 50. PREVOD RECEPATA (i18n) - JEDAN RECEPT
 // ============================================================
 app.post('/api/recepti/translate', async (req, res) => {
   try {
@@ -3783,15 +3841,22 @@ app.post('/api/recepti/translate', async (req, res) => {
       return res.status(400).json({ error: 'receptId i jezik su obavezni.' });
     }
 
+    if (!['en', 'de'].includes(jezik)) {
+      return res.status(400).json({ error: 'Jezik mora biti "en" ili "de".' });
+    }
+
     console.log(`🔄 Prevodenje recepta ${receptId} na jezik: ${jezik}`);
 
     const { data: recept, error: receptError } = await supabase
       .from('recepti')
-      .select('*')
+      .select('id, naziv, opis, sastojci, upute, nacin_pripreme')
       .eq('id', receptId)
       .single();
 
-    if (receptError) throw receptError;
+    if (receptError) {
+      console.error('❌ Greška pri dohvatu recepta:', receptError);
+      return res.status(404).json({ error: 'Recept nije pronađen.' });
+    }
 
     const { data: existing, error: existingError } = await supabase
       .from('recepti_prevodi')
@@ -3805,69 +3870,30 @@ app.post('/api/recepti/translate', async (req, res) => {
       return res.json({ success: true, data: existing, cached: true });
     }
 
-    if (!openai) {
-      console.warn('⚠️ OpenAI nije dostupan, koristim fallback');
-      return res.json({
-        success: true,
-        data: {
-          naziv: recept.naziv,
-          opis: recept.opis || '',
-          sastojci: recept.sastojci || [],
-          upute: recept.upute || []
-        },
-        cached: false,
-        fallback: true
-      });
+    let translation;
+    try {
+      translation = await translateRecipeText(recept, jezik);
+    } catch (translateError) {
+      console.error('❌ Greška pri prevodu:', translateError);
+      translation = {
+        naziv: recept.naziv,
+        opis: recept.opis || '',
+        sastojci: recept.sastojci || [],
+        upute: recept.upute || [],
+        nacin_pripreme: recept.nacin_pripreme || ''
+      };
     }
-
-    const jezikMap = {
-      'en': 'engleski',
-      'de': 'njemački',
-      'fr': 'francuski',
-      'it': 'talijanski',
-      'es': 'španjolski',
-      'sr': 'srpski'
-    };
-
-    const jezikNaziv = jezikMap[jezik] || jezik;
-
-    const prompt = `
-      Prevedi sljedeći recept na ${jezikNaziv} jezik.
-      
-      Naziv: ${recept.naziv}
-      Opis: ${recept.opis || ''}
-      Sastojci: ${recept.sastojci?.join(', ') || ''}
-      Upute: ${recept.upute?.join('. ') || ''}
-      
-      Odgovori isključivo u JSON formatu:
-      {
-        "naziv": "...",
-        "opis": "...",
-        "sastojci": ["...", "..."],
-        "upute": ["...", "..."]
-      }
-      
-      Prevedi prirodno i sačuvaj kontekst kulinarskih termina.
-    `;
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.3,
-      response_format: { type: "json_object" }
-    });
-
-    const translated = JSON.parse(response.choices[0].message.content);
 
     const { data: saved, error: saveError } = await supabase
       .from('recepti_prevodi')
       .insert([{
         recept_id: receptId,
         jezik: jezik,
-        naziv: translated.naziv || recept.naziv,
-        opis: translated.opis || recept.opis || '',
-        sastojci: translated.sastojci || recept.sastojci || [],
-        upute: translated.upute || recept.upute || []
+        naziv: translation.naziv || recept.naziv,
+        opis: translation.opis || recept.opis || '',
+        sastojci: translation.sastojci || recept.sastojci || [],
+        upute: translation.upute || recept.upute || [],
+        nacin_pripreme: translation.nacin_pripreme || recept.nacin_pripreme || ''
       }])
       .select()
       .single();
@@ -3877,21 +3903,176 @@ app.post('/api/recepti/translate', async (req, res) => {
       return res.json({
         success: true,
         data: {
-          naziv: translated.naziv || recept.naziv,
-          opis: translated.opis || recept.opis || '',
-          sastojci: translated.sastojci || recept.sastojci || [],
-          upute: translated.upute || recept.upute || []
+          naziv: translation.naziv || recept.naziv,
+          opis: translation.opis || recept.opis || '',
+          sastojci: translation.sastojci || recept.sastojci || [],
+          upute: translation.upute || recept.upute || [],
+          nacin_pripreme: translation.nacin_pripreme || recept.nacin_pripreme || ''
         },
         cached: false,
-        fallback: false
+        saved_to_db: false
       });
     }
 
-    console.log('✅ Prevod sačuvan za recept:', receptId);
-    res.json({ success: true, data: saved, cached: false });
+    console.log(`✅ Prevod na ${jezik} sačuvan za recept:`, receptId);
+    res.json({ success: true, data: saved, cached: false, saved_to_db: true });
 
   } catch (error) {
     console.error('❌ Greška pri prevodu recepta:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// 50a. MASOVNI PREVOD SVIH RECEPATA
+// ============================================================
+app.post('/api/recepti/translate-all', async (req, res) => {
+  try {
+    const { jezik } = req.body;
+    
+    if (!jezik || !['en', 'de'].includes(jezik)) {
+      return res.status(400).json({ error: 'Parametar "jezik" je obavezan (en ili de).' });
+    }
+
+    console.log(`🔄 Masovni prevod recepata na jezik: ${jezik}`);
+
+    const { data: recipes, error: recipesError } = await supabase
+      .from('recepti')
+      .select('id, naziv, opis, sastojci, upute, nacin_pripreme')
+      .not('id', 'in', (
+        supabase.from('recepti_prevodi').select('recept_id').eq('jezik', jezik)
+      ));
+
+    if (recipesError) {
+      console.error('❌ Greška pri dohvatu recepata:', recipesError);
+      return res.status(500).json({ error: recipesError.message });
+    }
+
+    if (!recipes || recipes.length === 0) {
+      return res.json({
+        success: true,
+        message: `Svi recepti su već prevedeni na ${jezik}.`,
+        total: 0,
+        translated: 0,
+        failed: 0
+      });
+    }
+
+    console.log(`📊 Pronađeno ${recipes.length} recepata za prevod na ${jezik}`);
+
+    let translated = 0;
+    let failed = 0;
+    const errors = [];
+
+    for (const recipe of recipes) {
+      try {
+        const translation = await translateRecipeText(recipe, jezik);
+
+        const { error: saveError } = await supabase
+          .from('recepti_prevodi')
+          .insert([{
+            recept_id: recipe.id,
+            jezik: jezik,
+            naziv: translation.naziv || recipe.naziv,
+            opis: translation.opis || recipe.opis || '',
+            sastojci: translation.sastojci || recipe.sastojci || [],
+            upute: translation.upute || recipe.upute || [],
+            nacin_pripreme: translation.nacin_pripreme || recipe.nacin_pripreme || ''
+          }]);
+
+        if (saveError) {
+          throw new Error(saveError.message);
+        }
+
+        translated++;
+        console.log(`✅ ${translated}/${recipes.length}: ${recipe.naziv}`);
+      } catch (err) {
+        failed++;
+        errors.push({ id: recipe.id, naziv: recipe.naziv, error: err.message });
+        console.error(`❌ Greška za ${recipe.naziv}:`, err.message);
+      }
+    }
+
+    res.json({
+      success: true,
+      total: recipes.length,
+      translated,
+      failed,
+      errors: errors.length > 0 ? errors : undefined
+    });
+
+  } catch (error) {
+    console.error('❌ Greška pri masovnom prevodu:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// 50b. STATUS PREVODA
+// ============================================================
+app.get('/api/recepti/translate/status', async (req, res) => {
+  try {
+    const { jezik } = req.query;
+
+    const { count: totalRecipes, error: totalError } = await supabase
+      .from('recepti')
+      .select('*', { count: 'exact', head: true });
+
+    if (totalError) throw totalError;
+
+    if (jezik && ['en', 'de'].includes(jezik)) {
+      const { count: missing, error: missingError } = await supabase
+        .from('recepti')
+        .select('*', { count: 'exact', head: true })
+        .not('id', 'in', (
+          supabase.from('recepti_prevodi').select('recept_id').eq('jezik', jezik)
+        ));
+
+      if (missingError) throw missingError;
+
+      return res.json({
+        success: true,
+        total_recipes: totalRecipes || 0,
+        missing_translations: missing || 0,
+        translated: (totalRecipes || 0) - (missing || 0),
+        jezik: jezik
+      });
+    }
+
+    const { count: missingAny, error: missingAnyError } = await supabase
+      .from('recepti')
+      .select('*', { count: 'exact', head: true })
+      .not('id', 'in', (
+        supabase.from('recepti_prevodi').select('recept_id')
+      ));
+
+    if (missingAnyError) throw missingAnyError;
+
+    const { count: enCount, error: enError } = await supabase
+      .from('recepti_prevodi')
+      .select('*', { count: 'exact', head: true })
+      .eq('jezik', 'en');
+
+    if (enError) throw enError;
+
+    const { count: deCount, error: deError } = await supabase
+      .from('recepti_prevodi')
+      .select('*', { count: 'exact', head: true })
+      .eq('jezik', 'de');
+
+    if (deError) throw deError;
+
+    res.json({
+      success: true,
+      total_recipes: totalRecipes || 0,
+      missing_translations: missingAny || 0,
+      en_translations: enCount || 0,
+      de_translations: deCount || 0,
+      fully_translated: (totalRecipes || 0) - (missingAny || 0) === (totalRecipes || 0)
+    });
+
+  } catch (error) {
+    console.error('❌ Greška pri provjeri statusa prevoda:', error);
     res.status(500).json({ error: error.message });
   }
 });

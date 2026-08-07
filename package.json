@@ -1,6 +1,8 @@
 {
   "dependencies": {
+    "dotenv": "^17.4.2",
     "express-rate-limit": "^8.6.1",
+    "openai": "^7.4.0",
     "react-flag-icons": "^1.0.6"
   }
 }
