@@ -218,12 +218,18 @@ const Quiz = () => {
     const current = formData[field] || [];
     const max = questions.find(q => q.id === field)?.maxSelect || 3;
     
-    // 🔥 DEFINIRAJ "SVEJEDNO" NA SVIM JEZICIMA
-    const anythingOptions = ['Svejedno', 'Anything', 'Alles'];
-    const noRestrictionOptions = ['Bez restrikcija', 'No restrictions', 'Keine Einschränkungen'];
+    // 🔥 DEFINIRAJ "SVEJEDNO" NA SVIM JEZICIMA (case-insensitive)
+    const isAnything = (val) => {
+      if (!val) return false;
+      const lower = val.toLowerCase();
+      return lower === 'svejedno' || lower === 'anything' || lower === 'alles';
+    };
     
-    const isAnything = (val) => anythingOptions.includes(val);
-    const isNoRestriction = (val) => noRestrictionOptions.includes(val);
+    const isNoRestriction = (val) => {
+      if (!val) return false;
+      const lower = val.toLowerCase();
+      return lower === 'bez restrikcija' || lower === 'no restrictions' || lower === 'keine einschränkungen';
+    };
     
     // ============================================================
     // 1. LOGIKA ZA "SVEJEDNO" (VRSTA I PREFERENCIJE)
@@ -231,23 +237,32 @@ const Quiz = () => {
     if (field === 'vrsta' || field === 'preferencije') {
       // Ako je odabrana opcija "Svejedno" (na bilo kojem jeziku)
       if (isAnything(option)) {
-        // Ako je već odabrano → ukloni ga
+        // Ako je već odabrano → UKLONI ga (toggle)
         if (current.some(item => isAnything(item))) {
           handleChange(field, current.filter(item => !isAnything(item)));
         } else {
-          // Inače, postavi SAMO "Svejedno"
+          // Inače, postavi SAMO "Svejedno" i OČISTI sve ostalo
           handleChange(field, [option]);
         }
         return;
       }
       
-      // Ako je "Svejedno" već odabrano, dodaj novu opciju umjesto njega
+      // Ako je "Svejedno" već odabrano, i korisnik klikne na drugu opciju
       if (current.some(item => isAnything(item))) {
+        // UKLONI "Svejedno" i dodaj novu opciju (ako ima mjesta)
         const newSelection = current.filter(item => !isAnything(item));
-        if (!newSelection.includes(option) && newSelection.length < max) {
-          handleChange(field, [...newSelection, option]);
-        } else if (newSelection.includes(option)) {
+        if (newSelection.includes(option)) {
+          // Ako je opcija već odabrana, ukloni je
           handleChange(field, newSelection.filter(item => item !== option));
+        } else if (newSelection.length < max) {
+          // Inače, dodaj je
+          handleChange(field, [...newSelection, option]);
+        } else {
+          setToast({ 
+            message: t('quiz.toast.max_selected', { max }), 
+            type: 'error' 
+          });
+          setTimeout(() => setToast(null), 2500);
         }
         return;
       }
@@ -259,21 +274,32 @@ const Quiz = () => {
     if (field === 'restrikcije') {
       // Ako je odabrana opcija "Bez restrikcija" (na bilo kojem jeziku)
       if (isNoRestriction(option)) {
+        // Ako je već odabrano → UKLONI ga (toggle)
         if (current.some(item => isNoRestriction(item))) {
           handleChange(field, current.filter(item => !isNoRestriction(item)));
         } else {
+          // Inače, postavi SAMO "Bez restrikcija" i OČISTI sve ostalo
           handleChange(field, [option]);
         }
         return;
       }
       
-      // Ako je "Bez restrikcija" već odabrano, dodaj novu opciju umjesto njega
+      // Ako je "Bez restrikcija" već odabrano, i korisnik klikne na drugu opciju
       if (current.some(item => isNoRestriction(item))) {
+        // UKLONI "Bez restrikcija" i dodaj novu opciju (ako ima mjesta)
         const newSelection = current.filter(item => !isNoRestriction(item));
-        if (!newSelection.includes(option) && newSelection.length < max) {
-          handleChange(field, [...newSelection, option]);
-        } else if (newSelection.includes(option)) {
+        if (newSelection.includes(option)) {
+          // Ako je opcija već odabrana, ukloni je
           handleChange(field, newSelection.filter(item => item !== option));
+        } else if (newSelection.length < max) {
+          // Inače, dodaj je
+          handleChange(field, [...newSelection, option]);
+        } else {
+          setToast({ 
+            message: t('quiz.toast.max_selected', { max }), 
+            type: 'error' 
+          });
+          setTimeout(() => setToast(null), 2500);
         }
         return;
       }
@@ -283,10 +309,13 @@ const Quiz = () => {
     // 3. STANDARDNA LOGIKA ZA SVE OSTALO
     // ============================================================
     if (current.includes(option)) {
+      // Ako je opcija već odabrana → UKLONI je
       handleChange(field, current.filter(item => item !== option));
     } else if (current.length < max) {
+      // Ako nije odabrana i ima mjesta → DODAJ je
       handleChange(field, [...current, option]);
     } else {
+      // Ako je max dostignut → prikaži toast
       setToast({ 
         message: t('quiz.toast.max_selected', { max }), 
         type: 'error' 
@@ -301,11 +330,17 @@ const Quiz = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    const anythingOptions = ['Svejedno', 'Anything', 'Alles'];
-    const noRestrictionOptions = ['Bez restrikcija', 'No restrictions', 'Keine Einschränkungen'];
+    const isAnything = (val) => {
+      if (!val) return false;
+      const lower = val.toLowerCase();
+      return lower === 'svejedno' || lower === 'anything' || lower === 'alles';
+    };
     
-    const isAnything = (val) => anythingOptions.includes(val);
-    const isNoRestriction = (val) => noRestrictionOptions.includes(val);
+    const isNoRestriction = (val) => {
+      if (!val) return false;
+      const lower = val.toLowerCase();
+      return lower === 'bez restrikcija' || lower === 'no restrictions' || lower === 'keine einschränkungen';
+    };
     
     let restrikcijeZaSlanje = formData.restrikcije;
     if (restrikcijeZaSlanje.some(item => isNoRestriction(item))) {
