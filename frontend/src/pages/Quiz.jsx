@@ -5,151 +5,70 @@ import { useTranslation } from 'react-i18next';
 import Toast from '../components/Toast';
 import { supabase } from '../supabaseClient';
 
-// 🔥 PROMIJENJENO - uklonjen /api sa kraja
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
-// 🔥 IKONE - POJEDNOSTAVLJENE, BEZ ❌, ZA SVE JEZIKE
+// 🔥 IKONE
 // ============================================================
 const getIconForOption = (option) => {
   const iconMap = {
-    // ===== VRSTA =====
-    'Deserti': '🍰',
-    'Slano': '🍕',
-    'Dijetalni recepti': '🥗',
-    'Napitki': '🥤',
-    'Svejedno': '😋',
-    'Desserts': '🍰',
-    'Savory': '🍕',
-    'Diet recipes': '🥗',
-    'Drinks': '🥤',
-    'Anything': '😋',
-    'Nachspeisen': '🍰',
-    'Herzhaft': '🍕',
-    'Diätgerichte': '🥗',
-    'Getränke': '🥤',
-    'Alles': '😋',
-
-    // ===== RESTRIKCIJE - BEZ ❌ =====
-    // HRVATSKI
-    'Bez restrikcija': '✅',
-    'Bez glutena': '🌾',
-    'Bez laktoze': '🥛',
-    'Bez šećera': '🍬',
-    'Veganski': '🌱',
-    'Orašasti plodovi': '🥜',
+    // VRSTA
+    'Deserti': '🍰', 'Slano': '🍕', 'Dijetalni recepti': '🥗', 'Napitki': '🥤', 'Svejedno': '😋',
+    'Desserts': '🍰', 'Savory': '🍕', 'Diet recipes': '🥗', 'Drinks': '🥤', 'Anything': '😋',
+    'Nachspeisen': '🍰', 'Herzhaft': '🍕', 'Diät Rezepte': '🥗', 'Getränke': '🥤', 'Alles': '😋',
     
-    // ENGLESKI - SVE VARIJANTE
-    'No restrictions': '✅',
-    'Gluten free': '🌾',
-    'Gluten-free': '🌾',
-    'Lactose free': '🥛',
-    'Lactose-free': '🥛',
-    'Sugar free': '🍬',
-    'Sugar-free': '🍬',
-    'Vegan': '🌱',
-    'Nuts free': '🥜',
-    'Nuts-free': '🥜',
+    // RESTRIKCIJE
+    'Bez restrikcija': '✅', 'Bez glutena': '🌾', 'Bez laktoze': '🥛', 'Bez šećera': '🍬', 'Veganski': '🌱', 'Bez orašastih plodova': '🥜',
+    'No restrictions': '✅', 'Gluten-free': '🌾', 'Lactose-free': '🥛', 'Sugar-free': '🍬', 'Vegan': '🌱', 'Nuts-free': '🥜',
+    'Keine Einschränkungen': '✅', 'Glutenfrei': '🌾', 'Laktosefrei': '🥛', 'Zuckerfrei': '🍬', 'Vegan': '🌱', 'Nussfrei': '🥜',
     
-    // NJEMAČKI - SVE VARIJANTE
-    'Keine Einschränkungen': '✅',
-    'Glutenfrei': '🌾',
-    'Laktosefrei': '🥛',
-    'Zuckerfrei': '🍬',
-    'Vegan': '🌱',
-    'Nüsse': '🥜',
-    'Nussfrei': '🥜',
-
-    // ===== PREFERENCIJE =====
-    'Visokoproteinski': '💪',
-    'Bogat vlaknima': '🌾',
-    'Bogat ugljikohidratima': '🍞',
-    'High protein': '💪',
-    'High fiber': '🌾',
-    'High carbs': '🍞',
-    'Hoher Proteingehalt': '💪',
-    'Ballaststoffreich': '🌾',
-    'Kohlenhydratreich': '🍞',
-
-    // ===== VRIJEME =====
-    'Kratko (15-30 min)': '⚡',
-    'Srednje (30-45 min)': '⏳',
-    'Duže (45-60+ min)': '🐢',
-    'Quick (15-30 min)': '⚡',
-    'Medium (30-45 min)': '⏳',
-    'Long (45-60+ min)': '🐢',
-    'Kurz (15-30 min)': '⚡',
-    'Mittel (30-45 min)': '⏳',
-    'Lang (45-60+ min)': '🐢',
-
-    // ===== TEŽINA =====
-    'Početnik': '👶',
-    'Srednji': '👨‍🍳',
-    'Profesionalac': '👨‍🍳⭐',
-    'Beginner': '👶',
-    'Intermediate': '👨‍🍳',
-    'Professional': '👨‍🍳⭐',
-    'Anfänger': '👶',
-    'Fortgeschritten': '👨‍🍳',
-    'Profi': '👨‍🍳⭐',
-
-    // ===== KALORIJE =====
-    'Nisko (do 300 kcal)': '⬇️',
-    'Umjereno (300-500 kcal)': '➡️',
-    'Srednje (500-700 kcal)': '⬆️',
-    'Visoko (900+ kcal)': '🔥',
-    'Low (up to 300 kcal)': '⬇️',
-    'Moderate (300-500 kcal)': '➡️',
-    'Medium (500-700 kcal)': '⬆️',
-    'High (900+ kcal)': '🔥',
-    'Niedrig (bis 300 kcal)': '⬇️',
-    'Mäßig (300-500 kcal)': '➡️',
-    'Mittel (500-700 kcal)': '⬆️',
-    'Hoch (900+ kcal)': '🔥',
+    // PREFERENCIJE
+    'Visokoproteinski': '💪', 'Bogat vlaknima': '🌾', 'Bogat ugljikohidratima': '🍞',
+    'High protein': '💪', 'High fiber': '🌾', 'High carb': '🍞',
+    'Hoher Protein': '💪', 'Hohe Ballaststoffe': '🌾', 'Hohe Kohlenhydrate': '🍞',
+    
+    // VRIJEME
+    'Kratko (15-30 min)': '⚡', 'Srednje (30-45 min)': '⏳', 'Duže (45-60+ min)': '🐢',
+    'Short (15-30 min)': '⚡', 'Medium (30-45 min)': '⏳', 'Long (45-60+ min)': '🐢',
+    'Kurz (15-30 min)': '⚡', 'Mittel (30-45 min)': '⏳', 'Lang (45-60+ min)': '🐢',
+    
+    // TEŽINA
+    'Početnik': '👶', 'Srednji': '👨‍🍳', 'Profesionalac': '👨‍🍳⭐',
+    'Beginner': '👶', 'Intermediate': '👨‍🍳', 'Professional': '👨‍🍳⭐',
+    'Anfänger': '👶', 'Fortgeschritten': '👨‍🍳', 'Profi': '👨‍🍳⭐',
+    
+    // KALORIJE
+    'Nisko (do 300 kcal)': '⬇️', 'Umjereno (300-500 kcal)': '➡️', 'Srednje (500-700 kcal)': '⬆️', 'Visoko (900+ kcal)': '🔥',
+    'Low (up to 300 kcal)': '⬇️', 'Moderate (300-500 kcal)': '➡️', 'Medium (500-700 kcal)': '⬆️', 'High (900+ kcal)': '🔥',
+    'Niedrig (bis 300 kcal)': '⬇️', 'Mäßig (300-500 kcal)': '➡️', 'Mittel (500-700 kcal)': '⬆️', 'Hoch (900+ kcal)': '🔥',
   };
 
-  if (iconMap[option]) {
-    return iconMap[option];
-  }
+  if (iconMap[option]) return iconMap[option];
 
-  // 🔥 FALLBACK - po ključnim riječima
-  const lowerOption = option.toLowerCase();
-  
-  // VRSTA
-  if (lowerOption.includes('dessert') || lowerOption.includes('nachspeisen') || lowerOption.includes('desert')) return '🍰';
-  if (lowerOption.includes('savory') || lowerOption.includes('herzhaft') || lowerOption.includes('slano')) return '🍕';
-  if (lowerOption.includes('diet') || lowerOption.includes('diät') || lowerOption.includes('dijetalni')) return '🥗';
-  if (lowerOption.includes('drink') || lowerOption.includes('getränk') || lowerOption.includes('napitak')) return '🥤';
-  if (lowerOption.includes('anything') || lowerOption.includes('alles') || lowerOption.includes('svejedno')) return '😋';
-  
-  // RESTRIKCIJE - BEZ ❌
-  if (lowerOption.includes('no restriction') || lowerOption.includes('keine einschränkungen') || lowerOption.includes('bez restrikcija')) return '✅';
-  if (lowerOption.includes('gluten free') || lowerOption.includes('glutenfrei') || lowerOption.includes('bez glutena')) return '🌾';
-  if (lowerOption.includes('lactose free') || lowerOption.includes('laktosefrei') || lowerOption.includes('bez laktoze')) return '🥛';
-  if (lowerOption.includes('sugar free') || lowerOption.includes('zuckerfrei') || lowerOption.includes('bez šećera')) return '🍬';
-  if (lowerOption.includes('vegan')) return '🌱';
-  if (lowerOption.includes('nuts') || lowerOption.includes('nüsse') || lowerOption.includes('nussfrei') || lowerOption.includes('orašasti')) return '🥜';
-  
-  // PREFERENCIJE
-  if (lowerOption.includes('high protein') || lowerOption.includes('hoher protein') || lowerOption.includes('visokoprotein')) return '💪';
-  if (lowerOption.includes('high fiber') || lowerOption.includes('ballaststoff') || lowerOption.includes('vlaknima')) return '🌾';
-  if (lowerOption.includes('high carbs') || lowerOption.includes('kohlenhydrat') || lowerOption.includes('ugljikohidrat')) return '🍞';
-  
-  // VRIJEME
-  if (lowerOption.includes('quick') || lowerOption.includes('kurz') || lowerOption.includes('kratko')) return '⚡';
-  if (lowerOption.includes('medium') || lowerOption.includes('mittel') || lowerOption.includes('srednje')) return '⏳';
-  if (lowerOption.includes('long') || lowerOption.includes('lang') || lowerOption.includes('duže')) return '🐢';
-  
-  // TEŽINA
-  if (lowerOption.includes('beginner') || lowerOption.includes('anfänger') || lowerOption.includes('početnik')) return '👶';
-  if (lowerOption.includes('intermediate') || lowerOption.includes('fortgeschritten') || lowerOption.includes('srednji')) return '👨‍🍳';
-  if (lowerOption.includes('professional') || lowerOption.includes('profi') || lowerOption.includes('profesionalac')) return '👨‍🍳⭐';
-  
-  // KALORIJE
-  if (lowerOption.includes('low') || lowerOption.includes('niedrig') || lowerOption.includes('nisko')) return '⬇️';
-  if (lowerOption.includes('moderate') || lowerOption.includes('mäßig') || lowerOption.includes('umjereno')) return '➡️';
-  if (lowerOption.includes('medium') && !lowerOption.includes('time')) return '⬆️';
-  if (lowerOption.includes('high') || lowerOption.includes('hoch') || lowerOption.includes('visoko')) return '🔥';
+  const lower = option.toLowerCase();
+  if (lower.includes('dessert') || lower.includes('nachspeisen')) return '🍰';
+  if (lower.includes('savory') || lower.includes('herzhaft') || lower.includes('slano')) return '🍕';
+  if (lower.includes('diet') || lower.includes('diät') || lower.includes('dijetalni')) return '🥗';
+  if (lower.includes('drink') || lower.includes('getränk') || lower.includes('napitak')) return '🥤';
+  if (lower.includes('anything') || lower.includes('alles') || lower.includes('svejedno')) return '😋';
+  if (lower.includes('no restriction') || lower.includes('keine einschränkungen') || lower.includes('bez restrikcija')) return '✅';
+  if (lower.includes('gluten free') || lower.includes('glutenfrei') || lower.includes('bez glutena')) return '🌾';
+  if (lower.includes('lactose free') || lower.includes('laktosefrei') || lower.includes('bez laktoze')) return '🥛';
+  if (lower.includes('sugar free') || lower.includes('zuckerfrei') || lower.includes('bez šećera')) return '🍬';
+  if (lower.includes('vegan')) return '🌱';
+  if (lower.includes('nuts') || lower.includes('nüsse') || lower.includes('nussfrei') || lower.includes('orašasti')) return '🥜';
+  if (lower.includes('protein') || lower.includes('visokoprotein')) return '💪';
+  if (lower.includes('fiber') || lower.includes('ballaststoff') || lower.includes('vlaknima')) return '🌾';
+  if (lower.includes('carbs') || lower.includes('kohlenhydrat') || lower.includes('ugljikohidrat')) return '🍞';
+  if (lower.includes('quick') || lower.includes('kurz') || lower.includes('kratko')) return '⚡';
+  if (lower.includes('medium') || lower.includes('mittel')) return '⏳';
+  if (lower.includes('long') || lower.includes('lang') || lower.includes('duže')) return '🐢';
+  if (lower.includes('beginner') || lower.includes('anfänger') || lower.includes('početnik')) return '👶';
+  if (lower.includes('intermediate') || lower.includes('fortgeschritten') || lower.includes('srednji')) return '👨‍🍳';
+  if (lower.includes('professional') || lower.includes('profi') || lower.includes('profesionalac')) return '👨‍🍳⭐';
+  if (lower.includes('low') || lower.includes('niedrig') || lower.includes('nisko')) return '⬇️';
+  if (lower.includes('moderate') || lower.includes('mäßig') || lower.includes('umjereno')) return '➡️';
+  if (lower.includes('high') || lower.includes('hoch') || lower.includes('visoko')) return '🔥';
 
   return '📌';
 };
@@ -259,7 +178,7 @@ const Quiz = () => {
       id: 'restrikcije',
       label: t('quiz.questions.restrikcije'),
       type: 'checkbox',
-      options: t('quiz.options.restrikcije', { returnObjects: true }) || ['Bez restrikcija', 'Bez glutena', 'Bez laktoze', 'Bez šećera', 'Veganski', 'Orašasti plodovi'],
+      options: t('quiz.options.restrikcije', { returnObjects: true }) || ['Bez restrikcija', 'Bez glutena', 'Bez laktoze', 'Bez šećera', 'Veganski', 'Bez orašastih plodova'],
       maxSelect: 3
     },
     {
@@ -299,29 +218,22 @@ const Quiz = () => {
     const current = formData[field] || [];
     const max = questions.find(q => q.id === field)?.maxSelect || 3;
     
-    // 🔥 DODAJ OVO ZA DEBUG (obriši kad proradi)
-    console.log(`🔍 [${field}] Trenutno:`, current);
-    console.log(`🔍 [${field}] Max:`, max);
-    console.log(`🔍 [${field}] Opcija:`, option);
-    
-    // ============================================================
-    // 📌 DEFINIRAJ "SVEJEDNO" NA SVIM JEZICIMA
-    // ============================================================
+    // 🔥 DEFINIRAJ "SVEJEDNO" NA SVIM JEZICIMA
     const anythingOptions = ['Svejedno', 'Anything', 'Alles'];
     const noRestrictionOptions = ['Bez restrikcija', 'No restrictions', 'Keine Einschränkungen'];
     
-    const isAnything = anythingOptions.includes(option);
-    const isNoRestriction = noRestrictionOptions.includes(option);
+    const isAnything = (val) => anythingOptions.includes(val);
+    const isNoRestriction = (val) => noRestrictionOptions.includes(val);
     
     // ============================================================
     // 1. LOGIKA ZA "SVEJEDNO" (VRSTA I PREFERENCIJE)
     // ============================================================
     if (field === 'vrsta' || field === 'preferencije') {
       // Ako je odabrana opcija "Svejedno" (na bilo kojem jeziku)
-      if (isAnything) {
+      if (isAnything(option)) {
         // Ako je već odabrano → ukloni ga
-        if (current.some(item => anythingOptions.includes(item))) {
-          handleChange(field, current.filter(item => !anythingOptions.includes(item)));
+        if (current.some(item => isAnything(item))) {
+          handleChange(field, current.filter(item => !isAnything(item)));
         } else {
           // Inače, postavi SAMO "Svejedno"
           handleChange(field, [option]);
@@ -330,8 +242,8 @@ const Quiz = () => {
       }
       
       // Ako je "Svejedno" već odabrano, dodaj novu opciju umjesto njega
-      if (current.some(item => anythingOptions.includes(item))) {
-        const newSelection = current.filter(item => !anythingOptions.includes(item));
+      if (current.some(item => isAnything(item))) {
+        const newSelection = current.filter(item => !isAnything(item));
         if (!newSelection.includes(option) && newSelection.length < max) {
           handleChange(field, [...newSelection, option]);
         } else if (newSelection.includes(option)) {
@@ -346,9 +258,9 @@ const Quiz = () => {
     // ============================================================
     if (field === 'restrikcije') {
       // Ako je odabrana opcija "Bez restrikcija" (na bilo kojem jeziku)
-      if (isNoRestriction) {
-        if (current.some(item => noRestrictionOptions.includes(item))) {
-          handleChange(field, current.filter(item => !noRestrictionOptions.includes(item)));
+      if (isNoRestriction(option)) {
+        if (current.some(item => isNoRestriction(item))) {
+          handleChange(field, current.filter(item => !isNoRestriction(item)));
         } else {
           handleChange(field, [option]);
         }
@@ -356,8 +268,8 @@ const Quiz = () => {
       }
       
       // Ako je "Bez restrikcija" već odabrano, dodaj novu opciju umjesto njega
-      if (current.some(item => noRestrictionOptions.includes(item))) {
-        const newSelection = current.filter(item => !noRestrictionOptions.includes(item));
+      if (current.some(item => isNoRestriction(item))) {
+        const newSelection = current.filter(item => !isNoRestriction(item));
         if (!newSelection.includes(option) && newSelection.length < max) {
           handleChange(field, [...newSelection, option]);
         } else if (newSelection.includes(option)) {
@@ -371,13 +283,10 @@ const Quiz = () => {
     // 3. STANDARDNA LOGIKA ZA SVE OSTALO
     // ============================================================
     if (current.includes(option)) {
-      // Ako je opcija već odabrana → ukloni je
       handleChange(field, current.filter(item => item !== option));
     } else if (current.length < max) {
-      // Ako nije odabrana i ima mjesta → dodaj je
       handleChange(field, [...current, option]);
     } else {
-      // Ako je max dostignut → prikaži toast
       setToast({ 
         message: t('quiz.toast.max_selected', { max }), 
         type: 'error' 
@@ -392,22 +301,24 @@ const Quiz = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // 🔥 POPRAVLJENO - prepoznaje "Svejedno" na svim jezicima
     const anythingOptions = ['Svejedno', 'Anything', 'Alles'];
     const noRestrictionOptions = ['Bez restrikcija', 'No restrictions', 'Keine Einschränkungen'];
     
+    const isAnything = (val) => anythingOptions.includes(val);
+    const isNoRestriction = (val) => noRestrictionOptions.includes(val);
+    
     let restrikcijeZaSlanje = formData.restrikcije;
-    if (restrikcijeZaSlanje.some(item => noRestrictionOptions.includes(item))) {
+    if (restrikcijeZaSlanje.some(item => isNoRestriction(item))) {
       restrikcijeZaSlanje = [];
     }
     
     let vrstaZaSlanje = formData.vrsta;
-    if (vrstaZaSlanje.some(item => anythingOptions.includes(item))) {
+    if (vrstaZaSlanje.some(item => isAnything(item))) {
       vrstaZaSlanje = [];
     }
     
     let preferencijeZaSlanje = formData.preferencije;
-    if (preferencijeZaSlanje.some(item => anythingOptions.includes(item))) {
+    if (preferencijeZaSlanje.some(item => isAnything(item))) {
       preferencijeZaSlanje = [];
     }
     
