@@ -700,13 +700,25 @@
     "logout": "Abmelden",
     "delete_confirm": "Sind Sie sicher? Diese Aktion ist unwiderruflich!",
     "delete_error": "Fehler beim Löschen der Daten.",
+    "language": "Sprache",
+    "no_badges": "Noch keine Abzeichen verdient.",
+    "badges_hint": "Veröffentlichen Sie Rezepte und sammeln Sie Likes, um Abzeichen zu verdienen!",
     "badges": {
       "title": "Verdiente Abzeichen",
       "first_recipe": "Erstes Rezept",
       "three_days": "3 Tage hintereinander",
       "ten_recipes": "10 Rezepte",
-      "earned": "Verdient",
-      "locked": "Gesperrt"
+      "earned": "Verdient 🎉",
+      "locked": "Gesperrt",
+      "available": "Verfügbare Abzeichen:",
+      "descriptions": {
+        "first_recipe": "Sie haben Ihr erstes Rezept in der Community geteilt!",
+        "three_recipes": "Sie haben 3 Rezepte in der Community geteilt!",
+        "ten_recipes": "Sie haben 10 Rezepte in der Community geteilt!",
+        "twenty_recipes": "Sie haben 20 Rezepte in der Community geteilt!",
+        "popular_recipe": "Ihr Rezept hat 10 Likes erhalten!",
+        "super_popular": "Ihr Rezept hat 50 Likes erhalten!"
+      }
     }
   },
   "register": {

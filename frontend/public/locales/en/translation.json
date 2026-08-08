@@ -700,13 +700,25 @@
     "logout": "Log out",
     "delete_confirm": "Are you sure? This action is irreversible!",
     "delete_error": "Error deleting data.",
+    "language": "Language",
+    "no_badges": "No badges earned yet.",
+    "badges_hint": "Post recipes and collect likes to earn badges!",
     "badges": {
-      "title": "Earned badges",
-      "first_recipe": "First recipe",
-      "three_days": "3 days in a row",
-      "ten_recipes": "10 recipes",
-      "earned": "Earned",
-      "locked": "Locked"
+      "title": "Earned Badges",
+      "first_recipe": "First Recipe",
+      "three_days": "3 Days in a Row",
+      "ten_recipes": "10 Recipes",
+      "earned": "Earned 🎉",
+      "locked": "Locked",
+      "available": "Available Badges:",
+      "descriptions": {
+        "first_recipe": "You shared your first recipe in the community!",
+        "three_recipes": "You shared 3 recipes in the community!",
+        "ten_recipes": "You shared 10 recipes in the community!",
+        "twenty_recipes": "You shared 20 recipes in the community!",
+        "popular_recipe": "Your recipe received 10 likes!",
+        "super_popular": "Your recipe received 50 likes!"
+      }
     }
   },
   "register": {

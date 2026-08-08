@@ -700,13 +700,25 @@
     "logout": "Odjavi se",
     "delete_confirm": "Jeste li sigurni? Ova radnja je nepovratna!",
     "delete_error": "Greška pri brisanju podataka.",
+    "language": "Jezik",
+    "no_badges": "Još nema osvojenih bedževa.",
+    "badges_hint": "Objavljujte recepte i skupljajte lajkove da osvojite bedževe!",
     "badges": {
       "title": "Osvojeni bedževi",
       "first_recipe": "Prvi recept",
       "three_days": "3 dana zaredom",
       "ten_recipes": "10 recepata",
-      "earned": "Osvojeno",
-      "locked": "Zaključano"
+      "earned": "Osvojeno 🎉",
+      "locked": "Zaključano",
+      "available": "Dostupni bedževi:",
+      "descriptions": {
+        "first_recipe": "Objavili ste svoj prvi recept u zajednici!",
+        "three_recipes": "Objavili ste 3 recepta u zajednici!",
+        "ten_recipes": "Objavili ste 10 recepata u zajednici!",
+        "twenty_recipes": "Objavili ste 20 recepata u zajednici!",
+        "popular_recipe": "Vaš recept je dobio 10 lajkova!",
+        "super_popular": "Vaš recept je dobio 50 lajkova!"
+      }
     }
   },
   "register": {

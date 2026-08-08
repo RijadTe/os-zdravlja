@@ -14,7 +14,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [badges, setBadges] = useState([]);
-  const [badgesLoading, setBadgesLoading] = useState(true); // 🔥 DODANO
+  const [badgesLoading, setBadgesLoading] = useState(true);
 
   // ============================================================
   // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA
@@ -73,7 +73,7 @@ const Profile = () => {
   };
 
   // ============================================================
-  // 🔥 DODANO: DOHVATI BEDŽEVE IZ BAZE
+  // 🔥 DOHVATI BEDŽEVE IZ BAZE
   // ============================================================
   const fetchBadges = async (email) => {
     try {
@@ -155,7 +155,6 @@ const Profile = () => {
           localStorage.setItem('user', JSON.stringify(storedUser));
         }
         
-        // 🔥 DODANO: DOHVATI BEDŽEVE NAKON PROFILA
         await fetchBadges(email);
       } else {
         console.error('❌ Profil nije pronađen');
@@ -217,7 +216,6 @@ const Profile = () => {
       if (data.success) {
         console.log('✅ Profil kreiran:', data.data);
         setProfile(data.data);
-        // 🔥 DODANO: DOHVATI BEDŽEVE ZA NOVI PROFIL
         await fetchBadges(email);
       }
     } catch (error) {
@@ -272,7 +270,6 @@ const Profile = () => {
           
           if (profileData) {
             setProfile(profileData);
-            // 🔥 DODANO: DOHVATI BEDŽEVE
             await fetchBadges(email);
             setLoading(false);
           } else {
@@ -304,7 +301,7 @@ const Profile = () => {
   }, [navigate]);
 
   // ============================================================
-  // 🔥 DODANO: OSVJEŽI BEDŽEVE KADA SE JEZIK PROMIJENI
+  // 🔥 OSVJEŽI BEDŽEVE KADA SE JEZIK PROMIJENI
   // ============================================================
   useEffect(() => {
     if (profile?.email) {
@@ -471,7 +468,7 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* ===== 🔥 IZMIJENJENO: BEDŽEVI IZ BAZE ===== */}
+      {/* ===== 🔥 BEDŽEVI IZ BAZE SA PRIJEVODIMA ===== */}
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
         <h2 className="text-xl font-bold mb-4">
           🏆 {t('profile.badges.title')}
@@ -496,16 +493,27 @@ const Profile = () => {
           <div className="flex flex-wrap gap-4">
             {badges.map((badge) => {
               const badgeData = badge.badge || badge;
+              // 🔥 Dohvati opis iz prijevoda ili koristi onaj iz baze
+              const description = t(`profile.badges.descriptions.${badgeData.kljuc}`, { 
+                defaultValue: badgeData.opis || '' 
+              });
+              
               return (
                 <div
                   key={badge.id}
-                  className="flex flex-col items-center p-4 rounded-xl border-2 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 min-w-[100px]"
+                  className="flex flex-col items-center p-4 rounded-xl border-2 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 min-w-[100px] max-w-[140px]"
                 >
                   <span className="text-3xl">{badgeData.ikona || '🏆'}</span>
                   <span className="text-sm font-semibold mt-1 text-gray-800 dark:text-white text-center">
                     {badgeData.naziv || badgeData.name}
                   </span>
-                  <span className="text-xs text-green-500">
+                  {/* 🔥 PRIKAZ OPISA */}
+                  {description && (
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400 text-center mt-0.5 leading-tight">
+                      {description}
+                    </span>
+                  )}
+                  <span className="text-xs text-green-500 mt-0.5">
                     {t('profile.badges.earned')} 🎉
                   </span>
                   <span className="text-[10px] text-gray-400 mt-0.5">
@@ -517,7 +525,7 @@ const Profile = () => {
           </div>
         )}
         
-        {/* 🔥 DODANO: PRIKAZ SVIH DOSTUPNIH BEDŽEVA (ZAKLJUČANIH) */}
+        {/* 🔥 PRIKAZ SVIH DOSTUPNIH BEDŽEVA (ZAKLJUČANIH) */}
         {!badgesLoading && (
           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
@@ -536,21 +544,33 @@ const Profile = () => {
                   (b.badge?.kljuc || b.kljuc) === availableBadge.key
                 );
                 
+                // 🔥 Dohvati opis za dostupni bedž
+                const description = t(`profile.badges.descriptions.${availableBadge.key}`, { 
+                  defaultValue: '' 
+                });
+                
                 return (
                   <div
                     key={availableBadge.key}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${
+                    className={`flex flex-col items-center px-3 py-1.5 rounded-full border ${
                       hasBadge
                         ? 'border-green-400 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                         : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 text-gray-400 dark:text-gray-500 opacity-60'
                     }`}
                   >
-                    <span>{availableBadge.icon}</span>
-                    <span className="text-xs font-medium">{availableBadge.name}</span>
-                    {hasBadge ? (
-                      <span className="text-[10px] text-green-500">✅</span>
-                    ) : (
-                      <span className="text-[10px]">🔒</span>
+                    <div className="flex items-center gap-2">
+                      <span>{availableBadge.icon}</span>
+                      <span className="text-xs font-medium">{availableBadge.name}</span>
+                      {hasBadge ? (
+                        <span className="text-[10px] text-green-500">✅</span>
+                      ) : (
+                        <span className="text-[10px]">🔒</span>
+                      )}
+                    </div>
+                    {description && (
+                      <span className="text-[8px] text-gray-400 dark:text-gray-500 text-center mt-0.5 leading-tight max-w-[120px]">
+                        {description}
+                      </span>
                     )}
                   </div>
                 );
