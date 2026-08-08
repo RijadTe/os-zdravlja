@@ -2615,7 +2615,7 @@ app.get('/api/ai-chef/video-ads/:email', async (req, res) => {
 });
 
 // ============================================================
-// 25. 🔥🔥🔥 AI CHEF - PRETRAGA SA JEZIKOM I PREVODIMA
+// 25. 🔥🔥🔥 AI CHEF - PRETRAGA SA BAZOM I AI FALLBACKOM
 // ============================================================
 app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
   try {
@@ -2626,22 +2626,28 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
     console.log(`🌐 Jezik: ${jezik || 'hr'}`);
     
     let restrikcije = [];
+    let korisnikIme = 'Korisnik';
+    let korisnikVrsta = [];
+    let korisnikPreferencije = [];
     let zdravstveniPodaci = null;
     
+    // 🔥 DOHVATI KORISNIČKI PROFIL
     if (email) {
       const { data: profil, error: profilError } = await supabase
         .from('profili')
-        .select('izbjegava')
+        .select('ime, izbjegava, vrsta, preferencije')
         .eq('email', email)
         .maybeSingle();
       
-      if (profilError) {
-        console.error('❌ Greška pri dohvatu restrikcija:', profilError);
-      }
-      
-      if (profil?.izbjegava) {
-        restrikcije = profil.izbjegava;
-        console.log('🔒 Restrikcije korisnika:', restrikcije);
+      if (!profilError && profil) {
+        korisnikIme = profil.ime || 'Korisnik';
+        restrikcije = profil.izbjegava || [];
+        korisnikVrsta = profil.vrsta || [];
+        korisnikPreferencije = profil.preferencije || [];
+        console.log('👤 Korisnik:', korisnikIme);
+        console.log('🔒 Restrikcije:', restrikcije);
+        console.log('🍽️ Vrste:', korisnikVrsta);
+        console.log('💪 Preferencije:', korisnikPreferencije);
       }
       
       const { data: zdravstveni, error: zdravError } = await supabase
@@ -2651,10 +2657,6 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
         .order('datum', { ascending: false })
         .limit(1)
         .maybeSingle();
-      
-      if (zdravError) {
-        console.error('❌ Greška pri dohvatu zdravstvenih podataka:', zdravError);
-      }
       
       if (zdravstveni) {
         zdravstveniPodaci = zdravstveni;
@@ -2666,13 +2668,14 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
     let inputType = 'tekst';
     let imageHash = null;
     let slikaPutanja = null;
+    let izvuceniSastojci = [];
 
+    // 🔥 OBRADI SLIKU
     if (slika) {
       inputType = 'slika';
       slikaPutanja = slika.path;
       console.log('📸 Primljena slika:', slika.originalname);
       console.log('📏 Veličina:', slika.size, 'bytes');
-      console.log('📁 Putanja:', slikaPutanja);
 
       imageHash = generateHash(slikaPutanja, 'slika');
       
@@ -2686,13 +2689,14 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
       }
 
       const analysis = await analyzeImage(slikaPutanja);
-      inputText = analysis.sastojci.join(', ');
+      izvuceniSastojci = analysis.sastojci || [];
+      inputText = izvuceniSastojci.join(', ');
       
       if (fs.existsSync(slikaPutanja)) {
         fs.unlink(slikaPutanja, (err) => { if (err) console.error('⚠️ Greška pri brisanju slike:', err); });
       }
       
-      console.log('📝 Sastojci sa slike:', inputText);
+      console.log('📝 Izvučeni sastojci sa slike:', izvuceniSastojci);
     }
 
     if (!inputText || inputText.trim() === '') {
@@ -2710,7 +2714,7 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
     const sastojci = inputText.split(',').map(s => s.trim().toLowerCase());
     console.log('📦 Sastojci za pretragu:', sastojci);
 
-    // 🔥🔥🔥 DOHVATI RECEPTE SA PREVODIMA ZA TRAŽENI JEZIK
+    // 🔥🔥🔥 1. PRVO PRETRAŽI BAZU
     let query = supabase
       .from('recepti')
       .select(`
@@ -2724,7 +2728,6 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
         )
       `);
 
-    // 🔥 AKO NIJE HRVATSKI, DOHVATI I PREVODE
     if (jezik && jezik !== 'hr') {
       query = query.eq('prevod.jezik', jezik);
     }
@@ -2752,7 +2755,8 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
       });
     }
 
-    const filtrirani = recepti.filter(recept => {
+    // 🔥 FILTRIRAJ RECEPTE IZ BAZE
+    let bazaRezultati = recepti.filter(recept => {
       if (!recept.sastojci || recept.sastojci.length === 0) return false;
       const receptSastojci = recept.sastojci.map(s => s.toLowerCase());
       const imaSastojak = sastojci.some(sastojak => 
@@ -2793,48 +2797,200 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
       return true;
     });
 
-    console.log(`✅ Pronađeno ${filtrirani.length} recepata (sa restrikcijama i zdravstvenim podacima)`);
+    console.log(`✅ U bazi pronađeno ${bazaRezultati.length} recepata`);
 
-    // 🔥🔥🔥 OBRADI PREVODE ZA REZULTATE
-    let results = filtrirani.map(recipe => {
-      // AKO POSTOJI PREVOD I NIJE HRVATSKI
-      if (recipe.prevod && jezik && jezik !== 'hr') {
-        // KORISTI PREVEDENE PODATKE
-        const translated = {
-          ...recipe,
-          naziv: recipe.prevod.naziv || recipe.naziv,
-          opis: recipe.prevod.opis || recipe.opis,
-          sastojci: recipe.prevod.sastojci || recipe.sastojci,
-          upute: recipe.prevod.upute || recipe.upute,
-          nacin_pripreme: recipe.prevod.nacin_pripreme || recipe.nacin_pripreme
-        };
-        delete translated.prevod; // UKLONI PREVOD OBJEKAT
-        return translated;
-      }
+    // 🔥🔥🔥 2. AKO IMA REZULTATA U BAZI - VRATI IH
+    if (bazaRezultati.length > 0) {
+      // OBRADI PREVODE
+      let results = bazaRezultati.map(recipe => {
+        if (recipe.prevod && jezik && jezik !== 'hr') {
+          return {
+            ...recipe,
+            naziv: recipe.prevod.naziv || recipe.naziv,
+            opis: recipe.prevod.opis || recipe.opis,
+            sastojci: recipe.prevod.sastojci || recipe.sastojci,
+            upute: recipe.prevod.upute || recipe.upute,
+            nacin_pripreme: recipe.prevod.nacin_pripreme || recipe.nacin_pripreme
+          };
+        }
+        const clean = { ...recipe };
+        delete clean.prevod;
+        return clean;
+      });
+
+      // SPREMI U CACHE
+      const hashToSave = imageHash || textHash;
+      const typeToSave = slika ? 'slika' : 'tekst';
+      const originalResults = bazaRezultati.map(r => {
+        const clean = { ...r };
+        delete clean.prevod;
+        return clean;
+      });
+      await saveToCache(hashToSave, typeToSave, originalResults);
+
+      res.setHeader('X-Content-Language', jezik || 'hr');
+      res.setHeader('X-Source', 'database');
+      return res.json(results);
+    }
+
+    // 🔥🔥🔥 3. AKO NEMA REZULTATA U BAZI - POZOVI OPENAI!
+    console.log('❌ Nema recepata u bazi, pozivam OpenAI...');
+
+    if (!openai) {
+      console.warn('⚠️ OpenAI nije dostupan, vraćam prazan niz');
+      return res.json([]);
+    }
+
+    try {
+      console.log('🤖 Generišem AI recepte na osnovu sastojaka...');
+
+      // 🔥 FORMATIRAJ RESTRIKCIJE ZA PROMPT
+      let restrikcijePrompt = 'Nema posebnih restrikcija.';
+      let alergeniPrompt = '';
+      let dijetnePrompt = '';
       
-      // HRVATSKI ILI NEMA PREVODA - VRATI ORIGINAL
-      const cleanRecipe = { ...recipe };
-      delete cleanRecipe.prevod;
-      return cleanRecipe;
-    });
+      if (restrikcije && restrikcije.length > 0) {
+        const alergeni = [];
+        const dijetne = [];
+        
+        restrikcije.forEach(r => {
+          const rLower = r.toLowerCase();
+          const jeAlergen = alergeniList.some(a => rLower.includes(a));
+          if (jeAlergen) {
+            alergeni.push(r);
+          } else {
+            dijetne.push(r);
+          }
+        });
+        
+        if (alergeni.length > 0) {
+          alergeniPrompt = `\n⚠️ ALERGENI KOJE MORATE IZBJEĆI: ${alergeni.join(', ')}.\nSVAKI predloženi recept MORA biti BEZ ovih sastojaka!`;
+        }
+        if (dijetne.length > 0) {
+          dijetnePrompt = `\n🥗 DIJETNE OZNAKE: ${dijetne.join(', ')}.\nSVAKI predloženi recept MORA odgovarati ovim dijetnim zahtjevima.`;
+        }
+        
+        restrikcijePrompt = `Korisnik IZBJEGAVA: ${restrikcije.join(', ')}.`;
+      }
 
-    // SPREMI U CACHE BEZ PREVODA (KEŠIRAMO ORIGINALNE PODATKE)
-    const hashToSave = imageHash || textHash;
-    const typeToSave = slika ? 'slika' : 'tekst';
-    
-    // 🔥 SPREMI ORIGINALNE REZULTATE U CACHE (BEZ PREVODA)
-    const originalResults = filtrirani.map(r => {
-      const clean = { ...r };
-      delete clean.prevod;
-      return clean;
-    });
-    
-    await saveToCache(hashToSave, typeToSave, originalResults);
+      // 🔥 VRSTE JELA
+      let vrstaPrompt = '';
+      if (korisnikVrsta && korisnikVrsta.length > 0) {
+        const vrste = korisnikVrsta.filter(v => v !== 'Svejedno');
+        if (vrste.length > 0) {
+          vrstaPrompt = `\n🍽️ PREFERIRANE VRSTE JELA: ${vrste.join(', ')}.`;
+        }
+      }
 
-    // 🔥 DODAJ HEADER ZA JEZIK
-    res.setHeader('X-Content-Language', jezik || 'hr');
-    
-    res.json(results);
+      // 🔥 PREFERENCIJE
+      let preferencijePrompt = '';
+      if (korisnikPreferencije && korisnikPreferencije.length > 0) {
+        const prefs = korisnikPreferencije.filter(p => p !== 'Svejedno');
+        if (prefs.length > 0) {
+          preferencijePrompt = `\n💪 NUTRICIONI PREFERENCIJE: ${prefs.join(', ')}.`;
+        }
+      }
+
+      // 🔥 ODREĐIVANJE JEZIKA ZA AI ODGOVOR
+      const jezikMapa = {
+        'hr': 'hrvatskom',
+        'en': 'engleskom',
+        'de': 'njemačkom'
+      };
+      const jezikNaziv = jezikMapa[jezik] || 'hrvatskom';
+
+      // 🔥 KREIRAJ PROMPT ZA OPENAI
+      const prompt = `
+        KREIRAJ RECEPTE na ${jezikNaziv} jeziku na osnovu dostupnih sastojaka.
+        
+        📦 DOSTUPNI SASTOJCI:
+        ${sastojci.join(', ')}
+        
+        👤 KORISNIK: ${korisnikIme}
+        
+        🔒 RESTRIKCIJE KORISNIKA:
+        ${restrikcijePrompt}
+        ${alergeniPrompt}
+        ${dijetnePrompt}
+        ${vrstaPrompt}
+        ${preferencijePrompt}
+        
+        ⚠️ VAŽNA UPOZORENJA (OBAVEZNO):
+        1. SVAKI recept MORA BITI BEZ ALERGENA iz liste!
+        2. SVAKI recept MORA ODGOVARATI DIJETNIM OZNAKAMA!
+        3. Koristi DOSTUPNE SASTOJKE što je više moguće!
+        4. Ako nedostaju neki sastojci, predloži zamjene!
+        5. Recepti trebaju biti zdravi, ukusni i jednostavni za pripremu!
+        6. Odgovori na ${jezikNaziv} jeziku!
+        
+        📋 FORMAT:
+        Kreiraj 3-5 recepta. Svaki recept treba imati:
+        - naziv: Naziv jela
+        - opis: Kratak opis (1-2 rečenice)
+        - sastojci: Lista sastojaka (sa količinama)
+        - upute: Koraci pripreme
+        - vrijeme: Vrijeme pripreme (npr. "30 min")
+        - tezina: Težina (Početnik/Srednji/Profesionalac)
+        - kalorije: Broj kalorija po porciji
+        - vrsta: Vrsta jela (Slano/Deserti/Dijetalni recepti/Napitki)
+        
+        Odgovori isključivo u JSON formatu:
+        {
+          "recepti": [
+            {
+              "naziv": "...",
+              "opis": "...",
+              "sastojci": ["...", "..."],
+              "upute": ["...", "..."],
+              "vrijeme": "...",
+              "tezina": "...",
+              "kalorije": 0,
+              "vrsta": "..."
+            }
+          ]
+        }
+      `;
+
+      console.log('📝 Šaljem OpenAI zahtjev...');
+      console.log('🔒 Restrikcije u promptu:', restrikcijePrompt);
+      console.log('🌐 Jezik odgovora:', jezikNaziv);
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.8,
+        response_format: { type: "json_object" }
+      });
+
+      const aiData = JSON.parse(response.choices[0].message.content);
+      console.log('✅ OpenAI generisao recepte:', aiData.recepti?.length || 0);
+
+      // 🔥 OBRADI AI REZULTATE
+      let aiResults = aiData.recepti || [];
+      
+      // 🔥 DODAJ GENERISANE ID-eve
+      aiResults = aiResults.map((r, index) => ({
+        ...r,
+        id: `ai-${Date.now()}-${index}`,
+        _ai_generated: true,
+        alergeni: restrikcije || []
+      }));
+
+      // 🔥 SPREMI U CACHE
+      const hashToSave = imageHash || textHash;
+      const typeToSave = slika ? 'slika' : 'tekst';
+      await saveToCache(hashToSave, typeToSave, aiResults);
+
+      res.setHeader('X-Content-Language', jezik || 'hr');
+      res.setHeader('X-Source', 'ai_generated');
+      res.json(aiResults);
+
+    } catch (openaiError) {
+      console.error('❌ OpenAI greška:', openaiError.message);
+      
+      // 🔥 FALLBACK - VRATI PRAZAN NIZ
+      res.json([]);
+    }
 
   } catch (error) {
     console.error('❌ Greška pri AI pretrazi:', error);
