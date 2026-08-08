@@ -1,7 +1,7 @@
 // frontend/src/pages/Profile.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } react-i18next';
 import { supabase } from '../supabaseClient';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -14,6 +14,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [badges, setBadges] = useState([]);
+  const [badgesLoading, setBadgesLoading] = useState(true); // 🔥 DODANO
 
   // ============================================================
   // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA
@@ -35,7 +36,7 @@ const Profile = () => {
         'Bez laktoze': t('quiz.options.restrikcije.2'),
         'Bez šećera': t('quiz.options.restrikcije.3'),
         'Veganski': t('quiz.options.restrikcije.4'),
-        'Orašasti plodovi': t('quiz.options.restrikcije.5')
+        'Bez orašastih plodova': t('quiz.options.restrikcije.5')
       },
       preferencije: {
         'Visokoproteinski': t('quiz.options.preferencije.0'),
@@ -72,15 +73,40 @@ const Profile = () => {
   };
 
   // ============================================================
-  // 🔥 KADA SE JEZIK PROMIJENI – AŽURIRAJ BEDŽEVE!
+  // 🔥 DODANO: DOHVATI BEDŽEVE IZ BAZE
   // ============================================================
-  useEffect(() => {
-    setBadges([
-      { id: 1, name: t('profile.badges.first_recipe'), icon: '🥇', earned: true },
-      { id: 2, name: t('profile.badges.three_days'), icon: '🥈', earned: false },
-      { id: 3, name: t('profile.badges.ten_recipes'), icon: '🥉', earned: false },
-    ]);
-  }, [t, i18n.language]);
+  const fetchBadges = async (email) => {
+    try {
+      setBadgesLoading(true);
+      console.log('🏆 Dohvatam bedževe za:', email);
+      
+      const response = await fetch(`${API_URL}/api/badges/${encodeURIComponent(email)}`);
+      
+      if (response.status === 404) {
+        console.log('ℹ️ Nema bedževa za korisnika');
+        setBadges([]);
+        return;
+      }
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.badges) {
+        console.log(`✅ Dohvaćeno ${data.badges.length} bedževa`);
+        setBadges(data.badges);
+      } else {
+        setBadges([]);
+      }
+    } catch (error) {
+      console.error('❌ Greška pri dohvatu bedževa:', error);
+      setBadges([]);
+    } finally {
+      setBadgesLoading(false);
+    }
+  };
 
   // ============================================================
   // 📊 DOHVATI PROFIL - SA RATE LIMIT FALLBACKOM!
@@ -128,6 +154,9 @@ const Profile = () => {
           storedUser.preferred_language = data.data.preferred_language || 'hr';
           localStorage.setItem('user', JSON.stringify(storedUser));
         }
+        
+        // 🔥 DODANO: DOHVATI BEDŽEVE NAKON PROFILA
+        await fetchBadges(email);
       } else {
         console.error('❌ Profil nije pronađen');
         await createProfile(email);
@@ -167,7 +196,6 @@ const Profile = () => {
     try {
       console.log('🆕 Kreiram profil za:', email);
       
-      // 🔥 DOHVATI PREFERRED LANGUAGE IZ LOCALSTORAGE
       const preferredLanguage = localStorage.getItem('preferredLanguage') || 'hr';
       
       const res = await fetch(`${API_URL}/api/profil`, {
@@ -181,7 +209,7 @@ const Profile = () => {
           vrsta: [],
           izbjegava: [],
           preferencije: [],
-          preferred_language: preferredLanguage // 👈 DODAJ OVO
+          preferred_language: preferredLanguage
         })
       });
       const data = await res.json();
@@ -189,6 +217,8 @@ const Profile = () => {
       if (data.success) {
         console.log('✅ Profil kreiran:', data.data);
         setProfile(data.data);
+        // 🔥 DODANO: DOHVATI BEDŽEVE ZA NOVI PROFIL
+        await fetchBadges(email);
       }
     } catch (error) {
       console.error('❌ Greška pri kreiranju profila:', error);
@@ -242,6 +272,8 @@ const Profile = () => {
           
           if (profileData) {
             setProfile(profileData);
+            // 🔥 DODANO: DOHVATI BEDŽEVE
+            await fetchBadges(email);
             setLoading(false);
           } else {
             await fetchProfile(session.user.email);
@@ -272,7 +304,16 @@ const Profile = () => {
   }, [navigate]);
 
   // ============================================================
-  // 🗑️ IZBRIŠI SVE PODATKE - SA PORUKOM I PREUSMJERAVANJEM NA REGISTRACIJU
+  // 🔥 DODANO: OSVJEŽI BEDŽEVE KADA SE JEZIK PROMIJENI
+  // ============================================================
+  useEffect(() => {
+    if (profile?.email) {
+      fetchBadges(profile.email);
+    }
+  }, [i18n.language]);
+
+  // ============================================================
+  // 🗑️ IZBRIŠI SVE PODATKE
   // ============================================================
   const handleDeleteData = async () => {
     if (!window.confirm(
@@ -295,7 +336,6 @@ const Profile = () => {
         return;
       }
 
-      // 🔥 1. IZBRIŠI PROFIL IZ BAZE
       console.log('🗑️ Brišem profil za:', email);
       const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}/delete`, { 
         method: 'DELETE' 
@@ -309,11 +349,8 @@ const Profile = () => {
       const result = await response.json();
       console.log('✅ Profil izbrisan:', result);
 
-      // 🔥 2. IZBRIŠI SVE IZ LOCALSTORAGE
       localStorage.clear();
-      console.log('🧹 localStorage očišćen');
 
-      // 🔥 3. ODJAVI KORISNIKA IZ SUPABASE
       try {
         await supabase.auth.signOut();
         console.log('🚪 Korisnik odjavljen iz Supabase');
@@ -321,7 +358,6 @@ const Profile = () => {
         console.warn('⚠️ Greška pri odjavi:', signOutError);
       }
 
-      // 🔥 4. PRIKAŽI PORUKU KORISNIKU
       alert(
         '🗑️ Vaš profil je uspješno izbrisan iz baze korisnika.\n\n' +
         '📝 Molimo da se ponovno izvršite registraciju.\n' +
@@ -330,7 +366,6 @@ const Profile = () => {
         'Hvala na razumijevanju!'
       );
 
-      // 🔥 5. PREUSMJERI NA REGISTRACIJU (ne na login!)
       navigate('/register');
       
     } catch (error) {
@@ -416,7 +451,6 @@ const Profile = () => {
             )}
           </div>
         </div>
-        {/* 🔥 PRIKAŽI TRENUTNI JEZIK */}
         <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
           🌍 {t('profile.language')}: {profile.preferred_language === 'hr' ? 'Hrvatski' : profile.preferred_language === 'en' ? 'English' : 'Deutsch'}
         </div>
@@ -437,31 +471,93 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* ===== BEDŽEVI ===== */}
+      {/* ===== 🔥 IZMIJENJENO: BEDŽEVI IZ BAZE ===== */}
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
-        <h2 className="text-xl font-bold mb-4">{t('profile.badges.title')}</h2>
-        <div className="flex flex-wrap gap-4">
-          {badges.map(badge => (
-            <div
-              key={badge.id}
-              className={`flex flex-col items-center p-4 rounded-xl border-2 ${
-                badge.earned
-                  ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/30'
-                  : 'border-gray-200 dark:border-gray-600 opacity-50'
-              }`}
-            >
-              <span className="text-3xl">{badge.icon}</span>
-              <span className="text-sm font-semibold mt-1 text-gray-800 dark:text-white">
-                {badge.name}
-              </span>
-              {badge.earned ? (
-                <span className="text-xs text-green-500">{t('profile.badges.earned')}</span>
-              ) : (
-                <span className="text-xs text-gray-400">{t('profile.badges.locked')}</span>
-              )}
+        <h2 className="text-xl font-bold mb-4">
+          🏆 {t('profile.badges.title')}
+          {badgesLoading && (
+            <span className="ml-2 text-sm text-gray-400 animate-pulse">⏳ Učitavanje...</span>
+          )}
+        </h2>
+        
+        {badgesLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          </div>
+        ) : badges.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <p className="text-4xl mb-2">🏆</p>
+            <p>{t('profile.no_badges') || 'Još nema osvojenih bedževa.'}</p>
+            <p className="text-sm mt-1">
+              {t('profile.badges_hint') || 'Objavljujte recepte i skupljajte lajkove da osvojite bedževe!'}
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-4">
+            {badges.map((badge) => {
+              const badgeData = badge.badge || badge;
+              return (
+                <div
+                  key={badge.id}
+                  className="flex flex-col items-center p-4 rounded-xl border-2 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 min-w-[100px]"
+                >
+                  <span className="text-3xl">{badgeData.ikona || '🏆'}</span>
+                  <span className="text-sm font-semibold mt-1 text-gray-800 dark:text-white text-center">
+                    {badgeData.naziv || badgeData.name}
+                  </span>
+                  <span className="text-xs text-green-500">
+                    {t('profile.badges.earned')} 🎉
+                  </span>
+                  <span className="text-[10px] text-gray-400 mt-0.5">
+                    {new Date(badge.osvojeno_na || badge.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        
+        {/* 🔥 DODANO: PRIKAZ SVIH DOSTUPNIH BEDŽEVA (ZAKLJUČANIH) */}
+        {!badgesLoading && (
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+              🔒 {t('profile.badges.available') || 'Dostupni bedževi:'}
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {[
+                { key: 'first_recipe', icon: '🏆', name: t('profile.badges.first_recipe') },
+                { key: 'three_recipes', icon: '🥉', name: '3 recepta' },
+                { key: 'ten_recipes', icon: '🥈', name: '10 recepata' },
+                { key: 'twenty_recipes', icon: '🥇', name: '20 recepata' },
+                { key: 'popular_recipe', icon: '⭐', name: '10 lajkova' },
+                { key: 'super_popular', icon: '🌟', name: '50 lajkova' },
+              ].map((availableBadge) => {
+                const hasBadge = badges.some(b => 
+                  (b.badge?.kljuc || b.kljuc) === availableBadge.key
+                );
+                
+                return (
+                  <div
+                    key={availableBadge.key}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${
+                      hasBadge
+                        ? 'border-green-400 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                        : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 text-gray-400 dark:text-gray-500 opacity-60'
+                    }`}
+                  >
+                    <span>{availableBadge.icon}</span>
+                    <span className="text-xs font-medium">{availableBadge.name}</span>
+                    {hasBadge ? (
+                      <span className="text-[10px] text-green-500">✅</span>
+                    ) : (
+                      <span className="text-[10px]">🔒</span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* ===== PREFERENCIJE - SA PREVODOM ===== */}
@@ -528,17 +624,6 @@ const Profile = () => {
           <span>🔄</span>
           {profile.kviz_zavrsen ? t('profile.edit_filters') : t('profile.take_quiz')}
         </Link>
-        
-        {/* 🔥 DUGME ZA RESET JEZIKA - UKLONJENO! */}
-        {/* {profile.kviz_zavrsen && (
-          <button
-            onClick={handleResetLanguage}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-full text-sm font-semibold transition flex items-center gap-2"
-          >
-            <span>🌍</span>
-            {t('profile.reset_language')}
-          </button>
-        )} */}
         
         {!profile.premium && (
           <Link

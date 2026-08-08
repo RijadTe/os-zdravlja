@@ -67,6 +67,9 @@ const Community = () => {
   const [user, setUser] = useState(null);
   const [profil, setProfil] = useState(null);
   const [profilLoading, setProfilLoading] = useState(true);
+  
+  // 🔥 State za prikaz notifikacije o bedževima
+  const [badgeNotification, setBadgeNotification] = useState(null);
 
   const [filters, setFilters] = useState({
     vrsta: '',
@@ -290,14 +293,52 @@ const Community = () => {
     }
   };
 
+  // 🔥 IZMJENJEN handleLike - dodaje provjeru bedževa za autora
   const handleLike = async (id) => {
     try {
       const email = user?.email || localStorage.getItem('userEmail');
-      await fetch(`${API_URL}/api/community/objave/${id}/like`, {
+      const res = await fetch(`${API_URL}/api/community/objave/${id}/like`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email })
       });
+      
+      const data = await res.json();
+      
+      // 🔥 Ako je lajk uspješan, provjeri bedževe za autora objave
+      if (data.lajkovao) {
+        const objava = objave.find(o => o.id === id);
+        if (objava && objava.korisnik_email) {
+          try {
+            const badgeRes = await fetch(`${API_URL}/api/badges/check`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                email: objava.korisnik_email,
+                akcija: 'novi_lajk',
+                podaci: { objava_id: id }
+              })
+            });
+            
+            const badgeData = await badgeRes.json();
+            
+            // 🔥 Ako je autor dobio nove bedževe, prikaži notifikaciju
+            if (badgeData.success && badgeData.noviBadgevi && badgeData.noviBadgevi.length > 0) {
+              const badgeNames = badgeData.noviBadgevi.map(b => b.naziv).join(', ');
+              setBadgeNotification({
+                message: `🎉 Autor je osvojio: ${badgeNames}!`,
+                type: 'success'
+              });
+              
+              // Sakrij notifikaciju nakon 5 sekundi
+              setTimeout(() => setBadgeNotification(null), 5000);
+            }
+          } catch (badgeError) {
+            console.error('❌ Greška pri provjeri bedževa:', badgeError);
+          }
+        }
+      }
+      
       fetchObjave();
     } catch (error) {
       console.error('Greška pri lajkanju:', error);
@@ -315,6 +356,7 @@ const Community = () => {
     });
   };
 
+  // 🔥 IZMJENJEN handleSubmit - dodaje provjeru bedževa nakon objave
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) {
@@ -354,6 +396,35 @@ const Community = () => {
         vrijeme: '',
         tezina: ''
       });
+      
+      // 🔥 PROVJERI BEDŽEVE NAKON USPJEŠNE OBJAVE
+      try {
+        const badgeRes = await fetch(`${API_URL}/api/badges/check`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            email: email,
+            akcija: 'nova_objava'
+          })
+        });
+        
+        const badgeData = await badgeRes.json();
+        
+        // 🔥 Ako je korisnik dobio nove bedževe, prikaži notifikaciju
+        if (badgeData.success && badgeData.noviBadgevi && badgeData.noviBadgevi.length > 0) {
+          const badgeNames = badgeData.noviBadgevi.map(b => b.naziv).join(', ');
+          setBadgeNotification({
+            message: `🎉 Čestitamo! Osvojili ste: ${badgeNames}!`,
+            type: 'success'
+          });
+          
+          // Sakrij notifikaciju nakon 5 sekundi
+          setTimeout(() => setBadgeNotification(null), 5000);
+        }
+      } catch (badgeError) {
+        console.error('❌ Greška pri provjeri bedževa:', badgeError);
+      }
+      
       fetchObjave();
     } catch (error) {
       console.error('Greška pri objavi:', error);
@@ -419,6 +490,26 @@ const Community = () => {
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
       <h1 className="text-3xl font-bold mb-6">📝 {t('community.title')}</h1>
+
+      {/* 🔥 NOTIFIKACIJA ZA BEDŽEVE */}
+      {badgeNotification && (
+        <div className={`mb-4 p-4 rounded-2xl animate-bounce-in ${
+          badgeNotification.type === 'success' 
+            ? 'bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-800 dark:text-green-200'
+            : 'bg-blue-100 dark:bg-blue-900/30 border border-blue-400 dark:border-blue-700 text-blue-800 dark:text-blue-200'
+        }`}>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🏆</span>
+            <p className="font-medium">{badgeNotification.message}</p>
+            <button 
+              onClick={() => setBadgeNotification(null)}
+              className="ml-auto text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* FILTERI - SADA PREVEDENI! */}
       {profil && (

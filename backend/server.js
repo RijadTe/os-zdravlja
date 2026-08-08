@@ -4572,6 +4572,393 @@ cron.schedule('0 0 * * *', async () => {
 console.log('⏰ Cron job za Premium istok postavljen (svaki dan u 00:00)');
 
 // ============================================================
+// 🏆 NAGRADE - PROVJERI I DODIJELI BEDŽEVE
+// ============================================================
+async function checkAndAwardBadges(email, akcija, podaci = {}) {
+  console.log(`🏆 Provjeravam bedževe za ${email}, akcija: ${akcija}`);
+  
+  try {
+    // 1. Dohvati sve bedževe
+    const { data: sviBadgevi, error: badgeError } = await supabase
+      .from('badges')
+      .select('*');
+    
+    if (badgeError) {
+      console.error('❌ Greška pri dohvatu badgeva:', badgeError);
+      return [];
+    }
+    
+    if (!sviBadgevi || sviBadgevi.length === 0) {
+      console.log('ℹ️ Nema definiranih badgeva u bazi');
+      return [];
+    }
+    
+    // 2. Dohvati korisnikove postojeće bedževe
+    const { data: postojeci, error: postError } = await supabase
+      .from('korisnik_badges')
+      .select('badge_id')
+      .eq('korisnik_email', email);
+    
+    if (postError) {
+      console.error('❌ Greška pri dohvatu korisnikovih badgeva:', postError);
+      return [];
+    }
+    
+    const postojeciIds = postojeci?.map(b => b.badge_id) || [];
+    const noviBadgevi = [];
+    
+    // 3. Za svaki bedž, provjeri uvjet
+    for (const badge of sviBadgevi) {
+      if (postojeciIds.includes(badge.id)) {
+        console.log(`ℹ️ Korisnik već ima bedž: ${badge.naziv}`);
+        continue;
+      }
+      
+      let ispunjen = false;
+      
+      switch (badge.uvjet_type) {
+        case 'broj_objava': {
+          const { count: brojObjava, error: countError } = await supabase
+            .from('objave')
+            .select('*', { count: 'exact', head: true })
+            .eq('korisnik_email', email);
+          
+          if (countError) {
+            console.error('❌ Greška pri brojanju objava:', countError);
+            continue;
+          }
+          
+          ispunjen = (brojObjava || 0) >= badge.uvjet_value;
+          console.log(`📊 Korisnik ima ${brojObjava || 0} objava, potrebno ${badge.uvjet_value} za ${badge.naziv}: ${ispunjen ? '✅' : '❌'}`);
+          break;
+        }
+        
+        case 'broj_lajkova': {
+          const { data: objaveKorisnika, error: objaveError } = await supabase
+            .from('objave')
+            .select('lajkovi')
+            .eq('korisnik_email', email);
+          
+          if (objaveError) {
+            console.error('❌ Greška pri dohvatu objava:', objaveError);
+            continue;
+          }
+          
+          const ukupnoLajkova = objaveKorisnika?.reduce((sum, o) => sum + (o.lajkovi || 0), 0) || 0;
+          ispunjen = ukupnoLajkova >= badge.uvjet_value;
+          console.log(`📊 Korisnik ima ${ukupnoLajkova} ukupno lajkova, potrebno ${badge.uvjet_value} za ${badge.naziv}: ${ispunjen ? '✅' : '❌'}`);
+          break;
+        }
+        
+        case 'broj_dana': {
+          const { data: objave, error: objaveError } = await supabase
+            .from('objave')
+            .select('created_at')
+            .eq('korisnik_email', email)
+            .order('created_at', { ascending: false });
+          
+          if (objaveError) {
+            console.error('❌ Greška pri dohvatu objava:', objaveError);
+            continue;
+          }
+          
+          if (objave && objave.length > 0) {
+            const dani = new Set();
+            objave.forEach(o => {
+              const dan = new Date(o.created_at).toISOString().split('T')[0];
+              dani.add(dan);
+            });
+            ispunjen = dani.size >= badge.uvjet_value;
+            console.log(`📊 Korisnik je objavljivao ${dani.size} različitih dana, potrebno ${badge.uvjet_value} za ${badge.naziv}: ${ispunjen ? '✅' : '❌'}`);
+          }
+          break;
+        }
+        
+        default: {
+          console.warn(`⚠️ Nepoznat uvjet_type: ${badge.uvjet_type}`);
+          continue;
+        }
+      }
+      
+      if (ispunjen) {
+        const { error: insertError } = await supabase
+          .from('korisnik_badges')
+          .insert([{
+            korisnik_email: email,
+            badge_id: badge.id,
+            osvojeno_na: new Date().toISOString()
+          }]);
+        
+        if (insertError) {
+          console.error(`❌ Greška pri dodjeli bedža ${badge.naziv}:`, insertError);
+          continue;
+        }
+        
+        noviBadgevi.push(badge);
+        console.log(`🏆 Dodijeljen bedž: ${badge.naziv} za ${email}`);
+        
+        await createNotification(
+          email,
+          'bedz',
+          `🎉 Čestitamo! Osvojili ste bedž "${badge.naziv}"! ${badge.opis || ''}`,
+          '/profile'
+        );
+      }
+    }
+    
+    if (noviBadgevi.length > 0) {
+      console.log(`🏆 Ukupno dodijeljeno ${noviBadgevi.length} novih bedževa za ${email}`);
+    } else {
+      console.log(`ℹ️ Nema novih bedževa za ${email}`);
+    }
+    
+    return noviBadgevi;
+    
+  } catch (error) {
+    console.error('❌ Greška pri provjeri bedževa:', error);
+    return [];
+  }
+}
+
+// ============================================================
+// 🏆 NAGRADE - PROVJERI I DODIJELI BEDŽEVE (ENDPOINT)
+// ============================================================
+app.post('/api/badges/check', async (req, res) => {
+  try {
+    const { email, akcija, podaci } = req.body;
+    
+    console.log(`📥 Zahtjev za provjeru bedževa: ${email}, akcija: ${akcija}`);
+    
+    if (!email) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email je obavezan.' 
+      });
+    }
+    
+    const noviBadgevi = await checkAndAwardBadges(email, akcija, podaci);
+    
+    res.json({
+      success: true,
+      noviBadgevi: noviBadgevi,
+      message: noviBadgevi.length > 0 
+        ? `🎉 Osvojili ste ${noviBadgevi.length} novih bedževa!` 
+        : 'Nema novih bedževa.'
+    });
+    
+  } catch (error) {
+    console.error('❌ Greška pri provjeri bedževa:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// ============================================================
+// 🏆 NAGRADE - DOHVATI KORISNIKOVE BEDŽEVE
+// ============================================================
+app.get('/api/badges/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    
+    console.log(`📥 Dohvatam bedževe za: ${email}`);
+    
+    const { data, error } = await supabase
+      .from('korisnik_badges')
+      .select(`
+        id,
+        osvojeno_na,
+        created_at,
+        badge:badges(
+          id,
+          kljuc,
+          naziv,
+          opis,
+          ikona,
+          uvjet_type,
+          uvjet_value
+        )
+      `)
+      .eq('korisnik_email', email)
+      .order('osvojeno_na', { ascending: false });
+    
+    if (error) {
+      console.error('❌ Greška pri dohvatu badgeva:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: error.message 
+      });
+    }
+    
+    const validBadges = data?.filter(item => item.badge !== null) || [];
+    
+    console.log(`✅ Dohvaćeno ${validBadges.length} bedževa za ${email}`);
+    
+    res.json({
+      success: true,
+      badges: validBadges,
+      count: validBadges.length
+    });
+    
+  } catch (error) {
+    console.error('❌ Greška pri dohvatu badgeva:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// ============================================================
+// 🏆 NAGRADE - DOHVATI SVE BEDŽEVE SA STATUSOM ZA KORISNIKA
+// ============================================================
+app.get('/api/badges/all/:email?', async (req, res) => {
+  try {
+    const { email } = req.params;
+    
+    console.log(`📥 Dohvatam sve bedževe${email ? ` za korisnika ${email}` : ''}`);
+    
+    const { data: sviBadgevi, error: badgeError } = await supabase
+      .from('badges')
+      .select('*')
+      .order('uvjet_value', { ascending: true });
+    
+    if (badgeError) {
+      console.error('❌ Greška pri dohvatu badgeva:', badgeError);
+      return res.status(500).json({ 
+        success: false, 
+        error: badgeError.message 
+      });
+    }
+    
+    let korisnikBadgevi = [];
+    if (email) {
+      const { data: korisnikData, error: korisnikError } = await supabase
+        .from('korisnik_badges')
+        .select('badge_id, osvojeno_na')
+        .eq('korisnik_email', email);
+      
+      if (!korisnikError && korisnikData) {
+        korisnikBadgevi = korisnikData;
+      }
+    }
+    
+    const badgesWithStatus = sviBadgevi?.map(badge => {
+      const osvojen = korisnikBadgevi.find(kb => kb.badge_id === badge.id);
+      return {
+        ...badge,
+        osvojen: !!osvojen,
+        osvojeno_na: osvojen?.osvojeno_na || null
+      };
+    }) || [];
+    
+    res.json({
+      success: true,
+      badges: badgesWithStatus,
+      count: badgesWithStatus.length
+    });
+    
+  } catch (error) {
+    console.error('❌ Greška pri dohvatu badgeva:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// ============================================================
+// 🏆 NAGRADE - RUČNA DODJELA BEDŽA (ADMIN)
+// ============================================================
+app.post('/api/badges/award', async (req, res) => {
+  try {
+    const { email, badge_key } = req.body;
+    
+    if (!email || !badge_key) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email i badge_key su obavezni.' 
+      });
+    }
+    
+    const { data: badge, error: badgeError } = await supabase
+      .from('badges')
+      .select('id, naziv')
+      .eq('kljuc', badge_key)
+      .maybeSingle();
+    
+    if (badgeError || !badge) {
+      return res.status(404).json({ 
+        success: false, 
+        error: `Bedž sa ključem "${badge_key}" nije pronađen.` 
+      });
+    }
+    
+    const { data: existing, error: existingError } = await supabase
+      .from('korisnik_badges')
+      .select('id')
+      .eq('korisnik_email', email)
+      .eq('badge_id', badge.id)
+      .maybeSingle();
+    
+    if (existingError) {
+      console.error('❌ Greška pri provjeri:', existingError);
+      return res.status(500).json({ 
+        success: false, 
+        error: existingError.message 
+      });
+    }
+    
+    if (existing) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Korisnik već ima ovaj bedž.' 
+      });
+    }
+    
+    const { data: newBadge, error: insertError } = await supabase
+      .from('korisnik_badges')
+      .insert([{
+        korisnik_email: email,
+        badge_id: badge.id,
+        osvojeno_na: new Date().toISOString()
+      }])
+      .select();
+    
+    if (insertError) {
+      console.error('❌ Greška pri dodjeli:', insertError);
+      return res.status(500).json({ 
+        success: false, 
+        error: insertError.message 
+      });
+    }
+    
+    console.log(`🏆 Ručno dodijeljen bedž ${badge.naziv} za ${email}`);
+    
+    await createNotification(
+      email,
+      'bedz',
+      `🎉 Čestitamo! Osvojili ste bedž "${badge.naziv}"!`,
+      '/profile'
+    );
+    
+    res.json({
+      success: true,
+      message: `✅ Bedž "${badge.naziv}" uspješno dodijeljen.`,
+      data: newBadge?.[0] || null
+    });
+    
+  } catch (error) {
+    console.error('❌ Greška pri dodjeli bedža:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// ============================================================
 // 55. FALLBACK RUTA
 // ============================================================
 app.use('/*path', (req, res) => {
