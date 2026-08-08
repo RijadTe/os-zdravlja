@@ -2,9 +2,66 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { ADSENSE_CLIENT, ADSENSE_ENABLED, DEFAULT_SLOTS } from '../config/adsense';
 
 // 🔥 PROMIJENJENO - uklonjen /api sa kraja
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+// ============================================================
+// 🔥 ADSENSE REKLAMNA KOMPONENTA
+// ============================================================
+const AdBanner = ({ slot, format = 'auto', className = '' }) => {
+  const [adLoaded, setAdLoaded] = useState(false);
+  const adRef = useRef(null);
+
+  useEffect(() => {
+    if (!ADSENSE_ENABLED) return;
+
+    // 🔥 POKRENI ADSENSE NAKON UČITAVANJA KOMPONENTE
+    const loadAd = () => {
+      try {
+        if (window.adsbygoogle) {
+          window.adsbygoogle.push({});
+          setAdLoaded(true);
+          console.log('📢 AdSense reklama prikazana (slot:', slot, ')');
+        }
+      } catch (e) {
+        console.warn('⚠️ AdSense greška:', e);
+      }
+    };
+
+    // 🔥 MALO ZAKAŠNJENJE DA SE DOM UČITA
+    const timeout = setTimeout(loadAd, 300);
+    return () => clearTimeout(timeout);
+  }, [slot]);
+
+  if (!ADSENSE_ENABLED) {
+    return (
+      <div className={`bg-gray-100 dark:bg-gray-800 rounded-xl p-4 text-center text-gray-400 dark:text-gray-500 ${className}`}>
+        <p className="text-sm">📢 {slot === DEFAULT_SLOTS.banner ? 'Banner reklama' : 'Video reklama'} (simulirano)</p>
+        <p className="text-xs">AdSense je isključen za testiranje</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`ad-container ${className}`} ref={adRef}>
+      <ins
+        className="adsbygoogle"
+        style={{ display: 'block' }}
+        data-ad-client={ADSENSE_CLIENT}
+        data-ad-slot={slot}
+        data-ad-format={format}
+        data-full-width-responsive="true"
+      />
+      {!adLoaded && (
+        <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 text-center text-gray-400 dark:text-gray-500 animate-pulse">
+          <p className="text-sm">⏳ Učitavanje reklame...</p>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // --- VOICE RECIPE READER KOMPONENTA ---
 const VoiceRecipeReader = ({ recipe }) => {
@@ -583,6 +640,15 @@ const RecipeDetails = () => {
         </div>
       </div>
 
+      {/* 🔥 REKLAMA 1 - IZMEĐU OPISA I NUTRICIONIH PODATAKA */}
+      <div className="my-6">
+        <AdBanner 
+          slot={DEFAULT_SLOTS.banner} 
+          format="auto"
+          className="rounded-xl overflow-hidden"
+        />
+      </div>
+
       <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-xl border border-blue-200 dark:border-blue-700">
         <h3 className="font-semibold dark:text-white">💡 {t('recipe.tip')}</h3>
         <p className="text-gray-700 dark:text-gray-300">
@@ -604,6 +670,15 @@ const RecipeDetails = () => {
             * {t('recipe.adjusted')} {osobe} {t('recipe.people')} ({t('recipe.original')}: {originalneOsobe} {t('recipe.people')})
           </p>
         )}
+      </div>
+
+      {/* 🔥 REKLAMA 2 - NAKON SASTOJAKA, PRIJE UPUTSTAVA */}
+      <div className="my-6">
+        <AdBanner 
+          slot={DEFAULT_SLOTS.banner} 
+          format="auto"
+          className="rounded-xl overflow-hidden"
+        />
       </div>
 
       <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">

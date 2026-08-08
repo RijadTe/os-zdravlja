@@ -30,7 +30,7 @@ const useDebounce = (value, delay) => {
 // GLAVNA KOMPONENTA
 // ============================================================
 const AIChef = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation(); // 🔥 DODAJ i18n
   const [tekst, setTekst] = useState('');
   const [slika, setSlika] = useState(null);
   const [rezultati, setRezultati] = useState([]);
@@ -52,14 +52,55 @@ const AIChef = () => {
   // 🔥 DAILY LIMIT - PREMIUM 15, FREE 3
   const [dailyLimit, setDailyLimit] = useState({ 
     broj_pretraga: 0, 
-    max_pretraga: user?.premium ? 15 : 3, 
-    preostalo: user?.premium ? 15 : 3, 
+    max_pretraga: 3, 
+    preostalo: 3, 
     moze: false 
   });
   const [loadingLimit, setLoadingLimit] = useState(false);
   const [videoWatched, setVideoWatched] = useState(false);
 
+  // 🔥 NOVO - BROJ VIDEO REKLAMA ZA FREE KORISNIKE (MAX 3 DNEVNO)
+  const [videoAdCount, setVideoAdCount] = useState(0);
+  const [maxVideoAds, setMaxVideoAds] = useState(3);
+
   const debouncedTekst = useDebounce(tekst, 400);
+
+  // ============================================================
+  // 🔥 UČITAVANJE ADSENSE SKRIPTE
+  // ============================================================
+  useEffect(() => {
+    // Učitaj AdSense skriptu ako je omogućena
+    if (ADSENSE_ENABLED && !document.querySelector('script[src*="adsbygoogle"]')) {
+      const script = document.createElement('script');
+      script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
+      script.async = true;
+      script.crossOrigin = 'anonymous';
+      document.head.appendChild(script);
+      console.log('📢 AdSense scripta učitana!');
+    }
+
+    // 🔥 ČIŠĆENJE KAD SE KOMPONENTA UNMOUNTA
+    return () => {
+      const container = document.getElementById('video-ad-container');
+      if (container) {
+        container.innerHTML = '';
+      }
+    };
+  }, []);
+
+  // ============================================================
+  // 🔥 RESETIRANJE BROJA VIDEO REKLAMA SVAKI DAN
+  // ============================================================
+  useEffect(() => {
+    const today = new Date().toDateString();
+    const lastReset = localStorage.getItem('videoAdResetDate');
+    
+    if (lastReset !== today) {
+      localStorage.setItem('videoAdResetDate', today);
+      setVideoAdCount(0);
+      console.log('🔄 Resetiran broj video reklama za novi dan');
+    }
+  }, []);
 
   // ============================================================
   // TIMER ZA VRIJEME ČEKANJA
@@ -171,51 +212,38 @@ const AIChef = () => {
     }
   }, [user]);
 
+  // ============================================================
+  // 🔥 NOVO - DOHVATI BROJ VIDEO REKLAMA
+  // ============================================================
+  const fetchVideoAdCount = useCallback(async () => {
+    const email = user?.email || localStorage.getItem('userEmail');
+    if (!email) return;
+    
+    try {
+      const res = await fetch(`${API_URL}/api/ai-chef/video-ads/${email}`);
+      const data = await res.json();
+      setVideoAdCount(data.broj_video_reklama || 0);
+    } catch (error) {
+      console.error('❌ Greška pri dohvatu broja video reklama:', error);
+    }
+  }, [user]);
+
   useEffect(() => {
     const email = user?.email || localStorage.getItem('userEmail');
     if (email) {
       fetchDailyLimit();
+      fetchVideoAdCount(); // 🔥 DODAJ I OVO
     }
-  }, [user, fetchDailyLimit]);
+  }, [user, fetchDailyLimit, fetchVideoAdCount]);
 
   // ============================================================
-  // 🔥 PRIKAŽI VIDEO REKLAMU (ADSENSE BANNER KAO SIMULACIJA)
+  // 🔥 PRIKAŽI VIDEO REKLAMU (POBOLJŠANA VERZIJA)
   // ============================================================
   const showVideoAd = () => {
     return new Promise((resolve) => {
-      setPoruka('🎬 Učitavam video reklamu... Molimo sačekajte.');
-      
-      const adContainer = document.getElementById('video-ad-container');
-      if (adContainer && ADSENSE_ENABLED) {
-        adContainer.innerHTML = '';
-        
-        const ins = document.createElement('ins');
-        ins.className = 'adsbygoogle';
-        ins.style.display = 'block';
-        ins.setAttribute('data-ad-client', ADSENSE_CLIENT);
-        ins.setAttribute('data-ad-slot', DEFAULT_SLOTS.video || '1234567892');
-        ins.setAttribute('data-ad-format', 'auto');
-        ins.setAttribute('data-full-width-responsive', 'true');
-        adContainer.appendChild(ins);
-        
-        try {
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
-        } catch (e) {
-          console.log('AdSense greška:', e);
-        }
-        
-        let seconds = 0;
-        const interval = setInterval(() => {
-          seconds++;
-          setPoruka(`🎬 Video reklama... ${seconds}/5 sekundi`);
-          if (seconds >= 5) {
-            clearInterval(interval);
-            setPoruka('✅ Video reklama završena!');
-            setTimeout(() => setPoruka(''), 1000);
-            resolve(true);
-          }
-        }, 1000);
-      } else {
+      // 🔥 PRVO PROVJERI DA LI JE ADSENSE AKTIVAN
+      if (!ADSENSE_ENABLED) {
+        // SIMULACIJA
         let seconds = 0;
         setPoruka('🎬 Simulirana video reklama...');
         const interval = setInterval(() => {
@@ -228,12 +256,90 @@ const AIChef = () => {
             resolve(true);
           }
         }, 1000);
+        return;
       }
+
+      // 🔥 PRAVA ADSENSE REKLAMA
+      setPoruka('🎬 Učitavam video reklamu... Molimo sačekajte.');
+      
+      const adContainer = document.getElementById('video-ad-container');
+      if (!adContainer) {
+        setPoruka('❌ Greška: kontejner za reklamu nije pronađen');
+        setTimeout(() => setPoruka(''), 3000);
+        resolve(false);
+        return;
+      }
+
+      // OČISTI PREĐAŠNJE REKLAME
+      adContainer.innerHTML = '';
+      
+      // KREIRAJ REKLAMU
+      const ins = document.createElement('ins');
+      ins.className = 'adsbygoogle';
+      ins.style.display = 'block';
+      ins.style.width = '100%';
+      ins.style.height = 'auto';
+      ins.style.minHeight = '90px';
+      ins.setAttribute('data-ad-client', ADSENSE_CLIENT);
+      ins.setAttribute('data-ad-slot', DEFAULT_SLOTS.video || '1234567892');
+      ins.setAttribute('data-ad-format', 'auto');
+      ins.setAttribute('data-full-width-responsive', 'true');
+      adContainer.appendChild(ins);
+      
+      // POKRENI ADSENSE
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+        console.log('📢 AdSense reklama pokrenuta!');
+      } catch (e) {
+        console.error('❌ AdSense greška:', e);
+        setPoruka('❌ Greška pri učitavanju reklame. Pokušajte ponovo.');
+        setTimeout(() => setPoruka(''), 3000);
+        resolve(false);
+        return;
+      }
+      
+      // 🔥 ČEKAJ DA SE REKLAMA UČITA ILI 10 SEKUNDI
+      let seconds = 0;
+      let adLoaded = false;
+      
+      // PRATI DA LI SE REKLAMA PRIKAZALA
+      const checkAd = setInterval(() => {
+        const ads = adContainer.querySelector('iframe');
+        if (ads && ads.style.display !== 'none') {
+          adLoaded = true;
+          clearInterval(checkAd);
+          console.log('✅ Reklama se prikazuje!');
+          setPoruka('🎬 Video reklama u tijeku...');
+        }
+      }, 500);
+      
+      // TIMER ZA BROJANJE
+      const timer = setInterval(() => {
+        seconds++;
+        if (seconds <= 5) {
+          setPoruka(`🎬 Gledajte reklamu... ${seconds}/5 sekundi`);
+        }
+        if (seconds >= 5) {
+          clearInterval(timer);
+          clearInterval(checkAd);
+          setPoruka('✅ Video reklama završena!');
+          setTimeout(() => setPoruka(''), 1000);
+          resolve(true);
+        }
+      }, 1000);
+      
+      // SIGURNOSNI TIMER - AKO REKLAMA NE STIGNE
+      setTimeout(() => {
+        if (!adLoaded && seconds < 5) {
+          console.warn('⚠️ Reklama se ne učitava, nastavljam...');
+          setPoruka('⏳ Reklama se učitava, molimo pričekajte...');
+        }
+      }, 3000);
     });
   };
 
   // ============================================================
-  // OTKLJUČAJ PRETRAGU NAKON VIDEO REKLAME
+  // 🔥 OTKLJUČAJ PRETRAGU NAKON VIDEO REKLAME (SA 3 DNEVNO LIMITA)
   // ============================================================
   const handleUnlockWithVideo = async () => {
     const email = user?.email || localStorage.getItem('userEmail');
@@ -244,6 +350,13 @@ const AIChef = () => {
     if (!email) {
       setPoruka(t('aichef.errors.login_required'));
       setTimeout(() => setPoruka(''), 3000);
+      return;
+    }
+
+    // 🔥 PROVJERA DNEVNOG LIMITA ZA VIDEO REKLAME (3)
+    if (videoAdCount >= maxVideoAds) {
+      setPoruka(`⚠️ Dosegli ste dnevni limit od ${maxVideoAds} video reklama. Pokušajte sutra!`);
+      setTimeout(() => setPoruka(''), 4000);
       return;
     }
 
@@ -264,11 +377,15 @@ const AIChef = () => {
         return;
       }
 
+      // 🔥 POŠALJI ZAHTJEV ZA OTKLJUČAVANJE SA TYPE
       console.log('📤 Šaljem zahtjev na /api/ai-chef/unlock');
       const res = await fetch(`${API_URL}/api/ai-chef/unlock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email })
+        body: JSON.stringify({ 
+          email: email,
+          type: 'video_ad' // 🔥 OZNAČI DA JE VIDEO REKLAMA
+        })
       });
       const data = await res.json();
       console.log('📥 Odgovor:', data);
@@ -280,8 +397,13 @@ const AIChef = () => {
         preostalo: Math.max(maxPretraga - (data.broj_pretraga || 0), 0),
         moze: (maxPretraga - (data.broj_pretraga || 0)) > 0
       });
+      
+      // 🔥 AŽURIRAJ BROJ VIDEO REKLAMA
+      setVideoAdCount(prev => prev + 1);
       setVideoWatched(true);
-      setPoruka(t('aichef.unlock.success'));
+      
+      const remaining = maxVideoAds - (videoAdCount + 1);
+      setPoruka(`✅ Otključano! Preostalo vam je ${remaining} od ${maxVideoAds} video reklama za danas.`);
       setTimeout(() => setPoruka(''), 3000);
     } catch (error) {
       console.error('❌ Greška:', error);
@@ -331,7 +453,7 @@ const AIChef = () => {
   }, [filteri, rezultati, profil]);
 
   // ============================================================
-  // GLAVNA PRETRAGA - SA AI CACHE PODRŠKOM!
+  // 🔥 GLAVNA PRETRAGA - SA AI CACHE PODRŠKOM I PREVODOM!
   // ============================================================
   const handlePretraga = async () => {
     if (loading) return;
@@ -343,6 +465,7 @@ const AIChef = () => {
     }
 
     const email = user?.email || localStorage.getItem('userEmail');
+    const currentLang = i18n.language || 'hr'; // 🔥 DOHVATI TRENUTNI JEZIK
 
     // 🔥 PROVJERA LIMITA ZA PREMIUM (15) I FREE (3)
     if (slika && !user?.premium && !(dailyLimit.moze && videoWatched)) {
@@ -368,6 +491,7 @@ const AIChef = () => {
       formData.append('tekst', tekst);
       if (slika) formData.append('slika', slika);
       if (email) formData.append('email', email);
+      formData.append('jezik', currentLang); // 🔥 DODAJ JEZIK!
 
       setProgress(30);
       setStatus(t('aichef.status.analyzing'));
@@ -381,27 +505,45 @@ const AIChef = () => {
       setProgress(100);
       setStatus(t('aichef.status.done'));
       const data = await res.json();
-      setRezultati(data);
+      
+      // 🔥 OBRADI RECEPTE - AKO SU PREVEDENI, KORISTI PREVOD
+      const processedData = data.map(recipe => {
+        // AKO RECEPT IMA PREVOD ZA TRENUTNI JEZIK
+        if (recipe.prevod && currentLang !== 'hr') {
+          return {
+            ...recipe,
+            naziv: recipe.prevod.naziv || recipe.naziv,
+            opis: recipe.prevod.opis || recipe.opis,
+            sastojci: recipe.prevod.sastojci || recipe.sastojci,
+            upute: recipe.prevod.upute || recipe.upute,
+            nacin_pripreme: recipe.prevod.nacin_pripreme || recipe.nacin_pripreme
+          };
+        }
+        return recipe;
+      });
+      
+      setRezultati(processedData);
       
       // 🔥 PROVJERA DA LI SU REZULTATI IZ CACHE-A
       if (res.headers.get('X-Cache') === 'HIT') {
-        setPoruka('💾 Rezultati dohvaćeni iz keša (ista slika/tekst)');
+        setPoruka(`💾 Rezultati dohvaćeni iz keša (${currentLang})`);
       } else {
-        setPoruka(t('aichef.results.found', { count: data.length }));
+        setPoruka(t('aichef.results.found', { count: processedData.length }));
       }
 
       setSlika(null);
       
+      // 🔥 RESETIRAJ videoWatched NAKON USPJEŠNE PRETRAGE
       if (videoWatched) {
         setVideoWatched(false);
         await fetchDailyLimit();
       }
 
-      if (tekst.trim() && data.length > 0) {
+      if (tekst.trim() && processedData.length > 0) {
         const novaPretraga = {
           tekst: tekst.trim(),
           datum: new Date().toLocaleDateString('hr'),
-          rezultati: data.length
+          rezultati: processedData.length
         };
         const nove = [novaPretraga, ...cestePretrage.filter(p => p.tekst !== tekst.trim())].slice(0, 5);
         setCestePretrage(nove);
@@ -499,17 +641,24 @@ const AIChef = () => {
               <span className="text-3xl">📸</span> {user?.premium ? t('aichef.buttons.photo_premium') : t('aichef.buttons.photo')}
             </button>
             
-            {/* 🔥 INDIKATOR LIMITA */}
+            {/* 🔥 INDIKATOR LIMITA - POBOLJŠAN SA VIDEO REKLAMAMA */}
             {user?.premium ? (
               <p className="text-xs text-center text-blue-600 dark:text-blue-400">
                 ⭐ Premium: {dailyLimit.preostalo}/{dailyLimit.max_pretraga} 
               </p>
             ) : (
-              <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-                {dailyLimit.preostalo > 0 
-                  ? t('aichef.buttons.remaining', { remaining: dailyLimit.preostalo, max: dailyLimit.max_pretraga })
-                  : t('aichef.buttons.remaining_zero')}
-              </p>
+              <div className="text-xs text-center text-gray-500 dark:text-gray-400 space-y-1">
+                <p>
+                  {dailyLimit.preostalo > 0 
+                    ? `📸 Pretraga: ${dailyLimit.preostalo}/${dailyLimit.max_pretraga}`
+                    : '📸 Pretraga: Iskorišteno'}
+                </p>
+                <p>
+                  {videoAdCount >= maxVideoAds 
+                    ? '📺 Video: Iskorišteno (3/3)'
+                    : `📺 Video: ${maxVideoAds - videoAdCount}/${maxVideoAds}`}
+                </p>
+              </div>
             )}
             
             <input
@@ -527,25 +676,39 @@ const AIChef = () => {
             {/* 🔥 VIDEO REKLAMA ZA OTKLJUČAVANJE - SAMO ZA FREE KORISNIKE */}
             {!user?.premium && (
               <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-xl border border-yellow-200 dark:border-yellow-600">
-                <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                  <span>📺</span> {t('aichef.unlock.watch_video')}
-                  {!ADSENSE_ENABLED && (
-                    <span className="text-xs text-yellow-600 dark:text-yellow-400">(simulirano)</span>
-                  )}
-                </p>
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                    <span>📺</span> {t('aichef.unlock.watch_video')}
+                    {!ADSENSE_ENABLED && (
+                      <span className="text-xs text-yellow-600 dark:text-yellow-400">(simulirano)</span>
+                    )}
+                  </p>
+                  {/* 🔥 PRIKAZ PREOSTALIH VIDEO REKLAMA */}
+                  <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">
+                    {videoAdCount >= maxVideoAds ? '❌ Iskorišteno' : `📺 ${maxVideoAds - videoAdCount}/${maxVideoAds}`}
+                  </span>
+                </div>
                 
                 <div id="video-ad-container" className="mb-3 min-h-[60px]"></div>
                 
                 <button
                   onClick={handleUnlockWithVideo}
-                  disabled={loadingLimit || dailyLimit.preostalo <= 0 || videoWatched}
+                  disabled={loadingLimit || dailyLimit.preostalo <= 0 || videoWatched || videoAdCount >= maxVideoAds}
                   className="w-full bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-semibold transition disabled:opacity-50 text-sm"
                 >
-                  {loadingLimit ? t('aichef.unlock.loading') : dailyLimit.preostalo <= 0 ? t('aichef.unlock.max_reached') : videoWatched ? '✅ Otključano!' : t('aichef.unlock.watch_button')}
+                  {loadingLimit ? t('aichef.unlock.loading') : 
+                   dailyLimit.preostalo <= 0 ? t('aichef.unlock.max_reached') : 
+                   videoAdCount >= maxVideoAds ? '🚫 Limit iskorišten' :
+                   videoWatched ? '✅ Otključano!' : t('aichef.unlock.watch_button')}
                 </button>
                 {dailyLimit.preostalo <= 0 && (
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {t('aichef.unlock.tomorrow')}
+                  </p>
+                )}
+                {videoAdCount >= maxVideoAds && dailyLimit.preostalo > 0 && (
+                  <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+                    ⚠️ Dosegli ste dnevni limit od {maxVideoAds} video reklama. Pokušajte sutra!
                   </p>
                 )}
               </div>

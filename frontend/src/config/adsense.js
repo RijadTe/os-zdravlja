@@ -1,15 +1,15 @@
 // frontend/src/config/adsense.js
 
-// 🔥 OVDJE SAMO JEDNOM UNESI SVOJ ADSENSE KOD
-export const ADSENSE_CLIENT = 'ca-pub-XXXXXXXXXXXXX'; // 🔥 ZAMIJENI SA SVOJIM!
+// 🔥 ZAMIJENI SA SVOJIM PUB KODOM
+export const ADSENSE_CLIENT = 'ca-pub-1234567890123456';
 
-// 🔥 OPCIONALNO - DEFAULT SLOT ZA REKLAME
+// 🔥 ZAMIJENI SA SVOJIM SLOT ID-evima
 export const DEFAULT_SLOTS = {
-  banner: '1234567890',
-  sidebar: '1234567891',
-  video: '1234567892',
-  inFeed: '1234567893'
+  banner: '9876543210',             // Vaš banner slot ID
+  sidebar: '9876543211',           // Vaš sidebar slot ID
+  video: '9876543212',            // Vaš video slot ID
+  inFeed: '9876543213'           // Vaš in-feed slot ID
 };
 
-// 🔥 DA LI JE ADSENSE AKTIVAN (ZA LAKŠE TESTIRANJE)
-export const ADSENSE_ENABLED = true;
+// 🔥 AUTO-MAGIJA - uključi samo na produkciji
+export const ADSENSE_ENABLED = process.env.NODE_ENV === 'production';
