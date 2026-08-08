@@ -5,24 +5,152 @@ import { useTranslation } from 'react-i18next';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+// 🔥 SAMO OPCIJE KOJE POSTOJE U KVIZU
+const getAlergeniOpcije = (t) => [
+  { key: 'bez_glutena', label: t('community.alergeni.bez_glutena') },
+  { key: 'bez_laktoze', label: t('community.alergeni.bez_laktoze') },
+  { key: 'bez_secera', label: t('community.alergeni.bez_secera') },
+  { key: 'veganski', label: t('community.alergeni.veganski') },
+  { key: 'bez_orasastih', label: t('community.alergeni.bez_orasastih') }
+];
+
+const alergenKeyToValue = {
+  'bez_glutena': 'Bez glutena',
+  'bez_laktoze': 'Bez laktoze',
+  'bez_secera': 'Bez šećera',
+  'veganski': 'Veganski',
+  'bez_orasastih': 'Bez orašastih plodova'
+};
+
+const POSTS_PER_PAGE = 10;
+
+const vrstaOpcije = [
+  { value: '', label: '🍽️ Sve vrste' },
+  { value: 'Slano', label: '🍕 Slano' },
+  { value: 'Deserti', label: '🍰 Deserti' },
+  { value: 'Dijetalni recepti', label: '🥗 Dijetalno' },
+  { value: 'Napitki', label: '🍹 Napitki' }
+];
+
+const vrijemeOpcije = [
+  { value: '', label: '⏱️ Svo vrijeme' },
+  { value: 'Kratko (15-30 min)', label: '⚡ Kratko' },
+  { value: 'Srednje (30-45 min)', label: '⏳ Srednje' },
+  { value: 'Duže (45-60+ min)', label: '🐢 Duže' }
+];
+
+const tezinaOpcije = [
+  { value: '', label: '🏋️ Sva težina' },
+  { value: 'Početnik', label: '👶 Početnik' },
+  { value: 'Srednji', label: '👨‍🍳 Srednji' },
+  { value: 'Profesionalac', label: '👨‍🍳⭐ Profesionalac' }
+];
+
+const kalorijeOpcije = [
+  { value: '', label: '🔥 Sve kalorije' },
+  { value: 'do_300', label: '🔥 Do 300 kcal' },
+  { value: '300_500', label: '🔥 300-500 kcal' },
+  { value: '500_700', label: '🔥 500-700 kcal' },
+  { value: '900_plus', label: '🔥 900+ kcal' }
+];
+
 const Community = () => {
-  const { t } = useTranslation();
-  const [objave, setObjave] = useState([]); // 🔥 UVJEK NIZ
+  const { t, i18n } = useTranslation();
+  const [objave, setObjave] = useState([]);
+  const [filteredObjave, setFilteredObjave] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [user, setUser] = useState(null);
+  const [profil, setProfil] = useState(null);
+  const [profilLoading, setProfilLoading] = useState(true);
+
+  const [filters, setFilters] = useState({
+    vrsta: '',
+    alergeni: [],
+    vrijeme: '',
+    tezina: '',
+    kalorije: ''
+  });
+
   const [novaObjava, setNovaObjava] = useState({
     naziv: '',
     opis: '',
     sastojci: '',
-    slika: null
+    slika: null,
+    alergeni: [],
+    vrijeme: '',
+    tezina: ''
   });
-  const [user, setUser] = useState(null);
 
+  const alergeniOpcije = getAlergeniOpcije(t);
+
+  // ============================================================
+  // 1. DOHVATI KORISNIKA I PROFIL
+  // ============================================================
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('user'));
     setUser(userData);
+    
+    const email = userData?.email || localStorage.getItem('userEmail');
+    if (email) {
+      fetchProfile(email);
+    }
+    
     fetchObjave();
   }, []);
+
+  const fetchProfile = async (email) => {
+    try {
+      setProfilLoading(true);
+      const res = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
+      const data = await res.json();
+      
+      if (data.success && data.data) {
+        setProfil(data.data);
+        
+        const newFilters = {};
+        
+        if (data.data.vrsta && data.data.vrsta.length > 0) {
+          const vrste = data.data.vrsta.filter(v => v !== 'Svejedno');
+          if (vrste.length > 0) {
+            newFilters.vrsta = vrste[0];
+          }
+        }
+        
+        if (data.data.izbjegava && data.data.izbjegava.length > 0) {
+          const restrikcije = data.data.izbjegava.filter(r => r !== 'Bez restrikcija');
+          if (restrikcije.length > 0) {
+            newFilters.alergeni = restrikcije;
+          }
+        }
+        
+        if (data.data.vrijeme) {
+          newFilters.vrijeme = data.data.vrijeme;
+        }
+        
+        if (data.data.tezina) {
+          newFilters.tezina = data.data.tezina;
+        }
+        
+        if (data.data.kalorije) {
+          const kalorijeMap = {
+            'Nisko (do 300 kcal)': 'do_300',
+            'Umjereno (300-500 kcal)': '300_500',
+            'Srednje (500-700 kcal)': '500_700',
+            'Visoko (900+ kcal)': '900_plus'
+          };
+          newFilters.kalorije = kalorijeMap[data.data.kalorije] || '';
+        }
+        
+        setFilters(prev => ({ ...prev, ...newFilters }));
+      }
+    } catch (error) {
+      console.error('❌ Greška pri dohvatu profila:', error);
+    } finally {
+      setProfilLoading(false);
+    }
+  };
 
   const fetchObjave = async () => {
     try {
@@ -37,23 +165,125 @@ const Community = () => {
       
       const data = await res.json();
       
-      // 🔥 OSIGURAJ DA JE objave UVJEK NIZ!
-      if (Array.isArray(data)) {
-        setObjave(data);
-      } else if (data && Array.isArray(data.objave)) {
-        setObjave(data.objave);
-      } else if (data && Array.isArray(data.data)) {
+      if (data && Array.isArray(data.data)) {
         setObjave(data.data);
+        setFilteredObjave(data.data);
+      } else if (Array.isArray(data)) {
+        setObjave(data);
+        setFilteredObjave(data);
       } else {
         console.warn('⚠️ API nije vratio niz, postavljam prazan niz:', data);
         setObjave([]);
+        setFilteredObjave([]);
       }
     } catch (error) {
       console.error('❌ Greška pri dohvatu objava:', error);
       setError(error.message);
-      setObjave([]); // 🔥 UVJEK POSTAVI NA PRAZAN NIZ
+      setObjave([]);
+      setFilteredObjave([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ============================================================
+  // 2. FILTRIRANJE OBJAVA
+  // ============================================================
+  useEffect(() => {
+    let filtered = [...objave];
+    
+    if (filters.vrsta) {
+      filtered = filtered.filter(objava => objava.vrsta === filters.vrsta);
+    }
+    
+    if (filters.alergeni && filters.alergeni.length > 0) {
+      filtered = filtered.filter(objava => {
+        const objavaAlergeni = objava.alergeni || [];
+        return !filters.alergeni.some(restrikcija => 
+          objavaAlergeni.includes(restrikcija)
+        );
+      });
+    }
+    
+    if (filters.vrijeme) {
+      filtered = filtered.filter(objava => objava.vrijeme === filters.vrijeme);
+    }
+    
+    if (filters.tezina) {
+      filtered = filtered.filter(objava => objava.tezina === filters.tezina);
+    }
+    
+    if (filters.kalorije) {
+      const kalorijeMap = {
+        'do_300': { max: 300 },
+        '300_500': { min: 300, max: 500 },
+        '500_700': { min: 500, max: 700 },
+        '900_plus': { min: 900 }
+      };
+      
+      const range = kalorijeMap[filters.kalorije];
+      if (range) {
+        filtered = filtered.filter(objava => {
+          const kal = objava.kalorije || 0;
+          if (range.min && range.max) return kal >= range.min && kal <= range.max;
+          if (range.min) return kal >= range.min;
+          if (range.max) return kal <= range.max;
+          return true;
+        });
+      }
+    }
+    
+    setFilteredObjave(filtered);
+    setCurrentPage(1);
+  }, [objave, filters]);
+
+  // ============================================================
+  // 3. HANDLERI
+  // ============================================================
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleResetFilters = () => {
+    if (profil) {
+      const resetFilters = {};
+      
+      if (profil.vrsta && profil.vrsta.length > 0) {
+        const vrste = profil.vrsta.filter(v => v !== 'Svejedno');
+        if (vrste.length > 0) {
+          resetFilters.vrsta = vrste[0];
+        }
+      }
+      
+      if (profil.izbjegava && profil.izbjegava.length > 0) {
+        const restrikcije = profil.izbjegava.filter(r => r !== 'Bez restrikcija');
+        if (restrikcije.length > 0) {
+          resetFilters.alergeni = restrikcije;
+        }
+      }
+      
+      if (profil.vrijeme) resetFilters.vrijeme = profil.vrijeme;
+      if (profil.tezina) resetFilters.tezina = profil.tezina;
+      
+      if (profil.kalorije) {
+        const kalorijeMap = {
+          'Nisko (do 300 kcal)': 'do_300',
+          'Umjereno (300-500 kcal)': '300_500',
+          'Srednje (500-700 kcal)': '500_700',
+          'Visoko (900+ kcal)': '900_plus'
+        };
+        resetFilters.kalorije = kalorijeMap[profil.kalorije] || '';
+      }
+      
+      setFilters(prev => ({ ...prev, ...resetFilters }));
+    } else {
+      setFilters({
+        vrsta: '',
+        alergeni: [],
+        vrijeme: '',
+        tezina: '',
+        kalorije: ''
+      });
     }
   };
 
@@ -71,6 +301,17 @@ const Community = () => {
     }
   };
 
+  const toggleAlergen = (alergenKey) => {
+    setNovaObjava(prev => {
+      const current = prev.alergeni || [];
+      if (current.includes(alergenKey)) {
+        return { ...prev, alergeni: current.filter(a => a !== alergenKey) };
+      } else {
+        return { ...prev, alergeni: [...current, alergenKey] };
+      }
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) {
@@ -86,6 +327,11 @@ const Community = () => {
       formData.append('opis', novaObjava.opis);
       formData.append('sastojci', novaObjava.sastojci);
       if (novaObjava.slika) formData.append('slika', novaObjava.slika);
+      
+      const alergeniValues = (novaObjava.alergeni || []).map(key => alergenKeyToValue[key] || key);
+      formData.append('alergeni', JSON.stringify(alergeniValues));
+      formData.append('vrijeme', novaObjava.vrijeme || '');
+      formData.append('tezina', novaObjava.tezina || '');
 
       const res = await fetch(`${API_URL}/api/community/objave`, {
         method: 'POST',
@@ -96,13 +342,53 @@ const Community = () => {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
 
-      setNovaObjava({ naziv: '', opis: '', sastojci: '', slika: null });
+      setNovaObjava({ 
+        naziv: '', 
+        opis: '', 
+        sastojci: '', 
+        slika: null,
+        alergeni: [],
+        vrijeme: '',
+        tezina: ''
+      });
       fetchObjave();
     } catch (error) {
       console.error('Greška pri objavi:', error);
       alert('❌ Došlo je do greške pri objavi. Pokušajte ponovo.');
     }
   };
+
+  const getTranslatedAlergen = (alergenValue) => {
+    const entry = Object.entries(alergenKeyToValue).find(([key, value]) => value === alergenValue);
+    if (entry) {
+      const key = entry[0];
+      const option = alergeniOpcije.find(opt => opt.key === key);
+      return option ? option.label : alergenValue;
+    }
+    return alergenValue;
+  };
+
+  // 🔥 PAGINACIJA
+  const totalPages = Math.ceil(filteredObjave.length / POSTS_PER_PAGE);
+  const getCurrentPagePosts = () => {
+    const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
+    const endIndex = startIndex + POSTS_PER_PAGE;
+    return filteredObjave.slice(startIndex, endIndex);
+  };
+
+  const currentPosts = getCurrentPagePosts();
+
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const activeFiltersCount = Object.values(filters).filter(v => {
+    if (Array.isArray(v)) return v.length > 0;
+    return v !== '';
+  }).length;
 
   if (loading) {
     return (
@@ -128,10 +414,74 @@ const Community = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
+    <div className="max-w-7xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
       <h1 className="text-3xl font-bold mb-6">📝 {t('community.title')}</h1>
 
-      {/* Forma za novu objavu - SAMO AKO JE KORISNIK PRIJAVLJEN */}
+      {/* FILTERI */}
+      {profil && (
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 mb-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              🔍 Filteri
+              {activeFiltersCount > 0 && (
+                <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">
+                  {activeFiltersCount} aktivna
+                </span>
+              )}
+            </h3>
+            <button
+              onClick={handleResetFilters}
+              className="text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition"
+            >
+              🔄 Reset
+            </button>
+          </div>
+          
+          <div className="flex flex-wrap gap-3">
+            <select
+              value={filters.vrsta}
+              onChange={(e) => handleFilterChange('vrsta', e.target.value)}
+              className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            >
+              {vrstaOpcije.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            
+            <select
+              value={filters.vrijeme}
+              onChange={(e) => handleFilterChange('vrijeme', e.target.value)}
+              className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            >
+              {vrijemeOpcije.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            
+            <select
+              value={filters.tezina}
+              onChange={(e) => handleFilterChange('tezina', e.target.value)}
+              className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            >
+              {tezinaOpcije.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            
+            <select
+              value={filters.kalorije}
+              onChange={(e) => handleFilterChange('kalorije', e.target.value)}
+              className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            >
+              {kalorijeOpcije.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
+
+      {/* Forma za novu objavu */}
       {user ? (
         <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md mb-8">
           <h2 className="text-xl font-bold mb-4">➕ {t('community.share_recipe')}</h2>
@@ -144,6 +494,7 @@ const Community = () => {
               className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
               required
             />
+            
             <textarea
               placeholder={t('community.description')}
               value={novaObjava.opis}
@@ -151,6 +502,7 @@ const Community = () => {
               className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
               rows="3"
             />
+            
             <input
               type="text"
               placeholder={t('community.ingredients')}
@@ -158,8 +510,71 @@ const Community = () => {
               onChange={(e) => setNovaObjava({ ...novaObjava, sastojci: e.target.value })}
               className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
             />
-            
-            {/* 🔥 FILE INPUT - SAMO FOTOAPARAT IKONA */}
+
+            <div className="border dark:border-gray-600 rounded-lg p-4">
+              <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                🚫 {t('recipe.restrictions') || 'Restrikcije / Alergeni'} 
+                <span className="text-sm text-gray-400 ml-2">(označite sve koji se odnose)</span>
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {alergeniOpcije.map(({ key, label }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => toggleAlergen(key)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${
+                      (novaObjava.alergeni || []).includes(key)
+                        ? 'bg-red-500 text-white hover:bg-red-600'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {(novaObjava.alergeni || []).length > 0 && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  ✅ Odabrano: {(novaObjava.alergeni || []).map(key => {
+                    const option = alergeniOpcije.find(opt => opt.key === key);
+                    return option ? option.label : key;
+                  }).join(', ')}
+                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  ⏱️ {t('labels.vrijeme.srednje') || 'Vrijeme pripreme'}
+                </label>
+                <select
+                  value={novaObjava.vrijeme}
+                  onChange={(e) => setNovaObjava({ ...novaObjava, vrijeme: e.target.value })}
+                  className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                >
+                  <option value="">{t('community.select_time') || 'Odaberi vrijeme...'}</option>
+                  <option value="Kratko (15-30 min)">⚡ {t('labels.vrijeme.kratko') || 'Kratko (15-30 min)'}</option>
+                  <option value="Srednje (30-45 min)">⏳ {t('labels.vrijeme.srednje') || 'Srednje (30-45 min)'}</option>
+                  <option value="Duže (45-60+ min)">🐢 {t('labels.vrijeme.dugo') || 'Duže (45-60+ min)'}</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  👨‍🍳 {t('labels.tezina.srednji') || 'Težina'}
+                </label>
+                <select
+                  value={novaObjava.tezina}
+                  onChange={(e) => setNovaObjava({ ...novaObjava, tezina: e.target.value })}
+                  className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                >
+                  <option value="">{t('community.select_difficulty') || 'Odaberi težinu...'}</option>
+                  <option value="Početnik">👶 {t('labels.tezina.lagani') || 'Početnik'}</option>
+                  <option value="Srednji">👨‍🍳 {t('labels.tezina.srednji') || 'Srednji'}</option>
+                  <option value="Profesionalac">👨‍🍳⭐ {t('labels.tezina.teski') || 'Profesionalac'}</option>
+                </select>
+              </div>
+            </div>
+
             <div className="relative">
               <input
                 type="file"
@@ -199,63 +614,175 @@ const Community = () => {
         </div>
       )}
 
-      {/* Lista objava */}
-      {!objave || objave.length === 0 ? (
+      {/* 🔥🔥🔥 LISTA OBJAVA - POPRAVLJEN PRIKAZ */}
+      {!filteredObjave || filteredObjave.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700">
           <p className="text-2xl mb-2">📭</p>
           <p className="text-gray-500 dark:text-gray-400">
-            {t('community.no_posts') || 'Nema objava u zajednici.'}
+            {filters.vrsta || filters.alergeni.length > 0 || filters.vrijeme || filters.tezina || filters.kalorije
+              ? 'Nema objava koje odgovaraju vašim filterima.'
+              : 'Nema objava u zajednici.'}
           </p>
-          {user && (
+          {(filters.vrsta || filters.alergeni.length > 0 || filters.vrijeme || filters.tezina || filters.kalorije) && (
+            <button
+              onClick={handleResetFilters}
+              className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition"
+            >
+              Resetuj filtere
+            </button>
+          )}
+          {user && !filters.vrsta && !filters.alergeni.length && !filters.vrijeme && !filters.tezina && !filters.kalorije && (
             <p className="text-sm text-gray-400 mt-2">
               Budite prvi koji će podijeliti recept! 🍽️
             </p>
           )}
         </div>
       ) : (
-        <div className="space-y-6">
-          {objave.map((objava, index) => (
-            <div 
-              key={objava.id || index} 
-              className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-lg transition"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-bold text-lg dark:text-white">{objava.naziv || 'Bez naslova'}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    👤 {objava.korisnik_ime || objava.author || t('community.unknown_user')} · 
-                    {objava.created_at && ` ${new Date(objava.created_at).toLocaleDateString('hr')}`}
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {currentPosts.map((objava, index) => (
+              <div 
+                key={objava.id || index} 
+                className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-lg transition flex flex-col"
+              >
+                {/* 🔥 SLIKA RECEPTA */}
+                {objava.slika && (
+                  <div className="w-full h-40 md:h-48 overflow-hidden">
+                    <img 
+                      src={objava.slika} 
+                      alt={objava.naziv} 
+                      className="w-full h-full object-cover hover:scale-105 transition duration-300"
+                    />
+                  </div>
+                )}
+                
+                {/* 🔥 SADRŽAJ */}
+                <div className="p-3 md:p-4 flex flex-col flex-1">
+                  {/* 🔥 NAZIV RECEPTA */}
+                  <h3 className="font-bold text-sm md:text-base dark:text-white line-clamp-2 min-h-[2.5rem]">
+                    {objava.naziv || 'Bez naslova'}
+                  </h3>
+                  
+                  {/* 🔥🔥🔥 NOVO - TEKST ISPOD NAZIVA */}
+                  <p className="text-xs text-blue-500 dark:text-blue-400 mt-0.5 italic">
+                    📖 Za detaljalje pripreme otvorite recept
                   </p>
-                </div>
-                <button
-                  onClick={() => handleLike(objava.id)}
-                  className="flex items-center gap-1 text-gray-500 hover:text-red-500 transition"
-                >
-                  ❤️ {objava.lajkovi || 0}
-                </button>
-              </div>
-              <p className="text-gray-700 dark:text-gray-300 mt-2">{objava.opis || objava.description || ''}</p>
-              {objava.sastojci && objava.sastojci.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {Array.isArray(objava.sastojci) ? (
-                    objava.sastojci.map((s, i) => (
-                      <span key={i} className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full text-xs">
-                        {s}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full text-xs">
-                      {objava.sastojci}
-                    </span>
+                  
+                  {/* 🔥 AUTOR */}
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    👤 {objava.korisnik_ime || objava.author || t('community.unknown_user')}
+                  </p>
+                  
+                  {/* 🔥 OPIS */}
+                  <p className="text-xs md:text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2 flex-1">
+                    {objava.opis || objava.description || ''}
+                  </p>
+                  
+                  {/* 🔥 ALERGENI */}
+                  {objava.alergeni && objava.alergeni.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {objava.alergeni.slice(0, 2).map((alergen, i) => (
+                        <span key={i} className="bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded-full text-[10px] font-medium">
+                          🚫 {getTranslatedAlergen(alergen).substring(0, 12)}
+                          {getTranslatedAlergen(alergen).length > 12 && '...'}
+                        </span>
+                      ))}
+                      {objava.alergeni.length > 2 && (
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                          +{objava.alergeni.length - 2}
+                        </span>
+                      )}
+                    </div>
                   )}
+                  
+                  {/* 🔥 VRIJEME I TEŽINA */}
+                  {(objava.vrijeme || objava.tezina) && (
+                    <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-gray-500 dark:text-gray-400">
+                      {objava.vrijeme && <span>⏱️ {objava.vrijeme.replace(/\s*\(.*?\)\s*/, '').substring(0, 12)}</span>}
+                      {objava.tezina && <span>👨‍🍳 {objava.tezina.substring(0, 12)}</span>}
+                    </div>
+                  )}
+                  
+                  {/* 🔥 SASTOJCI */}
+                  {objava.sastojci && objava.sastojci.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {objava.sastojci.slice(0, 2).map((s, i) => (
+                        <span key={i} className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded-full text-[10px] text-gray-600 dark:text-gray-300">
+                          {s.length > 15 ? s.substring(0, 15) + '...' : s}
+                        </span>
+                      ))}
+                      {objava.sastojci.length > 2 && (
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                          +{objava.sastojci.length - 2}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* 🔥 LAJKOVI + DATUM */}
+                  <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                      {objava.created_at && new Date(objava.created_at).toLocaleDateString('hr')}
+                    </span>
+                    <div className="flex items-center gap-3">
+                      {/* 🔥 BROJ PREGLEDA - AKO POSTOJI U BAZI */}
+                      {objava.pregledi !== undefined && (
+                        <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                          👁️ {objava.pregledi || 0}
+                        </span>
+                      )}
+                      <button
+                        onClick={() => handleLike(objava.id)}
+                        className="flex items-center gap-1 text-gray-500 hover:text-red-500 transition text-sm"
+                      >
+                        ❤️ {objava.lajkovi || 0}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              )}
-              {objava.slika && (
-                <img src={objava.slika} alt={objava.naziv} className="mt-3 w-full max-h-64 object-cover rounded-lg" />
-              )}
+              </div>
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-8 flex-wrap">
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                ⬅️
+              </button>
+              
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  onClick={() => goToPage(page)}
+                  className={`w-10 h-10 rounded-lg font-semibold transition ${
+                    currentPage === page
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                ➡️
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+
+          <div className="text-center text-sm text-gray-400 dark:text-gray-500 mt-4">
+            Prikazano {currentPosts.length} od {filteredObjave.length} objava
+            {totalPages > 1 && ` (stranica ${currentPage}/${totalPages})`}
+          </div>
+        </>
       )}
     </div>
   );

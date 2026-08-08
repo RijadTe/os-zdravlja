@@ -3649,7 +3649,7 @@ app.delete('/api/obroci/:id', async (req, res) => {
 });
 
 // ============================================================
-// 38. COMMUNITY - DOHVATI OBJAVE
+// 38. 🔥 COMMUNITY - DOHVATI OBJAVE (SA PREGLEDIMA)
 // ============================================================
 app.get('/api/community/objave', async (req, res) => {
   try {
@@ -3684,14 +3684,66 @@ app.get('/api/community/objave', async (req, res) => {
 });
 
 // ============================================================
-// 39. COMMUNITY - KREIRAJ OBJAVU (SA CLOUDINARY)
+// 38a. 🔥 COMMUNITY - DOHVATI JEDNU OBJAVU (INKREMENTIRA PREGLEDE)
+// ============================================================
+app.get('/api/community/objave/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    console.log(`📝 Dohvatam objavu: ${id}`);
+    
+    const { data: objava, error: fetchError } = await supabase
+      .from('objave')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) {
+      if (fetchError.code === 'PGRST116') {
+        return res.status(404).json({ error: 'Objava nije pronađena.' });
+      }
+      throw fetchError;
+    }
+    
+    // 🔥 INKREMENTIRAJ PREGLEDE
+    const noviPregledi = (objava.pregledi || 0) + 1;
+    
+    const { error: updateError } = await supabase
+      .from('objave')
+      .update({ pregledi: noviPregledi })
+      .eq('id', id);
+
+    if (updateError) {
+      console.error('❌ Greška pri ažuriranju pregleda:', updateError);
+      // NASTAVI DALJE - GREŠKA NEĆE SPRIJEČITI PRIKAZ OBJAVE
+    }
+    
+    // 🔥 VRATI OBJAVU SA AŽURIRANIM PREGLEDIMA
+    res.json({
+      success: true,
+      data: {
+        ...objava,
+        pregledi: noviPregledi
+      }
+    });
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// 39. 🔥 COMMUNITY - KREIRAJ OBJAVU (SA ALERGENIMA, VREMENOM, TEŽINOM I PREGLEDIMA)
 // ============================================================
 app.post('/api/community/objave', upload.single('slika'), async (req, res) => {
   try {
-    const { email, naziv, opis, sastojci } = req.body;
+    const { email, naziv, opis, sastojci, alergeni, vrijeme, tezina } = req.body;
     const slika = req.file;
     
     console.log(`📝 Kreiranje objave za: ${email}`);
+    console.log(`📦 Alergeni:`, alergeni);
+    console.log(`⏱️ Vrijeme:`, vrijeme);
+    console.log(`👨‍🍳 Težina:`, tezina);
     
     const { data: user, error: userError } = await supabase
       .from('profili')
@@ -3712,24 +3764,42 @@ app.post('/api/community/objave', upload.single('slika'), async (req, res) => {
       }
     }
 
+    // 🔥 PARSIRAJ ALERGENE IZ JSON STRINGA
+    let alergeniArray = [];
+    try {
+      alergeniArray = alergeni ? JSON.parse(alergeni) : [];
+    } catch (e) {
+      console.warn('⚠️ Greška pri parsiranju alergena:', e);
+      alergeniArray = [];
+    }
+
+    // 🔥 PARSIRAJ SASTOJKE
     const sastojciArray = sastojci ? sastojci.split(',').map(s => s.trim()).filter(s => s) : [];
 
+    // 🔥 KREIRAJ OBJAVU SA PREGLEDIMA (DEFAULT 0)
     const { data, error } = await supabase
       .from('objave')
       .insert([{
-        korosnik_id: user.id,
+        korisnik_id: user.id,
         korisnik_ime: user.ime || 'Korisnik',
-        korisnik_email: email,
         naziv: naziv,
         opis: opis || '',
         sastojci: sastojciArray,
         slika: slikaUrl,
+        alergeni: alergeniArray,
+        vrijeme: vrijeme || '',
+        tezina: tezina || '',
         lajkovi: 0,
+        pregledi: 0, // 🔥 DEFAULT 0
         lajkovi_korisnici: []
       }])
       .select();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Supabase greška:', error);
+      throw error;
+    }
+    
     console.log('✅ Objava kreirana:', data);
     res.status(201).json(data[0]);
   } catch (error) {
