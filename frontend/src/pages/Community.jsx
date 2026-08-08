@@ -24,34 +24,37 @@ const alergenKeyToValue = {
 
 const POSTS_PER_PAGE = 10;
 
-const vrstaOpcije = [
-  { value: '', label: '🍽️ Sve vrste' },
-  { value: 'Slano', label: '🍕 Slano' },
-  { value: 'Deserti', label: '🍰 Deserti' },
-  { value: 'Dijetalni recepti', label: '🥗 Dijetalno' },
-  { value: 'Napitki', label: '🍹 Napitki' }
+// ============================================================
+// 🔥🔥🔥 PREVEDENE FILTER OPCIJE
+// ============================================================
+const getVrstaOpcije = (t) => [
+  { value: '', label: t('community.filters.all_types', { defaultValue: '🍽️ Sve vrste' }) },
+  { value: 'Slano', label: t('community.filters.savory', { defaultValue: '🍕 Slano' }) },
+  { value: 'Deserti', label: t('community.filters.desserts', { defaultValue: '🍰 Deserti' }) },
+  { value: 'Dijetalni recepti', label: t('community.filters.diet', { defaultValue: '🥗 Dijetalno' }) },
+  { value: 'Napitki', label: t('community.filters.drinks', { defaultValue: '🍹 Napitki' }) }
 ];
 
-const vrijemeOpcije = [
-  { value: '', label: '⏱️ Svo vrijeme' },
-  { value: 'Kratko (15-30 min)', label: '⚡ Kratko' },
-  { value: 'Srednje (30-45 min)', label: '⏳ Srednje' },
-  { value: 'Duže (45-60+ min)', label: '🐢 Duže' }
+const getVrijemeOpcije = (t) => [
+  { value: '', label: t('community.filters.all_time', { defaultValue: '⏱️ Svo vrijeme' }) },
+  { value: 'Kratko (15-30 min)', label: t('community.filters.short', { defaultValue: '⚡ Kratko' }) },
+  { value: 'Srednje (30-45 min)', label: t('community.filters.medium', { defaultValue: '⏳ Srednje' }) },
+  { value: 'Duže (45-60+ min)', label: t('community.filters.long', { defaultValue: '🐢 Duže' }) }
 ];
 
-const tezinaOpcije = [
-  { value: '', label: '🏋️ Sva težina' },
-  { value: 'Početnik', label: '👶 Početnik' },
-  { value: 'Srednji', label: '👨‍🍳 Srednji' },
-  { value: 'Profesionalac', label: '👨‍🍳⭐ Profesionalac' }
+const getTezinaOpcije = (t) => [
+  { value: '', label: t('community.filters.all_difficulty', { defaultValue: '🏋️ Sva težina' }) },
+  { value: 'Početnik', label: t('community.filters.beginner', { defaultValue: '👶 Početnik' }) },
+  { value: 'Srednji', label: t('community.filters.intermediate', { defaultValue: '👨‍🍳 Srednji' }) },
+  { value: 'Profesionalac', label: t('community.filters.professional', { defaultValue: '👨‍🍳⭐ Profesionalac' }) }
 ];
 
-const kalorijeOpcije = [
-  { value: '', label: '🔥 Sve kalorije' },
-  { value: 'do_300', label: '🔥 Do 300 kcal' },
-  { value: '300_500', label: '🔥 300-500 kcal' },
-  { value: '500_700', label: '🔥 500-700 kcal' },
-  { value: '900_plus', label: '🔥 900+ kcal' }
+const getKalorijeOpcije = (t) => [
+  { value: '', label: t('community.filters.all_calories', { defaultValue: '🔥 Sve kalorije' }) },
+  { value: 'do_300', label: t('community.filters.low_cal', { defaultValue: '🔥 Do 300 kcal' }) },
+  { value: '300_500', label: t('community.filters.medium_cal', { defaultValue: '🔥 300-500 kcal' }) },
+  { value: '500_700', label: t('community.filters.high_cal', { defaultValue: '🔥 500-700 kcal' }) },
+  { value: '900_plus', label: t('community.filters.very_high_cal', { defaultValue: '🔥 900+ kcal' }) }
 ];
 
 const Community = () => {
@@ -394,7 +397,7 @@ const Community = () => {
     return (
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-        <p className="mt-4 text-gray-600 dark:text-gray-400">⏳ {t('community.loading')}</p>
+        <p className="mt-4 text-gray-600 dark:text-gray-400">{t('community.loading')}</p>
       </div>
     );
   }
@@ -407,7 +410,7 @@ const Community = () => {
           onClick={fetchObjave}
           className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition"
         >
-          Pokušaj ponovo
+          {t('common.retry') || 'Pokušaj ponovo'}
         </button>
       </div>
     );
@@ -417,15 +420,15 @@ const Community = () => {
     <div className="max-w-7xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
       <h1 className="text-3xl font-bold mb-6">📝 {t('community.title')}</h1>
 
-      {/* FILTERI */}
+      {/* FILTERI - SADA PREVEDENI! */}
       {profil && (
         <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 mb-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-              🔍 Filteri
+              🔍 {t('community.filters.title', { defaultValue: 'Filteri' })}
               {activeFiltersCount > 0 && (
                 <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">
-                  {activeFiltersCount} aktivna
+                  {activeFiltersCount} {t('community.filters.active', { defaultValue: 'aktivna' })}
                 </span>
               )}
             </h3>
@@ -433,7 +436,7 @@ const Community = () => {
               onClick={handleResetFilters}
               className="text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition"
             >
-              🔄 Reset
+              🔄 {t('community.filters.reset', { defaultValue: 'Reset' })}
             </button>
           </div>
           
@@ -443,7 +446,7 @@ const Community = () => {
               onChange={(e) => handleFilterChange('vrsta', e.target.value)}
               className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
             >
-              {vrstaOpcije.map(opt => (
+              {getVrstaOpcije(t).map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
@@ -453,7 +456,7 @@ const Community = () => {
               onChange={(e) => handleFilterChange('vrijeme', e.target.value)}
               className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
             >
-              {vrijemeOpcije.map(opt => (
+              {getVrijemeOpcije(t).map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
@@ -463,7 +466,7 @@ const Community = () => {
               onChange={(e) => handleFilterChange('tezina', e.target.value)}
               className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
             >
-              {tezinaOpcije.map(opt => (
+              {getTezinaOpcije(t).map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
@@ -473,7 +476,7 @@ const Community = () => {
               onChange={(e) => handleFilterChange('kalorije', e.target.value)}
               className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
             >
-              {kalorijeOpcije.map(opt => (
+              {getKalorijeOpcije(t).map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
@@ -513,8 +516,8 @@ const Community = () => {
 
             <div className="border dark:border-gray-600 rounded-lg p-4">
               <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                🚫 {t('recipe.restrictions') || 'Restrikcije / Alergeni'} 
-                <span className="text-sm text-gray-400 ml-2">(označite sve koji se odnose)</span>
+                {t('community.allergens', { defaultValue: '🚫 Restrikcije / Alergeni' })}
+                <span className="text-sm text-gray-400 ml-2">({t('community.select_all_that_apply', { defaultValue: 'označite sve koji se odnose' })})</span>
               </label>
               <div className="flex flex-wrap gap-2">
                 {alergeniOpcije.map(({ key, label }) => (
@@ -534,7 +537,7 @@ const Community = () => {
               </div>
               {(novaObjava.alergeni || []).length > 0 && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  ✅ Odabrano: {(novaObjava.alergeni || []).map(key => {
+                  ✅ {t('community.selected', { defaultValue: 'Odabrano' })}: {(novaObjava.alergeni || []).map(key => {
                     const option = alergeniOpcije.find(opt => opt.key === key);
                     return option ? option.label : key;
                   }).join(', ')}
@@ -545,32 +548,32 @@ const Community = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  ⏱️ {t('labels.vrijeme.srednje') || 'Vrijeme pripreme'}
+                  {t('community.prep_time', { defaultValue: '⏱️ Vrijeme pripreme' })}
                 </label>
                 <select
                   value={novaObjava.vrijeme}
                   onChange={(e) => setNovaObjava({ ...novaObjava, vrijeme: e.target.value })}
                   className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
                 >
-                  <option value="">{t('community.select_time') || 'Odaberi vrijeme...'}</option>
-                  <option value="Kratko (15-30 min)">⚡ {t('labels.vrijeme.kratko') || 'Kratko (15-30 min)'}</option>
-                  <option value="Srednje (30-45 min)">⏳ {t('labels.vrijeme.srednje') || 'Srednje (30-45 min)'}</option>
-                  <option value="Duže (45-60+ min)">🐢 {t('labels.vrijeme.dugo') || 'Duže (45-60+ min)'}</option>
+                  <option value="">{t('community.select_time', { defaultValue: 'Odaberi vrijeme...' })}</option>
+                  <option value="Kratko (15-30 min)">⚡ {t('labels.vrijeme.kratko', { defaultValue: 'Kratko' })}</option>
+                  <option value="Srednje (30-45 min)">⏳ {t('labels.vrijeme.srednje', { defaultValue: 'Srednje' })}</option>
+                  <option value="Duže (45-60+ min)">🐢 {t('labels.vrijeme.dugo', { defaultValue: 'Duže' })}</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  👨‍🍳 {t('labels.tezina.srednji') || 'Težina'}
+                  {t('community.difficulty', { defaultValue: '👨‍🍳 Težina' })}
                 </label>
                 <select
                   value={novaObjava.tezina}
                   onChange={(e) => setNovaObjava({ ...novaObjava, tezina: e.target.value })}
                   className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
                 >
-                  <option value="">{t('community.select_difficulty') || 'Odaberi težinu...'}</option>
-                  <option value="Početnik">👶 {t('labels.tezina.lagani') || 'Početnik'}</option>
-                  <option value="Srednji">👨‍🍳 {t('labels.tezina.srednji') || 'Srednji'}</option>
-                  <option value="Profesionalac">👨‍🍳⭐ {t('labels.tezina.teski') || 'Profesionalac'}</option>
+                  <option value="">{t('community.select_difficulty', { defaultValue: 'Odaberi težinu...' })}</option>
+                  <option value="Početnik">👶 {t('labels.tezina.lagani', { defaultValue: 'Početnik' })}</option>
+                  <option value="Srednji">👨‍🍳 {t('labels.tezina.srednji', { defaultValue: 'Srednji' })}</option>
+                  <option value="Profesionalac">👨‍🍳⭐ {t('labels.tezina.teski', { defaultValue: 'Profesionalac' })}</option>
                 </select>
               </div>
             </div>
@@ -614,26 +617,26 @@ const Community = () => {
         </div>
       )}
 
-      {/* 🔥🔥🔥 LISTA OBJAVA - POPRAVLJEN PRIKAZ */}
+      {/* LISTA OBJAVA */}
       {!filteredObjave || filteredObjave.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700">
           <p className="text-2xl mb-2">📭</p>
           <p className="text-gray-500 dark:text-gray-400">
             {filters.vrsta || filters.alergeni.length > 0 || filters.vrijeme || filters.tezina || filters.kalorije
-              ? 'Nema objava koje odgovaraju vašim filterima.'
-              : 'Nema objava u zajednici.'}
+              ? t('community.no_results', { defaultValue: 'Nema objava koje odgovaraju vašim filterima.' })
+              : t('community.no_posts', { defaultValue: 'Nema objava u zajednici.' })}
           </p>
           {(filters.vrsta || filters.alergeni.length > 0 || filters.vrijeme || filters.tezina || filters.kalorije) && (
             <button
               onClick={handleResetFilters}
               className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition"
             >
-              Resetuj filtere
+              {t('community.filters.reset', { defaultValue: 'Resetuj filtere' })}
             </button>
           )}
           {user && !filters.vrsta && !filters.alergeni.length && !filters.vrijeme && !filters.tezina && !filters.kalorije && (
             <p className="text-sm text-gray-400 mt-2">
-              Budite prvi koji će podijeliti recept! 🍽️
+              {t('community.be_first', { defaultValue: 'Budite prvi koji će podijeliti recept! 🍽️' })}
             </p>
           )}
         </div>
@@ -645,7 +648,6 @@ const Community = () => {
                 key={objava.id || index} 
                 className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-lg transition flex flex-col"
               >
-                {/* 🔥 SLIKA RECEPTA */}
                 {objava.slika && (
                   <div className="w-full h-40 md:h-48 overflow-hidden">
                     <img 
@@ -656,29 +658,23 @@ const Community = () => {
                   </div>
                 )}
                 
-                {/* 🔥 SADRŽAJ */}
                 <div className="p-3 md:p-4 flex flex-col flex-1">
-                  {/* 🔥 NAZIV RECEPTA */}
                   <h3 className="font-bold text-sm md:text-base dark:text-white line-clamp-2 min-h-[2.5rem]">
-                    {objava.naziv || 'Bez naslova'}
+                    {objava.naziv || t('community.untitled', { defaultValue: 'Bez naslova' })}
                   </h3>
                   
-                  {/* 🔥🔥🔥 NOVO - TEKST ISPOD NAZIVA */}
                   <p className="text-xs text-blue-500 dark:text-blue-400 mt-0.5 italic">
-                    📖 Za detaljalje pripreme otvorite recept
+                    {t('community.click_for_details', { defaultValue: '📖 Za detaljalje pripreme otvorite recept' })}
                   </p>
                   
-                  {/* 🔥 AUTOR */}
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     👤 {objava.korisnik_ime || objava.author || t('community.unknown_user')}
                   </p>
                   
-                  {/* 🔥 OPIS */}
                   <p className="text-xs md:text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2 flex-1">
                     {objava.opis || objava.description || ''}
                   </p>
                   
-                  {/* 🔥 ALERGENI */}
                   {objava.alergeni && objava.alergeni.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
                       {objava.alergeni.slice(0, 2).map((alergen, i) => (
@@ -695,7 +691,6 @@ const Community = () => {
                     </div>
                   )}
                   
-                  {/* 🔥 VRIJEME I TEŽINA */}
                   {(objava.vrijeme || objava.tezina) && (
                     <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-gray-500 dark:text-gray-400">
                       {objava.vrijeme && <span>⏱️ {objava.vrijeme.replace(/\s*\(.*?\)\s*/, '').substring(0, 12)}</span>}
@@ -703,7 +698,6 @@ const Community = () => {
                     </div>
                   )}
                   
-                  {/* 🔥 SASTOJCI */}
                   {objava.sastojci && objava.sastojci.length > 0 && (
                     <div className="mt-1 flex flex-wrap gap-1">
                       {objava.sastojci.slice(0, 2).map((s, i) => (
@@ -719,13 +713,14 @@ const Community = () => {
                     </div>
                   )}
                   
-                  {/* 🔥 LAJKOVI + DATUM */}
                   <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
                     <span className="text-xs text-gray-400 dark:text-gray-500">
-                      {objava.created_at && new Date(objava.created_at).toLocaleDateString('hr')}
+                      {objava.created_at && new Date(objava.created_at).toLocaleDateString(
+                        i18n.language === 'hr' ? 'hr-HR' : 
+                        i18n.language === 'de' ? 'de-DE' : 'en-US'
+                      )}
                     </span>
                     <div className="flex items-center gap-3">
-                      {/* 🔥 BROJ PREGLEDA - AKO POSTOJI U BAZI */}
                       {objava.pregledi !== undefined && (
                         <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
                           👁️ {objava.pregledi || 0}
@@ -779,8 +774,16 @@ const Community = () => {
           )}
 
           <div className="text-center text-sm text-gray-400 dark:text-gray-500 mt-4">
-            Prikazano {currentPosts.length} od {filteredObjave.length} objava
-            {totalPages > 1 && ` (stranica ${currentPage}/${totalPages})`}
+            {t('community.showing', { 
+              defaultValue: 'Prikazano {{count}} od {{total}} objava',
+              count: currentPosts.length, 
+              total: filteredObjave.length 
+            })}
+            {totalPages > 1 && ` (${t('community.page', { 
+              defaultValue: 'stranica {{current}}/{{total}}',
+              current: currentPage, 
+              total: totalPages 
+            })})`}
           </div>
         </>
       )}

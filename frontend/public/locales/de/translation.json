@@ -30,7 +30,8 @@
     "search": "Suchen...",
     "back": "Zurück",
     "light": "Hell",
-    "dark": "Dunkel"
+    "dark": "Dunkel",
+    "retry": "Erneut versuchen"
   },
   "labels": {
     "vrijeme": {
@@ -475,6 +476,50 @@
     "unknown_user": "Unbekannter Benutzer",
     "alerts": {
       "login_required": "Sie müssen angemeldet sein, um zu veröffentlichen!"
+    },
+    "filters": {
+      "title": "Filter",
+      "reset": "Zurücksetzen",
+      "all_types": "🍽️ Alle Arten",
+      "savory": "🍕 Herzhaft",
+      "desserts": "🍰 Desserts",
+      "diet": "🥗 Diät",
+      "drinks": "🍹 Getränke",
+      "all_time": "⏱️ Alle Zeiten",
+      "short": "⚡ Kurz",
+      "medium": "⏳ Mittel",
+      "long": "🐢 Lang",
+      "all_difficulty": "🏋️ Alle Schwierigkeiten",
+      "beginner": "👶 Anfänger",
+      "intermediate": "👨‍🍳 Fortgeschritten",
+      "professional": "👨‍🍳⭐ Profi",
+      "all_calories": "🔥 Alle Kalorien",
+      "low_cal": "🔥 Bis 300 kcal",
+      "medium_cal": "🔥 300-500 kcal",
+      "high_cal": "🔥 500-700 kcal",
+      "very_high_cal": "🔥 900+ kcal",
+      "active": "aktiv"
+    },
+    "no_results": "Keine Beiträge entsprechen Ihren Filtern.",
+    "no_posts": "Keine Beiträge in der Gemeinschaft.",
+    "be_first": "Seien Sie der Erste, der ein Rezept teilt! 🍽️",
+    "showing": "Zeige {{count}} von {{total}} Beiträgen",
+    "page": "Seite {{current}}/{{total}}",
+    "select_time": "Zeit auswählen...",
+    "select_difficulty": "Schwierigkeit auswählen...",
+    "prep_time": "⏱️ Zubereitungszeit",
+    "difficulty": "👨‍🍳 Schwierigkeit",
+    "allergens": "🚫 Restriktionen / Allergene",
+    "select_all_that_apply": "alle zutreffenden auswählen",
+    "selected": "Ausgewählt",
+    "untitled": "Ohne Titel",
+    "click_for_details": "📖 Für Details zur Zubereitung öffnen Sie das Rezept",
+    "alergeni": {
+      "bez_glutena": "Glutenfrei",
+      "bez_laktoze": "Laktosefrei",
+      "bez_secera": "Zuckerfrei",
+      "veganski": "Vegan",
+      "bez_orasastih": "Nussfrei"
     }
   },
   "forgotpassword": {
