@@ -1,7 +1,7 @@
 // frontend/src/pages/Profile.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } react-i18next';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
