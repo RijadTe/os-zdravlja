@@ -520,10 +520,9 @@
       "bez_secera": "Bez šećera",
       "veganski": "Veganski",
       "bez_orasastih": "Bez orašastih plodova"
-      },
-  "recipe_type": "Vrsta jela",
-  "select_type": "Odaberi vrstu jela..."
-    }
+    },
+    "recipe_type": "Vrsta jela",
+    "select_type": "Odaberi vrstu jela..."
   },
   "forgotpassword": {
     "title": "Zaboravili ste lozinku?",
