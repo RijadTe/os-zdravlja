@@ -520,6 +520,9 @@
       "bez_secera": "Sugar-free",
       "veganski": "Vegan",
       "bez_orasastih": "Nuts-free"
+      },
+        "recipe_type": "Art des Gerichts",
+  "select_type": "Wählen Sie die Art des Gerichts..."
     }
   },
   "forgotpassword": {
