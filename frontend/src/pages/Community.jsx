@@ -680,12 +680,6 @@ const Community = () => {
                   }).join(', ')}
                 </p>
               )}
-              
-              {(novaObjava.alergeni || []).length === 0 && (
-                <p className="text-xs text-green-500 dark:text-green-400 mt-2">
-                  ✅ Nema restrikcija - recept je dostupan svima!
-                </p>
-              )}
             </div>
 
             {/* Vrijeme i Težina */}
