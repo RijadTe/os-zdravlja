@@ -766,7 +766,7 @@ app.post('/api/auth/2fa/verify', async (req, res) => {
 });
 
 // ============================================================
-// 5. REGISTRACIJA (ORIGINAL - BEZ video_ad_count)
+// 5. REGISTRACIJA
 // ============================================================
 app.post('/api/auth/register', async (req, res) => {
   console.log('\n📝 === REGISTRACIJA ===');
@@ -875,7 +875,7 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 // ============================================================
-// 6. PRIJAVA (ORIGINAL - BEZ video_ad_count)
+// 6. PRIJAVA
 // ============================================================
 app.post('/api/auth/login', async (req, res) => {
   console.log('\n🔐 === PRIJAVA ===');
@@ -1027,7 +1027,7 @@ app.post('/api/auth/logout', async (req, res) => {
 });
 
 // ============================================================
-// 9. QUIZ (ORIGINAL - BEZ video_ad_count)
+// 9. QUIZ
 // ============================================================
 app.post('/api/quiz', async (req, res) => {
   console.log('\n📥 === QUIZ ENDPOINT ===');
@@ -3733,17 +3733,18 @@ app.get('/api/community/objave/:id', async (req, res) => {
 });
 
 // ============================================================
-// 39. 🔥 COMMUNITY - KREIRAJ OBJAVU (SA ALERGENIMA, VREMENOM, TEŽINOM I PREGLEDIMA)
+// 39. 🔥 COMMUNITY - KREIRAJ OBJAVU (SA ALERGENIMA, VREMENOM, TEŽINOM, VRSTOM I PREGLEDIMA)
 // ============================================================
 app.post('/api/community/objave', upload.single('slika'), async (req, res) => {
   try {
-    const { email, naziv, opis, sastojci, alergeni, vrijeme, tezina } = req.body;
+    const { email, naziv, vrsta, opis, sastojci, alergeni, vrijeme, tezina } = req.body; // 🔥 DODANO: vrsta
     const slika = req.file;
     
     console.log(`📝 Kreiranje objave za: ${email}`);
     console.log(`📦 Alergeni:`, alergeni);
     console.log(`⏱️ Vrijeme:`, vrijeme);
     console.log(`👨‍🍳 Težina:`, tezina);
+    console.log(`🍽️ Vrsta:`, vrsta); // 🔥 DODANO
     
     const { data: user, error: userError } = await supabase
       .from('profili')
@@ -3776,13 +3777,14 @@ app.post('/api/community/objave', upload.single('slika'), async (req, res) => {
     // 🔥 PARSIRAJ SASTOJKE
     const sastojciArray = sastojci ? sastojci.split(',').map(s => s.trim()).filter(s => s) : [];
 
-    // 🔥 KREIRAJ OBJAVU SA PREGLEDIMA (DEFAULT 0)
+    // 🔥 KREIRAJ OBJAVU SA VRSTOM!
     const { data, error } = await supabase
       .from('objave')
       .insert([{
         korisnik_id: user.id,
         korisnik_ime: user.ime || 'Korisnik',
         naziv: naziv,
+        vrsta: vrsta || '', // 🔥 DODANO!
         opis: opis || '',
         sastojci: sastojciArray,
         slika: slikaUrl,
@@ -3790,7 +3792,7 @@ app.post('/api/community/objave', upload.single('slika'), async (req, res) => {
         vrijeme: vrijeme || '',
         tezina: tezina || '',
         lajkovi: 0,
-        pregledi: 0, // 🔥 DEFAULT 0
+        pregledi: 0,
         lajkovi_korisnici: []
       }])
       .select();

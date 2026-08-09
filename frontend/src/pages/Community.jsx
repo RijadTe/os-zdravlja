@@ -67,7 +67,9 @@ const Community = () => {
   const [user, setUser] = useState(null);
   const [profil, setProfil] = useState(null);
   const [profilLoading, setProfilLoading] = useState(true);
-  
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+
   // 🔥 State za prikaz notifikacije o bedževima
   const [badgeNotification, setBadgeNotification] = useState(null);
 
@@ -81,6 +83,7 @@ const Community = () => {
 
   const [novaObjava, setNovaObjava] = useState({
     naziv: '',
+    vrsta: '', // 🔥 DODANO: Vrsta jela
     opis: '',
     sastojci: '',
     slika: null,
@@ -293,7 +296,6 @@ const Community = () => {
     }
   };
 
-  // 🔥 IZMJENJEN handleLike - dodaje provjeru bedževa za autora
   const handleLike = async (id) => {
     try {
       const email = user?.email || localStorage.getItem('userEmail');
@@ -305,7 +307,6 @@ const Community = () => {
       
       const data = await res.json();
       
-      // 🔥 Ako je lajk uspješan, provjeri bedževe za autora objave
       if (data.lajkovao) {
         const objava = objave.find(o => o.id === id);
         if (objava && objava.korisnik_email) {
@@ -322,15 +323,12 @@ const Community = () => {
             
             const badgeData = await badgeRes.json();
             
-            // 🔥 Ako je autor dobio nove bedževe, prikaži notifikaciju
             if (badgeData.success && badgeData.noviBadgevi && badgeData.noviBadgevi.length > 0) {
               const badgeNames = badgeData.noviBadgevi.map(b => b.naziv).join(', ');
               setBadgeNotification({
                 message: `🎉 Autor je osvojio: ${badgeNames}!`,
                 type: 'success'
               });
-              
-              // Sakrij notifikaciju nakon 5 sekundi
               setTimeout(() => setBadgeNotification(null), 5000);
             }
           } catch (badgeError) {
@@ -356,21 +354,41 @@ const Community = () => {
     });
   };
 
-  // 🔥 IZMJENJEN handleSubmit - dodaje provjeru bedževa nakon objave
+  // ============================================================
+  // 🔥 IZMJENJEN handleSubmit - DODANA VRSTA JELA I BOLJI ERROR HANDLING
+  // ============================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError(null);
+    
     if (!user) {
       alert(t('community.alerts.login_required'));
       return;
     }
 
+    // 🔥 PROVJERA - VRSTA JELA JE OBAVEZNA!
+    if (!novaObjava.vrsta) {
+      setSubmitError('Molimo odaberite vrstu jela.');
+      return;
+    }
+
+    if (!novaObjava.naziv || novaObjava.naziv.trim() === '') {
+      setSubmitError('Molimo unesite naziv recepta.');
+      return;
+    }
+
+    setSubmitting(true);
+
     try {
       const formData = new FormData();
       const email = user?.email || localStorage.getItem('userEmail');
+      
+      // 🔥 DODAJ SVE PODATKE
       formData.append('email', email);
-      formData.append('naziv', novaObjava.naziv);
-      formData.append('opis', novaObjava.opis);
-      formData.append('sastojci', novaObjava.sastojci);
+      formData.append('naziv', novaObjava.naziv.trim());
+      formData.append('vrsta', novaObjava.vrsta); // 🔥 DODANO: Vrsta jela
+      formData.append('opis', novaObjava.opis || '');
+      formData.append('sastojci', novaObjava.sastojci || '');
       if (novaObjava.slika) formData.append('slika', novaObjava.slika);
       
       const alergeniValues = (novaObjava.alergeni || []).map(key => alergenKeyToValue[key] || key);
@@ -378,19 +396,47 @@ const Community = () => {
       formData.append('vrijeme', novaObjava.vrijeme || '');
       formData.append('tezina', novaObjava.tezina || '');
 
+      console.log('📤 Šaljem objavu:', {
+        email,
+        naziv: novaObjava.naziv,
+        vrsta: novaObjava.vrsta,
+        opis: novaObjava.opis,
+        sastojci: novaObjava.sastojci,
+        alergeni: alergeniValues,
+        vrijeme: novaObjava.vrijeme,
+        tezina: novaObjava.tezina
+      });
+
       const res = await fetch(`${API_URL}/api/community/objave`, {
         method: 'POST',
         body: formData
       });
 
+      // 🔥 BOLJI ERROR HANDLING
       if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
+        let errorMessage = `Server error: ${res.status}`;
+        try {
+          const errorData = await res.json();
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch (e) {
+          // Ako nije JSON, uzmi tekst
+          const text = await res.text();
+          if (text) errorMessage = text;
+        }
+        throw new Error(errorMessage);
       }
 
+      const responseData = await res.json();
+      console.log('✅ Objava uspješno kreirana:', responseData);
+
+      // 🔥 RESET FORME
       setNovaObjava({ 
-        naziv: '', 
-        opis: '', 
-        sastojci: '', 
+        naziv: '',
+        vrsta: '', // 🔥 DODANO: Resetiraj vrstu
+        opis: '',
+        sastojci: '',
         slika: null,
         alergeni: [],
         vrijeme: '',
@@ -410,15 +456,12 @@ const Community = () => {
         
         const badgeData = await badgeRes.json();
         
-        // 🔥 Ako je korisnik dobio nove bedževe, prikaži notifikaciju
         if (badgeData.success && badgeData.noviBadgevi && badgeData.noviBadgevi.length > 0) {
           const badgeNames = badgeData.noviBadgevi.map(b => b.naziv).join(', ');
           setBadgeNotification({
             message: `🎉 Čestitamo! Osvojili ste: ${badgeNames}!`,
             type: 'success'
           });
-          
-          // Sakrij notifikaciju nakon 5 sekundi
           setTimeout(() => setBadgeNotification(null), 5000);
         }
       } catch (badgeError) {
@@ -426,9 +469,13 @@ const Community = () => {
       }
       
       fetchObjave();
+      setSubmitError(null);
+      
     } catch (error) {
-      console.error('Greška pri objavi:', error);
-      alert('❌ Došlo je do greške pri objavi. Pokušajte ponovo.');
+      console.error('❌ Greška pri objavi:', error);
+      setSubmitError(error.message || 'Došlo je do greške pri objavi. Pokušajte ponovo.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -511,7 +558,7 @@ const Community = () => {
         </div>
       )}
 
-      {/* FILTERI - SADA PREVEDENI! */}
+      {/* FILTERI */}
       {profil && (
         <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 mb-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-3">
@@ -575,11 +622,39 @@ const Community = () => {
         </div>
       )}
 
-      {/* Forma za novu objavu */}
+      {/* Forma za novu objavu - SA VRSTOM JELA */}
       {user ? (
         <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md mb-8">
           <h2 className="text-xl font-bold mb-4">➕ {t('community.share_recipe')}</h2>
+          
+          {/* 🔥 PRIKAZ GREŠKE */}
+          {submitError && (
+            <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 rounded-lg text-red-700 dark:text-red-300">
+              ❌ {submitError}
+            </div>
+          )}
+          
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* 🔥 DODANO: Vrsta jela - OBAVEZNO! */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                🍽️ {t('community.recipe_type') || 'Vrsta jela'} *
+              </label>
+              <select
+                value={novaObjava.vrsta}
+                onChange={(e) => setNovaObjava({ ...novaObjava, vrsta: e.target.value })}
+                className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                required
+              >
+                <option value="">{t('community.select_type') || 'Odaberi vrstu jela...'}</option>
+                <option value="Slano">🍕 {t('community.filters.savory', { defaultValue: 'Slano' })}</option>
+                <option value="Deserti">🍰 {t('community.filters.desserts', { defaultValue: 'Deserti' })}</option>
+                <option value="Dijetalni recepti">🥗 {t('community.filters.diet', { defaultValue: 'Dijetalno' })}</option>
+                <option value="Napitki">🍹 {t('community.filters.drinks', { defaultValue: 'Napitki' })}</option>
+              </select>
+            </div>
+
+            {/* Naziv jela */}
             <input
               type="text"
               placeholder={t('community.recipe_name')}
@@ -589,6 +664,7 @@ const Community = () => {
               required
             />
             
+            {/* Detaljan opis */}
             <textarea
               placeholder={t('community.description')}
               value={novaObjava.opis}
@@ -597,6 +673,7 @@ const Community = () => {
               rows="3"
             />
             
+            {/* Sastojci */}
             <input
               type="text"
               placeholder={t('community.ingredients')}
@@ -605,6 +682,7 @@ const Community = () => {
               className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
             />
 
+            {/* Alergeni */}
             <div className="border dark:border-gray-600 rounded-lg p-4">
               <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 {t('community.allergens', { defaultValue: '🚫 Restrikcije / Alergeni' })}
@@ -636,6 +714,7 @@ const Community = () => {
               )}
             </div>
 
+            {/* Vrijeme i Težina */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
@@ -669,6 +748,7 @@ const Community = () => {
               </div>
             </div>
 
+            {/* Upload slike */}
             <div className="relative">
               <input
                 type="file"
@@ -691,9 +771,10 @@ const Community = () => {
 
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition"
+              disabled={submitting}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              📤 {t('community.post_button')}
+              {submitting ? '⏳ Slanje...' : '📤 ' + t('community.post_button')}
             </button>
           </form>
         </div>
@@ -753,6 +834,13 @@ const Community = () => {
                   <h3 className="font-bold text-sm md:text-base dark:text-white line-clamp-2 min-h-[2.5rem]">
                     {objava.naziv || t('community.untitled', { defaultValue: 'Bez naslova' })}
                   </h3>
+                  
+                  {/* 🔥 PRIKAZ VRSTE JELA */}
+                  {objava.vrsta && (
+                    <span className="text-xs text-blue-500 dark:text-blue-400 mt-0.5">
+                      🍽️ {objava.vrsta}
+                    </span>
+                  )}
                   
                   <p className="text-xs text-blue-500 dark:text-blue-400 mt-0.5 italic">
                     {t('community.click_for_details', { defaultValue: '📖 Za detaljalje pripreme otvorite recept' })}
