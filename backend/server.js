@@ -3733,18 +3733,19 @@ app.get('/api/community/objave/:id', async (req, res) => {
 });
 
 // ============================================================
-// 39. 🔥 COMMUNITY - KREIRAJ OBJAVU (SA ALERGENIMA, VREMENOM, TEŽINOM, VRSTOM I PREGLEDIMA)
+// 39. 🔥 COMMUNITY - KREIRAJ OBJAVU (SA ALERGENIMA, VREMENOM, TEŽINOM, VRSTOM I KALORIJAMA!)
 // ============================================================
 app.post('/api/community/objave', upload.single('slika'), async (req, res) => {
   try {
-    const { email, naziv, vrsta, opis, sastojci, alergeni, vrijeme, tezina } = req.body; // 🔥 DODANO: vrsta
+    const { email, naziv, vrsta, opis, sastojci, alergeni, vrijeme, tezina, kalorije } = req.body; // 🔥 DODANO: kalorije
     const slika = req.file;
     
     console.log(`📝 Kreiranje objave za: ${email}`);
     console.log(`📦 Alergeni:`, alergeni);
     console.log(`⏱️ Vrijeme:`, vrijeme);
     console.log(`👨‍🍳 Težina:`, tezina);
-    console.log(`🍽️ Vrsta:`, vrsta); // 🔥 DODANO
+    console.log(`🍽️ Vrsta:`, vrsta);
+    console.log(`🔥 Kalorije:`, kalorije); // 🔥 DODANO
     
     const { data: user, error: userError } = await supabase
       .from('profili')
@@ -3777,20 +3778,21 @@ app.post('/api/community/objave', upload.single('slika'), async (req, res) => {
     // 🔥 PARSIRAJ SASTOJKE
     const sastojciArray = sastojci ? sastojci.split(',').map(s => s.trim()).filter(s => s) : [];
 
-    // 🔥 KREIRAJ OBJAVU SA VRSTOM!
+    // 🔥 KREIRAJ OBJAVU SA VRSTOM I KALORIJAMA!
     const { data, error } = await supabase
       .from('objave')
       .insert([{
         korisnik_id: user.id,
         korisnik_ime: user.ime || 'Korisnik',
         naziv: naziv,
-        vrsta: vrsta || '', // 🔥 DODANO!
+        vrsta: vrsta || '',
         opis: opis || '',
         sastojci: sastojciArray,
         slika: slikaUrl,
         alergeni: alergeniArray,
         vrijeme: vrijeme || '',
         tezina: tezina || '',
+        kalorije: parseInt(kalorije) || 0, // 🔥 DODANO!
         lajkovi: 0,
         pregledi: 0,
         lajkovi_korisnici: []
