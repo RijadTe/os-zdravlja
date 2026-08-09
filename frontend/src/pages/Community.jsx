@@ -109,6 +109,9 @@ const Community = () => {
     fetchObjave();
   }, []);
 
+  // ============================================================
+  // 🔥 IZMJENJEN fetchProfile - ISKLJUČEN KALORIJE FILTER!
+  // ============================================================
   const fetchProfile = async (email) => {
     try {
       setProfilLoading(true);
@@ -142,15 +145,17 @@ const Community = () => {
           newFilters.tezina = data.data.tezina;
         }
         
-        if (data.data.kalorije) {
-          const kalorijeMap = {
-            'Nisko (do 300 kcal)': 'do_300',
-            'Umjereno (300-500 kcal)': '300_500',
-            'Srednje (500-700 kcal)': '500_700',
-            'Visoko (900+ kcal)': '900_plus'
-          };
-          newFilters.kalorije = kalorijeMap[data.data.kalorije] || '';
-        }
+        // 🔥🔥🔥 KALORIJE FILTER JE ISKLJUČEN - NE POSTAVLJA SE AUTOMATSKI!
+        // Korisnik će morati ručno odabrati filter za kalorije ako želi
+        // if (data.data.kalorije) {
+        //   const kalorijeMap = {
+        //     'Nisko (do 300 kcal)': 'do_300',
+        //     'Umjereno (300-500 kcal)': '300_500',
+        //     'Srednje (500-700 kcal)': '500_700',
+        //     'Visoko (900+ kcal)': '900_plus'
+        //   };
+        //   newFilters.kalorije = kalorijeMap[data.data.kalorije] || '';
+        // }
         
         setFilters(prev => ({ ...prev, ...newFilters }));
       }
@@ -291,15 +296,16 @@ const Community = () => {
       if (profil.vrijeme) resetFilters.vrijeme = profil.vrijeme;
       if (profil.tezina) resetFilters.tezina = profil.tezina;
       
-      if (profil.kalorije) {
-        const kalorijeMap = {
-          'Nisko (do 300 kcal)': 'do_300',
-          'Umjereno (300-500 kcal)': '300_500',
-          'Srednje (500-700 kcal)': '500_700',
-          'Visoko (900+ kcal)': '900_plus'
-        };
-        resetFilters.kalorije = kalorijeMap[profil.kalorije] || '';
-      }
+      // 🔥 NE RESETUJ KALORIJE - ostavi prazno
+      // if (profil.kalorije) {
+      //   const kalorijeMap = {
+      //     'Nisko (do 300 kcal)': 'do_300',
+      //     'Umjereno (300-500 kcal)': '300_500',
+      //     'Srednje (500-700 kcal)': '500_700',
+      //     'Visoko (900+ kcal)': '900_plus'
+      //   };
+      //   resetFilters.kalorije = kalorijeMap[profil.kalorije] || '';
+      // }
       
       setFilters(prev => ({ ...prev, ...resetFilters }));
     } else {
