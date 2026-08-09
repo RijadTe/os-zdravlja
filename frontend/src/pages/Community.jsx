@@ -83,7 +83,7 @@ const Community = () => {
 
   const [novaObjava, setNovaObjava] = useState({
     naziv: '',
-    vrsta: '', // 🔥 DODANO: Vrsta jela
+    vrsta: '',
     opis: '',
     sastojci: '',
     slika: null,
@@ -161,27 +161,35 @@ const Community = () => {
     }
   };
 
+  // ============================================================
+  // 📥 DOHVATI OBJAVE - SA BOLJIM LOGOVIMA
+  // ============================================================
   const fetchObjave = async () => {
     try {
       setLoading(true);
       setError(null);
       
+      console.log('📥 Dohvatam objave...');
       const res = await fetch(`${API_URL}/api/community/objave`);
+      console.log('📥 Response status:', res.status);
       
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       
       const data = await res.json();
+      console.log('📥 Podaci iz API-ja:', data);
       
       if (data && Array.isArray(data.data)) {
+        console.log('✅ Postavljam objave (data.data):', data.data.length);
         setObjave(data.data);
         setFilteredObjave(data.data);
       } else if (Array.isArray(data)) {
+        console.log('✅ Postavljam objave (array):', data.length);
         setObjave(data);
         setFilteredObjave(data);
       } else {
-        console.warn('⚠️ API nije vratio niz, postavljam prazan niz:', data);
+        console.warn('⚠️ API nije vratio niz:', data);
         setObjave([]);
         setFilteredObjave([]);
       }
@@ -196,13 +204,17 @@ const Community = () => {
   };
 
   // ============================================================
-  // 2. FILTRIRANJE OBJAVA
+  // 2. FILTRIRANJE OBJAVA - SA LOGOVIMA
   // ============================================================
   useEffect(() => {
+    console.log('🔍 Filtriram objave, ukupno:', objave.length);
+    console.log('🔍 Aktivni filteri:', filters);
+    
     let filtered = [...objave];
     
     if (filters.vrsta) {
       filtered = filtered.filter(objava => objava.vrsta === filters.vrsta);
+      console.log('🔍 Nakon filtera vrsta:', filtered.length);
     }
     
     if (filters.alergeni && filters.alergeni.length > 0) {
@@ -212,14 +224,17 @@ const Community = () => {
           objavaAlergeni.includes(restrikcija)
         );
       });
+      console.log('🔍 Nakon filtera alergeni:', filtered.length);
     }
     
     if (filters.vrijeme) {
       filtered = filtered.filter(objava => objava.vrijeme === filters.vrijeme);
+      console.log('🔍 Nakon filtera vrijeme:', filtered.length);
     }
     
     if (filters.tezina) {
       filtered = filtered.filter(objava => objava.tezina === filters.tezina);
+      console.log('🔍 Nakon filtera tezina:', filtered.length);
     }
     
     if (filters.kalorije) {
@@ -239,9 +254,11 @@ const Community = () => {
           if (range.max) return kal <= range.max;
           return true;
         });
+        console.log('🔍 Nakon filtera kalorije:', filtered.length);
       }
     }
     
+    console.log('🔍 Ukupno nakon filtriranja:', filtered.length);
     setFilteredObjave(filtered);
     setCurrentPage(1);
   }, [objave, filters]);
@@ -355,7 +372,7 @@ const Community = () => {
   };
 
   // ============================================================
-  // 🔥 IZMJENJEN handleSubmit - DODANA VRSTA JELA I BOLJI ERROR HANDLING
+  // 🔥 handleSubmit - slanje objave
   // ============================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -366,7 +383,6 @@ const Community = () => {
       return;
     }
 
-    // 🔥 PROVJERA - VRSTA JELA JE OBAVEZNA!
     if (!novaObjava.vrsta) {
       setSubmitError('Molimo odaberite vrstu jela.');
       return;
@@ -383,10 +399,9 @@ const Community = () => {
       const formData = new FormData();
       const email = user?.email || localStorage.getItem('userEmail');
       
-      // 🔥 DODAJ SVE PODATKE
       formData.append('email', email);
       formData.append('naziv', novaObjava.naziv.trim());
-      formData.append('vrsta', novaObjava.vrsta); // 🔥 DODANO: Vrsta jela
+      formData.append('vrsta', novaObjava.vrsta);
       formData.append('opis', novaObjava.opis || '');
       formData.append('sastojci', novaObjava.sastojci || '');
       if (novaObjava.slika) formData.append('slika', novaObjava.slika);
@@ -412,7 +427,6 @@ const Community = () => {
         body: formData
       });
 
-      // 🔥 BOLJI ERROR HANDLING
       if (!res.ok) {
         let errorMessage = `Server error: ${res.status}`;
         try {
@@ -421,7 +435,6 @@ const Community = () => {
             errorMessage = errorData.error;
           }
         } catch (e) {
-          // Ako nije JSON, uzmi tekst
           const text = await res.text();
           if (text) errorMessage = text;
         }
@@ -431,10 +444,9 @@ const Community = () => {
       const responseData = await res.json();
       console.log('✅ Objava uspješno kreirana:', responseData);
 
-      // 🔥 RESET FORME
       setNovaObjava({ 
         naziv: '',
-        vrsta: '', // 🔥 DODANO: Resetiraj vrstu
+        vrsta: '',
         opis: '',
         sastojci: '',
         slika: null,
@@ -443,7 +455,6 @@ const Community = () => {
         tezina: ''
       });
       
-      // 🔥 PROVJERI BEDŽEVE NAKON USPJEŠNE OBJAVE
       try {
         const badgeRes = await fetch(`${API_URL}/api/badges/check`, {
           method: 'POST',
@@ -558,76 +569,13 @@ const Community = () => {
         </div>
       )}
 
-      {/* FILTERI */}
-      {profil && (
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 mb-6 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-              🔍 {t('community.filters.title', { defaultValue: 'Filteri' })}
-              {activeFiltersCount > 0 && (
-                <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">
-                  {activeFiltersCount} {t('community.filters.active', { defaultValue: 'aktivna' })}
-                </span>
-              )}
-            </h3>
-            <button
-              onClick={handleResetFilters}
-              className="text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition"
-            >
-              🔄 {t('community.filters.reset', { defaultValue: 'Reset' })}
-            </button>
-          </div>
-          
-          <div className="flex flex-wrap gap-3">
-            <select
-              value={filters.vrsta}
-              onChange={(e) => handleFilterChange('vrsta', e.target.value)}
-              className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-            >
-              {getVrstaOpcije(t).map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            
-            <select
-              value={filters.vrijeme}
-              onChange={(e) => handleFilterChange('vrijeme', e.target.value)}
-              className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-            >
-              {getVrijemeOpcije(t).map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            
-            <select
-              value={filters.tezina}
-              onChange={(e) => handleFilterChange('tezina', e.target.value)}
-              className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-            >
-              {getTezinaOpcije(t).map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            
-            <select
-              value={filters.kalorije}
-              onChange={(e) => handleFilterChange('kalorije', e.target.value)}
-              className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-            >
-              {getKalorijeOpcije(t).map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      )}
-
-      {/* Forma za novu objavu - SA VRSTOM JELA */}
+      {/* ============================================================
+          🔥 FORMA ZA NOVU OBJAVU - PRVA!
+      ============================================================ */}
       {user ? (
         <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md mb-8">
           <h2 className="text-xl font-bold mb-4">➕ {t('community.share_recipe')}</h2>
           
-          {/* 🔥 PRIKAZ GREŠKE */}
           {submitError && (
             <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 rounded-lg text-red-700 dark:text-red-300">
               ❌ {submitError}
@@ -635,7 +583,7 @@ const Community = () => {
           )}
           
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* 🔥 DODANO: Vrsta jela - OBAVEZNO! */}
+            {/* Vrsta jela - OBAVEZNO! */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                 🍽️ {t('community.recipe_type') || 'Vrsta jela'} *
@@ -654,7 +602,6 @@ const Community = () => {
               </select>
             </div>
 
-            {/* Naziv jela */}
             <input
               type="text"
               placeholder={t('community.recipe_name')}
@@ -664,7 +611,6 @@ const Community = () => {
               required
             />
             
-            {/* Detaljan opis */}
             <textarea
               placeholder={t('community.description')}
               value={novaObjava.opis}
@@ -673,7 +619,6 @@ const Community = () => {
               rows="3"
             />
             
-            {/* Sastojci */}
             <input
               type="text"
               placeholder={t('community.ingredients')}
@@ -682,12 +627,28 @@ const Community = () => {
               className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
             />
 
-            {/* Alergeni */}
+            {/* ============================================================
+                🔥 ALERGENI SA DUGMETOM "BEZ RESTRIKCIJA"
+            ============================================================ */}
             <div className="border dark:border-gray-600 rounded-lg p-4">
               <label className="block font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 {t('community.allergens', { defaultValue: '🚫 Restrikcije / Alergeni' })}
                 <span className="text-sm text-gray-400 ml-2">({t('community.select_all_that_apply', { defaultValue: 'označite sve koji se odnose' })})</span>
               </label>
+              
+              {/* 🔥 DUGME ZA BEZ RESTRIKCIJA */}
+              <button
+                type="button"
+                onClick={() => setNovaObjava(prev => ({ ...prev, alergeni: [] }))}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition mb-2 ${
+                  (novaObjava.alergeni || []).length === 0
+                    ? 'bg-green-500 text-white hover:bg-green-600'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                ✅ Bez restrikcija
+              </button>
+              
               <div className="flex flex-wrap gap-2">
                 {alergeniOpcije.map(({ key, label }) => (
                   <button
@@ -704,12 +665,19 @@ const Community = () => {
                   </button>
                 ))}
               </div>
+              
               {(novaObjava.alergeni || []).length > 0 && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                   ✅ {t('community.selected', { defaultValue: 'Odabrano' })}: {(novaObjava.alergeni || []).map(key => {
                     const option = alergeniOpcije.find(opt => opt.key === key);
                     return option ? option.label : key;
                   }).join(', ')}
+                </p>
+              )}
+              
+              {(novaObjava.alergeni || []).length === 0 && (
+                <p className="text-xs text-green-500 dark:text-green-400 mt-2">
+                  ✅ Nema restrikcija - recept je dostupan svima!
                 </p>
               )}
             </div>
@@ -789,7 +757,75 @@ const Community = () => {
         </div>
       )}
 
-      {/* LISTA OBJAVA */}
+      {/* ============================================================
+          🔥 FILTERI - SADA ISPOD FORME (samo ako ima objava)
+      ============================================================ */}
+      {profil && filteredObjave.length > 0 && (
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 mb-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              🔍 {t('community.filters.title', { defaultValue: 'Filteri' })}
+              {activeFiltersCount > 0 && (
+                <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">
+                  {activeFiltersCount} {t('community.filters.active', { defaultValue: 'aktivna' })}
+                </span>
+              )}
+            </h3>
+            <button
+              onClick={handleResetFilters}
+              className="text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition"
+            >
+              🔄 {t('community.filters.reset', { defaultValue: 'Reset' })}
+            </button>
+          </div>
+          
+          <div className="flex flex-wrap gap-3">
+            <select
+              value={filters.vrsta}
+              onChange={(e) => handleFilterChange('vrsta', e.target.value)}
+              className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            >
+              {getVrstaOpcije(t).map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            
+            <select
+              value={filters.vrijeme}
+              onChange={(e) => handleFilterChange('vrijeme', e.target.value)}
+              className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            >
+              {getVrijemeOpcije(t).map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            
+            <select
+              value={filters.tezina}
+              onChange={(e) => handleFilterChange('tezina', e.target.value)}
+              className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            >
+              {getTezinaOpcije(t).map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            
+            <select
+              value={filters.kalorije}
+              onChange={(e) => handleFilterChange('kalorije', e.target.value)}
+              className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            >
+              {getKalorijeOpcije(t).map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================
+          🔥 LISTA OBJAVA
+      ============================================================ */}
       {!filteredObjave || filteredObjave.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700">
           <p className="text-2xl mb-2">📭</p>
@@ -835,7 +871,6 @@ const Community = () => {
                     {objava.naziv || t('community.untitled', { defaultValue: 'Bez naslova' })}
                   </h3>
                   
-                  {/* 🔥 PRIKAZ VRSTE JELA */}
                   {objava.vrsta && (
                     <span className="text-xs text-blue-500 dark:text-blue-400 mt-0.5">
                       🍽️ {objava.vrsta}
