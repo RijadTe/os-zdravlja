@@ -1,7 +1,37 @@
 // backend/server.js
 require('dotenv').config();
+
+// ============================================================
+// 🔥 ENV VALIDACIJA - OBAVEZNO!
+// ============================================================
+console.log('\n🔍 === PROVJERA ENV VARIJABLI ===\n');
+
+const requiredEnv = [
+  'SUPABASE_URL',
+  'SUPABASE_ANON_KEY',
+  'OPENAI_API_KEY',
+  'STRIPE_SECRET_KEY',
+  'VAPID_PUBLIC_KEY',
+  'VAPID_PRIVATE_KEY'
+];
+
+const missingRequired = requiredEnv.filter(key => !process.env[key]);
+
+if (missingRequired.length > 0) {
+  console.error('\n❌❌❌ FATALNA GREŠKA ❌❌❌');
+  console.error(`Fale obavezne ENV varijable:\n  - ${missingRequired.join('\n  - ')}`);
+  console.error('\n🚫 Server se NE MOŽE pokrenuti!');
+  console.error('📝 Postavite sve obavezne varijable u .env fajl.\n');
+  process.exit(1);
+}
+
+console.log('✅ Sve obavezne ENV varijable su postavljene!');
+console.log('=================================\n');
+
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const { body, validationResult } = require('express-validator');
 const multer = require('multer');
 const path = require('path');
 const crypto = require('crypto');
@@ -18,7 +48,7 @@ const geoip = require('geoip-lite');
 const app = express();
 
 // ============================================================
-// PROVJERA ENV VARIJABLI
+// PROVJERA ENV VARIJABLI (detaljna)
 // ============================================================
 console.log('🔍 Provjera .env:');
 console.log('PORT:', process.env.PORT || '5000');
@@ -54,7 +84,72 @@ cloudinary.config({
 console.log('✅ Cloudinary povezan!');
 
 // ============================================================
-// 🔥 RATE LIMIT
+// 🔥 MIDDLEWARE - HELMET
+// ============================================================
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      connectSrc: [
+        "'self'",
+        "https://api.openai.com",
+        "https://*.supabase.co",
+        "https://os-zdravlja.vercel.app",
+        "https://os-zdravlja-backend.onrender.com"
+      ],
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: []
+    }
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+console.log('✅ Helmet sigurnosni headeri aktivirani');
+
+// ============================================================
+// 🔥 MIDDLEWARE - CORS (DINAMIČKI)
+// ============================================================
+const allowedOrigins = [
+  'https://os-zdravlja.vercel.app',
+  'https://os-zdravlja-backend.onrender.com',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+  'http://localhost:3001'
+];
+
+if (process.env.CLIENT_URL) {
+  allowedOrigins.push(process.env.CLIENT_URL);
+}
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) {
+      return callback(null, true);
+    }
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`⚠️ CORS blokiran: ${origin}`);
+      callback(new Error('CORS policy violation'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  exposedHeaders: ['X-Total-Count', 'X-Content-Language', 'X-Source', 'X-Cache-Hit'],
+  maxAge: 86400
+}));
+
+console.log('✅ CORS konfiguriran sa dinamičkom provjerom');
+
+// ============================================================
+// 🔥 RATE LIMIT - PRILAGOĐEN TVOJIM POTREBAMA
 // ============================================================
 console.log('🛡️ POSTAVLJAM RATE LIMIT...');
 
@@ -69,23 +164,29 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// 🔥 AUTH - 10 pokušaja u 15 minuta
 const authLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000,
-  max: 100,
+  windowMs: 15 * 60 * 1000, // 15 minuta
+  max: 10, // 10 pokušaja
   message: {
     success: false,
-    error: '⏳ Previše pokušaja prijave. Pokušajte za minutu.'
+    error: '⏳ Previše pokušaja prijave. Pokušajte za 15 minuta.'
   },
   skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
+// 🤖 AI - 50 zahtjeva po minuti (zbog cache-a 90 dana!)
 const aiLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000,
-  max: 200,
+  windowMs: 1 * 60 * 1000, // 1 minuta
+  max: 50, // 50 zahtjeva po minuti
   message: {
     success: false,
     error: '⏳ Previše AI pretraga. Pokušajte za minutu.'
-  }
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 const heavyLimiter = rateLimit({
@@ -101,33 +202,38 @@ const heavyLimiter = rateLimit({
 
 console.log('✅ Rate Limit postavljen:');
 console.log('   - API: 1000 zahtjeva/min');
-console.log('   - Auth: 100 pokušaja/min');
-console.log('   - AI: 200 pretraga/min');
+console.log('   - Auth: 10 pokušaja/15min');
+console.log('   - AI: 50 pretraga/min (CACHE 90 dana)');
 console.log('   - Teški endpointi: 500 zahtjeva/min');
 
 // ============================================================
-// MIDDLEWARE - CORS
+// 🔥 IP BAN LISTA
 // ============================================================
-app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://127.0.0.1:3000',
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:5174',
-    'http://10.129.62.121:5173',
-    'http://10.129.62.121:5174',
-    'https://os-zdravlja.vercel.app',
-    'https://os-zdravlja-backend.onrender.com',
-    process.env.CLIENT_URL
-  ].filter(Boolean),
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With']
-}));
+const bannedIPs = new Set();
 
+app.use((req, res, next) => {
+  const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
+  if (bannedIPs.has(ip)) {
+    console.warn(`🚫 Blokiran banovani IP: ${ip}`);
+    return res.status(403).json({ error: 'Pristup odbijen.' });
+  }
+  next();
+});
+
+console.log('✅ IP ban lista aktivirana');
+
+// Admin endpoint za ban
+app.post('/api/admin/ban-ip', (req, res) => {
+  const { ip } = req.body;
+  if (!ip) return res.status(400).json({ error: 'IP je obavezan' });
+  bannedIPs.add(ip);
+  console.log(`🚫 IP banovan: ${ip}`);
+  res.json({ success: true, message: `IP ${ip} je banovan` });
+});
+
+// ============================================================
+// OSTALI MIDDLEWARES
+// ============================================================
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -517,7 +623,6 @@ function generateFallbackPlan(kalorije, proteini, ugljikohidrati, masti, restrik
     );
   };
 
-  // 🔥 MAPIRANJE ALTERNATIVA ZA RESTRIKCIJE
   const getSafeAlternative = (food, restrikcije) => {
     if (!restrikcije || restrikcije.length === 0) return food;
     
@@ -596,7 +701,6 @@ function generateFallbackPlan(kalorije, proteini, ugljikohidrati, masti, restrik
     selectedPlan = planovi.high;
   }
   
-  // 🔥 PRIMIJENI RESTRIKCIJE NA PLAN
   if (restrikcije && restrikcije.length > 0) {
     selectedPlan.dani = selectedPlan.dani.map(dan => {
       const newDan = { ...dan };
@@ -606,7 +710,6 @@ function generateFallbackPlan(kalorije, proteini, ugljikohidrati, masti, restrik
           newDan[obrok] = getSafeAlternative(newDan[obrok], restrikcije);
         }
         
-        // 🔥 PROVJERI DA LI ALTERNATIVA SADRŽI RESTRIKCIJU
         if (newDan[obrok] && hasRestriction(newDan[obrok])) {
           const genericNames = {
             'dorucak': 'Zdrav doručak (bez alergena)',
@@ -766,161 +869,71 @@ app.post('/api/auth/2fa/verify', async (req, res) => {
 });
 
 // ============================================================
-// 5. REGISTRACIJA
+// 🔥 REGISTRACIJA - SA VALIDACIJOM!
 // ============================================================
-app.post('/api/auth/register', async (req, res) => {
-  console.log('\n📝 === REGISTRACIJA ===');
-  console.log('📦 Podaci:', req.body);
-  
-  try {
-    const { email, ime, lozinka } = req.body;
-
-    if (!email || !ime || !lozinka) {
-      return res.status(400).json({ error: '❌ Sva polja su obavezna.' });
+app.post('/api/auth/register',
+  body('email').isEmail().withMessage('Neispravan email format'),
+  body('ime').isLength({ min: 2, max: 50 }).withMessage('Ime mora imati 2-50 karaktera'),
+  body('lozinka').isLength({ min: 6 }).withMessage('Lozinka mora imati najmanje 6 karaktera'),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array().map(e => e.msg)
+      });
     }
+    next();
+  },
+  async (req, res) => {
+    console.log('\n📝 === REGISTRACIJA ===');
+    console.log('📦 Podaci:', req.body);
+    
+    try {
+      const { email, ime, lozinka } = req.body;
 
-    if (lozinka.length < 6) {
-      return res.status(400).json({ error: '❌ Lozinka mora imati najmanje 6 karaktera.' });
-    }
+      console.log('🔍 Provjeravam email:', email);
+      const { data: existingUser, error: checkError } = await supabase
+        .from('profili')
+        .select('email, id')
+        .eq('email', email)
+        .maybeSingle();
 
-    console.log('🔍 Provjeravam email:', email);
-    const { data: existingUser, error: checkError } = await supabase
-      .from('profili')
-      .select('email, id')
-      .eq('email', email)
-      .maybeSingle();
-
-    if (checkError && checkError.code !== 'PGRST116') {
-      console.error('❌ Greška pri provjeri:', checkError);
-    }
-
-    if (existingUser) {
-      console.log('⚠️ Email već postoji u bazi:', email);
-      return res.status(400).json({ error: '❌ Korisnik sa ovim emailom već postoji. Molimo prijavite se.' });
-    }
-
-    console.log('✅ Email slobodan:', email);
-
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: email,
-      password: lozinka,
-      options: {
-        data: { ime: ime }
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('❌ Greška pri provjeri:', checkError);
       }
-    });
 
-    if (authError) {
-      console.error('❌ Auth greška:', authError);
-      if (authError.message.includes('already registered')) {
+      if (existingUser) {
+        console.log('⚠️ Email već postoji u bazi:', email);
         return res.status(400).json({ error: '❌ Korisnik sa ovim emailom već postoji. Molimo prijavite se.' });
       }
-      return res.status(400).json({ error: authError.message });
-    }
 
-    console.log('✅ Auth korisnik kreiran:', authData.user?.id);
+      console.log('✅ Email slobodan:', email);
 
-    const { data: profileData, error: profileError } = await supabase
-      .from('profili')
-      .insert([{
-        id: authData.user?.id,
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email,
-        ime: ime,
-        premium: false,
-        kviz_zavrsen: false,
-        vrsta: [],
-        izbjegava: [],
-        preferencije: [],
-        ai_chef_pretrage: 0,
-        ai_chef_datum: null,
-        twofa_secret: null,
-        twofa_enabled: false,
-        created_at: new Date().toISOString()
-      }])
-      .select();
+        password: lozinka,
+        options: {
+          data: { ime: ime }
+        }
+      });
 
-    if (profileError) {
-      console.error('❌ Greška pri kreiranju profila:', profileError);
-      if (profileError.code === '23505') {
-        console.log('ℹ️ Profil već postoji, nastavljam...');
-        return res.status(201).json({
-          success: true,
-          message: '✅ Registracija uspješna! Profil već postoji.',
-          user: { id: authData.user?.id, email: email, ime: ime },
-          session: authData.session
-        });
+      if (authError) {
+        console.error('❌ Auth greška:', authError);
+        if (authError.message.includes('already registered')) {
+          return res.status(400).json({ error: '❌ Korisnik sa ovim emailom već postoji. Molimo prijavite se.' });
+        }
+        return res.status(400).json({ error: authError.message });
       }
-      return res.status(500).json({ error: '❌ Greška pri kreiranju profila: ' + profileError.message });
-    }
 
-    console.log('✅ Profil kreiran:', profileData);
+      console.log('✅ Auth korisnik kreiran:', authData.user?.id);
 
-    await createNotification(
-      email,
-      'motivacija',
-      `👋 Dobrodošli ${ime}! Otkrijte savršene recepte prilagođene vašim potrebama. Započnite kviz da personalizujemo vaše iskustvo!`,
-      '/quiz'
-    );
-
-    res.status(201).json({
-      success: true,
-      message: '✅ Registracija uspješna!',
-      user: { id: authData.user?.id, email: email, ime: ime },
-      session: authData.session
-    });
-
-  } catch (error) {
-    console.error('❌ Server greška:', error);
-    res.status(500).json({ error: '❌ Greška na serveru: ' + error.message });
-  }
-});
-
-// ============================================================
-// 6. PRIJAVA
-// ============================================================
-app.post('/api/auth/login', async (req, res) => {
-  console.log('\n🔐 === PRIJAVA ===');
-  console.log('📦 Podaci:', req.body);
-  
-  try {
-    const { email, lozinka } = req.body;
-
-    if (!email || !lozinka) {
-      return res.status(400).json({ error: '❌ Email i lozinka su obavezni.' });
-    }
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: lozinka
-    });
-
-    if (error) {
-      console.error('❌ Auth greška:', error);
-      if (error.message.includes('Invalid login credentials')) {
-        return res.status(401).json({ error: '❌ Pogrešan email ili lozinka.' });
-      }
-      return res.status(400).json({ error: error.message });
-    }
-
-    console.log('✅ Prijava uspješna:', data.user?.id);
-
-    const { data: profileData, error: profileError } = await supabase
-      .from('profili')
-      .select('*')
-      .eq('email', email)
-      .maybeSingle();
-
-    if (profileError) {
-      console.warn('⚠️ Greška pri dohvatu profila:', profileError);
-    }
-
-    if (!profileData) {
-      console.log('🆕 Profil ne postoji, kreiram...');
-      const { data: newProfile, error: insertError } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profili')
         .insert([{
-          id: data.user?.id,
+          id: authData.user?.id,
           email: email,
-          ime: data.user?.user_metadata?.ime || '',
+          ime: ime,
           premium: false,
           kviz_zavrsen: false,
           vrsta: [],
@@ -934,40 +947,147 @@ app.post('/api/auth/login', async (req, res) => {
         }])
         .select();
 
-      if (insertError) {
-        console.warn('⚠️ Greška pri kreiranju profila:', insertError);
+      if (profileError) {
+        console.error('❌ Greška pri kreiranju profila:', profileError);
+        if (profileError.code === '23505') {
+          console.log('ℹ️ Profil već postoji, nastavljam...');
+          return res.status(201).json({
+            success: true,
+            message: '✅ Registracija uspješna! Profil već postoji.',
+            user: { id: authData.user?.id, email: email, ime: ime },
+            session: authData.session
+          });
+        }
+        return res.status(500).json({ error: '❌ Greška pri kreiranju profila: ' + profileError.message });
       }
 
-      return res.json({
+      console.log('✅ Profil kreiran:', profileData);
+
+      await createNotification(
+        email,
+        'motivacija',
+        `👋 Dobrodošli ${ime}! Otkrijte savršene recepte prilagođene vašim potrebama. Započnite kviz da personalizujemo vaše iskustvo!`,
+        '/quiz'
+      );
+
+      res.status(201).json({
+        success: true,
+        message: '✅ Registracija uspješna!',
+        user: { id: authData.user?.id, email: email, ime: ime },
+        session: authData.session
+      });
+
+    } catch (error) {
+      console.error('❌ Server greška:', error);
+      res.status(500).json({ error: '❌ Greška na serveru: ' + error.message });
+    }
+  }
+);
+
+// ============================================================
+// 🔥 PRIJAVA - SA VALIDACIJOM!
+// ============================================================
+app.post('/api/auth/login',
+  body('email').isEmail().withMessage('Neispravan email format'),
+  body('lozinka').notEmpty().withMessage('Lozinka je obavezna'),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array().map(e => e.msg)
+      });
+    }
+    next();
+  },
+  async (req, res) => {
+    console.log('\n🔐 === PRIJAVA ===');
+    console.log('📦 Podaci:', req.body);
+    
+    try {
+      const { email, lozinka } = req.body;
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: lozinka
+      });
+
+      if (error) {
+        console.error('❌ Auth greška:', error);
+        if (error.message.includes('Invalid login credentials')) {
+          return res.status(401).json({ error: '❌ Pogrešan email ili lozinka.' });
+        }
+        return res.status(400).json({ error: error.message });
+      }
+
+      console.log('✅ Prijava uspješna:', data.user?.id);
+
+      const { data: profileData, error: profileError } = await supabase
+        .from('profili')
+        .select('*')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (profileError) {
+        console.warn('⚠️ Greška pri dohvatu profila:', profileError);
+      }
+
+      if (!profileData) {
+        console.log('🆕 Profil ne postoji, kreiram...');
+        const { data: newProfile, error: insertError } = await supabase
+          .from('profili')
+          .insert([{
+            id: data.user?.id,
+            email: email,
+            ime: data.user?.user_metadata?.ime || '',
+            premium: false,
+            kviz_zavrsen: false,
+            vrsta: [],
+            izbjegava: [],
+            preferencije: [],
+            ai_chef_pretrage: 0,
+            ai_chef_datum: null,
+            twofa_secret: null,
+            twofa_enabled: false,
+            created_at: new Date().toISOString()
+          }])
+          .select();
+
+        if (insertError) {
+          console.warn('⚠️ Greška pri kreiranju profila:', insertError);
+        }
+
+        return res.json({
+          success: true,
+          message: '✅ Prijava uspješna!',
+          user: {
+            id: data.user?.id,
+            email: email,
+            ime: data.user?.user_metadata?.ime || '',
+            profile: newProfile?.[0] || null
+          },
+          session: data.session
+        });
+      }
+
+      res.json({
         success: true,
         message: '✅ Prijava uspješna!',
         user: {
           id: data.user?.id,
           email: email,
-          ime: data.user?.user_metadata?.ime || '',
-          profile: newProfile?.[0] || null
+          ime: data.user?.user_metadata?.ime || profileData.ime || '',
+          profile: profileData
         },
         session: data.session
       });
+
+    } catch (error) {
+      console.error('❌ Server greška:', error);
+      res.status(500).json({ error: '❌ Greška na serveru: ' + error.message });
     }
-
-    res.json({
-      success: true,
-      message: '✅ Prijava uspješna!',
-      user: {
-        id: data.user?.id,
-        email: email,
-        ime: data.user?.user_metadata?.ime || profileData.ime || '',
-        profile: profileData
-      },
-      session: data.session
-    });
-
-  } catch (error) {
-    console.error('❌ Server greška:', error);
-    res.status(500).json({ error: '❌ Greška na serveru: ' + error.message });
   }
-});
+);
 
 // ============================================================
 // 7. DOHVATI TRENUTNOG KORISNIKA
@@ -1174,7 +1294,6 @@ app.get('/api/recepti', async (req, res) => {
     let userTezina = '';
     let userKalorije = '';
     
-    // 🔥 1. DOHVATI RESTRIKCIJE IZ PROFILA
     if (email) {
       const { data: profil, error: profilError } = await supabase
         .from('profili')
@@ -1193,7 +1312,6 @@ app.get('/api/recepti', async (req, res) => {
       }
     }
     
-    // 🔥 2. RESTRIKCIJE IZ QUERY PARAMETRA
     let restrikcijeArray = [];
     if (restrikcije) {
       restrikcijeArray = Array.isArray(restrikcije) 
@@ -1204,7 +1322,6 @@ app.get('/api/recepti', async (req, res) => {
       restrikcijeArray = userRestrictions;
     }
     
-    // 🔥 3. KREIRAJ QUERY SA PREVODIMA
     let query = supabase
       .from('recepti')
       .select(`
@@ -1218,12 +1335,10 @@ app.get('/api/recepti', async (req, res) => {
         )
       `, { count: 'exact' });
 
-    // 🔥🔥🔥 DODAJ FILTER ZA JEZIK
     if (jezik !== 'hr') {
       query = query.eq('prevod.jezik', jezik);
     }
 
-    // FILTRIRAJ PO VRSTI
     let vrstaFilter = vrsta ? vrsta.split(',') : [];
     if (vrstaFilter.length === 0 && userVrsta.length > 0) {
       vrstaFilter = userVrsta.filter(v => v !== 'Svejedno');
@@ -1233,21 +1348,18 @@ app.get('/api/recepti', async (req, res) => {
       console.log('✅ Filtriram po vrsti:', vrstaFilter);
     }
 
-    // FILTRIRAJ PO VREMENU
     let vrijemeFilter = vrijeme || userVrijeme;
     if (vrijemeFilter) {
       query = query.eq('vrijeme', vrijemeFilter);
       console.log('✅ Filtriram po vremenu:', vrijemeFilter);
     }
 
-    // FILTRIRAJ PO TEŽINI
     let tezinaFilter = tezina || userTezina;
     if (tezinaFilter) {
       query = query.eq('tezina', tezinaFilter);
       console.log('✅ Filtriram po težini:', tezinaFilter);
     }
 
-    // FILTRIRAJ PO KALORIJAMA
     let kalorijeFilter = kalorije || userKalorije;
     if (kalorijeFilter) {
       if (kalorijeFilter.includes('do 300')) {
@@ -1262,7 +1374,6 @@ app.get('/api/recepti', async (req, res) => {
       console.log('✅ Filtriram po kalorijama:', kalorijeFilter);
     }
 
-    // FILTRIRAJ PO RESTRIKCIJAMA
     if (restrikcijeArray.length > 0) {
       const hasNoRestrictions = restrikcijeArray.some(r => 
         r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
@@ -1297,7 +1408,6 @@ app.get('/api/recepti', async (req, res) => {
       }
     }
 
-    // FILTRIRAJ PO PREFERENCIJAMA
     let preferencijeFilter = preferencije ? preferencije.split(',') : [];
     if (preferencijeFilter.length === 0 && userPreferences.length > 0) {
       preferencijeFilter = userPreferences.filter(p => p !== 'Svejedno');
@@ -1332,7 +1442,6 @@ app.get('/api/recepti', async (req, res) => {
       return res.status(500).json({ error: error.message });
     }
     
-    // 🔥 OBRADI PREVODE
     const processedRecipes = data.map(recipe => {
       if (recipe.prevod && jezik !== 'hr') {
         return {
@@ -1758,7 +1867,6 @@ app.get('/api/healthy-chef/recepti', async (req, res) => {
     
     const offset = (parseInt(page) - 1) * parseInt(limit);
     
-    // 🔥 DOHVATI KORISNIKOVE RESTRIKCIJE
     let userRestrictions = [];
     if (email) {
       const { data: profil, error: profilError } = await supabase
@@ -1785,7 +1893,6 @@ app.get('/api/healthy-chef/recepti', async (req, res) => {
     if (vrijeme) query = query.eq('vrijeme', vrijeme);
     if (tezina) query = query.eq('tezina', tezina);
 
-    // 🔥 FILTRIRAJ PO RESTRIKCIJAMA
     if (userRestrictions.length > 0) {
       const alergeniList = ['gluten', 'laktoza', 'jaja', 'orašasti', 'orasasti', 'soja', 'kikiriki', 'morski plodovi'];
       const alergeniRestrikcije = [];
@@ -1985,7 +2092,6 @@ app.post('/api/weekly-plan', async (req, res) => {
     console.log('📦 Sastojci:', sastojci?.length || 0);
     console.log('🎯 Cilj kalorija:', kalorije);
 
-    // 🔥 DOHVATI KORISNIKA ZA DODATNE INFORMACIJE
     let korisnikIme = 'Korisnik';
     let korisnikVrsta = [];
     let korisnikPreferencije = [];
@@ -2073,7 +2179,6 @@ app.post('/api/weekly-plan', async (req, res) => {
       console.log(`📊 Nakon sastojaka: ${filtered.length} recepata`);
     }
 
-    // 🔥 PRAG OD 7 RECEPATA - OSTAVLJAMO KAO ŠTO JE BILO
     if (filtered.length >= 7) {
       console.log(`✅ Koristim bazu: ${filtered.length} recepata dostupno`);
       
@@ -2666,7 +2771,6 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
     let korisnikPreferencije = [];
     let zdravstveniPodaci = null;
     
-    // 🔥 DOHVATI KORISNIČKI PROFIL
     if (email) {
       const { data: profil, error: profilError } = await supabase
         .from('profili')
@@ -2705,7 +2809,6 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
     let slikaPutanja = null;
     let izvuceniSastojci = [];
 
-    // 🔥 OBRADI SLIKU
     if (slika) {
       inputType = 'slika';
       slikaPutanja = slika.path;
@@ -2717,6 +2820,8 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
       const cached = await checkCache(imageHash);
       if (cached) {
         console.log('✅ Keš pronađen za sliku!');
+        res.setHeader('X-Cache-Hit', 'true');
+        res.setHeader('X-Cache-Date', cached.created_at);
         if (fs.existsSync(slikaPutanja)) {
           fs.unlink(slikaPutanja, (err) => { if (err) console.error('⚠️ Greška pri brisanju slike:', err); });
         }
@@ -2743,13 +2848,14 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
     const cachedText = await checkCache(textHash);
     if (cachedText) {
       console.log('✅ Keš pronađen za tekst!');
+      res.setHeader('X-Cache-Hit', 'true');
+      res.setHeader('X-Cache-Date', cachedText.created_at);
       return res.json(cachedText.results);
     }
 
     const sastojci = inputText.split(',').map(s => s.trim().toLowerCase());
     console.log('📦 Sastojci za pretragu:', sastojci);
 
-    // 🔥🔥🔥 1. PRVO PRETRAŽI BAZU
     let query = supabase
       .from('recepti')
       .select(`
@@ -2790,7 +2896,6 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
       });
     }
 
-    // 🔥 FILTRIRAJ RECEPTE IZ BAZE
     let bazaRezultati = recepti.filter(recept => {
       if (!recept.sastojci || recept.sastojci.length === 0) return false;
       const receptSastojci = recept.sastojci.map(s => s.toLowerCase());
@@ -2834,7 +2939,6 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
 
     console.log(`✅ U bazi pronađeno ${bazaRezultati.length} recepata`);
 
-    // 🔥🔥🔥 2. AKO IMA REZULTATA U BAZI - VRATI IH
     if (bazaRezultati.length > 0) {
       let results = bazaRezultati.map(recipe => {
         if (recipe.prevod && jezik && jezik !== 'hr') {
@@ -2863,14 +2967,16 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
 
       res.setHeader('X-Content-Language', jezik || 'hr');
       res.setHeader('X-Source', 'database');
+      res.setHeader('X-Cache-Hit', 'false');
       return res.json(results);
     }
 
-    // 🔥🔥🔥 3. AKO NEMA REZULTATA U BAZI - POZOVI OPENAI!
     console.log('❌ Nema recepata u bazi, pozivam OpenAI...');
 
     if (!openai) {
       console.warn('⚠️ OpenAI nije dostupan, vraćam prazan niz');
+      res.setHeader('X-Cache-Hit', 'false');
+      res.setHeader('X-Source', 'empty');
       return res.json([]);
     }
 
@@ -3008,10 +3114,13 @@ app.post('/api/ai-chef', upload.single('slika'), async (req, res) => {
 
       res.setHeader('X-Content-Language', jezik || 'hr');
       res.setHeader('X-Source', 'ai_generated');
+      res.setHeader('X-Cache-Hit', 'false');
       res.json(aiResults);
 
     } catch (openaiError) {
       console.error('❌ OpenAI greška:', openaiError.message);
+      res.setHeader('X-Cache-Hit', 'false');
+      res.setHeader('X-Source', 'error');
       res.json([]);
     }
 
@@ -3458,7 +3567,6 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       }
     }
 
-    // 🔥 DODAJ PREPORUKE ZA RECEPTE (SA RESTRIKCIJAMA!)
     let query = supabase.from('recepti').select('*').limit(3);
     
     if (profil.vrsta && profil.vrsta.length > 0) {
