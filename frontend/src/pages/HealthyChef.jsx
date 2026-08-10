@@ -25,12 +25,12 @@ const phaseKeyMap = {
   'Rana lutealna faza': 'early_luteal',
   'PMS': 'pms',
   
-  // ⭐ Menopauza faze
+  // Menopauza faze
   'Perimenopauza': 'perimenopause',
   'Menopauza': 'menopause',
   'Postmenopauza': 'postmenopause',
   
-  // ⭐ PCOS & Inzulinska rezistencija faze
+  // PCOS & Inzulinska rezistencija faze
   'Blaga IR / Rana faza': 'mild_ir',
   'Umjerena IR / Hormonski kaos': 'moderate_ir',
   'Teška IR / Preddijabetes': 'severe_ir'
@@ -122,31 +122,29 @@ const HealthyChef = () => {
     tezina: ''
   });
 
+  // ⭐ POPRAVKA: Uvijek koristimo trenutnu kategoriju iz URL-a
   const [categoryNameKey, setCategoryNameKey] = useState('');
   const [categoryNameFallback, setCategoryNameFallback] = useState('');
   const [phaseNameKey, setPhaseNameKey] = useState('');
   const [phaseNameFallback, setPhaseNameFallback] = useState('');
   const [isDataLoaded, setIsDataLoaded] = useState(false);
-  // ⭐ Dodajemo state za kategorije bez faza
   const [kategorijaBezFaza, setKategorijaBezFaza] = useState(false);
+  
+  // ⭐ NOVO: State za trenutnu kategoriju
+  const [trenutnaKategorija, setTrenutnaKategorija] = useState(null);
 
   // ============================================================
-  // BOJE ZA FAZE - koristi key umjesto naziva
+  // BOJE ZA FAZE
   // ============================================================
   const phaseColors = {
-    // Hormonski ciklus
     'menstrual': { bg: 'bg-red-500', border: 'border-red-600', hover: 'hover:bg-red-600', text: 'text-white' },
     'follicular': { bg: 'bg-orange-400', border: 'border-orange-500', hover: 'hover:bg-orange-500', text: 'text-white' },
     'ovulation': { bg: 'bg-yellow-400', border: 'border-yellow-500', hover: 'hover:bg-yellow-500', text: 'text-gray-800' },
     'early_luteal': { bg: 'bg-green-400', border: 'border-green-500', hover: 'hover:bg-green-500', text: 'text-white' },
     'pms': { bg: 'bg-purple-500', border: 'border-purple-600', hover: 'hover:bg-purple-600', text: 'text-white' },
-    
-    // ⭐ Menopauza
     'perimenopause': { bg: 'bg-pink-400', border: 'border-pink-500', hover: 'hover:bg-pink-500', text: 'text-gray-800' },
     'menopause': { bg: 'bg-rose-500', border: 'border-rose-600', hover: 'hover:bg-rose-600', text: 'text-white' },
     'postmenopause': { bg: 'bg-purple-500', border: 'border-purple-600', hover: 'hover:bg-purple-600', text: 'text-white' },
-    
-    // ⭐ PCOS & Inzulinska rezistencija
     'mild_ir': { bg: 'bg-emerald-400', border: 'border-emerald-500', hover: 'hover:bg-emerald-500', text: 'text-gray-800' },
     'moderate_ir': { bg: 'bg-amber-500', border: 'border-amber-600', hover: 'hover:bg-amber-600', text: 'text-white' },
     'severe_ir': { bg: 'bg-red-600', border: 'border-red-700', hover: 'hover:bg-red-700', text: 'text-white' }
@@ -165,7 +163,7 @@ const HealthyChef = () => {
   }, []);
 
   // ============================================================
-  // DOHVATI KATEGORIJE I FAZE - MAPIRAJ PO NAZIVU
+  // DOHVATI KATEGORIJE I FAZE
   // ============================================================
   useEffect(() => {
     const fetchAllData = async (retry = 0) => {
@@ -175,9 +173,8 @@ const HealthyChef = () => {
         const katRes = await fetch(`${API_URL}/api/healthy-chef/kategorije`);
         const katData = await katRes.json();
         console.log('📊 Kategorije dohvaćene:', katData?.length || 0);
-        console.log('📊 Primjer kategorije:', katData[0]);
         
-        // ✅ MAPIRAJ KATEGORIJE - koristi naziv za mapiranje u key
+        // MAPIRAJ KATEGORIJE
         const mappedKategorije = katData.map(kat => {
           const key = categoryKeyMap[kat.naziv] || kat.naziv.toLowerCase().replace(/ /g, '_');
           return {
@@ -186,26 +183,37 @@ const HealthyChef = () => {
             nazivKey: `healthychef.categories.items.${key}`
           };
         });
-        console.log('📊 Mapped kategorije:', mappedKategorije.map(k => ({ naziv: k.naziv, key: k.key, nazivKey: k.nazivKey })));
+        console.log('📊 Mapped kategorije:', mappedKategorije.map(k => ({ naziv: k.naziv, key: k.key })));
         setKategorije(mappedKategorije);
         
         if (kategorijaId) {
+          // ⭐ Pronađi trenutnu kategoriju
+          const kat = mappedKategorije.find(k => k.id === kategorijaId);
+          setTrenutnaKategorija(kat);
+          
+          if (kat) {
+            setCategoryNameKey(kat.nazivKey);
+            setCategoryNameFallback(kat.naziv);
+            console.log('📊 Postavljen categoryNameKey:', kat.nazivKey, 'za kategoriju:', kat.naziv);
+          }
+          
           setLoadingFaze(true);
           
           const fazeData = katData.filter(kat => kat.parent_id === kategorijaId);
           console.log('📊 Faze dohvaćene:', fazeData?.length || 0);
           
-          // ⭐ Provjeri da li kategorija ima faze
           if (fazeData.length === 0) {
+            // ⭐ Kategorija BEZ faza
             setKategorijaBezFaza(true);
-            // Ako nema faza, odmah dohvati recepte za ovu kategoriju
+            setFaze([]);
             if (user) {
               await fetchReceptiZaKategoriju(kategorijaId, user.email);
             }
             setLoadingFaze(false);
           } else {
+            // ⭐ Kategorija SA fazama
             setKategorijaBezFaza(false);
-            // ✅ MAPIRAJ FAZE - koristi naziv za mapiranje u key
+            
             const mappedFaze = fazeData.map(faza => {
               const key = phaseKeyMap[faza.naziv] || faza.naziv.toLowerCase().replace(/ /g, '_');
               const parentKat = mappedKategorije.find(k => k.id === faza.parent_id);
@@ -216,15 +224,8 @@ const HealthyChef = () => {
                 nazivKey: `healthychef.phases.items.${parentKey}.${key}`
               };
             });
-            console.log('📊 Mapped faze:', mappedFaze.map(f => ({ naziv: f.naziv, key: f.key, nazivKey: f.nazivKey })));
+            console.log('📊 Mapped faze:', mappedFaze.map(f => ({ naziv: f.naziv, key: f.key })));
             setFaze(mappedFaze);
-            
-            const kat = mappedKategorije.find(k => k.id === kategorijaId);
-            if (kat) {
-              setCategoryNameKey(kat.nazivKey);
-              setCategoryNameFallback(kat.naziv);
-              console.log('📊 Postavljen categoryNameKey:', kat.nazivKey);
-            }
             
             if (fazaId) {
               const faza = mappedFaze.find(f => f.id === fazaId);
@@ -264,7 +265,7 @@ const HealthyChef = () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
-        kategorijaId: kategorijaId,
+        fazaId: kategorijaId,  // ⭐ Šaljemo ID kategorije kao fazaId
         email: email,
         ...filters
       });
@@ -273,7 +274,6 @@ const HealthyChef = () => {
       const data = await res.json();
       console.log('📊 Recepti za kategoriju dohvaćeni:', data?.length || 0);
       
-      // Ako API vrati data array, koristi ga, inače ako vrati { data: [...] }
       const receptiData = Array.isArray(data) ? data : data?.data || [];
       setRecepti(receptiData);
     } catch (error) {
@@ -288,21 +288,20 @@ const HealthyChef = () => {
   // DOHVATI RECEPTE ZA FAZU
   // ============================================================
   useEffect(() => {
-    if (fazaId && user && isDataLoaded) {
+    if (fazaId && user && isDataLoaded && !kategorijaBezFaza) {
       const fetchRecepti = async () => {
         setLoading(true);
         try {
           const params = new URLSearchParams({
-            kategorijaId: fazaId,
+            fazaId: fazaId,
             email: user.email,
             ...filters
           });
           
           const res = await fetch(`${API_URL}/api/healthy-chef/recepti?${params}`);
           const data = await res.json();
-          console.log('📊 Recepti dohvaćeni:', data?.length || 0);
+          console.log('📊 Recepti za fazu dohvaćeni:', data?.length || 0);
           
-          // Ako API vrati data array, koristi ga, inače ako vrati { data: [...] }
           const receptiData = Array.isArray(data) ? data : data?.data || [];
           setRecepti(receptiData);
         } catch (error) {
@@ -314,7 +313,7 @@ const HealthyChef = () => {
       };
       fetchRecepti();
     }
-  }, [fazaId, user, filters, isDataLoaded]);
+  }, [fazaId, user, filters, isDataLoaded, kategorijaBezFaza]);
 
   // ============================================================
   // RESET FILTERA
@@ -325,15 +324,6 @@ const HealthyChef = () => {
       vrijeme: '',
       tezina: ''
     });
-    // Ponovo dohvati recepte sa resetovanim filterima
-    if (kategorijaId) {
-      if (kategorijaBezFaza && user) {
-        fetchReceptiZaKategoriju(kategorijaId, user.email);
-      } else if (fazaId && user) {
-        // Ovdje će se automatski pokrenuti useEffect
-        window.location.reload(); // Ili možete pozvati funkciju direktno
-      }
-    }
   };
 
   // ============================================================
@@ -405,10 +395,10 @@ const HealthyChef = () => {
 
   // ============================================================
   // ⭐ RENDER - KATEGORIJE BEZ FAZA (Tiroida, Kosti, Anemija)
-  // ⭐ Prikazuje recepte direktno bez faza
   // ============================================================
   if (kategorijaBezFaza) {
-    const trenutnaKategorija = kategorije.find(k => k.id === kategorijaId);
+    // ⭐ Koristimo trenutnaKategorija umjesto da tražimo iz state-a
+    const kat = trenutnaKategorija || kategorije.find(k => k.id === kategorijaId);
     
     return (
       <div className="max-w-6xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
@@ -420,9 +410,12 @@ const HealthyChef = () => {
         >
           ⬅️ {t('healthychef.phases.back_to_categories', { defaultValue: 'Nazad na kategorije' })}
         </button>
+        
+        {/* ⭐ POPRAVLJEN NASLOV - koristi trenutnu kategoriju */}
         <h1 className="text-3xl font-bold mb-2 dark:text-white">
-          {t(categoryNameKey, { defaultValue: trenutnaKategorija?.naziv || t('healthychef.phases.category', { defaultValue: 'Kategorija' }) })}
+          {t(categoryNameKey, { defaultValue: kat?.naziv || t('healthychef.phases.category', { defaultValue: 'Kategorija' }) })}
         </h1>
+        
         <p className="text-gray-600 dark:text-gray-300 mb-6">
           {t('healthychef.recipes.subtitle', { defaultValue: 'Recepti prilagođeni vašim preferencijama i zdravstvenim potrebama.' })}
           {activeFiltersCount > 0 && (
@@ -543,7 +536,8 @@ const HealthyChef = () => {
   // RENDER - FAZE (kategorije koje imaju faze)
   // ============================================================
   if (!fazaId) {
-    const trenutnaKategorija = kategorije.find(k => k.id === kategorijaId);
+    const kat = trenutnaKategorija || kategorije.find(k => k.id === kategorijaId);
+    
     return (
       <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
         <style>{germanStyles}</style>
@@ -555,7 +549,7 @@ const HealthyChef = () => {
           ⬅️ {t('healthychef.phases.back_to_categories', { defaultValue: 'Nazad na kategorije' })}
         </button>
         <h1 className="text-3xl font-bold mb-2 dark:text-white">
-          {t(categoryNameKey, { defaultValue: trenutnaKategorija?.naziv || t('healthychef.phases.category', { defaultValue: 'Kategorija' }) })}
+          {t(categoryNameKey, { defaultValue: kat?.naziv || t('healthychef.phases.category', { defaultValue: 'Kategorija' }) })}
         </h1>
         <p className="text-gray-600 dark:text-gray-300 mb-6">{t('healthychef.phases.subtitle', { defaultValue: 'Odaberite fazu za koju želite recepte.' })}</p>
 
@@ -595,7 +589,7 @@ const HealthyChef = () => {
   // RENDER - RECEPTI ZA FAZU
   // ============================================================
   const trenutnaFaza = faze.find(f => f.id === fazaId);
-  const trenutnaKategorija = kategorije.find(k => k.id === kategorijaId);
+  const kat = trenutnaKategorija || kategorije.find(k => k.id === kategorijaId);
 
   return (
     <div className="max-w-6xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
@@ -662,10 +656,7 @@ const HealthyChef = () => {
 
         {(filters.vrsta || filters.vrijeme || filters.tezina) && (
           <button
-            onClick={() => {
-              setFilters({ vrsta: '', vrijeme: '', tezina: '' });
-              // Ovdje će se useEffect automatski pokrenuti zbog promjene filters
-            }}
+            onClick={resetFilters}
             className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition text-sm"
           >
             🔄 {t('healthychef.filters.reset', { defaultValue: 'Resetuj filtere' })}
@@ -708,9 +699,7 @@ const HealthyChef = () => {
         <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-xl">
           <p className="text-gray-500 dark:text-gray-400">😕 {t('healthychef.recipes.no_results', { defaultValue: 'Nema recepata za ovu fazu sa trenutnim filterima.' })}</p>
           <button
-            onClick={() => {
-              setFilters({ vrsta: '', vrijeme: '', tezina: '' });
-            }}
+            onClick={resetFilters}
             className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition"
           >
             🔄 {t('healthychef.recipes.reset_filters', { defaultValue: 'Resetuj filtere' })}
