@@ -215,14 +215,15 @@ const Register = () => {
   return (
     <div className="flex justify-center items-start min-h-screen bg-white dark:bg-gray-900 p-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 mt-6">
-        {/* 🔥 IZBOR JEZIKA NA VRHU */}
-        <div className="mb-4 flex justify-end">
-          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            <span>🌍</span>
+        {/* 🔥 IZBOR JEZIKA - CENTRIRAN I POVEĆAN */}
+        <div className="mb-6 flex justify-center">
+          <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-700 px-5 py-2.5 rounded-full shadow-sm">
+            <span className="text-lg">🌍</span>
             <select
               value={i18n.language}
               onChange={(e) => i18n.changeLanguage(e.target.value)}
-              className="bg-transparent border-none focus:ring-0 text-gray-700 dark:text-gray-300 font-semibold cursor-pointer"
+              className="bg-transparent border-none focus:ring-0 text-gray-700 dark:text-gray-200 font-semibold text-base cursor-pointer py-1 px-2"
+              style={{ minWidth: '120px' }}
             >
               <option value="hr">🇭🇷 Hrvatski</option>
               <option value="en">🇬🇧 English</option>

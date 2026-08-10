@@ -64,7 +64,7 @@ const Login = () => {
           vrijeme: '',
           tezina: '',
           kalorije: '',
-          preferred_language: i18n.language || 'hr' // 👈 DODAJ OVO
+          preferred_language: i18n.language || 'hr'
         })
       });
       
@@ -141,8 +141,8 @@ const Login = () => {
       // 🔥 PROFIL POSTOJI - NASTAVI SA PRIJAVOM
       console.log('✅ Profil postoji u bazi, nastavljam sa prijavom');
 
-      // 🔥 SPREMI PREFERRED LANGUAGE
-      const selectedLanguage = i18n.language || profile.preferred_language || 'hr';
+      // 🔥 SPREMI PREFERRED LANGUAGE (iz profila ili default)
+      const selectedLanguage = profile?.preferred_language || i18n.language || 'hr';
       localStorage.setItem('preferredLanguage', selectedLanguage);
 
       // 🔥 EXPIRATION - 30 DANA
@@ -156,7 +156,7 @@ const Login = () => {
         ime: data.user?.user_metadata?.ime || profile?.ime || 'Korisnik',
         premium: profile?.premium || false,
         kviz_zavrsen: profile?.kviz_zavrsen || false,
-        preferred_language: selectedLanguage, // 👈 DODAJ OVO
+        preferred_language: selectedLanguage,
         vrsta: profile?.vrsta || [],
         izbjegava: profile?.izbjegava || [],
         preferencije: profile?.preferencije || [],
@@ -200,22 +200,6 @@ const Login = () => {
   return (
     <div className="flex justify-center items-start min-h-screen bg-white dark:bg-gray-900 p-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 mt-6">
-        {/* 🔥 IZBOR JEZIKA NA VRHU */}
-        <div className="mb-4 flex justify-end">
-          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            <span>🌍</span>
-            <select
-              value={i18n.language}
-              onChange={(e) => i18n.changeLanguage(e.target.value)}
-              className="bg-transparent border-none focus:ring-0 text-gray-700 dark:text-gray-300 font-semibold cursor-pointer"
-            >
-              <option value="hr">🇭🇷 Hrvatski</option>
-              <option value="en">🇬🇧 English</option>
-              <option value="de">🇩🇪 Deutsch</option>
-            </select>
-          </div>
-        </div>
-
         <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-2">
           🔐 {t('login.title')}
         </h1>
