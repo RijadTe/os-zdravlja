@@ -116,21 +116,19 @@ const HealthyChef = () => {
   const [loading, setLoading] = useState(true);
   const [loadingFaze, setLoadingFaze] = useState(false);
   const [user, setUser] = useState(null);
+  const [userRestrictions, setUserRestrictions] = useState([]);
   const [filters, setFilters] = useState({
     vrsta: '',
     vrijeme: '',
     tezina: ''
   });
 
-  // ⭐ POPRAVKA: Uvijek koristimo trenutnu kategoriju iz URL-a
   const [categoryNameKey, setCategoryNameKey] = useState('');
   const [categoryNameFallback, setCategoryNameFallback] = useState('');
   const [phaseNameKey, setPhaseNameKey] = useState('');
   const [phaseNameFallback, setPhaseNameFallback] = useState('');
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [kategorijaBezFaza, setKategorijaBezFaza] = useState(false);
-  
-  // ⭐ NOVO: State za trenutnu kategoriju
   const [trenutnaKategorija, setTrenutnaKategorija] = useState(null);
 
   // ============================================================
@@ -163,6 +161,108 @@ const HealthyChef = () => {
   }, []);
 
   // ============================================================
+  // 🔥 DOHVATI KORISNIKOVE RESTRIKCIJE
+  // ============================================================
+  useEffect(() => {
+    const fetchUserRestrictions = async () => {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      if (userData?.email) {
+        try {
+          console.log('🔍 HealthyChef - Dohvatam restrikcije za:', userData.email);
+          const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(userData.email)}`);
+          const data = await response.json();
+          if (data.success && data.data) {
+            const restrictions = data.data.izbjegava || [];
+            setUserRestrictions(restrictions);
+            console.log('🔒 HealthyChef - Restrikcije korisnika:', restrictions);
+          }
+        } catch (error) {
+          console.error('❌ Greška pri dohvatu restrikcija:', error);
+        }
+      }
+    };
+    fetchUserRestrictions();
+  }, []);
+
+  // ============================================================
+  // DOHVATI RECEPTE ZA KATEGORIJU (BEZ FAZA) - SA RESTRIKCIJAMA
+  // ============================================================
+  const fetchReceptiZaKategoriju = async (kategorijaId, email) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        fazaId: kategorijaId,
+        email: email || '',
+        ...filters
+      });
+      
+      // 🔥 DODAJ RESTRIKCIJE
+      if (userRestrictions.length > 0) {
+        const hasNoRestrictions = userRestrictions.some(r => 
+          r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
+        );
+        if (!hasNoRestrictions) {
+          params.append('restrikcije', userRestrictions.join(','));
+          console.log('🔒 HealthyChef - Šaljem restrikcije za kategoriju:', userRestrictions);
+        } else {
+          console.log('✅ HealthyChef - Korisnik nema restrikcija');
+        }
+      }
+      
+      const res = await fetch(`${API_URL}/api/healthy-chef/recepti?${params}`);
+      const data = await res.json();
+      console.log('📊 Recepti za kategoriju dohvaćeni:', data?.length || 0);
+      
+      const receptiData = Array.isArray(data) ? data : data?.data || [];
+      setRecepti(receptiData);
+    } catch (error) {
+      console.error('❌ Greška pri dohvatu recepata:', error);
+      setRecepti([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ============================================================
+  // DOHVATI RECEPTE ZA FAZU - SA RESTRIKCIJAMA
+  // ============================================================
+  const fetchReceptiZaFazu = async (fazaId, email) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        fazaId: fazaId,
+        email: email || '',
+        ...filters
+      });
+      
+      // 🔥 DODAJ RESTRIKCIJE
+      if (userRestrictions.length > 0) {
+        const hasNoRestrictions = userRestrictions.some(r => 
+          r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
+        );
+        if (!hasNoRestrictions) {
+          params.append('restrikcije', userRestrictions.join(','));
+          console.log('🔒 HealthyChef - Šaljem restrikcije za fazu:', userRestrictions);
+        } else {
+          console.log('✅ HealthyChef - Korisnik nema restrikcija');
+        }
+      }
+      
+      const res = await fetch(`${API_URL}/api/healthy-chef/recepti?${params}`);
+      const data = await res.json();
+      console.log('📊 Recepti za fazu dohvaćeni:', data?.length || 0);
+      
+      const receptiData = Array.isArray(data) ? data : data?.data || [];
+      setRecepti(receptiData);
+    } catch (error) {
+      console.error('❌ Greška pri dohvatu recepata:', error);
+      setRecepti([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ============================================================
   // DOHVATI KATEGORIJE I FAZE
   // ============================================================
   useEffect(() => {
@@ -174,7 +274,6 @@ const HealthyChef = () => {
         const katData = await katRes.json();
         console.log('📊 Kategorije dohvaćene:', katData?.length || 0);
         
-        // MAPIRAJ KATEGORIJE
         const mappedKategorije = katData.map(kat => {
           const key = categoryKeyMap[kat.naziv] || kat.naziv.toLowerCase().replace(/ /g, '_');
           return {
@@ -187,7 +286,6 @@ const HealthyChef = () => {
         setKategorije(mappedKategorije);
         
         if (kategorijaId) {
-          // ⭐ Pronađi trenutnu kategoriju
           const kat = mappedKategorije.find(k => k.id === kategorijaId);
           setTrenutnaKategorija(kat);
           
@@ -203,7 +301,6 @@ const HealthyChef = () => {
           console.log('📊 Faze dohvaćene:', fazeData?.length || 0);
           
           if (fazeData.length === 0) {
-            // ⭐ Kategorija BEZ faza
             setKategorijaBezFaza(true);
             setFaze([]);
             if (user) {
@@ -211,7 +308,6 @@ const HealthyChef = () => {
             }
             setLoadingFaze(false);
           } else {
-            // ⭐ Kategorija SA fazama
             setKategorijaBezFaza(false);
             
             const mappedFaze = fazeData.map(faza => {
@@ -233,6 +329,10 @@ const HealthyChef = () => {
                 setPhaseNameKey(faza.nazivKey);
                 setPhaseNameFallback(faza.naziv);
                 console.log('📊 Postavljen phaseNameKey:', faza.nazivKey);
+                // ⭐ Dohvati recepte za fazu ako je fazaId postavljen
+                if (user) {
+                  await fetchReceptiZaFazu(fazaId, user.email);
+                }
               }
             }
             
@@ -259,61 +359,22 @@ const HealthyChef = () => {
   }, [kategorijaId, fazaId]);
 
   // ============================================================
-  // DOHVATI RECEPTE ZA KATEGORIJU (BEZ FAZA)
-  // ============================================================
-  const fetchReceptiZaKategoriju = async (kategorijaId, email) => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        fazaId: kategorijaId,  // ⭐ Šaljemo ID kategorije kao fazaId
-        email: email,
-        ...filters
-      });
-      
-      const res = await fetch(`${API_URL}/api/healthy-chef/recepti?${params}`);
-      const data = await res.json();
-      console.log('📊 Recepti za kategoriju dohvaćeni:', data?.length || 0);
-      
-      const receptiData = Array.isArray(data) ? data : data?.data || [];
-      setRecepti(receptiData);
-    } catch (error) {
-      console.error('❌ Greška pri dohvatu recepata:', error);
-      setRecepti([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ============================================================
-  // DOHVATI RECEPTE ZA FAZU
+  // ⭐ DOHVATI RECEPTE ZA FAZU (kada se promijeni fazaId ili filters)
   // ============================================================
   useEffect(() => {
     if (fazaId && user && isDataLoaded && !kategorijaBezFaza) {
-      const fetchRecepti = async () => {
-        setLoading(true);
-        try {
-          const params = new URLSearchParams({
-            fazaId: fazaId,
-            email: user.email,
-            ...filters
-          });
-          
-          const res = await fetch(`${API_URL}/api/healthy-chef/recepti?${params}`);
-          const data = await res.json();
-          console.log('📊 Recepti za fazu dohvaćeni:', data?.length || 0);
-          
-          const receptiData = Array.isArray(data) ? data : data?.data || [];
-          setRecepti(receptiData);
-        } catch (error) {
-          console.error('❌ Greška pri dohvatu recepata:', error);
-          setRecepti([]);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchRecepti();
+      fetchReceptiZaFazu(fazaId, user.email);
     }
   }, [fazaId, user, filters, isDataLoaded, kategorijaBezFaza]);
+
+  // ============================================================
+  // ⭐ DOHVATI RECEPTE ZA KATEGORIJU BEZ FAZA (kada se promijeni filters)
+  // ============================================================
+  useEffect(() => {
+    if (kategorijaBezFaza && user && isDataLoaded && kategorijaId) {
+      fetchReceptiZaKategoriju(kategorijaId, user.email);
+    }
+  }, [filters, kategorijaBezFaza, user, isDataLoaded, kategorijaId]);
 
   // ============================================================
   // RESET FILTERA
@@ -394,10 +455,9 @@ const HealthyChef = () => {
   }
 
   // ============================================================
-  // ⭐ RENDER - KATEGORIJE BEZ FAZA (Tiroida, Kosti, Anemija)
+  // RENDER - KATEGORIJE BEZ FAZA (Tiroida, Kosti, Anemija)
   // ============================================================
   if (kategorijaBezFaza) {
-    // ⭐ Koristimo trenutnaKategorija umjesto da tražimo iz state-a
     const kat = trenutnaKategorija || kategorije.find(k => k.id === kategorijaId);
     
     return (
@@ -411,7 +471,6 @@ const HealthyChef = () => {
           ⬅️ {t('healthychef.phases.back_to_categories', { defaultValue: 'Nazad na kategorije' })}
         </button>
         
-        {/* ⭐ POPRAVLJEN NASLOV - koristi trenutnu kategoriju */}
         <h1 className="text-3xl font-bold mb-2 dark:text-white">
           {t(categoryNameKey, { defaultValue: kat?.naziv || t('healthychef.phases.category', { defaultValue: 'Kategorija' }) })}
         </h1>
@@ -430,10 +489,7 @@ const HealthyChef = () => {
           <select 
             className="border rounded-lg px-3 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 text-sm flex-1 min-w-[120px] max-w-[180px]" 
             value={filters.vrsta} 
-            onChange={(e) => {
-              setFilters({ ...filters, vrsta: e.target.value });
-              if (user) fetchReceptiZaKategoriju(kategorijaId, user.email);
-            }}
+            onChange={(e) => setFilters({ ...filters, vrsta: e.target.value })}
           >
             <option value="">🍽️ {t('healthychef.filters.all_types', { defaultValue: 'Sve vrste' })}</option>
             <option value="Deserti">🍰 {t('healthychef.filters.desserts', { defaultValue: 'Deserti' })}</option>
@@ -445,10 +501,7 @@ const HealthyChef = () => {
           <select 
             className="border rounded-lg px-3 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 text-sm flex-1 min-w-[120px] max-w-[180px]" 
             value={filters.vrijeme} 
-            onChange={(e) => {
-              setFilters({ ...filters, vrijeme: e.target.value });
-              if (user) fetchReceptiZaKategoriju(kategorijaId, user.email);
-            }}
+            onChange={(e) => setFilters({ ...filters, vrijeme: e.target.value })}
           >
             <option value="">⏱️ {t('healthychef.filters.all_time', { defaultValue: 'Svo vrijeme' })}</option>
             <option value="Kratko (15-30 min)">⚡ {t('healthychef.filters.short', { defaultValue: 'Kratko' })}</option>
@@ -459,10 +512,7 @@ const HealthyChef = () => {
           <select 
             className="border rounded-lg px-3 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600 text-sm flex-1 min-w-[120px] max-w-[180px]" 
             value={filters.tezina} 
-            onChange={(e) => {
-              setFilters({ ...filters, tezina: e.target.value });
-              if (user) fetchReceptiZaKategoriju(kategorijaId, user.email);
-            }}
+            onChange={(e) => setFilters({ ...filters, tezina: e.target.value })}
           >
             <option value="">🏋️ {t('healthychef.filters.all_difficulty', { defaultValue: 'Sva težina' })}</option>
             <option value="Početnik">👶 {t('healthychef.filters.beginner', { defaultValue: 'Početnik' })}</option>
@@ -472,10 +522,7 @@ const HealthyChef = () => {
 
           {(filters.vrsta || filters.vrijeme || filters.tezina) && (
             <button
-              onClick={() => {
-                setFilters({ vrsta: '', vrijeme: '', tezina: '' });
-                if (user) fetchReceptiZaKategoriju(kategorijaId, user.email);
-              }}
+              onClick={resetFilters}
               className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition text-sm"
             >
               🔄 {t('healthychef.filters.reset', { defaultValue: 'Resetuj filtere' })}
@@ -518,10 +565,7 @@ const HealthyChef = () => {
           <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-xl">
             <p className="text-gray-500 dark:text-gray-400">😕 {t('healthychef.recipes.no_results', { defaultValue: 'Nema recepata za ovu kategoriju sa trenutnim filterima.' })}</p>
             <button
-              onClick={() => {
-                setFilters({ vrsta: '', vrijeme: '', tezina: '' });
-                if (user) fetchReceptiZaKategoriju(kategorijaId, user.email);
-              }}
+              onClick={resetFilters}
               className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition"
             >
               🔄 {t('healthychef.recipes.reset_filters', { defaultValue: 'Resetuj filtere' })}
