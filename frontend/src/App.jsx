@@ -349,8 +349,8 @@ function App() {
   console.log('🔍 kviz_zavrsen:', currentUser?.kviz_zavrsen);
   console.log('🔍 preferred_language:', currentUser?.preferred_language);
 
-  // 🔥 DA LI JE NA LOGIN ILI REGISTER STRANICI
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+  // 🔥 DA LI JE NA REGISTER STRANICI (SAMO REGISTER)
+  const isRegisterPage = location.pathname === '/register';
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
@@ -407,8 +407,8 @@ function App() {
                 {currentUser && <NotificationBell />}
               </div>
 
-              {/* ===== 🔥 LANGUAGE SWITCHER - SAMO NA LOGIN I REGISTER ===== */}
-              {isAuthPage && <LanguageSwitcher />}
+              {/* ===== 🔥 LANGUAGE SWITCHER - SAMO NA REGISTER STRANICI ===== */}
+              {isRegisterPage && <LanguageSwitcher />}
 
               <button
                 onClick={() => setDarkMode(!darkMode)}
