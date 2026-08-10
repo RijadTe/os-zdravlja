@@ -1286,7 +1286,7 @@ const HomeKonacno = () => {
             value={filters.preferencije} 
             onChange={(e) => handleFilterChange('preferencije', e.target.value)}
           >
-            <option value="">💪 {t('home.filters.preferences', { defaultValue: 'Preferencije' })}</option>
+            <option value="">💪 {t('home.filters.preferences', { defaultValue: 'Sve preferencije' })}</option>
             <option value="Visokoproteinski">💪 {t('home.filters.high_protein', { defaultValue: 'Visokoproteinski' })}</option>
             <option value="Bogat vlaknima">🌾 {t('home.filters.high_fiber', { defaultValue: 'Bogat vlaknima' })}</option>
             <option value="Bogat ugljikohidratima">🍞 {t('home.filters.high_carbs', { defaultValue: 'Bogat ugljikohidratima' })}</option>
