@@ -164,10 +164,9 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// 🔥 AUTH - 10 pokušaja u 15 minuta
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minuta
-  max: 10, // 10 pokušaja
+  windowMs: 15 * 60 * 1000,
+  max: 10,
   message: {
     success: false,
     error: '⏳ Previše pokušaja prijave. Pokušajte za 15 minuta.'
@@ -177,10 +176,9 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// 🤖 AI - 50 zahtjeva po minuti (zbog cache-a 90 dana!)
 const aiLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minuta
-  max: 50, // 50 zahtjeva po minuti
+  windowMs: 1 * 60 * 1000,
+  max: 50,
   message: {
     success: false,
     error: '⏳ Previše AI pretraga. Pokušajte za minutu.'
@@ -612,7 +610,7 @@ async function createNotification(email, tip, poruka, link = '/') {
 }
 
 // ============================================================
-// 🔥 FALLBACK PLAN GENERATOR - POBOLJŠAN SA RESTRIKCIJAMA
+// 🔥 FALLBACK PLAN GENERATOR
 // ============================================================
 function generateFallbackPlan(kalorije, proteini, ugljikohidrati, masti, restrikcije) {
   const hasRestriction = (food) => {
@@ -869,7 +867,7 @@ app.post('/api/auth/2fa/verify', async (req, res) => {
 });
 
 // ============================================================
-// 🔥 REGISTRACIJA - SA VALIDACIJOM!
+// 🔥 REGISTRACIJA
 // ============================================================
 app.post('/api/auth/register',
   body('email').isEmail().withMessage('Neispravan email format'),
@@ -985,7 +983,7 @@ app.post('/api/auth/register',
 );
 
 // ============================================================
-// 🔥 PRIJAVA - SA VALIDACIJOM!
+// 🔥 PRIJAVA
 // ============================================================
 app.post('/api/auth/login',
   body('email').isEmail().withMessage('Neispravan email format'),
@@ -1802,8 +1800,10 @@ app.delete('/api/profil/:email/delete', async (req, res) => {
 });
 
 // ============================================================
-// 17. HEALTHY CHEF - KATEGORIJE
+// 🔥🔥🔥 HEALTHY CHEF - POPRAVLJENI ENDPOINTI
 // ============================================================
+
+// 17. DOHVATI SVE KATEGORIJE I FAZE
 app.get('/api/healthy-chef/kategorije', async (req, res) => {
   try {
     console.log('🌿 Dohvatam HealthyChef kategorije...');
@@ -1811,10 +1811,11 @@ app.get('/api/healthy-chef/kategorije', async (req, res) => {
     const { data, error } = await supabase
       .from('healthy_chef_kategorije')
       .select('*')
+      .order('parent_id', { ascending: true, nullsFirst: true })
       .order('redoslijed', { ascending: true });
 
     if (error) throw error;
-    console.log(`✅ Dohvaćeno ${data?.length || 0} kategorija`);
+    console.log(`✅ Dohvaćeno ${data?.length || 0} kategorija/faza`);
     res.json(data || []);
   } catch (error) {
     console.error('❌ Greška pri dohvatu kategorija:', error);
@@ -1822,18 +1823,16 @@ app.get('/api/healthy-chef/kategorije', async (req, res) => {
   }
 });
 
-// ============================================================
-// 18. HEALTHY CHEF - FAZE PO KATEGORIJI
-// ============================================================
+// 18. DOHVATI FAZE ZA KATEGORIJU
 app.get('/api/healthy-chef/faze/:kategorijaId', async (req, res) => {
   try {
     const { kategorijaId } = req.params;
     console.log(`🌿 Dohvatam faze za kategoriju: ${kategorijaId}`);
     
     const { data, error } = await supabase
-      .from('healthy_chef_faze')
+      .from('healthy_chef_kategorije')
       .select('*')
-      .eq('kategorija_id', kategorijaId)
+      .eq('parent_id', kategorijaId)
       .order('redoslijed', { ascending: true });
 
     if (error) throw error;
@@ -1845,99 +1844,122 @@ app.get('/api/healthy-chef/faze/:kategorijaId', async (req, res) => {
   }
 });
 
-// ============================================================
-// 19. 🔥 HEALTHY CHEF - RECEPTI ZA FAZU (SA RESTRIKCIJAMA!)
-// ============================================================
+// 19. 🔥 RECEPTI ZA FAZU SA FILTRIRANJEM PO KORISNIKU
 app.get('/api/healthy-chef/recepti', async (req, res) => {
   try {
-    const { 
-      fazaId, 
-      email, 
-      vrsta, 
-      vrijeme, 
-      tezina,
-      page = 1,
-      limit = 20
-    } = req.query;
+    const { fazaId, email, vrsta, vrijeme, tezina, page = 1, limit = 20 } = req.query;
     
     console.log(`🌿 Dohvatam recepte za fazu: ${fazaId}`);
+    console.log(`👤 Korisnik: ${email}`);
     console.log('📦 Filteri:', { vrsta, vrijeme, tezina });
-    console.log('📦 Page:', page, 'Limit:', limit);
-    console.log('📧 Email:', email);
     
     const offset = (parseInt(page) - 1) * parseInt(limit);
     
+    // 1. Dohvati korisnika i njegove restrikcije
     let userRestrictions = [];
     if (email) {
       const { data: profil, error: profilError } = await supabase
         .from('profili')
-        .select('izbjegava')
+        .select('izbjegava, ime')
         .eq('email', email)
         .maybeSingle();
       
       if (!profilError && profil) {
         userRestrictions = profil.izbjegava || [];
-        console.log('🔒 HealthyChef restrikcije korisnika:', userRestrictions);
+        console.log(`🔒 Restrikcije za ${profil.ime || email}:`, userRestrictions);
       }
     }
     
+    // 2. Dohvati recepte za fazu
     let query = supabase
       .from('recepti')
-      .select('*', { count: 'exact' });
-
-    if (fazaId) {
-      query = query.eq('faza_id', fazaId);
-    }
-
+      .select('*', { count: 'exact' })
+      .eq('faza_id', fazaId);
+    
+    // Dodaj filtere
     if (vrsta) query = query.eq('vrsta', vrsta);
     if (vrijeme) query = query.eq('vrijeme', vrijeme);
     if (tezina) query = query.eq('tezina', tezina);
-
+    
+    const { data: recepti, error, count } = await query;
+    
+    if (error) {
+      console.error('❌ Greška pri dohvatu recepata:', error);
+      return res.status(500).json({ error: error.message });
+    }
+    
+    console.log(`📊 Pronađeno ${recepti?.length || 0} recepata za fazu`);
+    
+    // 3. 🔥 FILTRIRAJ PO RESTRIKCIJAMA KORISNIKA
+    let filteredRecepti = recepti || [];
+    
     if (userRestrictions.length > 0) {
-      const alergeniList = ['gluten', 'laktoza', 'jaja', 'orašasti', 'orasasti', 'soja', 'kikiriki', 'morski plodovi'];
-      const alergeniRestrikcije = [];
-      const dijetneRestrikcije = [];
+      // Provjeri da li korisnik ima "Bez restrikcija"
+      const hasNoRestrictions = userRestrictions.some(r => 
+        r === 'Bez restrikcija' || 
+        r === 'No restrictions' || 
+        r === 'Keine Einschränkungen'
+      );
       
-      userRestrictions.forEach(r => {
-        const rLower = r.toLowerCase();
-        const jeAlergen = alergeniList.some(a => rLower.includes(a));
-        if (jeAlergen) {
-          alergeniRestrikcije.push(r);
-        } else {
-          dijetneRestrikcije.push(r);
+      if (!hasNoRestrictions) {
+        // Podijeli restrikcije na alergene i dijetne
+        const alergeniList = ['gluten', 'laktoza', 'jaja', 'orašasti', 'orasasti', 'soja', 'kikiriki', 'morski plodovi'];
+        const alergeniRestrikcije = [];
+        const dijetneRestrikcije = [];
+        
+        userRestrictions.forEach(r => {
+          const rLower = r.toLowerCase();
+          const jeAlergen = alergeniList.some(a => rLower.includes(a));
+          if (jeAlergen) {
+            alergeniRestrikcije.push(r);
+          } else {
+            dijetneRestrikcije.push(r);
+          }
+        });
+        
+        // Filtriraj po alergenima (IZBACUJE recepte koji sadrže alergene)
+        if (alergeniRestrikcije.length > 0) {
+          filteredRecepti = filteredRecepti.filter(recipe => {
+            const alergeni = recipe.alergeni || [];
+            const imaAlergen = alergeniRestrikcije.some(r => 
+              alergeni.some(a => a.toLowerCase().includes(r.toLowerCase()))
+            );
+            return !imaAlergen; // IZBACUJE ako sadrži alergen
+          });
+          console.log(`🔒 Nakon filtriranja po alergenima: ${filteredRecepti.length} recepata`);
         }
-      });
-      
-      if (alergeniRestrikcije.length > 0) {
-        query = query.not('alergeni', '&&', alergeniRestrikcije);
-        console.log('🔒 HealthyChef filtriram po alergenima (izbacujem):', alergeniRestrikcije);
-      }
-      
-      if (dijetneRestrikcije.length > 0) {
-        query = query.overlaps('dijetne_oznake', dijetneRestrikcije);
-        console.log('🔒 HealthyChef filtriram po dijetnim oznakama:', dijetneRestrikcije);
+        
+        // Filtriraj po dijetnim oznakama (ZADRŽAVA samo one koje odgovaraju)
+        if (dijetneRestrikcije.length > 0) {
+          filteredRecepti = filteredRecepti.filter(recipe => {
+            const dijetne = recipe.dijetne_oznake || [];
+            return dijetneRestrikcije.some(r => 
+              dijetne.some(d => d.toLowerCase().includes(r.toLowerCase()))
+            );
+          });
+          console.log(`🔒 Nakon filtriranja po dijetnim oznakama: ${filteredRecepti.length} recepata`);
+        }
+      } else {
+        console.log(`✅ Korisnik nema restrikcija - prikazujem sve recepte`);
       }
     }
-
-    query = query.order('created_at', { ascending: false });
-    query = query.range(offset, offset + parseInt(limit) - 1);
-
-    const { data, error, count } = await query;
-
-    if (error) throw error;
     
-    console.log(`✅ Dohvaćeno ${data?.length || 0} recepata (od ${count || 0} ukupno)`);
+    console.log(`✅ Vraćam ${filteredRecepti.length} recepata za korisnika`);
+    
+    // Paginacija (primijenjena nakon filtriranja)
+    const paginatedData = filteredRecepti.slice(offset, offset + parseInt(limit));
     
     res.json({
       success: true,
-      data: data || [],
+      data: paginatedData || [],
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        total: count || 0,
-        pages: Math.ceil((count || 0) / parseInt(limit))
+        total: filteredRecepti.length,
+        pages: Math.ceil(filteredRecepti.length / parseInt(limit))
       }
     });
+    
   } catch (error) {
     console.error('❌ Greška pri dohvatu recepata:', error);
     res.status(500).json({ error: error.message });
@@ -1993,7 +2015,8 @@ app.post('/api/ai-weekly-plan', async (req, res) => {
           Kreiraj sedmični plan obroka za korisnika ${ime}.
           
           CILJEVI (DNEVNO):
-          - Kalorije: ${kalorije || 2200} kcal          - Proteini: ${proteini || 150}g
+          - Kalorije: ${kalorije || 2200} kcal
+          - Proteini: ${proteini || 150}g
           - Ugljikohidrati: ${ugljikohidrati || 250}g
           - Masti: ${masti || 70}g
           
@@ -2072,7 +2095,7 @@ app.post('/api/ai-weekly-plan', async (req, res) => {
 });
 
 // ============================================================
-// 20a. 🔥 WEEKLY PLAN - HYBRID: Baza → OpenAI (fallback) SA BOLJIM PROMPTOM
+// 20a. 🔥 WEEKLY PLAN - HYBRID: Baza → OpenAI (fallback)
 // ============================================================
 app.post('/api/weekly-plan', async (req, res) => {
   try {
@@ -2641,7 +2664,7 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
 });
 
 // ============================================================
-// 23. 🔥 AI CHEF - OTKLJUČAJ PRETRAGU (SA VIDEO REKLAMAMA)
+// 23. 🔥 AI CHEF - OTKLJUČAJ PRETRAGU
 // ============================================================
 app.post('/api/ai-chef/unlock', async (req, res) => {
   try {
@@ -3363,7 +3386,7 @@ app.get('/api/zdravstveni-podaci/:email', async (req, res) => {
 });
 
 // ============================================================
-// 30. 🔥 NOTIFIKACIJE - GENERIŠI PREPORUKE (SA RESTRIKCIJAMA!)
+// 30. 🔥 NOTIFIKACIJE - GENERIŠI PREPORUKE
 // ============================================================
 app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
   try {
@@ -3814,7 +3837,7 @@ app.delete('/api/obroci/:id', async (req, res) => {
 });
 
 // ============================================================
-// 38. 🔥 COMMUNITY - DOHVATI OBJAVE (SA PREGLEDIMA)
+// 38. 🔥 COMMUNITY - DOHVATI OBJAVE
 // ============================================================
 app.get('/api/community/objave', async (req, res) => {
   try {
@@ -3849,7 +3872,7 @@ app.get('/api/community/objave', async (req, res) => {
 });
 
 // ============================================================
-// 38a. 🔥 COMMUNITY - DOHVATI JEDNU OBJAVU (INKREMENTIRA PREGLEDE)
+// 38a. 🔥 COMMUNITY - DOHVATI JEDNU OBJAVU
 // ============================================================
 app.get('/api/community/objave/:id', async (req, res) => {
   try {
@@ -3895,7 +3918,7 @@ app.get('/api/community/objave/:id', async (req, res) => {
 });
 
 // ============================================================
-// 39. 🔥 COMMUNITY - KREIRAJ OBJAVU (SA ALERGENIMA, VREMENOM, TEŽINOM, VRSTOM I KALORIJAMA!)
+// 39. 🔥 COMMUNITY - KREIRAJ OBJAVU
 // ============================================================
 app.post('/api/community/objave', upload.single('slika'), async (req, res) => {
   try {
@@ -4301,7 +4324,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
 });
 
 // ============================================================
-// 48. VERIFIKACIJA PLAĆANJA - SA PREMIUM_DO!
+// 48. VERIFIKACIJA PLAĆANJA
 // ============================================================
 app.get('/api/verify-payment', async (req, res) => {
   try {
@@ -4349,7 +4372,7 @@ app.get('/api/verify-payment', async (req, res) => {
 });
 
 // ============================================================
-// 49. STRIPE WEBHOOK - POTVRDA PLAĆANJA
+// 49. STRIPE WEBHOOK
 // ============================================================
 app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
@@ -4679,7 +4702,7 @@ app.get('/api/recepti/translate/status', async (req, res) => {
 });
 
 // ============================================================
-// 54. 🔥 CRON JOB - PREMIUM ISTEK (SVAKI DAN U 00:00)
+// 54. 🔥 CRON JOB - PREMIUM ISTEK
 // ============================================================
 const cron = require('node-cron');
 
@@ -4971,7 +4994,7 @@ app.get('/api/badges/:email', async (req, res) => {
 });
 
 // ============================================================
-// 🏆 NAGRADE - DOHVATI SVE BEDŽEVE SA STATUSOM ZA KORISNIKA
+// 🏆 NAGRADE - DOHVATI SVE BEDŽEVE SA STATUSOM
 // ============================================================
 app.get('/api/badges/all/:email?', async (req, res) => {
   try {

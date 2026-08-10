@@ -18,14 +18,22 @@ const categoryKeyMap = {
 };
 
 const phaseKeyMap = {
+  // Hormonski ciklus faze
   'Menstrualna faza': 'menstrual',
   'Folikularna faza': 'follicular',
   'Ovulacija': 'ovulation',
   'Rana lutealna faza': 'early_luteal',
   'PMS': 'pms',
+  
+  // ⭐ Menopauza faze
   'Perimenopauza': 'perimenopause',
   'Menopauza': 'menopause',
-  'Postmenopauza': 'postmenopause'
+  'Postmenopauza': 'postmenopause',
+  
+  // ⭐ PCOS & Inzulinska rezistencija faze
+  'Blaga IR / Rana faza': 'mild_ir',
+  'Umjerena IR / Hormonski kaos': 'moderate_ir',
+  'Teška IR / Preddijabetes': 'severe_ir'
 };
 
 // ============================================================
@@ -70,7 +78,7 @@ const Breadcrumb = ({ customLabels = {} }) => {
 };
 
 // ============================================================
-// CSS STILOVI ZA NJEMAČKI JEZIK (dodato)
+// CSS STILOVI ZA NJEMAČKI JEZIK
 // ============================================================
 const germanStyles = `
   .de-text .category-card-title {
@@ -99,7 +107,7 @@ const germanStyles = `
 // ============================================================
 const HealthyChef = () => {
   const { t, i18n } = useTranslation();
-  const isGerman = i18n.language === 'de'; // 👈 DODATO ZA NJEMAČKI
+  const isGerman = i18n.language === 'de';
   const { kategorijaId, fazaId } = useParams();
   const navigate = useNavigate();
   const [kategorije, setKategorije] = useState([]);
@@ -124,14 +132,22 @@ const HealthyChef = () => {
   // BOJE ZA FAZE - koristi key umjesto naziva
   // ============================================================
   const phaseColors = {
+    // Hormonski ciklus
     'menstrual': { bg: 'bg-red-500', border: 'border-red-600', hover: 'hover:bg-red-600', text: 'text-white' },
     'follicular': { bg: 'bg-orange-400', border: 'border-orange-500', hover: 'hover:bg-orange-500', text: 'text-white' },
     'ovulation': { bg: 'bg-yellow-400', border: 'border-yellow-500', hover: 'hover:bg-yellow-500', text: 'text-gray-800' },
     'early_luteal': { bg: 'bg-green-400', border: 'border-green-500', hover: 'hover:bg-green-500', text: 'text-white' },
     'pms': { bg: 'bg-purple-500', border: 'border-purple-600', hover: 'hover:bg-purple-600', text: 'text-white' },
+    
+    // ⭐ Menopauza
     'perimenopause': { bg: 'bg-pink-400', border: 'border-pink-500', hover: 'hover:bg-pink-500', text: 'text-gray-800' },
     'menopause': { bg: 'bg-rose-500', border: 'border-rose-600', hover: 'hover:bg-rose-600', text: 'text-white' },
     'postmenopause': { bg: 'bg-purple-500', border: 'border-purple-600', hover: 'hover:bg-purple-600', text: 'text-white' },
+    
+    // ⭐ PCOS & Inzulinska rezistencija
+    'mild_ir': { bg: 'bg-emerald-400', border: 'border-emerald-500', hover: 'hover:bg-emerald-500', text: 'text-gray-800' },
+    'moderate_ir': { bg: 'bg-amber-500', border: 'border-amber-600', hover: 'hover:bg-amber-600', text: 'text-white' },
+    'severe_ir': { bg: 'bg-red-600', border: 'border-red-700', hover: 'hover:bg-red-700', text: 'text-white' }
   };
 
   const getPhaseColor = (key) => {
@@ -161,11 +177,10 @@ const HealthyChef = () => {
         
         // ✅ MAPIRAJ KATEGORIJE - koristi naziv za mapiranje u key
         const mappedKategorije = katData.map(kat => {
-          // Pronađi key za ovaj naziv
           const key = categoryKeyMap[kat.naziv] || kat.naziv.toLowerCase().replace(/ /g, '_');
           return {
             ...kat,
-            key: key,  // ← DODAJ key (npr. 'hormonal_cycle')
+            key: key,
             nazivKey: `healthychef.categories.items.${key}`
           };
         });
@@ -182,7 +197,6 @@ const HealthyChef = () => {
           // ✅ MAPIRAJ FAZE - koristi naziv za mapiranje u key
           const mappedFaze = fazeData.map(faza => {
             const key = phaseKeyMap[faza.naziv] || faza.naziv.toLowerCase().replace(/ /g, '_');
-            // Pronađi key za parent kategoriju
             const parentKat = mappedKategorije.find(k => k.id === faza.parent_id);
             const parentKey = parentKat?.key || 'hormonal_cycle';
             return {
@@ -310,7 +324,7 @@ const HealthyChef = () => {
     const glavneKategorije = kategorije.filter(kat => !kat.parent_id || kat.parent_id === null);
     return (
       <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
-        <style>{germanStyles}</style> {/* 👈 DODATO */}
+        <style>{germanStyles}</style>
         <Breadcrumb />
         <h1 className="text-3xl font-bold text-center mb-2">🌿 {t('healthychef.title', { defaultValue: 'HealthyChef' })}</h1>
         <p className="text-center text-gray-600 dark:text-gray-300 mb-8">{t('healthychef.categories.subtitle', { defaultValue: 'Odaberite kategoriju za personalizovane recepte.' })}</p>
@@ -320,7 +334,7 @@ const HealthyChef = () => {
               <Link 
                 key={kat.id} 
                 to={`/healthy-chef/${kat.id}`} 
-                className={`bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-lg transition border border-gray-200 dark:border-gray-700 text-center hover:scale-105 ${isGerman ? 'de-text' : ''}`} // 👈 DODATA KLASA
+                className={`bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md hover:shadow-lg transition border border-gray-200 dark:border-gray-700 text-center hover:scale-105 ${isGerman ? 'de-text' : ''}`}
               >
                 <span className="text-4xl block mb-2">{kat.ikona || '🌿'}</span>
                 <h3 className="font-bold text-gray-800 dark:text-white category-card-title">
@@ -345,7 +359,7 @@ const HealthyChef = () => {
     const trenutnaKategorija = kategorije.find(k => k.id === kategorijaId);
     return (
       <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
-        <style>{germanStyles}</style> {/* 👈 DODATO */}
+        <style>{germanStyles}</style>
         <Breadcrumb customLabels={{ [kategorijaId]: t(categoryNameKey, { defaultValue: categoryNameFallback || kategorijaId }) }} />
         <button 
           onClick={() => navigate('/healthy-chef')} 
@@ -371,7 +385,7 @@ const HealthyChef = () => {
                 <Link 
                   key={faza.id} 
                   to={`/healthy-chef/${kategorijaId}/${faza.id}`} 
-                  className={`${colors.bg} ${colors.hover} rounded-xl p-4 shadow-md hover:shadow-lg transition border-2 ${colors.border} text-center hover:scale-105 ${isGerman ? 'de-text phase-card-title' : ''}`} // 👈 DODATA KLASA
+                  className={`${colors.bg} ${colors.hover} rounded-xl p-4 shadow-md hover:shadow-lg transition border-2 ${colors.border} text-center hover:scale-105 ${isGerman ? 'de-text phase-card-title' : ''}`}
                 >
                   <span className="text-2xl block mb-1">{faza.ikona || '🟢'}</span>
                   <h3 className={`font-semibold ${colors.text}`}>
@@ -398,7 +412,7 @@ const HealthyChef = () => {
 
   return (
     <div className="max-w-6xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
-      <style>{germanStyles}</style> {/* 👈 DODATO */}
+      <style>{germanStyles}</style>
       <Breadcrumb 
         customLabels={{
           [kategorijaId]: t(categoryNameKey, { defaultValue: categoryNameFallback || kategorijaId }),
@@ -481,7 +495,7 @@ const HealthyChef = () => {
             <Link 
               key={recipe.id} 
               to={`/recipes/${recipe.id}`} 
-              className={`bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition overflow-hidden border border-gray-100 dark:border-gray-700 hover:scale-105 duration-200 ${isGerman ? 'de-text' : ''}`} // 👈 DODATA KLASA
+              className={`bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition overflow-hidden border border-gray-100 dark:border-gray-700 hover:scale-105 duration-200 ${isGerman ? 'de-text' : ''}`}
             >
               <img 
                 src={recipe.slika || 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Recept'} 
