@@ -114,7 +114,7 @@ const Register = () => {
             vrsta: [],
             izbjegava: [],
             preferencije: [],
-            preferred_language: selectedLanguage // 👈 DODAJ OVO
+            preferred_language: selectedLanguage
           })
         });
 
@@ -136,7 +136,7 @@ const Register = () => {
               vrsta: [],
               izbjegava: [],
               preferencije: [],
-              preferred_language: selectedLanguage, // 👈 DODAJ OVO
+              preferred_language: selectedLanguage,
               created_at: new Date().toISOString()
             }])
             .select();
@@ -164,7 +164,7 @@ const Register = () => {
             vrsta: [],
             izbjegava: [],
             preferencije: [],
-            preferred_language: selectedLanguage, // 👈 DODAJ OVO
+            preferred_language: selectedLanguage,
             created_at: new Date().toISOString()
           }])
           .select();
@@ -184,7 +184,7 @@ const Register = () => {
         email: formData.email,
         ime: formData.ime,
         premium: false,
-        preferred_language: selectedLanguage // 👈 DODAJ OVO
+        preferred_language: selectedLanguage
       };
       
       localStorage.setItem('user', JSON.stringify(userData));
@@ -212,10 +212,24 @@ const Register = () => {
     }
   };
 
+  // Mapa zastava za jezike
+  const languageFlags = {
+    hr: '🇭🇷',
+    en: '🇬🇧',
+    de: '🇩🇪'
+  };
+
+  // Mapa naziva jezika
+  const languageNames = {
+    hr: 'Hrvatski',
+    en: 'English',
+    de: 'Deutsch'
+  };
+
   return (
     <div className="flex justify-center items-start min-h-screen bg-white dark:bg-gray-900 p-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 mt-6">
-        {/* 🔥 IZBOR JEZIKA - CENTRIRAN I POVEĆAN */}
+        {/* 🔥 IZBOR JEZIKA - SA ZASTAVAMA */}
         <div className="mb-6 flex justify-center">
           <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-700 px-5 py-2.5 rounded-full shadow-sm">
             <span className="text-lg">🌍</span>
@@ -223,11 +237,11 @@ const Register = () => {
               value={i18n.language}
               onChange={(e) => i18n.changeLanguage(e.target.value)}
               className="bg-transparent border-none focus:ring-0 text-gray-700 dark:text-gray-200 font-semibold text-base cursor-pointer py-1 px-2"
-              style={{ minWidth: '120px' }}
+              style={{ minWidth: '140px' }}
             >
-              <option value="hr">🇭🇷 Hrvatski</option>
-              <option value="en">🇬🇧 English</option>
-              <option value="de">🇩🇪 Deutsch</option>
+              <option value="hr">{languageFlags.hr} {languageNames.hr}</option>
+              <option value="en">{languageFlags.en} {languageNames.en}</option>
+              <option value="de">{languageFlags.de} {languageNames.de}</option>
             </select>
           </div>
         </div>
