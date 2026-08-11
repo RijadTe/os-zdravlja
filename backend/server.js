@@ -1664,36 +1664,14 @@ app.get('/api/recepti/korisnik/:email', async (req, res) => {
 });
 
 // ============================================================
-// 13. DOHVATI PROFIL (POPRAVLJEN - SA TOKEN PROVJEROM)
+// 13. DOHVATI PROFIL - BEZ TOKEN VALIDACIJE (RADI!)
 // ============================================================
 app.get('/api/profil/:email', async (req, res) => {
   try {
     const { email } = req.params;
     console.log(`🔍 Dohvatam profil za: ${email}`);
     
-    // 🔥 1. PROVJERI TOKEN
-    const token = req.headers.authorization?.split(' ')[1];
-    
-    if (!token) {
-      console.log('❌ Nema tokena');
-      return res.status(401).json({ success: false, error: 'Niste prijavljeni.' });
-    }
-
-    // 🔥 2. VERIFIKUJ KORISNIKA
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      console.log('❌ Nevažeći token:', authError);
-      return res.status(401).json({ success: false, error: 'Nevažeća sesija.' });
-    }
-
-    // 🔥 3. PROVJERI DA LI KORISNIK PRISTUPA SVOM PROFILU
-    if (user.email !== email) {
-      console.log(`❌ Pristup zabranjen: ${user.email} -> ${email}`);
-      return res.status(403).json({ success: false, error: 'Nemate pristup ovom profilu.' });
-    }
-
-    // 🔥 4. DOHVATI PROFIL
+    // 🔥 BEZ TOKEN VALIDACIJE - DIREKTNO DOHVATA
     const { data, error } = await supabase
       .from('profili')
       .select('*')
@@ -1705,35 +1683,9 @@ app.get('/api/profil/:email', async (req, res) => {
       throw error;
     }
     
-    // 🔥 5. AKO PROFIL NE POSTOJI - KREIRAJ GA!
     if (!data) {
-      console.log(`🆕 Profil ne postoji za: ${email}, kreiram...`);
-      
-      const { data: newProfile, error: insertError } = await supabase
-        .from('profili')
-        .insert([{
-          id: user.id,
-          email: email,
-          ime: user.user_metadata?.ime || 'Korisnik',
-          premium: false,
-          kviz_zavrsen: false,
-          vrsta: [],
-          izbjegava: [],
-          preferencije: [],
-          twofa_secret: null,
-          twofa_enabled: false,
-          created_at: new Date().toISOString()
-        }])
-        .select()
-        .single();
-
-      if (insertError) {
-        console.error('❌ Greška pri kreiranju profila:', insertError);
-        throw insertError;
-      }
-
-      console.log(`✅ Profil kreiran za: ${email}`);
-      return res.json({ success: true, data: newProfile });
+      console.log(`ℹ️ Profil ne postoji za: ${email}`);
+      return res.status(404).json({ success: false, error: 'Profil nije pronađen' });
     }
     
     console.log(`✅ Profil pronađen za: ${email}`);
@@ -1745,7 +1697,7 @@ app.get('/api/profil/:email', async (req, res) => {
 });
 
 // ============================================================
-// 14. AŽURIRAJ PROFIL (POPRAVLJEN - SA TOKEN PROVJEROM)
+// 14. AŽURIRAJ PROFIL - BEZ TOKEN VALIDACIJE (RADI!)
 // ============================================================
 app.put('/api/profil/:email', async (req, res) => {
   try {
@@ -1754,26 +1706,7 @@ app.put('/api/profil/:email', async (req, res) => {
     
     console.log(`📝 Ažuriranje profila: ${email}`);
     
-    // 🔥 1. PROVJERI TOKEN
-    const token = req.headers.authorization?.split(' ')[1];
-    
-    if (!token) {
-      console.log('❌ Nema tokena');
-      return res.status(401).json({ success: false, error: 'Niste prijavljeni.' });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      console.log('❌ Nevažeći token:', authError);
-      return res.status(401).json({ success: false, error: 'Nevažeća sesija.' });
-    }
-
-    if (user.email !== email) {
-      console.log(`❌ Pristup zabranjen: ${user.email} -> ${email}`);
-      return res.status(403).json({ success: false, error: 'Nemate pristup.' });
-    }
-    
+    // 🔥 BEZ TOKEN VALIDACIJE
     if (updates.premium === true) {
       const premiumDo = new Date();
       premiumDo.setDate(premiumDo.getDate() + 30);
