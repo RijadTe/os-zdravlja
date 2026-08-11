@@ -17,7 +17,7 @@ const Profile = () => {
   const [badgesLoading, setBadgesLoading] = useState(true);
 
   // ============================================================
-  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA
+  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA (ISTO KAO U HOMEOKONACNO)
   // ============================================================
   const translateValue = (value, type) => {
     if (!value) return t('profile.not_selected');
@@ -67,21 +67,27 @@ const Profile = () => {
     
     if (Array.isArray(value)) {
       return value.map(v => {
+        // Pokušaj prvo direktan match
         if (map[v] !== undefined) return map[v];
+        
+        // Ako nije pronađeno, pokušaj da ukloniš "Bez " sa početka (za restrikcije)
         const trimmed = v.replace(/^Bez /, '');
         if (map[trimmed] !== undefined) return map[trimmed];
+        
         return v;
       }).join(', ');
     }
     
+    // Za string vrijednosti
     if (map[value] !== undefined) return map[value];
     const trimmed = value.replace(/^Bez /, '');
     if (map[trimmed] !== undefined) return map[trimmed];
+    
     return value;
   };
 
   // ============================================================
-  // 🔥 DOHVATI BEDŽEVE IZ BAZE (ASYNC - NE BLOKIRA UI)
+  // 🔥 DOHVATI BEDŽEVE IZ BAZE
   // ============================================================
   const fetchBadges = async (email) => {
     try {
@@ -91,6 +97,7 @@ const Profile = () => {
       const response = await fetch(`${API_URL}/api/badges/${encodeURIComponent(email)}`);
       
       if (response.status === 404) {
+        console.log('ℹ️ Nema bedževa za korisnika');
         setBadges([]);
         return;
       }
@@ -102,6 +109,7 @@ const Profile = () => {
       const data = await response.json();
       
       if (data.success && data.badges) {
+        console.log(`✅ Dohvaćeno ${data.badges.length} bedževa`);
         setBadges(data.badges);
       } else {
         setBadges([]);
@@ -115,26 +123,9 @@ const Profile = () => {
   };
 
   // ============================================================
-  // 📊 DOHVATI PROFIL - PRVO IZ KEŠA (0.1s!), ONDA IZ BAZE
+  // 📊 DOHVATI PROFIL - SA RATE LIMIT FALLBACKOM!
   // ============================================================
   const fetchProfile = async (email) => {
-    // 🔥🔥🔥 1. PRVO PRIKAŽI IZ LOCALSTORAGE (0.1s!) 🔥🔥🔥
-    const cachedProfile = localStorage.getItem('userProfile');
-    let hasCached = false;
-    
-    if (cachedProfile) {
-      try {
-        const parsed = JSON.parse(cachedProfile);
-        setProfile(parsed);
-        hasCached = true;
-        // 🔥 ODMAAH PRIKAŽI PROFIL IZ KEŠA!
-        console.log('✅ Profil prikazan iz keša (trenutno!)');
-      } catch (e) {
-        console.warn('⚠️ Greška pri parsiranju keširanog profila:', e);
-      }
-    }
-
-    // 🔥 2. POKRENI FETCH U POZADINI (NE BLOKIRA UI)
     try {
       console.log('📧 Dohvatam profil za:', email);
       
@@ -142,67 +133,6 @@ const Profile = () => {
       
       if (response.status === 429) {
         console.warn('⚠️ Rate limit (429) - koristim podatke iz localStorage');
-        if (!hasCached) {
-          const storedUser = JSON.parse(localStorage.getItem('user'));
-          if (storedUser) {
-            const fallbackProfile = {
-              ime: storedUser.ime || 'Korisnik',
-              email: storedUser.email || email,
-              premium: storedUser.premium || false,
-              kviz_zavrsen: storedUser.kviz_zavrsen || false,
-              vrsta: storedUser.vrsta || [],
-              izbjegava: storedUser.izbjegava || [],
-              preferencije: storedUser.preferencije || [],
-              vrijeme: storedUser.vrijeme || '',
-              tezina: storedUser.tezina || '',
-              kalorije: storedUser.kalorije || '',
-              skuhano_recepata: storedUser.skuhano_recepata || 0,
-              preferred_language: storedUser.preferred_language || 'hr'
-            };
-            setProfile(fallbackProfile);
-          }
-        }
-        // 🔥 VAŽNO: Ako imamo keš, NE postavljamo loading na false - već je false!
-        if (!hasCached) {
-          setLoading(false);
-        }
-        return;
-      }
-      
-      const data = await response.json();
-      console.log('📊 Profil dohvaćen iz baze:', data);
-      
-      if (data.success && data.data) {
-        // 🔥 AŽURIRAJ PROFIL SA SVIJEŽIM PODACIMA IZ BAZE
-        setProfile(data.data);
-        localStorage.setItem('userProfile', JSON.stringify(data.data));
-        
-        const storedUser = JSON.parse(localStorage.getItem('user'));
-        if (storedUser) {
-          storedUser.premium = data.data.premium || false;
-          storedUser.profile = data.data;
-          storedUser.preferred_language = data.data.preferred_language || 'hr';
-          localStorage.setItem('user', JSON.stringify(storedUser));
-        }
-        
-        // 🔥 DOHVATI BEDŽEVE U POZADINI (NE BLOKIRA UI)
-        fetchBadges(email);
-        
-        // 🔥 AKO SMO VEĆ PRIKAZALI IZ KEŠA, NE DIRAJ LOADING
-        if (!hasCached) {
-          setLoading(false);
-        }
-      } else {
-        console.error('❌ Profil nije pronađen');
-        if (!hasCached) {
-          await createProfile(email);
-        }
-      }
-    } catch (error) {
-      console.error('❌ Greška pri dohvatu profila:', error);
-      
-      // 🔥 AKO VEĆ IMAMO KEŠ, SAMO GA KORISTI
-      if (!hasCached) {
         const storedUser = JSON.parse(localStorage.getItem('user'));
         if (storedUser) {
           const fallbackProfile = {
@@ -220,15 +150,55 @@ const Profile = () => {
             preferred_language: storedUser.preferred_language || 'hr'
           };
           setProfile(fallbackProfile);
-        } else {
-          await createProfile(email);
+          console.log('✅ Profil dohvaćen iz localStorage (fallback)');
         }
+        setLoading(false);
+        return;
+      }
+      
+      const data = await response.json();
+      console.log('📊 Profil dohvaćen:', data);
+      
+      if (data.success && data.data) {
+        setProfile(data.data);
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        if (storedUser) {
+          storedUser.premium = data.data.premium || false;
+          storedUser.profile = data.data;
+          storedUser.preferred_language = data.data.preferred_language || 'hr';
+          localStorage.setItem('user', JSON.stringify(storedUser));
+        }
+        
+        await fetchBadges(email);
+      } else {
+        console.error('❌ Profil nije pronađen');
+        await createProfile(email);
+      }
+    } catch (error) {
+      console.error('❌ Greška pri dohvatu profila:', error);
+      const storedUser = JSON.parse(localStorage.getItem('user'));
+      if (storedUser) {
+        const fallbackProfile = {
+          ime: storedUser.ime || 'Korisnik',
+          email: storedUser.email || email,
+          premium: storedUser.premium || false,
+          kviz_zavrsen: storedUser.kviz_zavrsen || false,
+          vrsta: storedUser.vrsta || [],
+          izbjegava: storedUser.izbjegava || [],
+          preferencije: storedUser.preferencije || [],
+          vrijeme: storedUser.vrijeme || '',
+          tezina: storedUser.tezina || '',
+          kalorije: storedUser.kalorije || '',
+          skuhano_recepata: storedUser.skuhano_recepata || 0,
+          preferred_language: storedUser.preferred_language || 'hr'
+        };
+        setProfile(fallbackProfile);
+        console.log('✅ Profil dohvaćen iz localStorage (fallback)');
+      } else {
+        await createProfile(email);
       }
     } finally {
-      // 🔥 SAMO AKO NEMAMO KEŠ, TEK ONDA SKIDAMO LOADING
-      if (!hasCached) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 
@@ -260,71 +230,84 @@ const Profile = () => {
       if (data.success) {
         console.log('✅ Profil kreiran:', data.data);
         setProfile(data.data);
-        localStorage.setItem('userProfile', JSON.stringify(data.data));
-        fetchBadges(email);
+        await fetchBadges(email);
       }
     } catch (error) {
       console.error('❌ Greška pri kreiranju profila:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
   // ============================================================
-  // 🔐 AUTH - BRZO IZ KEŠA, ONDA IZ BAZE
+  // 🔐 AUTH - SA DOHVATOM PREMIUM STATUSA IZ BAZE!
   // ============================================================
   useEffect(() => {
     const checkUser = async () => {
       try {
-        // 🔥 1. PRVO PRIKAŽI IZ LOCALSTORAGE (0.1s!)
-        const storedUser = JSON.parse(localStorage.getItem('user'));
-        const storedProfile = localStorage.getItem('userProfile');
-        
-        if (storedUser && storedProfile) {
-          try {
-            const parsedProfile = JSON.parse(storedProfile);
-            setUser(storedUser);
-            setProfile(parsedProfile);
-            console.log('✅ Profil prikazan iz keša (trenutno!)');
-          } catch (e) {
-            console.warn('⚠️ Greška pri parsiranju keširanog profila:', e);
-          }
-        }
-
-        // 🔥 2. POKRENI SUPABASE FETCH U POZADINI (NE BLOKIRA UI)
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
           console.log('✅ Korisnik prijavljen (Supabase):', session.user.email);
+          
           const email = session.user.email;
           
-          // 🔥 Ako već imamo profil iz keša, samo osvježi u pozadini
-          if (storedProfile) {
-            // Osvježi u pozadini bez čekanja
-            fetchProfile(email);
+          let premiumStatus = false;
+          let profileData = null;
+          
+          try {
+            const profileResponse = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
+            
+            if (profileResponse.ok) {
+              const profileResult = await profileResponse.json();
+              if (profileResult.success && profileResult.data) {
+                premiumStatus = profileResult.data.premium || false;
+                profileData = profileResult.data;
+                console.log('✅ Premium status iz baze:', premiumStatus);
+              }
+            }
+          } catch (profileError) {
+            console.warn('⚠️ Greška pri dohvatu profila:', profileError);
+          }
+          
+          const supabaseUser = {
+            id: session.user.id,
+            email: session.user.email,
+            ime: session.user.user_metadata?.ime || '',
+            premium: premiumStatus,
+            profile: profileData,
+            preferred_language: profileData?.preferred_language || 'hr'
+          };
+          
+          setUser(supabaseUser);
+          localStorage.setItem('user', JSON.stringify(supabaseUser));
+          localStorage.setItem('userEmail', session.user.email);
+          localStorage.setItem('userName', session.user.user_metadata?.ime || '');
+          
+          if (profileData) {
+            setProfile(profileData);
+            await fetchBadges(email);
+            setLoading(false);
           } else {
-            // Nema keša, moramo sačekati
-            await fetchProfile(email);
+            await fetchProfile(session.user.email);
           }
           return;
         }
         
-        // Ako nema session, ali imamo podatke iz keša - ostani na profilu
-        if (storedUser) {
-          console.log('ℹ️ Nema Supabase session, ali imamo keširane podatke');
-          setLoading(false);
+        const userData = JSON.parse(localStorage.getItem('user'));
+        if (!userData) {
+          navigate('/login');
           return;
         }
         
-        // Nema ni session ni keša - idi na login
-        navigate('/login');
-        
-      } catch (error) {
-        console.error('❌ Greška pri provjeri korisnika:', error);
-        // Ako imamo keš, ne diraj loading
-        if (!localStorage.getItem('userProfile')) {
+        setUser(userData);
+        const email = localStorage.getItem('userEmail') || userData?.email;
+        if (email) {
+          await fetchProfile(email);
+        } else {
           setLoading(false);
         }
+      } catch (error) {
+        console.error('❌ Greška pri provjeri korisnika:', error);
+        setLoading(false);
       }
     };
 
@@ -524,6 +507,7 @@ const Profile = () => {
           <div className="flex flex-wrap gap-4">
             {badges.map((badge) => {
               const badgeData = badge.badge || badge;
+              // 🔥 Dohvati opis iz prijevoda ili koristi onaj iz baze
               const description = t(`profile.badges.descriptions.${badgeData.kljuc}`, { 
                 defaultValue: badgeData.opis || '' 
               });
@@ -537,6 +521,7 @@ const Profile = () => {
                   <span className="text-sm font-semibold mt-1 text-gray-800 dark:text-white text-center">
                     {badgeData.naziv || badgeData.name}
                   </span>
+                  {/* 🔥 PRIKAZ OPISA */}
                   {description && (
                     <span className="text-[10px] text-gray-500 dark:text-gray-400 text-center mt-0.5 leading-tight">
                       {description}
@@ -573,6 +558,7 @@ const Profile = () => {
                   (b.badge?.kljuc || b.kljuc) === availableBadge.key
                 );
                 
+                // 🔥 Dohvati opis za dostupni bedž
                 const description = t(`profile.badges.descriptions.${availableBadge.key}`, { 
                   defaultValue: '' 
                 });
