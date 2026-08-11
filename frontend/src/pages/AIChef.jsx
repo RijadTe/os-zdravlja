@@ -3,7 +3,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ADSENSE_CLIENT, ADSENSE_ENABLED, DEFAULT_SLOTS } from '../config/adsense';
-import AdBanner from '../components/AdBanner'; // 🔥 DODAJ OVO!
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -59,7 +58,7 @@ const AIChef = () => {
   const [videoWatched, setVideoWatched] = useState(false);
   const [videoAdCount, setVideoAdCount] = useState(0);
   const [maxVideoAds, setMaxVideoAds] = useState(3);
-  const [isVideoAdPlaying, setIsVideoAdPlaying] = useState(false); // 🔥 DODANO
+  const [isVideoAdPlaying, setIsVideoAdPlaying] = useState(false);
 
   const debouncedTekst = useDebounce(tekst, 400);
 
@@ -232,11 +231,10 @@ const AIChef = () => {
   }, [user, fetchDailyLimit, fetchVideoAdCount]);
 
   // ============================================================
-  // 🔥 PRIKAŽI VIDEO REKLAMU - POBOLJŠANO!
+  // 🔥 PRIKAŽI VIDEO REKLAMU
   // ============================================================
   const showVideoAd = useCallback(() => {
     return new Promise((resolve) => {
-      // Ako je AdSense isključen - simulacija
       if (!ADSENSE_ENABLED) {
         let seconds = 0;
         setPoruka('🎬 Simulirana video reklama...');
@@ -265,11 +263,9 @@ const AIChef = () => {
         return;
       }
 
-      // OČISTI PREĐAŠNJE REKLAME
       adContainer.innerHTML = '';
+      adContainer.classList.remove('hidden');
       
-      // 🔥 KORISTI AdBanner KOMPONENTU!
-      // Pošto ne možemo direktno renderovati komponentu, kreiramo ins element
       const ins = document.createElement('ins');
       ins.className = 'adsbygoogle';
       ins.style.display = 'block';
@@ -279,12 +275,11 @@ const AIChef = () => {
       ins.style.backgroundColor = '#f8fafc';
       ins.style.borderRadius = '12px';
       ins.setAttribute('data-ad-client', ADSENSE_CLIENT);
-      ins.setAttribute('data-ad-slot', DEFAULT_SLOTS.video); // 🔥 BEZ FALLBACK!
+      ins.setAttribute('data-ad-slot', DEFAULT_SLOTS.video);
       ins.setAttribute('data-ad-format', 'video');
       ins.setAttribute('data-full-width-responsive', 'true');
       adContainer.appendChild(ins);
       
-      // POKRENI ADSENSE
       try {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
         console.log('📢 Video AdSense reklama pokrenuta!');
@@ -297,20 +292,8 @@ const AIChef = () => {
         return;
       }
       
-      // 🔥 ČEKAJ 5 SEKUNDI ILI DOK SE REKLAMA NE PRIKAŽE
       let seconds = 0;
-      let adLoaded = false;
       let resolved = false;
-      
-      const checkAd = setInterval(() => {
-        const ads = adContainer.querySelector('iframe');
-        if (ads && ads.style.display !== 'none') {
-          adLoaded = true;
-          clearInterval(checkAd);
-          console.log('✅ Video reklama se prikazuje!');
-          setPoruka('🎬 Video reklama u tijeku...');
-        }
-      }, 500);
       
       const timer = setInterval(() => {
         seconds++;
@@ -319,7 +302,6 @@ const AIChef = () => {
         }
         if (seconds >= 5 && !resolved) {
           clearInterval(timer);
-          clearInterval(checkAd);
           setPoruka('✅ Video reklama završena!');
           setTimeout(() => setPoruka(''), 1000);
           setIsVideoAdPlaying(false);
@@ -328,11 +310,9 @@ const AIChef = () => {
         }
       }, 1000);
       
-      // SIGURNOSNI TIMER - 10 SEKUNDI MAKSIMUM
       setTimeout(() => {
         if (!resolved) {
           clearInterval(timer);
-          clearInterval(checkAd);
           console.warn('⚠️ Reklama se ne učitava, nastavljam...');
           setPoruka('⏳ Reklama se učitava, nastavljamo...');
           setTimeout(() => setPoruka(''), 1000);
@@ -388,7 +368,6 @@ const AIChef = () => {
         return;
       }
 
-      // POŠALJI ZAHTJEV ZA OTKLJUČAVANJE
       console.log('📤 Šaljem zahtjev na /api/ai-chef/unlock');
       const res = await fetch(`${API_URL}/api/ai-chef/unlock`, {
         method: 'POST',
@@ -425,7 +404,7 @@ const AIChef = () => {
   };
 
   // ============================================================
-  // 🔥 GLAVNA PRETRAGA - POMJERENA PRIJE useEffect
+  // 🔥 GLAVNA PRETRAGA
   // ============================================================
   const handlePretraga = useCallback(async () => {
     if (loading) return;
@@ -525,13 +504,13 @@ const AIChef = () => {
   }, [tekst, slika, loading, user, dailyLimit, videoWatched, i18n.language, t, fetchDailyLimit, cestePretrage]);
 
   // ============================================================
-  // 🔥 DEBOUNCE - SADA SA handlePretraga u dependencies!
+  // 🔥 DEBOUNCE
   // ============================================================
   useEffect(() => {
     if (debouncedTekst.trim() && !loading) {
       handlePretraga();
     }
-  }, [debouncedTekst, loading, handlePretraga]); // 🔥 DODANO handlePretraga!
+  }, [debouncedTekst, loading, handlePretraga]);
 
   // ============================================================
   // FILTRIRAJ REZULTATE SA RESTRIKCIJAMA
@@ -675,45 +654,139 @@ const AIChef = () => {
               }}
             />
 
-            {/* 🔥 VIDEO REKLAMA ZA OTKLJUČAVANJE - SAMO ZA FREE KORISNIKE */}
+            {/* 🔥🔥🔥 VIDEO OTKLJUČAVANJE - REDIZAJNIRANO 🔥🔥🔥 */}
             {!user?.premium && (
-              <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-xl border border-yellow-200 dark:border-yellow-600">
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <span>📺</span> {t('aichef.unlock.watch_video')}
-                    {!ADSENSE_ENABLED && (
-                      <span className="text-xs text-yellow-600 dark:text-yellow-400">(simulirano)</span>
-                    )}
-                  </p>
-                  <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">
-                    {videoAdCount >= maxVideoAds ? '❌ Iskorišteno' : `📺 ${maxVideoAds - videoAdCount}/${maxVideoAds}`}
-                  </span>
+              <div className="mt-2 space-y-3">
+                {/* STATUS */}
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-4 text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      📸 <span className={`font-semibold ${dailyLimit.preostalo === 0 ? 'text-red-500' : 'text-gray-800 dark:text-white'}`}>
+                        {dailyLimit.preostalo}
+                      </span>/{dailyLimit.max_pretraga} pretraga
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      📺 <span className={`font-semibold ${videoAdCount >= maxVideoAds ? 'text-red-500' : 'text-gray-800 dark:text-white'}`}>
+                        {maxVideoAds - videoAdCount}
+                      </span>/{maxVideoAds} video
+                    </span>
+                  </div>
+                  {dailyLimit.preostalo === 0 && (
+                    <span className="text-xs font-semibold text-red-500 dark:text-red-400 animate-pulse">
+                      ⚠️ Istrošene pretrage
+                    </span>
+                  )}
                 </div>
-                
-                {/* 🔥 KONTEJNER ZA VIDEO REKLAMU */}
-                <div id="video-ad-container" className="mb-3 min-h-[250px] bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden"></div>
-                
-                <button
-                  onClick={handleUnlockWithVideo}
-                  disabled={loadingLimit || dailyLimit.preostalo <= 0 || videoWatched || videoAdCount >= maxVideoAds || isVideoAdPlaying}
-                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-semibold transition disabled:opacity-50 text-sm"
-                >
-                  {isVideoAdPlaying ? '⏳ Gledate reklamu...' :
-                   loadingLimit ? t('aichef.unlock.loading') : 
-                   dailyLimit.preostalo <= 0 ? t('aichef.unlock.max_reached') : 
-                   videoAdCount >= maxVideoAds ? '🚫 Limit iskorišten' :
-                   videoWatched ? '✅ Otključano!' : t('aichef.unlock.watch_button')}
-                </button>
-                {dailyLimit.preostalo <= 0 && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {t('aichef.unlock.tomorrow')}
-                  </p>
+
+                {/* DUGME ZA OTKLJUČAVANJE - SAMO AKO NEMA PRETRAGA! */}
+                {dailyLimit.preostalo === 0 && videoAdCount < maxVideoAds && (
+                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-2 border-yellow-400/50 dark:border-yellow-600/50 p-4 md:p-5 transition-all hover:border-yellow-500">
+                    {/* Dekorativna ikona */}
+                    <div className="absolute -right-6 -top-6 text-7xl opacity-10 select-none">🎬</div>
+                    
+                    <div className="relative flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="flex items-start gap-4 w-full sm:w-auto">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-yellow-500/20 text-2xl animate-pulse">
+                          🎬
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-gray-800 dark:text-white">
+                            📺 Otključaj pretragu!
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
+                            Pogledaj video reklamu i otključaj <span className="font-semibold text-yellow-600 dark:text-yellow-400">1 pretragu</span>
+                            <span className="text-xs text-gray-400 block">
+                              ({videoAdCount}/{maxVideoAds} video reklama danas)
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <button
+                        onClick={handleUnlockWithVideo}
+                        disabled={loadingLimit || videoWatched || videoAdCount >= maxVideoAds || isVideoAdPlaying}
+                        className={`relative flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all duration-300 w-full sm:w-auto justify-center ${
+                          loadingLimit || videoWatched || videoAdCount >= maxVideoAds || isVideoAdPlaying
+                            ? 'bg-gray-400 cursor-not-allowed opacity-60'
+                            : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:scale-105 hover:shadow-lg active:scale-95'
+                        }`}
+                      >
+                        {isVideoAdPlaying ? (
+                          <>
+                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Gledam...
+                          </>
+                        ) : loadingLimit ? (
+                          <>
+                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Učitavanje...
+                          </>
+                        ) : videoWatched ? (
+                          '✅ Otključano!'
+                        ) : videoAdCount >= maxVideoAds ? (
+                          '🚫 Limit iskorišten'
+                        ) : (
+                          <>
+                            <span>▶️</span> Pogledaj video
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* VIDEO KONTEJNER */}
+                    <div id="video-ad-container" className={`mt-4 min-h-[200px] bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden ${videoWatched ? 'block' : 'hidden'}`}>
+                      {/* AdSense će ovdje prikazati reklamu */}
+                    </div>
+
+                    {/* OTKLJUČANO */}
+                    {videoWatched && (
+                      <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/30 rounded-xl border border-green-200 dark:border-green-700 animate-fadeIn">
+                        <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
+                          <span className="text-xl">✅</span> 
+                          <span className="font-semibold">Otključano!</span> 
+                          <span className="text-green-600 dark:text-green-400">
+                            Sada imate <span className="font-bold">{dailyLimit.preostalo}</span> pretragu
+                          </span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 )}
-                {videoAdCount >= maxVideoAds && dailyLimit.preostalo > 0 && (
-                  <p className="text-xs text-red-500 dark:text-red-400 mt-1">
-                    ⚠️ Dosegli ste dnevni limit od {maxVideoAds} video reklama. Pokušajte sutra!
-                  </p>
+
+                {/* LIMIT ISKORIŠTEN */}
+                {dailyLimit.preostalo === 0 && videoAdCount >= maxVideoAds && (
+                  <div className="p-5 bg-gray-100 dark:bg-gray-800 rounded-2xl text-center border border-gray-200 dark:border-gray-700">
+                    <div className="text-4xl mb-2">⏰</div>
+                    <p className="text-gray-600 dark:text-gray-300 font-medium">
+                      Dnevni limit je iskorišten
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      Iskoristili ste <strong>3 pretrage</strong> i <strong>3 video reklame</strong> danas.
+                    </p>
+                    <Link 
+                      to="/premium" 
+                      className="mt-4 inline-block text-sm font-semibold text-yellow-600 dark:text-yellow-400 hover:underline transition"
+                    >
+                      ⭐ Postanite Premium za neograničene pretrage!
+                    </Link>
+                  </div>
                 )}
+
+                {/* PREMIUM PROMO */}
+                <div className="text-center mt-2">
+                  <Link 
+                    to="/premium" 
+                    className="text-xs text-gray-400 dark:text-gray-500 hover:text-yellow-500 dark:hover:text-yellow-400 transition"
+                  >
+                    ⭐ Otključaj sve funkcije uz Premium →
+                  </Link>
+                </div>
               </div>
             )}
           </div>

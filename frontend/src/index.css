@@ -209,11 +209,11 @@
 }
 
 .dark .text-green-500 {
-  background-color: #22c55e;
+  color: #22c55e;
 }
 
 .dark .text-green-600 {
-  background-color: #16a34a;
+  color: #16a34a;
 }
 
 .dark .text-green-700 {
@@ -533,29 +533,34 @@
 }
 
 /* ============================================================
-   ANIMACIJE
+   🔥🔥🔥 ANIMACIJE - ZA AIChef VIDEO OTKLJUČAVANJE! 🔥🔥🔥
    ============================================================ */
+
+/* FADE IN ANIMACIJA */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-12px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.15s ease-out forwards;
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* PULSE ANIMACIJA */
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
+    transform: scale(1);
   }
   50% {
-    opacity: 0.5;
+    opacity: 0.6;
+    transform: scale(1.05);
   }
 }
 
@@ -563,6 +568,7 @@
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* SPIN ANIMACIJA */
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -573,12 +579,86 @@
   animation: spin 1s linear infinite;
 }
 
+/* SLIDE UP ANIMACIJA */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+/* BOUNCE ANIMACIJA */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1.5s ease-in-out infinite;
+}
+
+/* SCALE IN ANIMACIJA */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.3s ease-out forwards;
+}
+
+/* GENTLE WOBBLE */
+@keyframes gentleWobble {
+  0%, 100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}
+
+.animate-gentleWobble {
+  animation: gentleWobble 2s ease-in-out infinite;
+}
+
 /* ============================================================
    LINE-CLAMP (za tekst)
    ============================================================ */
 .line-clamp-1 {
   display: -webkit-box;
   -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -595,4 +675,78 @@
   border-right-color: transparent;
   border-radius: 50%;
   animation: spin 0.75s linear infinite;
+}
+
+/* ============================================================
+   ADSENSE REKLAME - RESPONSIVE
+   ============================================================ */
+.ad-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 90px;
+  overflow: hidden;
+}
+
+.ad-container ins.adsbygoogle {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 90px !important;
+}
+
+/* Video ad container */
+#video-ad-container {
+  transition: all 0.3s ease;
+}
+
+#video-ad-container.hidden {
+  display: none !important;
+}
+
+#video-ad-container .adsbygoogle {
+  min-height: 250px !important;
+}
+
+/* Ad placeholder */
+.ad-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 2px dashed #e2e8f0;
+  min-height: 90px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.dark .ad-placeholder {
+  background: #1a2a3e;
+  border-color: #2a4a6e;
+  color: #666688;
+}
+
+/* ============================================================
+   RESPONSIVE - TABLET I DESKTOP
+   ============================================================ */
+@media (min-width: 768px) {
+  .ad-container {
+    min-height: 120px;
+  }
+  
+  #video-ad-container .adsbygoogle {
+    min-height: 300px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ad-container {
+    min-height: 150px;
+  }
+  
+  #video-ad-container .adsbygoogle {
+    min-height: 350px !important;
+  }
 }
