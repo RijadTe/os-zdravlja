@@ -2632,7 +2632,7 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
       return res.json({
         broj_pretraga: 0,
         max_pretraga: 3,
-        preostalo: 3,
+        preostalo: 0,
         moze: true,
         isPremium: false
       });
