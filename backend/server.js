@@ -1671,19 +1671,75 @@ app.get('/api/profil/:email', async (req, res) => {
     const { email } = req.params;
     console.log(`🔍 Dohvatam profil za: ${email}`);
     
+    // 🔥 1. PROVJERI TOKEN
+    const token = req.headers.authorization?.split(' ')[1];
+    
+    if (!token) {
+      console.log('❌ Nema tokena');
+      return res.status(401).json({ success: false, error: 'Niste prijavljeni.' });
+    }
+
+    // 🔥 2. VERIFIKUJ KORISNIKA
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.log('❌ Nevažeći token:', authError);
+      return res.status(401).json({ success: false, error: 'Nevažeća sesija.' });
+    }
+
+    // 🔥 3. PROVJERI DA LI KORISNIK PRISTUPA SVOM PROFILU
+    if (user.email !== email) {
+      console.log(`❌ Pristup zabranjen: ${user.email} -> ${email}`);
+      return res.status(403).json({ success: false, error: 'Nemate pristup ovom profilu.' });
+    }
+
+    // 🔥 4. DOHVATI PROFIL
     const { data, error } = await supabase
       .from('profili')
       .select('*')
       .eq('email', email)
       .maybeSingle();
 
-    if (error) throw error;
-    if (!data) {
-      return res.status(404).json({ success: false, error: 'Profil nije pronađen' });
+    if (error) {
+      console.error('❌ Greška pri dohvatu profila:', error);
+      throw error;
     }
+    
+    // 🔥 5. AKO PROFIL NE POSTOJI - KREIRAJ GA!
+    if (!data) {
+      console.log(`🆕 Profil ne postoji za: ${email}, kreiram...`);
+      
+      const { data: newProfile, error: insertError } = await supabase
+        .from('profili')
+        .insert([{
+          id: user.id,
+          email: email,
+          ime: user.user_metadata?.ime || 'Korisnik',
+          premium: false,
+          kviz_zavrsen: false,
+          vrsta: [],
+          izbjegava: [],
+          preferencije: [],
+          twofa_secret: null,
+          twofa_enabled: false,
+          created_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('❌ Greška pri kreiranju profila:', insertError);
+        throw insertError;
+      }
+
+      console.log(`✅ Profil kreiran za: ${email}`);
+      return res.json({ success: true, data: newProfile });
+    }
+    
+    console.log(`✅ Profil pronađen za: ${email}`);
     res.json({ success: true, data });
   } catch (error) {
-    console.error('❌ Greška:', error);
+    console.error('❌ Greška pri dohvatu profila:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -1697,6 +1753,26 @@ app.put('/api/profil/:email', async (req, res) => {
     const updates = req.body;
     
     console.log(`📝 Ažuriranje profila: ${email}`);
+    
+    // 🔥 1. PROVJERI TOKEN
+    const token = req.headers.authorization?.split(' ')[1];
+    
+    if (!token) {
+      console.log('❌ Nema tokena');
+      return res.status(401).json({ success: false, error: 'Niste prijavljeni.' });
+    }
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.log('❌ Nevažeći token:', authError);
+      return res.status(401).json({ success: false, error: 'Nevažeća sesija.' });
+    }
+
+    if (user.email !== email) {
+      console.log(`❌ Pristup zabranjen: ${user.email} -> ${email}`);
+      return res.status(403).json({ success: false, error: 'Nemate pristup.' });
+    }
     
     if (updates.premium === true) {
       const premiumDo = new Date();
@@ -1713,10 +1789,15 @@ app.put('/api/profil/:email', async (req, res) => {
       .eq('email', email)
       .select();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Greška pri ažuriranju:', error);
+      throw error;
+    }
+    
+    console.log(`✅ Profil ažuriran za: ${email}`);
     res.json({ success: true, data: data ? data[0] : null });
   } catch (error) {
-    console.error('❌ Greška:', error);
+    console.error('❌ Greška pri ažuriranju profila:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
