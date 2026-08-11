@@ -48,6 +48,23 @@
     </script>
     
     <!-- ============================================================ -->
+    <!-- 📊 GOOGLE ADSENSE - 🔥🔥🔥 ZALIJEPI OVDJE! 🔥🔥🔥 -->
+    <!-- ============================================================ -->
+    <script 
+      async 
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9027267899539658"
+      crossorigin="anonymous">
+    </script>
+    <!-- ============================================================ -->
+    
+    <!-- ============================================================ -->
+    <!-- ⚡ SIGURNOSNI HEADERI -->
+    <!-- ============================================================ -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    
+    <!-- ============================================================ -->
     <!-- ⚡ KOMPLETNA ZAŠTITA – Desni klik, prečice, DevTools, print -->
     <!-- ============================================================ -->
     <script>
@@ -55,196 +72,201 @@
         console.log('🛡️ Aktiviranje potpune zaštite...');
 
         // ============================================================
-        // 1. ONEMOGUĆI DESNI KLIK
+        // 1. ONEMOGUĆI DESNI KLIK (svi elementi)
         // ============================================================
-        document.addEventListener('contextmenu', (e) => {
+        document.addEventListener('contextmenu', function(e) {
           e.preventDefault();
           return false;
         });
 
         // ============================================================
-        // 2. ONEMOGUĆI SVE PREČICE ZA DEVTOOLS I KRAĐU
+        // 2. ONEMOGUĆI SVE PREČICE
         // ============================================================
-        const forbiddenKeys = [
-          // Funkcijski tasteri
-          'F12',
-          
-          // Ctrl kombinacije
-          { ctrl: true, key: 'u' },      // View Source
-          { ctrl: true, key: 'U' },
-          { ctrl: true, key: 's' },      // Save
-          { ctrl: true, key: 'S' },
-          { ctrl: true, key: 'p' },      // Print
-          { ctrl: true, key: 'P' },
-          { ctrl: true, key: 'o' },      // Open
-          { ctrl: true, key: 'O' },
-          { ctrl: true, key: 'e' },      // Search
-          { ctrl: true, key: 'E' },
-          { ctrl: true, key: 'h' },      // History
-          { ctrl: true, key: 'H' },
-          { ctrl: true, key: 'j' },      // Downloads
-          { ctrl: true, key: 'J' },
-          { ctrl: true, key: 'k' },      // Search
-          { ctrl: true, key: 'K' },
-          { ctrl: true, key: 'l' },      // Address bar
-          { ctrl: true, key: 'L' },
-          { ctrl: true, key: 'n' },      // New window
-          { ctrl: true, key: 'N' },
-          { ctrl: true, key: 't' },      // New tab
-          { ctrl: true, key: 'T' },
-          { ctrl: true, key: 'w' },      // Close tab
-          { ctrl: true, key: 'W' },
-          { ctrl: true, key: 'a' },      // Select all
-          { ctrl: true, key: 'A' },
-          { ctrl: true, key: 'c' },      // Copy
-          { ctrl: true, key: 'C' },
-          { ctrl: true, key: 'v' },      // Paste
-          { ctrl: true, key: 'V' },
-          { ctrl: true, key: 'x' },      // Cut
-          { ctrl: true, key: 'X' },
-          { ctrl: true, key: 'f' },      // Find
-          { ctrl: true, key: 'F' },
-          { ctrl: true, key: 'g' },      // Find next
-          { ctrl: true, key: 'G' },
-          { ctrl: true, key: 'd' },      // Bookmark
-          { ctrl: true, key: 'D' },
-          { ctrl: true, key: 'b' },      // Bookmark
-          { ctrl: true, key: 'B' },
-          { ctrl: true, key: 'i' },      // Italic
-          { ctrl: true, key: 'I' },
-          
-          // Ctrl+Shift kombinacije
-          { ctrl: true, shift: true, key: 'I' }, // DevTools
-          { ctrl: true, shift: true, key: 'J' }, // Console
-          { ctrl: true, shift: true, key: 'C' }, // Inspect
-          { ctrl: true, shift: true, key: 'F' }, // Search
-          { ctrl: true, shift: true, key: 'R' }, // Reload (hard)
-          { ctrl: true, shift: true, key: 'N' }, // New incognito
-          { ctrl: true, shift: true, key: 'T' }, // Reopen closed tab
-          { ctrl: true, shift: true, key: 'W' }, // Close window
-          { ctrl: true, shift: true, key: 'Q' }, // Quit
-          { ctrl: true, shift: true, key: 'P' }, // Print with preview
-          { ctrl: true, shift: true, key: 'O' }, // Open
-          { ctrl: true, shift: true, key: 'S' }, // Save as
-          { ctrl: true, shift: true, key: 'B' }, // Bookmarks
-          { ctrl: true, shift: true, key: 'D' }, // Bookmark
-          { ctrl: true, shift: true, key: 'G' }, // Find
-          { ctrl: true, shift: true, key: 'H' }, // History
-          { ctrl: true, shift: true, key: 'J' }, // Downloads
-          { ctrl: true, shift: true, key: 'K' }, // Search
-          { ctrl: true, shift: true, key: 'L' }, // Address bar
-          { ctrl: true, shift: true, key: 'M' }, // Mute
-          { ctrl: true, shift: true, key: 'U' }, // View Source
-          { ctrl: true, shift: true, key: 'V' }, // Paste
-          { ctrl: true, shift: true, key: 'Y' }, // Redo
-          { ctrl: true, shift: true, key: 'Z' }, // Redo
-          
-          // Alt kombinacije
-          { alt: true, key: 'Tab' },     // Switch app
-          { alt: true, key: 'ArrowLeft' }, // Back
-          { alt: true, key: 'ArrowRight' }, // Forward
-          { alt: true, key: 'Enter' },   // Open in new tab
-          { alt: true, key: 'F4' },      // Close window
-          { alt: true, key: 'Home' },    // Home
-          { alt: true, key: 'D' },       // Bookmarks
-          { alt: true, key: 'Space' },   // Menu
-          { alt: true, key: 'F' },       // File menu
-          { alt: true, key: 'E' },       // Edit menu
-          { alt: true, key: 'V' },       // View menu
-          { alt: true, key: 'T' },       // Tools menu
-          { alt: true, key: 'H' },       // Help menu
-          { alt: true, key: 'B' },       // Bookmarks
-          { alt: true, key: 'S' },       // Search
-          { alt: true, key: 'X' },       // Clear
-          
-          // Ctrl+Alt kombinacije
-          { ctrl: true, alt: true, key: 'Delete' }, // Task Manager
-          { ctrl: true, alt: true, key: 'Esc' },    // Task Manager
-          { ctrl: true, alt: true, key: 'F' },      // Search
-          { ctrl: true, alt: true, key: 'T' },      // New tab
-          { ctrl: true, alt: true, key: 'I' },      // Inspect
-          { ctrl: true, alt: true, key: 'J' },      // Console
-          { ctrl: true, alt: true, key: 'C' },      // Inspect
-          { ctrl: true, alt: true, key: 'M' },      // Mute
-          { ctrl: true, alt: true, key: 'R' },      // Reload
-          { ctrl: true, alt: true, key: 'S' },      // Save
-          
-          // Windows tipke (samo ako nisu u input polju)
-          { meta: true, key: 'd' },      // Show desktop
-          { meta: true, key: 'e' },      // File Explorer
-          { meta: true, key: 'i' },      // Settings
-          { meta: true, key: 'l' },      // Lock
-          { meta: true, key: 'r' },      // Run
-          { meta: true, key: 's' },      // Search
-          { meta: true, key: 'x' },      // Quick Link
-          { meta: true, key: 'q' },      // Search
-          { meta: true, key: 'u' },      // Accessibility
-          { meta: true, key: 'p' },      // Projector
-          { meta: true, key: 't' },      // Taskbar
-          { meta: true, key: 'm' },      // Minimize all
-          { meta: true, key: 'e' },      // File Explorer
-          { meta: true, key: 'f' },      // Feedback
-          { meta: true, key: 'g' },      // Game Bar
-          { meta: true, key: 'h' },      // Narrator
-          { meta: true, key: 'k' },      // Connect
-          { meta: true, key: 'v' },      // Clipboard
-          { meta: true, key: 'w' },      // Workspace
-          { meta: true, key: 'z' },      // Zoom
-          
-          // Mac tipke (meta = Command)
-          { meta: true, key: 'Meta' },   // Command
-          { meta: true, key: 'Alt' },    // Option
-          { meta: true, key: 'Shift' },  // Shift
-          { meta: true, key: 'Control' },// Control
-          { meta: true, key: 'q' },      // Quit
-          { meta: true, key: 'h' },      // Hide
-          { meta: true, key: 'm' },      // Minimize
-          { meta: true, key: 'w' },      // Close
-          { meta: true, key: 'n' },      // New
-          { meta: true, key: 'o' },      // Open
-          { meta: true, key: 's' },      // Save
-          { meta: true, key: 'p' },      // Print
-          { meta: true, key: 'c' },      // Copy
-          { meta: true, key: 'v' },      // Paste
-          { meta: true, key: 'x' },      // Cut
-          { meta: true, key: 'a' },      // Select all
-          { meta: true, key: 'z' },      // Undo
-          { meta: true, key: 'Z' },      // Redo
-          { meta: true, key: 'f' },      // Find
-          { meta: true, key: 'g' },      // Find next
-          { meta: true, key: 't' },      // New tab
-          { meta: true, key: 'T' },      // New tab
-          { meta: true, key: 'l' },      // Address bar
-          { meta: true, key: 'L' },      // Address bar
-          { meta: true, key: 'd' },      // Bookmark
-          { meta: true, key: 'D' },      // Bookmark
-          { meta: true, key: 'b' },      // Bookmark
-          { meta: true, key: 'B' },      // Bookmark
-          { meta: true, key: 'i' },      // Info
-          { meta: true, key: 'I' },      // Info
-          { meta: true, key: 'j' },      // Scrolling
-          { meta: true, key: 'J' },      // Scrolling
-          { meta: true, key: 'k' },      // Search
-          { meta: true, key: 'K' },      // Search
-          { meta: true, key: 'r' },      // Reload
-          { meta: true, key: 'R' },      // Reload
-          { meta: true, key: 'u' },      // View Source
-          { meta: true, key: 'U' },      // View Source
-          { meta: true, key: 'e' },      // Emoji
-          { meta: true, key: 'E' },      // Emoji
-          { meta: true, key: 'y' },      // History
-          { meta: true, key: 'Y' }       // History
-        ];
+        document.addEventListener('keydown', function(e) {
+          // Zabranjene kombinacije
+          const forbidden = [
+            // F12 - DevTools
+            { key: 'F12' },
+            // Ctrl+U - View Source
+            { ctrl: true, key: 'u' },
+            { ctrl: true, key: 'U' },
+            // Ctrl+S - Save
+            { ctrl: true, key: 's' },
+            { ctrl: true, key: 'S' },
+            // Ctrl+P - Print
+            { ctrl: true, key: 'p' },
+            { ctrl: true, key: 'P' },
+            // Ctrl+Shift+I - DevTools
+            { ctrl: true, shift: true, key: 'I' },
+            // Ctrl+Shift+J - Console
+            { ctrl: true, shift: true, key: 'J' },
+            // Ctrl+Shift+C - Inspect
+            { ctrl: true, shift: true, key: 'C' },
+            // Ctrl+Shift+R - Hard reload
+            { ctrl: true, shift: true, key: 'R' },
+            // Ctrl+Shift+U - View Source
+            { ctrl: true, shift: true, key: 'U' },
+            // Ctrl+Shift+S - Save as
+            { ctrl: true, shift: true, key: 'S' },
+            // Ctrl+Shift+P - Print
+            { ctrl: true, shift: true, key: 'P' },
+            // Ctrl+Shift+O - Open
+            { ctrl: true, shift: true, key: 'O' },
+            // Ctrl+Shift+T - Reopen tab
+            { ctrl: true, shift: true, key: 'T' },
+            // Ctrl+Shift+N - Incognito
+            { ctrl: true, shift: true, key: 'N' },
+            // Ctrl+Shift+W - Close window
+            { ctrl: true, shift: true, key: 'W' },
+            // Ctrl+Shift+Q - Quit
+            { ctrl: true, shift: true, key: 'Q' },
+            // Ctrl+Shift+F - Search
+            { ctrl: true, shift: true, key: 'F' },
+            // Ctrl+Shift+G - Find
+            { ctrl: true, shift: true, key: 'G' },
+            // Ctrl+Shift+H - History
+            { ctrl: true, shift: true, key: 'H' },
+            // Ctrl+Shift+K - Search
+            { ctrl: true, shift: true, key: 'K' },
+            // Ctrl+Shift+L - Address bar
+            { ctrl: true, shift: true, key: 'L' },
+            // Ctrl+Shift+M - Mute
+            { ctrl: true, shift: true, key: 'M' },
+            // Ctrl+Shift+V - Paste
+            { ctrl: true, shift: true, key: 'V' },
+            // Ctrl+Shift+Y - Redo
+            { ctrl: true, shift: true, key: 'Y' },
+            // Ctrl+Shift+Z - Redo
+            { ctrl: true, shift: true, key: 'Z' },
+            // Ctrl+Shift+B - Bookmarks
+            { ctrl: true, shift: true, key: 'B' },
+            // Ctrl+Shift+D - Bookmark
+            { ctrl: true, shift: true, key: 'D' },
+            // Ctrl+Alt+I - Inspect
+            { ctrl: true, alt: true, key: 'I' },
+            // Ctrl+Alt+J - Console
+            { ctrl: true, alt: true, key: 'J' },
+            // Ctrl+Alt+C - Inspect
+            { ctrl: true, alt: true, key: 'C' },
+            // Ctrl+Alt+F - Search
+            { ctrl: true, alt: true, key: 'F' },
+            // Ctrl+Alt+T - New tab
+            { ctrl: true, alt: true, key: 'T' },
+            // Ctrl+Alt+R - Reload
+            { ctrl: true, alt: true, key: 'R' },
+            // Ctrl+Alt+S - Save
+            { ctrl: true, alt: true, key: 'S' },
+            // Ctrl+Alt+Delete - Task Manager
+            { ctrl: true, alt: true, key: 'Delete' },
+            // Ctrl+Alt+Esc - Task Manager
+            { ctrl: true, alt: true, key: 'Esc' },
+            // Ctrl+Alt+M - Mute
+            { ctrl: true, alt: true, key: 'M' },
+            // Alt+Tab - Switch app
+            { alt: true, key: 'Tab' },
+            // Alt+F4 - Close window
+            { alt: true, key: 'F4' },
+            // Alt+ArrowLeft - Back
+            { alt: true, key: 'ArrowLeft' },
+            // Alt+ArrowRight - Forward
+            { alt: true, key: 'ArrowRight' },
+            // Alt+Enter - Open in new tab
+            { alt: true, key: 'Enter' },
+            // Alt+Home - Home
+            { alt: true, key: 'Home' },
+            // Alt+D - Address bar
+            { alt: true, key: 'D' },
+            // Alt+F - File menu
+            { alt: true, key: 'F' },
+            // Alt+E - Edit menu
+            { alt: true, key: 'E' },
+            // Alt+V - View menu
+            { alt: true, key: 'V' },
+            // Alt+T - Tools menu
+            { alt: true, key: 'T' },
+            // Alt+H - Help menu
+            { alt: true, key: 'H' },
+            // Alt+B - Bookmarks
+            { alt: true, key: 'B' },
+            // Alt+S - Search
+            { alt: true, key: 'S' },
+            // Alt+X - Clear
+            { alt: true, key: 'X' },
+            // Alt+Space - Menu
+            { alt: true, key: 'Space' },
+            // Windows key (Meta) kombinacije
+            { meta: true, key: 'd' },
+            { meta: true, key: 'e' },
+            { meta: true, key: 'i' },
+            { meta: true, key: 'l' },
+            { meta: true, key: 'r' },
+            { meta: true, key: 's' },
+            { meta: true, key: 'x' },
+            { meta: true, key: 'q' },
+            { meta: true, key: 'u' },
+            { meta: true, key: 'p' },
+            { meta: true, key: 't' },
+            { meta: true, key: 'm' },
+            { meta: true, key: 'f' },
+            { meta: true, key: 'g' },
+            { meta: true, key: 'h' },
+            { meta: true, key: 'k' },
+            { meta: true, key: 'v' },
+            { meta: true, key: 'w' },
+            { meta: true, key: 'z' },
+            // Mac Command kombinacije
+            { meta: true, key: 'Meta' },
+            { meta: true, key: 'Alt' },
+            { meta: true, key: 'Shift' },
+            { meta: true, key: 'Control' },
+            { meta: true, key: 'q' },
+            { meta: true, key: 'h' },
+            { meta: true, key: 'm' },
+            { meta: true, key: 'w' },
+            { meta: true, key: 'n' },
+            { meta: true, key: 'o' },
+            { meta: true, key: 's' },
+            { meta: true, key: 'p' },
+            { meta: true, key: 'c' },
+            { meta: true, key: 'v' },
+            { meta: true, key: 'x' },
+            { meta: true, key: 'a' },
+            { meta: true, key: 'z' },
+            { meta: true, key: 'Z' },
+            { meta: true, key: 'f' },
+            { meta: true, key: 'g' },
+            { meta: true, key: 't' },
+            { meta: true, key: 'T' },
+            { meta: true, key: 'l' },
+            { meta: true, key: 'L' },
+            { meta: true, key: 'd' },
+            { meta: true, key: 'D' },
+            { meta: true, key: 'b' },
+            { meta: true, key: 'B' },
+            { meta: true, key: 'i' },
+            { meta: true, key: 'I' },
+            { meta: true, key: 'j' },
+            { meta: true, key: 'J' },
+            { meta: true, key: 'k' },
+            { meta: true, key: 'K' },
+            { meta: true, key: 'r' },
+            { meta: true, key: 'R' },
+            { meta: true, key: 'u' },
+            { meta: true, key: 'U' },
+            { meta: true, key: 'e' },
+            { meta: true, key: 'E' },
+            { meta: true, key: 'y' },
+            { meta: true, key: 'Y' }
+          ];
 
-        document.addEventListener('keydown', (e) => {
-          // Preskoči ako je u input, textarea ili contenteditable
+          // Preskoči ako je u input polju
           const tag = e.target.tagName.toLowerCase();
-          if (tag === 'input' || tag === 'textarea' || e.target.isContentEditable) {
+          if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) {
             return;
           }
 
           // Provjeri da li je pritisnuta zabranjena kombinacija
-          for (const rule of forbiddenKeys) {
+          for (const rule of forbidden) {
             let match = true;
             
             if (rule.ctrl !== undefined && e.ctrlKey !== rule.ctrl) match = false;
@@ -260,7 +282,7 @@
             }
           }
 
-          // Dodatna zaštita za F1-F12 (osim F5 za refresh)
+          // Onemogući F1-F12 (osim F5)
           if (e.key.startsWith('F') && e.key !== 'F5') {
             const num = parseInt(e.key.replace('F', ''));
             if (num >= 1 && num <= 12) {
@@ -269,13 +291,13 @@
             }
           }
 
-          // Onemogući Ctrl+W (zatvaranje taba) - opciono
+          // Onemogući Ctrl+W (zatvaranje taba)
           if (e.ctrlKey && e.key === 'w') {
             e.preventDefault();
             return false;
           }
 
-          // Onemogući Ctrl+Tab (switch tab) - opciono
+          // Onemogući Ctrl+Tab (switch tab)
           if (e.ctrlKey && e.key === 'Tab') {
             e.preventDefault();
             return false;
@@ -283,9 +305,9 @@
         });
 
         // ============================================================
-        // 3. ONEMOGUĆI SREDNJI KLIK
+        // 3. ONEMOGUĆI SREDNJI KLIK (svi elementi)
         // ============================================================
-        document.addEventListener('mousedown', (e) => {
+        document.addEventListener('mousedown', function(e) {
           if (e.button === 1) {
             e.preventDefault();
             return false;
@@ -295,65 +317,61 @@
         // ============================================================
         // 4. ONEMOGUĆI DRAG AND DROP
         // ============================================================
-        document.addEventListener('dragstart', (e) => {
+        document.addEventListener('dragstart', function(e) {
           e.preventDefault();
           return false;
         });
 
         // ============================================================
-        // 5. ONEMOGUĆI SELEKTOVANJE TEKSTA (opciono)
+        // 5. ONEMOGUĆI SELECTION (tekst)
         // ============================================================
-        // document.addEventListener('selectstart', (e) => {
-        //   e.preventDefault();
-        //   return false;
-        // });
+        document.addEventListener('selectstart', function(e) {
+          const tag = e.target.tagName.toLowerCase();
+          if (tag !== 'input' && tag !== 'textarea') {
+            e.preventDefault();
+            return false;
+          }
+        });
 
         // ============================================================
-        // 6. ONEMOGUĆI PRINTANJE (Ctrl+P i beforeprint)
+        // 6. ONEMOGUĆI PRINT
         // ============================================================
-        window.addEventListener('beforeprint', (e) => {
+        window.addEventListener('beforeprint', function(e) {
           e.preventDefault();
           alert('🛡️ Printanje je onemogućeno!');
           return false;
         });
 
-        document.addEventListener('keydown', (e) => {
-          if (e.ctrlKey && e.key === 'p') {
-            e.preventDefault();
-            alert('🛡️ Printanje je onemogućeno!');
-            return false;
-          }
+        // ============================================================
+        // 7. ONEMOGUĆI SVE ŠTO SE ODNOSI NA COPY/PASTE
+        // ============================================================
+        document.addEventListener('copy', function(e) {
+          e.preventDefault();
+          return false;
+        });
+
+        document.addEventListener('cut', function(e) {
+          e.preventDefault();
+          return false;
         });
 
         // ============================================================
-        // 7. ONEMOGUĆI SAČUVAJ STRANICU (Ctrl+S)
-        // ============================================================
-        document.addEventListener('keydown', (e) => {
-          if (e.ctrlKey && e.key === 's') {
-            e.preventDefault();
-            alert('🛡️ Sačuvaj stranicu je onemogućeno!');
-            return false;
-          }
-        });
-
-        // ============================================================
-        // 8. DETEKCIJA DEVTOOLS (otvoren console)
+        // 8. DEVTOOLS DETEKCIJA
         // ============================================================
         (function detectDevTools() {
           const element = new Image();
           Object.defineProperty(element, 'id', {
             get: function() {
               console.warn('🔍 DevTools detektovani!');
-              // Možeš dodati akciju ako želiš
             }
           });
           console.log('%c', element);
         })();
 
         // ============================================================
-        // 9. ONEMOGUĆI DESNI KLIK NA SLIKAMA
+        // 9. ZAŠTITA SLIKA
         // ============================================================
-        document.addEventListener('mousedown', (e) => {
+        document.addEventListener('mousedown', function(e) {
           if (e.target.tagName === 'IMG') {
             e.preventDefault();
             return false;
@@ -361,22 +379,9 @@
         });
 
         // ============================================================
-        // 10. ONEMOGUĆI KEYBOARD SHORTCUTS ZA COPY/PASTE
+        // 10. TOUCH ZAŠTITA (mobile)
         // ============================================================
-        document.addEventListener('copy', (e) => {
-          e.preventDefault();
-          return false;
-        });
-
-        document.addEventListener('cut', (e) => {
-          e.preventDefault();
-          return false;
-        });
-
-        // ============================================================
-        // 11. ONEMOGUĆI DUGI KLIK (contextmenu na touch)
-        // ============================================================
-        document.addEventListener('touchstart', (e) => {
+        document.addEventListener('touchstart', function(e) {
           if (e.target.tagName === 'IMG') {
             e.preventDefault();
             return false;
@@ -384,25 +389,36 @@
         });
 
         // ============================================================
-        // 12. ZAŠTITA OD SELECTION (tekst)
+        // 11. CSS ZAŠTITA
         // ============================================================
         const style = document.createElement('style');
         style.textContent = `
+          /* Onemogući selektovanje teksta */
           body {
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
           }
-          input, textarea, [contenteditable="true"] {
+          
+          /* Dozvoli selektovanje u input poljima */
+          input, textarea, select, [contenteditable="true"] {
             -webkit-user-select: text;
             -moz-user-select: text;
             -ms-user-select: text;
             user-select: text;
           }
+          
+          /* Onemogući drag na slikama */
           img {
             -webkit-user-drag: none;
             user-drag: none;
+            -webkit-touch-callout: none;
+          }
+          
+          /* Onemogući long-press na mobilnim */
+          * {
+            -webkit-touch-callout: none;
           }
         `;
         document.head.appendChild(style);

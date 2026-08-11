@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import RecipeCard from '../components/RecipeCard';
 import ScanReceipt from '../components/ScanReceipt';
 import AdBanner from '../components/AdBanner';
+import { DEFAULT_SLOTS } from '../config/adsense'; // 🔥 DODANO ZA ADSENSE!
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -890,11 +891,13 @@ const HomeKonacno = () => {
         </section>
       )}
 
-      {/* ===== AD BANNER 1 ===== */}
+      {/* ============================================================ */}
+      {/* 🔥🔥🔥 AD BANNER 1 - SAMO ZA FREE KORISNIKE! 🔥🔥🔥 */}
+      {/* ============================================================ */}
       {!isPremium && (
         <section className="py-3 px-4 flex justify-center bg-gray-50 dark:bg-gray-800">
           <div className="w-full max-w-4xl">
-            <AdBanner slot="1234567890" className="mx-auto" />
+            <AdBanner slot={DEFAULT_SLOTS.banner} className="mx-auto" />
           </div>
         </section>
       )}
@@ -1133,11 +1136,13 @@ const HomeKonacno = () => {
         </div>
       </section>
 
-      {/* ===== AD BANNER 2 ===== */}
+      {/* ============================================================ */}
+      {/* 🔥🔥🔥 AD BANNER 2 - SAMO ZA FREE KORISNIKE! 🔥🔥🔥 */}
+      {/* ============================================================ */}
       {!isPremium && (
         <section className="py-3 px-4 flex justify-center bg-gray-50 dark:bg-gray-800">
           <div className="w-full max-w-4xl">
-            <AdBanner slot="1234567891" className="mx-auto" />
+            <AdBanner slot={DEFAULT_SLOTS.inFeed} className="mx-auto" />
           </div>
         </section>
       )}
@@ -1199,11 +1204,13 @@ const HomeKonacno = () => {
         </div>
       </section>
 
-      {/* ===== AD BANNER 3 ===== */}
+      {/* ============================================================ */}
+      {/* 🔥🔥🔥 AD BANNER 3 - SAMO ZA FREE KORISNIKE! 🔥🔥🔥 */}
+      {/* ============================================================ */}
       {!isPremium && (
         <section className="py-3 px-4 flex justify-center bg-gray-50 dark:bg-gray-800">
           <div className="w-full max-w-4xl">
-            <AdBanner slot="1234567892" className="mx-auto" />
+            <AdBanner slot={DEFAULT_SLOTS.banner} className="mx-auto" />
           </div>
         </section>
       )}
@@ -1321,14 +1328,17 @@ const HomeKonacno = () => {
         )}
       </section>
 
-      {/* ===== AD BANNER 4 ===== */}
+      {/* ============================================================ */}
+      {/* 🔥🔥🔥 AD BANNER 4 - SAMO ZA FREE KORISNIKE! 🔥🔥🔥 */}
+      {/* ============================================================ */}
       {!isPremium && (
         <section className="py-3 px-4 flex justify-center bg-gray-50 dark:bg-gray-800">
           <div className="w-full max-w-4xl">
-            <AdBanner slot="1234567893" className="mx-auto" />
+            <AdBanner slot={DEFAULT_SLOTS.native} className="mx-auto" />
           </div>
         </section>
       )}
+      
     </div>
   );
 };

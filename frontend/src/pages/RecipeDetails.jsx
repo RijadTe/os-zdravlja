@@ -2,70 +2,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ADSENSE_CLIENT, ADSENSE_ENABLED, DEFAULT_SLOTS } from '../config/adsense';
+import AdBanner from '../components/AdBanner';
+import { DEFAULT_SLOTS } from '../config/adsense';
 
-// 🔥 PROMIJENJENO - uklonjen /api sa kraja
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
-// 🔥 ADSENSE REKLAMNA KOMPONENTA
+// VOICE RECIPE READER KOMPONENTA
 // ============================================================
-const AdBanner = ({ slot, format = 'auto', className = '' }) => {
-  const [adLoaded, setAdLoaded] = useState(false);
-  const adRef = useRef(null);
-
-  useEffect(() => {
-    if (!ADSENSE_ENABLED) return;
-
-    // 🔥 POKRENI ADSENSE NAKON UČITAVANJA KOMPONENTE
-    const loadAd = () => {
-      try {
-        if (window.adsbygoogle) {
-          window.adsbygoogle.push({});
-          setAdLoaded(true);
-          console.log('📢 AdSense reklama prikazana (slot:', slot, ')');
-        }
-      } catch (e) {
-        console.warn('⚠️ AdSense greška:', e);
-      }
-    };
-
-    // 🔥 MALO ZAKAŠNJENJE DA SE DOM UČITA
-    const timeout = setTimeout(loadAd, 300);
-    return () => clearTimeout(timeout);
-  }, [slot]);
-
-  if (!ADSENSE_ENABLED) {
-    return (
-      <div className={`bg-gray-100 dark:bg-gray-800 rounded-xl p-4 text-center text-gray-400 dark:text-gray-500 ${className}`}>
-        <p className="text-sm">📢 {slot === DEFAULT_SLOTS.banner ? 'Banner reklama' : 'Video reklama'} (simulirano)</p>
-        <p className="text-xs">AdSense je isključen za testiranje</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className={`ad-container ${className}`} ref={adRef}>
-      <ins
-        className="adsbygoogle"
-        style={{ display: 'block' }}
-        data-ad-client={ADSENSE_CLIENT}
-        data-ad-slot={slot}
-        data-ad-format={format}
-        data-full-width-responsive="true"
-      />
-      {!adLoaded && (
-        <div className="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 text-center text-gray-400 dark:text-gray-500 animate-pulse">
-          <p className="text-sm">⏳ Učitavanje reklame...</p>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// --- VOICE RECIPE READER KOMPONENTA ---
 const VoiceRecipeReader = ({ recipe }) => {
-  const { t, i18n } = useTranslation(); // 🔥 DODAJ i18n
+  const { t, i18n } = useTranslation();
   const [isReading, setIsReading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -73,7 +19,6 @@ const VoiceRecipeReader = ({ recipe }) => {
   const utteranceRef = useRef(null);
   const steps = recipe?.upute || [];
 
-  // 🔥 MAPIRANJE JEZIKA ZA SPEECH SYNTHESIS
   const getSpeechLang = () => {
     const langMap = {
       'hr': 'hr-HR',
@@ -109,11 +54,10 @@ const VoiceRecipeReader = ({ recipe }) => {
       return;
     }
 
-    // 🔥 KORISTI TRENUTNI JEZIK
     const speechLang = getSpeechLang();
     const text = `${t('recipe.step')} ${stepIndex + 1}: ${steps[stepIndex]}`;
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = speechLang; // 🔥 DINAMIČKI JEZIK!
+    utterance.lang = speechLang;
     utterance.rate = 0.85;
     utterance.pitch = 1;
     utteranceRef.current = utterance;
@@ -298,7 +242,9 @@ const VoiceRecipeReader = ({ recipe }) => {
   );
 };
 
-// ===== GLAVNA KOMPONENTA RECIPEDETAILS =====
+// ============================================================
+// GLAVNA KOMPONENTA RECIPEDETAILS
+// ============================================================
 const RecipeDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -315,7 +261,6 @@ const RecipeDetails = () => {
   const [slicniRecepti, setSlicniRecepti] = useState([]);
   const [user, setUser] = useState(null);
 
-  // AI Somelijer state
   const [sommelierData, setSommelierData] = useState(null);
   const [loadingSommelier, setLoadingSommelier] = useState(false);
   const [sommelierError, setSommelierError] = useState(null);
@@ -417,7 +362,6 @@ const RecipeDetails = () => {
           sastojci: data.sastojci || []
         });
 
-        // 🔥 AKO NIJE HRVATSKI, DOHVATI PREVOD
         if (i18n.language !== 'hr') {
           try {
             const translateRes = await fetch(`${API_URL}/api/recepti/translate`, {
@@ -438,7 +382,6 @@ const RecipeDetails = () => {
           }
         }
 
-        // 🔥 DOHVATI SLIČNE RECEPTE
         if (data?.vrsta) {
           const slicniRes = await fetch(`${API_URL}/api/recepti?vrsta=${encodeURIComponent(data.vrsta)}`);
           const slicniData = await slicniRes.json();
@@ -571,7 +514,7 @@ const RecipeDetails = () => {
   // ============================================================
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
-      {/* 🔥 DUGME ZA NAZAD NA RECIPES */}
+      {/* DUGME ZA NAZAD */}
       <div className="flex flex-wrap gap-3 mb-4">
         <button
           onClick={() => navigate(-1)}
@@ -593,12 +536,14 @@ const RecipeDetails = () => {
         </Link>
       </div>
 
+      {/* SLIKA */}
       <img
-        src={recipe.slika || 'https://via.placeholder.com/800x400'}
+        src={recipe.slika || 'https://via.placeholder.com/800x400/4F46E5/FFFFFF?text=Recept'}
         alt={displayRecipe?.naziv || recipe.naziv}
         className="w-full h-64 object-cover rounded-xl mb-4"
       />
 
+      {/* NASLOV I OCJENA */}
       <div className="flex justify-between items-start">
         <h1 className="text-3xl font-bold dark:text-white">{displayRecipe?.naziv || recipe.naziv}</h1>
         <div className="flex items-center gap-2">
@@ -612,8 +557,10 @@ const RecipeDetails = () => {
         </div>
       </div>
 
+      {/* OPIS */}
       <p className="text-gray-600 dark:text-gray-300 mt-2">{displayRecipe?.opis || recipe.opis}</p>
 
+      {/* INFORMACIJE */}
       <div className="flex flex-wrap gap-4 mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
         <div className="flex items-center gap-2">
           <label className="font-semibold dark:text-white">👥 {t('recipe.servings')}:</label>
@@ -640,7 +587,9 @@ const RecipeDetails = () => {
         </div>
       </div>
 
-      {/* 🔥 REKLAMA 1 - IZMEĐU OPISA I NUTRICIONIH PODATAKA */}
+      {/* ============================================================ */}
+      {/* 🔥🔥🔥 REKLAMA 1 - IZMEĐU OPISA I SASTOJAKA 🔥🔥🔥 */}
+      {/* ============================================================ */}
       <div className="my-6">
         <AdBanner 
           slot={DEFAULT_SLOTS.banner} 
@@ -649,6 +598,7 @@ const RecipeDetails = () => {
         />
       </div>
 
+      {/* TIP */}
       <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-xl border border-blue-200 dark:border-blue-700">
         <h3 className="font-semibold dark:text-white">💡 {t('recipe.tip')}</h3>
         <p className="text-gray-700 dark:text-gray-300">
@@ -656,6 +606,7 @@ const RecipeDetails = () => {
         </p>
       </div>
 
+      {/* SASTOJCI */}
       <div className="mt-6">
         <h2 className="text-2xl font-bold dark:text-white mb-2">
           📋 {t('recipe.ingredients')} ({t('recipe.for')} {osobe} {osobe === 1 ? t('recipe.person') : t('recipe.people')})
@@ -672,15 +623,18 @@ const RecipeDetails = () => {
         )}
       </div>
 
-      {/* 🔥 REKLAMA 2 - NAKON SASTOJAKA, PRIJE UPUTSTAVA */}
+      {/* ============================================================ */}
+      {/* 🔥🔥🔥 REKLAMA 2 - NAKON SASTOJAKA 🔥🔥🔥 */}
+      {/* ============================================================ */}
       <div className="my-6">
         <AdBanner 
-          slot={DEFAULT_SLOTS.banner} 
+          slot={DEFAULT_SLOTS.inFeed} 
           format="auto"
           className="rounded-xl overflow-hidden"
         />
       </div>
 
+      {/* NUTRITIVNE VRIJEDNOSTI */}
       <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
         <h3 className="font-bold dark:text-white mb-2">📊 {t('recipe.nutrition')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -693,6 +647,7 @@ const RecipeDetails = () => {
         </div>
       </div>
 
+      {/* UPUTSTVA */}
       <div className="mt-6">
         <h2 className="text-2xl font-bold dark:text-white mb-2">👨‍🍳 {t('recipe.instructions')}</h2>
         <ol className="list-decimal list-inside space-y-2">
@@ -700,6 +655,78 @@ const RecipeDetails = () => {
             <li key={i} className="text-gray-700 dark:text-gray-300">{u}</li>
           ))}
         </ol>
+      </div>
+
+      {/* ============================================================ */}
+      {/* 🔥🔥🔥 PRINT, EMAIL, SHARE DUGMAD (DODANO!) 🔥🔥🔥 */}
+      {/* ============================================================ */}
+      <div className="mt-6 flex flex-wrap gap-3">
+        <button 
+          onClick={() => window.print()}
+          className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition dark:text-white"
+        >
+          🖨️ {t('recipe.print')}
+        </button>
+        <button 
+          onClick={() => {
+            const subject = encodeURIComponent(recipe?.naziv || 'Recept');
+            const body = encodeURIComponent(`${recipe?.naziv}\n\n📋 Sastojci: ${recipe?.sastojci?.join(', ')}\n\n👨‍🍳 Upute: ${recipe?.upute?.join('. ')}`);
+            window.location.href = `mailto:?subject=${subject}&body=${body}`;
+          }}
+          className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition dark:text-white"
+        >
+          ✉️ {t('recipe.email')}
+        </button>
+        <button 
+          onClick={shareRecipe}
+          className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition dark:text-white"
+        >
+          📤 {t('recipe.share')}
+        </button>
+      </div>
+
+      {/* ============================================================ */}
+      {/* 🔥🔥🔥 SOCIAL MEDIA DUGMAD (DODANO!) 🔥🔥🔥 */}
+      {/* ============================================================ */}
+      <div className="mt-4 flex flex-wrap gap-3">
+        <button 
+          onClick={() => {
+            const url = encodeURIComponent(window.location.href);
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+          }}
+          className="bg-[#1877F2] text-white px-4 py-2 rounded-lg hover:bg-[#166fe5] transition"
+        >
+          📘 Facebook
+        </button>
+        <button 
+          onClick={() => {
+            const text = encodeURIComponent(`${recipe?.naziv} - ${window.location.href}`);
+            window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+          }}
+          className="bg-[#25D366] text-white px-4 py-2 rounded-lg hover:bg-[#20b858] transition"
+        >
+          📱 WhatsApp
+        </button>
+        <button 
+          onClick={() => {
+            const url = encodeURIComponent(window.location.href);
+            const text = encodeURIComponent(recipe?.naziv || 'Recept');
+            window.open(`https://www.pinterest.com/pin/create/button/?url=${url}&description=${text}`, '_blank');
+          }}
+          className="bg-[#E60023] text-white px-4 py-2 rounded-lg hover:bg-[#cc001f] transition"
+        >
+          📌 Pinterest
+        </button>
+        <button 
+          onClick={() => {
+            const url = encodeURIComponent(window.location.href);
+            const text = encodeURIComponent(recipe?.naziv || 'Recept');
+            window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+          }}
+          className="bg-[#000000] text-white px-4 py-2 rounded-lg hover:bg-[#1a1a1a] transition"
+        >
+          🐦 Twitter
+        </button>
       </div>
 
       {/* AI SOMELIJER */}
@@ -760,7 +787,7 @@ const RecipeDetails = () => {
         </p>
       </div>
 
-      {/* 🔥 GLASOVNO KUHANJE - SADA PRATI JEZIK! */}
+      {/* GLASOVNO KUHANJE */}
       {user?.premium ? (
         <div className="mt-6">
           <VoiceRecipeReader recipe={recipe} />
@@ -776,16 +803,7 @@ const RecipeDetails = () => {
         </div>
       )}
 
-      {/* SHARE RECIPE */}
-      <div className="mt-6 flex flex-wrap gap-3">
-        <button
-          onClick={shareRecipe}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition flex items-center gap-2"
-        >
-          📤 {t('recipe.share')}
-        </button>
-      </div>
-
+      {/* TIMER */}
       <div className="mt-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center gap-4 flex-wrap">
         <button
           onClick={startTimer}
@@ -804,19 +822,7 @@ const RecipeDetails = () => {
         )}
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-3">
-        <button className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition dark:text-white">🖨️ {t('recipe.print')}</button>
-        <button className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition dark:text-white">✉️ {t('recipe.email')}</button>
-        <button className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition dark:text-white">📤 {t('recipe.share')}</button>
-      </div>
-
-      <div className="mt-4 flex flex-wrap gap-3">
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">📘 Facebook</button>
-        <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">📱 WhatsApp</button>
-        <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">📌 Pinterest</button>
-        <button className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition">🐦 Twitter</button>
-      </div>
-
+      {/* SLIČNI RECEPTI */}
       {slicniRecepti.length > 0 && (
         <div className="mt-8">
           <h2 className="text-2xl font-bold dark:text-white mb-4">🍽️ {t('recipe.similar')}</h2>
@@ -827,7 +833,7 @@ const RecipeDetails = () => {
                 to={`/recipes/${r.id}`}
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-lg transition"
               >
-                <img src={r.slika || 'https://via.placeholder.com/300x200'} alt={r.naziv} className="w-full h-32 object-cover" />
+                <img src={r.slika || 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Recept'} alt={r.naziv} className="w-full h-32 object-cover" />
                 <div className="p-3">
                   <h3 className="font-bold text-sm dark:text-white">{r.naziv}</h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400">{r.vrijeme} · {r.kalorije} kcal</p>
