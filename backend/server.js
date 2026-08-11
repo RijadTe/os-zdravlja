@@ -2633,7 +2633,7 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
         broj_pretraga: 0,
         max_pretraga: 3,
         preostalo: 0,
-        moze: true,
+        moze: false,
         isPremium: false
       });
     }
@@ -2643,14 +2643,13 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
       return res.json({
         broj_pretraga: 0,
         max_pretraga: 3,
-        preostalo: 3,
-        moze: true,
+        preostalo: 0,
+        moze: false,
         isPremium: false
       });
     }
 
     const danas = new Date().toISOString().split('T')[0];
-    // 🔥 PREMIUM = 15, FREE = 3
     const maxPretraga = user?.premium ? 15 : 3;
 
     const { data: limit, error: limitError } = await supabase
@@ -2665,19 +2664,19 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
       return res.json({
         broj_pretraga: 0,
         max_pretraga: maxPretraga,
-        preostalo: maxPretraga,
-        moze: true,
+        preostalo: 0,
+        moze: false,
         isPremium: user?.premium || false
       });
     }
 
     if (!limit) {
-      console.log(`ℹ️ Nema zapisa za ${email}, vraćam 0/${maxPretraga}`);
+      console.log(`ℹ️ Nema zapisa za ${email}, vraćam 0/${maxPretraga} (preostalo: 0)`);
       return res.json({
         broj_pretraga: 0,
         max_pretraga: maxPretraga,
-        preostalo: maxPretraga,
-        moze: true,
+        preostalo: 0,
+        moze: false,
         isPremium: user?.premium || false
       });
     }
@@ -2701,8 +2700,8 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
     res.json({
       broj_pretraga: 0,
       max_pretraga: 3,
-      preostalo: 3,
-      moze: true,
+      preostalo: 0,
+      moze: false,
       isPremium: false
     });
   }
