@@ -328,7 +328,7 @@
       "take_photo": "Foto machen",
       "limit_used_tomorrow": "🚫 Limit verbraucht - morgen!",
       "watch_video_unlock": "🔒 Video ansehen für 1 Foto",
-      "watch_video_action": "▶️ Video ansehen → 1 Foto",
+      "watch_video_action": "Video ansehen → 1 Foto",
       "type": "Eingeben",
       "voice": "Sprache",
       "search": "🔍 Rezepte suchen",
@@ -368,7 +368,7 @@
       "now_have_photos": "Sie haben jetzt {count}/{max} verbleibende Fotos",
       "use_remaining": "Nutzen Sie Ihre {count} verbleibenden Fotos!",
       "all_photos_used": "✅ Sie haben alle {max} Fotos heute verwendet!",
-      "premium_photos": "⭐ Premium-Nutzer haben {max} Fotos pro Tag (ohne Videoanzeigen)",
+      "premium_photos": "Premium-Nutzer haben {max} Fotos pro Tag (ohne Videoanzeigen)",
       "video_limit_reached": "📺 Tägliches Limit für Videoanzeigen erreicht ({max}/{max})"
     },
     "messages": {

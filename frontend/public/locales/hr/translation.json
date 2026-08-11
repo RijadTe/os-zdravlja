@@ -328,7 +328,7 @@
       "take_photo": "Slikaj",
       "limit_used_tomorrow": "🚫 Limit iskorišten - sutra!",
       "watch_video_unlock": "🔒 Pogledaj video za 1 slikanje",
-      "watch_video_action": "▶️ Pogledaj video → 1 slikanje",
+      "watch_video_action": "Pogledaj video → 1 slikanje",
       "type": "Otkucaj",
       "voice": "Glasovna",
       "search": "🔍 Pretraži recepte",
@@ -368,7 +368,7 @@
       "now_have_photos": "Sada imate {count}/{max} preostalih slikanja",
       "use_remaining": "Iskoristite svojih {count} preostalih slikanja!",
       "all_photos_used": "✅ Iskoristili ste svih {max} slikanja danas!",
-      "premium_photos": "⭐ Premium korisnici imaju {max} slikanja dnevno (bez video reklama)",
+      "premium_photos": "Premium korisnici imaju {max} slikanja dnevno (bez video reklama)",
       "video_limit_reached": "📺 Dnevni limit video reklama iskorišten ({max}/{max})"
     },
     "messages": {

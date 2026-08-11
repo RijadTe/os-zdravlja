@@ -1092,13 +1092,13 @@ const AIChef = () => {
               </div>
             )}
 
-            {/* PREMIUM PROMO */}
+            {/* PREMIUM PROMO - POPRAVLJENO! */}
             <div className="text-center mt-2">
               <Link 
                 to="/premium" 
                 className="text-xs text-gray-400 dark:text-gray-500 hover:text-yellow-500 dark:hover:text-yellow-400 transition"
               >
-                ⭐ {t('aichef.unlock.premium_photos', { max: 15 })}
+                ⭐ Premium korisnici imaju 15 slikanja dnevno (bez video reklama) →
               </Link>
             </div>
           </div>
@@ -1114,7 +1114,7 @@ const AIChef = () => {
                 <span className="text-gray-600 dark:text-gray-400">
                   📸 <span className="font-semibold text-blue-600 dark:text-blue-400">
                     {dailyLimit.broj_pretraga}
-                  </span>/{dailyLimit.max_pretraga} {t('aichef.status_labels.photos')}
+                  </span>/{dailyLimit.max_pretraga || 15} {t('aichef.status_labels.photos')}
                 </span>
                 <span className="text-gray-600 dark:text-gray-400">
                   ⭐ Premium
@@ -1155,8 +1155,9 @@ const AIChef = () => {
               }}
             />
 
+            {/* 🔥 POPRAVLJENO - BROJ SE PRIKAZUJE DIREKTNO, BEZ t() ZA BROJEVE! */}
             <p className="text-xs text-center text-blue-600 dark:text-blue-400 mt-1">
-              ⭐ {t('aichef.unlock.premium_photos', { max: dailyLimit.max_pretraga })}
+              ⭐ Premium korisnici imaju {dailyLimit.max_pretraga || 15} slikanja dnevno (bez video reklama)
             </p>
           </div>
         )}
