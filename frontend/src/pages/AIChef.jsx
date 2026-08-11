@@ -48,6 +48,7 @@ const AIChef = () => {
   const [vrijemeCekanja, setVrijemeCekanja] = useState(0);
   const [status, setStatus] = useState('');
 
+  // 🔥 DAILY LIMIT
   const [dailyLimit, setDailyLimit] = useState({ 
     broj_pretraga: 0, 
     max_pretraga: 3, 
@@ -58,7 +59,6 @@ const AIChef = () => {
   const [videoWatched, setVideoWatched] = useState(false);
   const [videoAdCount, setVideoAdCount] = useState(0);
   const [maxVideoAds, setMaxVideoAds] = useState(3);
-  const [isVideoAdPlaying, setIsVideoAdPlaying] = useState(false);
 
   const debouncedTekst = useDebounce(tekst, 400);
 
@@ -143,14 +143,10 @@ const AIChef = () => {
       const userData = JSON.parse(localStorage.getItem('user'));
       const email = localStorage.getItem('userEmail');
       
-      console.log('👤 User data:', userData);
-      console.log('📧 Email iz localStorage:', email);
-      
       let finalUserData = userData;
       if (userData && !userData.email && email) {
         finalUserData = { ...userData, email: email };
         localStorage.setItem('user', JSON.stringify(finalUserData));
-        console.log('✅ Dodan email u user:', finalUserData);
       }
       
       setUser(finalUserData);
@@ -160,7 +156,6 @@ const AIChef = () => {
           const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
           const data = await response.json();
           if (data.success && data.data) {
-            console.log('✅ Profil dohvaćen za AI Chef:', data.data);
             setProfil(data.data);
           }
         } catch (error) {
@@ -192,6 +187,7 @@ const AIChef = () => {
       const res = await fetch(`${API_URL}/api/ai-chef/limit/${email}`);
       const data = await res.json();
       
+      // 🔥 PREMIUM: 15, FREE: 3
       const maxPretraga = user?.premium ? 15 : 3;
       
       setDailyLimit({
@@ -251,14 +247,12 @@ const AIChef = () => {
         return;
       }
 
-      setIsVideoAdPlaying(true);
       setPoruka('🎬 Učitavam video reklamu... Molimo sačekajte.');
       
       const adContainer = document.getElementById('video-ad-container');
       if (!adContainer) {
         setPoruka('❌ Greška: kontejner za reklamu nije pronađen');
         setTimeout(() => setPoruka(''), 3000);
-        setIsVideoAdPlaying(false);
         resolve(false);
         return;
       }
@@ -287,7 +281,6 @@ const AIChef = () => {
         console.error('❌ AdSense greška:', e);
         setPoruka('❌ Greška pri učitavanju reklame. Pokušajte ponovo.');
         setTimeout(() => setPoruka(''), 3000);
-        setIsVideoAdPlaying(false);
         resolve(false);
         return;
       }
@@ -304,7 +297,7 @@ const AIChef = () => {
           clearInterval(timer);
           setPoruka('✅ Video reklama završena!');
           setTimeout(() => setPoruka(''), 1000);
-          setIsVideoAdPlaying(false);
+          adContainer.classList.add('hidden');
           resolved = true;
           resolve(true);
         }
@@ -313,10 +306,9 @@ const AIChef = () => {
       setTimeout(() => {
         if (!resolved) {
           clearInterval(timer);
-          console.warn('⚠️ Reklama se ne učitava, nastavljam...');
           setPoruka('⏳ Reklama se učitava, nastavljamo...');
           setTimeout(() => setPoruka(''), 1000);
-          setIsVideoAdPlaying(false);
+          adContainer.classList.add('hidden');
           resolved = true;
           resolve(true);
         }
@@ -325,14 +317,18 @@ const AIChef = () => {
   }, []);
 
   // ============================================================
-  // 🔥 OTKLJUČAJ PRETRAGU NAKON VIDEO REKLAME
+  // 🔥 OTKLJUČAJ PRETRAGU NAKON VIDEO REKLAME - SAMO FREE!
   // ============================================================
   const handleUnlockWithVideo = async () => {
+    // 🔥 PREMIUM KORISNICI NE MOGU GLEDATI VIDEO REKLAME!
+    if (user?.premium) {
+      setPoruka('⭐ Premium korisnici imaju neograničene pretrage!');
+      setTimeout(() => setPoruka(''), 3000);
+      return;
+    }
+
     const email = user?.email || localStorage.getItem('userEmail');
     
-    console.log('👤 User u handleUnlock:', user);
-    console.log('📧 Email:', email);
-
     if (!email) {
       setPoruka(t('aichef.errors.login_required'));
       setTimeout(() => setPoruka(''), 3000);
@@ -342,18 +338,6 @@ const AIChef = () => {
     if (videoAdCount >= maxVideoAds) {
       setPoruka(`⚠️ Dosegli ste dnevni limit od ${maxVideoAds} video reklama. Pokušajte sutra!`);
       setTimeout(() => setPoruka(''), 4000);
-      return;
-    }
-
-    if (dailyLimit.preostalo <= 0) {
-      setPoruka(t('aichef.unlock.max_reached'));
-      setTimeout(() => setPoruka(''), 3000);
-      return;
-    }
-
-    if (isVideoAdPlaying) {
-      setPoruka('⏳ Već gledate reklamu, sačekajte...');
-      setTimeout(() => setPoruka(''), 3000);
       return;
     }
 
@@ -368,7 +352,6 @@ const AIChef = () => {
         return;
       }
 
-      console.log('📤 Šaljem zahtjev na /api/ai-chef/unlock');
       const res = await fetch(`${API_URL}/api/ai-chef/unlock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -378,7 +361,6 @@ const AIChef = () => {
         })
       });
       const data = await res.json();
-      console.log('📥 Odgovor:', data);
       
       const maxPretraga = user?.premium ? 15 : 3;
       setDailyLimit({
@@ -391,9 +373,13 @@ const AIChef = () => {
       setVideoAdCount(prev => prev + 1);
       setVideoWatched(true);
       
+      setTimeout(() => {
+        setVideoWatched(false);
+      }, 3000);
+      
       const remaining = maxVideoAds - (videoAdCount + 1);
-      setPoruka(`✅ Otključano! Preostalo vam je ${remaining} od ${maxVideoAds} video reklama za danas.`);
-      setTimeout(() => setPoruka(''), 3000);
+      setPoruka(`✅ Otključano! Dobili ste 1 slikanje. Preostalo ${remaining} video reklama za danas.`);
+      setTimeout(() => setPoruka(''), 4000);
     } catch (error) {
       console.error('❌ Greška:', error);
       setPoruka(t('aichef.errors.general'));
@@ -418,12 +404,16 @@ const AIChef = () => {
     const email = user?.email || localStorage.getItem('userEmail');
     const currentLang = i18n.language || 'hr';
 
-    if (slika && !user?.premium && !(dailyLimit.moze && videoWatched)) {
-      setPoruka(t('aichef.errors.photo_premium'));
-      setTimeout(() => setPoruka(''), 3000);
-      return;
+    // 🔥 FREE KORISNIK - MORA IMATI SLIKANJE!
+    if (slika && !user?.premium) {
+      if (dailyLimit.preostalo <= 0) {
+        setPoruka('📸 Nema slikanja! Pogledaj video za 1 slikanje.');
+        setTimeout(() => setPoruka(''), 4000);
+        return;
+      }
     }
 
+    // 🔥 PREMIUM - 15 SLIKANJA DNEVNO
     if (slika && user?.premium && dailyLimit.preostalo <= 0) {
       setPoruka('⚠️ Dostigli ste dnevni limit od 15 fotografija. Pokušajte sutra!');
       setTimeout(() => setPoruka(''), 4000);
@@ -504,7 +494,7 @@ const AIChef = () => {
   }, [tekst, slika, loading, user, dailyLimit, videoWatched, i18n.language, t, fetchDailyLimit, cestePretrage]);
 
   // ============================================================
-  // 🔥 DEBOUNCE
+  // DEBOUNCE
   // ============================================================
   useEffect(() => {
     if (debouncedTekst.trim() && !loading) {
@@ -605,45 +595,195 @@ const AIChef = () => {
 
       {/* GLAVNI KONTEJNER */}
       <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 shadow-md mb-6">
-        <div className="flex flex-wrap gap-4 justify-center mb-4">
-          
-          {/* 📸 FOTOGRAFIŠI */}
-          <div className="flex flex-col gap-2">
-            <button
-              className={`px-8 py-4 rounded-2xl text-lg font-semibold transition shadow-md hover:shadow-lg flex items-center gap-3 ${
-                user?.premium
-                  ? 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white'
-                  : dailyLimit.moze && videoWatched
-                  ? 'bg-green-600 hover:bg-green-700 text-white'
-                  : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-              }`}
-              onClick={() => (user?.premium || (dailyLimit.moze && videoWatched)) && document.getElementById('fileInput').click()}
-              disabled={!user?.premium && !(dailyLimit.moze && videoWatched)}
-            >
-              <span className="text-3xl">📸</span> {user?.premium ? t('aichef.buttons.photo_premium') : t('aichef.buttons.photo')}
-            </button>
-            
-            {user?.premium ? (
-              <p className="text-xs text-center text-blue-600 dark:text-blue-400">
-                ⭐ Premium: {dailyLimit.preostalo}/{dailyLimit.max_pretraga} 
-              </p>
-            ) : (
-              <div className="text-xs text-center text-gray-500 dark:text-gray-400 space-y-1">
-                <p>
-                  {dailyLimit.preostalo > 0 
-                    ? `📸 Pretraga: ${dailyLimit.preostalo}/${dailyLimit.max_pretraga}`
-                    : '📸 Pretraga: Iskorišteno'}
+        
+        {/* ============================================================
+            🔥 FREE KORISNIK - 3 SLIKANJA + 3 VIDEOREKLAME
+            ============================================================ */}
+        {!user?.premium && (
+          <div className="mb-4 space-y-3">
+            {/* STATUS */}
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-4 text-sm">
+                <span className="text-gray-600 dark:text-gray-400">
+                  📸 <span className={`font-semibold ${dailyLimit.preostalo === 0 ? 'text-red-500' : 'text-gray-800 dark:text-white'}`}>
+                    {dailyLimit.preostalo}
+                  </span>/{dailyLimit.max_pretraga} slikanja
+                </span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  📺 <span className={`font-semibold ${videoAdCount >= maxVideoAds ? 'text-red-500' : 'text-yellow-600 dark:text-yellow-400'}`}>
+                    {maxVideoAds - videoAdCount}
+                  </span>/{maxVideoAds} video
+                </span>
+              </div>
+              {dailyLimit.preostalo === 0 && videoAdCount < maxVideoAds && (
+                <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400 animate-pulse">
+                  🎬 Pogledaj video za slikanje!
+                </span>
+              )}
+            </div>
+
+            {/* 📸 DUGME ZA SLIKANJE - FREE */}
+            <div className="flex flex-col gap-2">
+              <button
+                className={`px-8 py-4 rounded-2xl text-lg font-semibold transition shadow-md hover:shadow-lg flex items-center gap-3 w-full justify-center ${
+                  dailyLimit.preostalo > 0
+                    ? 'bg-green-600 hover:bg-green-700 text-white'
+                    : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                }`}
+                onClick={() => dailyLimit.preostalo > 0 && document.getElementById('fileInput').click()}
+                disabled={dailyLimit.preostalo <= 0}
+              >
+                <span className="text-3xl">📸</span> 
+                {dailyLimit.preostalo > 0 
+                  ? `Slikaj (${dailyLimit.preostalo} preostalo)` 
+                  : '🚫 Nema slikanja - pogledaj video!'
+                }
+              </button>
+              
+              <input
+                id="fileInput"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files[0]) {
+                    setSlika(e.target.files[0]);
+                  }
+                }}
+              />
+            </div>
+
+            {/* 🎬 VIDEO OTKLJUČAVANJE - SAMO FREE! */}
+            {videoAdCount < maxVideoAds && (
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-2 border-yellow-400/50 dark:border-yellow-600/50 p-4 md:p-5 transition-all hover:border-yellow-500">
+                <div className="absolute -right-6 -top-6 text-7xl opacity-10 select-none">🎬</div>
+                
+                <div className="relative flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-start gap-4 w-full sm:w-auto">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-yellow-500/20 text-2xl animate-pulse">
+                      🎬
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-800 dark:text-white">
+                        {dailyLimit.preostalo === 0 
+                          ? '🎬 Pogledaj video za 1 slikanje!' 
+                          : '🎬 Dodatno slikanje'
+                        }
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        {dailyLimit.preostalo === 0 
+                          ? `Pogledaj video reklamu i dobij 1 slikanje (${videoAdCount}/${maxVideoAds} danas)`
+                          : `Imaš još ${dailyLimit.preostalo} slikanja. Pogledaj video za dodatno!`
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={handleUnlockWithVideo}
+                    disabled={loadingLimit || videoWatched || videoAdCount >= maxVideoAds}
+                    className={`relative flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all duration-300 w-full sm:w-auto justify-center ${
+                      loadingLimit || videoWatched || videoAdCount >= maxVideoAds
+                        ? 'bg-gray-400 cursor-not-allowed opacity-60'
+                        : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:scale-105 hover:shadow-lg active:scale-95'
+                    }`}
+                  >
+                    {loadingLimit ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Učitavanje...
+                      </>
+                    ) : videoWatched ? (
+                      '✅ +1 slikanje!'
+                    ) : videoAdCount >= maxVideoAds ? (
+                      '🚫 Limit iskorišten'
+                    ) : (
+                      <>
+                        <span>▶️</span> {dailyLimit.preostalo === 0 ? 'Pogledaj video → 1 slikanje' : 'Dodatno slikanje'}
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* VIDEO KONTEJNER */}
+                <div id="video-ad-container" className={`mt-4 min-h-[200px] bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden hidden`}></div>
+
+                {/* OTKLJUČANO */}
+                {videoWatched && (
+                  <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/30 rounded-xl border border-green-200 dark:border-green-700 animate-fadeIn">
+                    <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
+                      <span className="text-xl">✅</span> 
+                      <span className="font-semibold">+1 slikanje!</span> 
+                      <span className="text-green-600 dark:text-green-400">
+                        Sada imate <span className="font-bold">{dailyLimit.preostalo}</span> slikanja
+                      </span>
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* LIMIT VIDEO ISKORIŠTEN */}
+            {videoAdCount >= maxVideoAds && (
+              <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-center border border-gray-200 dark:border-gray-700">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  📺 Dnevni limit video reklama iskorišten ({maxVideoAds}/{maxVideoAds})
                 </p>
-                <p>
-                  {videoAdCount >= maxVideoAds 
-                    ? '📺 Video: Iskorišteno (3/3)'
-                    : `📺 Video: ${maxVideoAds - videoAdCount}/${maxVideoAds}`}
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  Pokušajte sutra za nove pretrage
                 </p>
               </div>
             )}
+
+            {/* PREMIUM PROMO */}
+            <div className="text-center mt-2">
+              <Link 
+                to="/premium" 
+                className="text-xs text-gray-400 dark:text-gray-500 hover:text-yellow-500 dark:hover:text-yellow-400 transition"
+              >
+                ⭐ Otključaj 15 slikanja dnevno uz Premium →
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================
+            ⭐ PREMIUM KORISNIK - 15 SLIKANJA, NEMA VIDEOREKLAMA!
+            ============================================================ */}
+        {user?.premium && (
+          <div className="mb-4">
+            <div className="flex items-center justify-between px-1 mb-3">
+              <div className="flex items-center gap-4 text-sm">
+                <span className="text-gray-600 dark:text-gray-400">
+                  📸 <span className="font-semibold text-blue-600 dark:text-blue-400">
+                    {dailyLimit.preostalo}
+                  </span>/{dailyLimit.max_pretraga} slikanja
+                </span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  ⭐ Premium
+                </span>
+              </div>
+              <span className="text-xs font-semibold text-green-600 dark:text-green-400">
+                ✅ Neograničeno
+              </span>
+            </div>
+
+            <button
+              className="px-8 py-4 rounded-2xl text-lg font-semibold transition shadow-md hover:shadow-lg flex items-center gap-3 w-full justify-center bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={() => document.getElementById('fileInputPremium').click()}
+            >
+              <span className="text-3xl">📸</span> 
+              {dailyLimit.preostalo > 0 
+                ? `Slikaj (${dailyLimit.preostalo} preostalo)` 
+                : '🚫 15/15 iskorišteno - sutra!'
+              }
+            </button>
             
             <input
-              id="fileInput"
+              id="fileInputPremium"
               type="file"
               accept="image/*"
               className="hidden"
@@ -654,143 +794,16 @@ const AIChef = () => {
               }}
             />
 
-            {/* 🔥🔥🔥 VIDEO OTKLJUČAVANJE - REDIZAJNIRANO 🔥🔥🔥 */}
-            {!user?.premium && (
-              <div className="mt-2 space-y-3">
-                {/* STATUS */}
-                <div className="flex items-center justify-between px-1">
-                  <div className="flex items-center gap-4 text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      📸 <span className={`font-semibold ${dailyLimit.preostalo === 0 ? 'text-red-500' : 'text-gray-800 dark:text-white'}`}>
-                        {dailyLimit.preostalo}
-                      </span>/{dailyLimit.max_pretraga} pretraga
-                    </span>
-                    <span className="text-gray-600 dark:text-gray-400">
-                      📺 <span className={`font-semibold ${videoAdCount >= maxVideoAds ? 'text-red-500' : 'text-gray-800 dark:text-white'}`}>
-                        {maxVideoAds - videoAdCount}
-                      </span>/{maxVideoAds} video
-                    </span>
-                  </div>
-                  {dailyLimit.preostalo === 0 && (
-                    <span className="text-xs font-semibold text-red-500 dark:text-red-400 animate-pulse">
-                      ⚠️ Istrošene pretrage
-                    </span>
-                  )}
-                </div>
-
-                {/* DUGME ZA OTKLJUČAVANJE - SAMO AKO NEMA PRETRAGA! */}
-                {dailyLimit.preostalo === 0 && videoAdCount < maxVideoAds && (
-                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-2 border-yellow-400/50 dark:border-yellow-600/50 p-4 md:p-5 transition-all hover:border-yellow-500">
-                    {/* Dekorativna ikona */}
-                    <div className="absolute -right-6 -top-6 text-7xl opacity-10 select-none">🎬</div>
-                    
-                    <div className="relative flex flex-col sm:flex-row items-center justify-between gap-4">
-                      <div className="flex items-start gap-4 w-full sm:w-auto">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-yellow-500/20 text-2xl animate-pulse">
-                          🎬
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-gray-800 dark:text-white">
-                            📺 Otključaj pretragu!
-                          </h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            Pogledaj video reklamu i otključaj <span className="font-semibold text-yellow-600 dark:text-yellow-400">1 pretragu</span>
-                            <span className="text-xs text-gray-400 block">
-                              ({videoAdCount}/{maxVideoAds} video reklama danas)
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <button
-                        onClick={handleUnlockWithVideo}
-                        disabled={loadingLimit || videoWatched || videoAdCount >= maxVideoAds || isVideoAdPlaying}
-                        className={`relative flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all duration-300 w-full sm:w-auto justify-center ${
-                          loadingLimit || videoWatched || videoAdCount >= maxVideoAds || isVideoAdPlaying
-                            ? 'bg-gray-400 cursor-not-allowed opacity-60'
-                            : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:scale-105 hover:shadow-lg active:scale-95'
-                        }`}
-                      >
-                        {isVideoAdPlaying ? (
-                          <>
-                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Gledam...
-                          </>
-                        ) : loadingLimit ? (
-                          <>
-                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Učitavanje...
-                          </>
-                        ) : videoWatched ? (
-                          '✅ Otključano!'
-                        ) : videoAdCount >= maxVideoAds ? (
-                          '🚫 Limit iskorišten'
-                        ) : (
-                          <>
-                            <span>▶️</span> Pogledaj video
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    {/* VIDEO KONTEJNER */}
-                    <div id="video-ad-container" className={`mt-4 min-h-[200px] bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden ${videoWatched ? 'block' : 'hidden'}`}>
-                      {/* AdSense će ovdje prikazati reklamu */}
-                    </div>
-
-                    {/* OTKLJUČANO */}
-                    {videoWatched && (
-                      <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/30 rounded-xl border border-green-200 dark:border-green-700 animate-fadeIn">
-                        <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
-                          <span className="text-xl">✅</span> 
-                          <span className="font-semibold">Otključano!</span> 
-                          <span className="text-green-600 dark:text-green-400">
-                            Sada imate <span className="font-bold">{dailyLimit.preostalo}</span> pretragu
-                          </span>
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* LIMIT ISKORIŠTEN */}
-                {dailyLimit.preostalo === 0 && videoAdCount >= maxVideoAds && (
-                  <div className="p-5 bg-gray-100 dark:bg-gray-800 rounded-2xl text-center border border-gray-200 dark:border-gray-700">
-                    <div className="text-4xl mb-2">⏰</div>
-                    <p className="text-gray-600 dark:text-gray-300 font-medium">
-                      Dnevni limit je iskorišten
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      Iskoristili ste <strong>3 pretrage</strong> i <strong>3 video reklame</strong> danas.
-                    </p>
-                    <Link 
-                      to="/premium" 
-                      className="mt-4 inline-block text-sm font-semibold text-yellow-600 dark:text-yellow-400 hover:underline transition"
-                    >
-                      ⭐ Postanite Premium za neograničene pretrage!
-                    </Link>
-                  </div>
-                )}
-
-                {/* PREMIUM PROMO */}
-                <div className="text-center mt-2">
-                  <Link 
-                    to="/premium" 
-                    className="text-xs text-gray-400 dark:text-gray-500 hover:text-yellow-500 dark:hover:text-yellow-400 transition"
-                  >
-                    ⭐ Otključaj sve funkcije uz Premium →
-                  </Link>
-                </div>
-              </div>
-            )}
+            <p className="text-xs text-center text-blue-600 dark:text-blue-400 mt-1">
+              ⭐ Premium korisnici imaju 15 slikanja dnevno (bez video reklama)
+            </p>
           </div>
+        )}
 
+        {/* ============================================================
+            ✏️ TEKST INPUT - ZAJEDNIČKI ZA SVE
+            ============================================================ */}
+        <div className="flex flex-wrap gap-4 justify-center mb-4">
           <button
             className="bg-gray-600 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-8 py-4 rounded-2xl text-lg font-semibold transition shadow-md hover:shadow-lg flex items-center gap-3"
             onClick={() => document.getElementById('tekstInput').focus()}
