@@ -60,8 +60,8 @@ const AIChef = () => {
   const [videoAdCount, setVideoAdCount] = useState(0);
   const [maxVideoAds, setMaxVideoAds] = useState(3);
   const [voiceActive, setVoiceActive] = useState(false);
-  const [isVoiceSearch, setIsVoiceSearch] = useState(false); // 🔥 NOVO - flag za glasovnu pretragu
-  const recognitionRef = useRef(null); // 🔥 NOVO - referenca za recognition
+  const [isVoiceSearch, setIsVoiceSearch] = useState(false);
+  const recognitionRef = useRef(null);
 
   const debouncedTekst = useDebounce(tekst, 400);
 
@@ -97,7 +97,6 @@ const AIChef = () => {
     if (lastReset !== today) {
       localStorage.setItem('videoAdResetDate', today);
       setVideoAdCount(0);
-      // 🔥 RESETIRAJ SLIKANJA NA 0!
       setDailyLimit(prev => ({ 
         ...prev, 
         preostalo: 0, 
@@ -343,7 +342,6 @@ const AIChef = () => {
   // 🔥 OTKLJUČAJ 1 SLIKANJE NAKON VIDEO REKLAME - SAMO FREE!
   // ============================================================
   const handleUnlockWithVideo = async () => {
-    // 🔥 PREMIUM KORISNICI NE MOGU GLEDATI VIDEO REKLAME!
     if (user?.premium) {
       setPoruka('⭐ Premium korisnici imaju 15 slikanja dnevno!');
       setTimeout(() => setPoruka(''), 3000);
@@ -358,16 +356,15 @@ const AIChef = () => {
       return;
     }
 
-    // 🔥 PROVJERA: Da li je već pogledao 3 videa?
     if (videoAdCount >= maxVideoAds) {
       setPoruka(`⚠️ Dosegli ste dnevni limit od ${maxVideoAds} video reklama. Pokušajte sutra!`);
       setTimeout(() => setPoruka(''), 4000);
       return;
     }
 
-    // 🔥 PROVJERA: Da li već ima 3 slikanja?
-    if (dailyLimit.preostalo >= 3) {
-      setPoruka('✅ Već imate 3 slikanja! Iskoristite ih pa pogledajte novi video.');
+    // 🔥 POPRAVLJENO: koristi broj_pretraga umjesto preostalo
+    if (dailyLimit.broj_pretraga >= dailyLimit.max_pretraga) {
+      setPoruka(`✅ Već imate ${dailyLimit.max_pretraga}/${dailyLimit.max_pretraga} slikanja! Iskoristite ih pa pogledajte novi video.`);
       setTimeout(() => setPoruka(''), 4000);
       return;
     }
@@ -383,7 +380,6 @@ const AIChef = () => {
         return;
       }
 
-      // 🔥 POŠALJI ZAHTJEV ZA OTKLJUČAVANJE (1 SLIKANJE)
       const res = await fetch(`${API_URL}/api/ai-chef/unlock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -396,7 +392,6 @@ const AIChef = () => {
       
       const maxPretraga = user?.premium ? 15 : 3;
       const brojPretraga = data.broj_pretraga || 0;
-      // 🔥 OGRANIČI NA MAKSIMALNO 3 ZA FREE KORISNIKE
       const novoPreostalo = Math.min(
         Math.max(maxPretraga - brojPretraga, 0),
         3
@@ -417,7 +412,7 @@ const AIChef = () => {
       }, 3000);
       
       const remaining = maxVideoAds - (videoAdCount + 1);
-      setPoruka(`✅ +1 slikanje! Sada imate ${novoPreostalo}/3 slikanja. Preostalo ${remaining} video reklama za danas.`);
+      setPoruka(`✅ +1 slikanje! Sada imate ${brojPretraga}/${maxPretraga} slikanja. Preostalo ${remaining} video reklama za danas.`);
       setTimeout(() => setPoruka(''), 4000);
     } catch (error) {
       console.error('❌ Greška:', error);
@@ -432,7 +427,6 @@ const AIChef = () => {
   // 🔥 GLAVNA PRETRAGA - ZA TIPKANJE (SA DEBOUNCE-OM)
   // ============================================================
   const handlePretraga = useCallback(async () => {
-    // 🔥 AKO JE GLASOVNA PRETRAGA AKTIVNA, PRESKOČI
     if (isVoiceSearch) return;
     if (loading) return;
 
@@ -445,18 +439,17 @@ const AIChef = () => {
     const email = user?.email || localStorage.getItem('userEmail');
     const currentLang = i18n.language || 'hr';
 
-    // 🔥 FREE KORISNIK - MORA IMATI SLIKANJE!
+    // 🔥 POPRAVLJENO: koristi broj_pretraga za provjeru
     if (slika && !user?.premium) {
-      if (dailyLimit.preostalo <= 0) {
-        setPoruka('📸 Nema slikanja! Pogledaj video za 1 slikanje.');
+      if (dailyLimit.broj_pretraga >= dailyLimit.max_pretraga) {
+        setPoruka(`📸 Nema slikanja! ${dailyLimit.broj_pretraga}/${dailyLimit.max_pretraga} iskorišteno. Pogledaj video za 1 slikanje.`);
         setTimeout(() => setPoruka(''), 4000);
         return;
       }
     }
 
-    // 🔥 PREMIUM - 15 SLIKANJA DNEVNO
-    if (slika && user?.premium && dailyLimit.preostalo <= 0) {
-      setPoruka('⚠️ Dostigli ste dnevni limit od 15 fotografija. Pokušajte sutra!');
+    if (slika && user?.premium && dailyLimit.broj_pretraga >= dailyLimit.max_pretraga) {
+      setPoruka(`⚠️ Dostigli ste dnevni limit od ${dailyLimit.max_pretraga} fotografija. Pokušajte sutra!`);
       setTimeout(() => setPoruka(''), 4000);
       return;
     }
@@ -467,7 +460,6 @@ const AIChef = () => {
     setProgress(10);
     setStatus(t('aichef.status.sending'));
 
-    // 🔥 TIMER ZA PRAĆENJE VREMENA
     const startTime = Date.now();
     let statusInterval;
 
@@ -481,7 +473,6 @@ const AIChef = () => {
       setProgress(30);
       setStatus('📡 Komuniciram sa serverom...');
 
-      // 🔥 AŽURIRAJ STATUS SVAKE 2 SEKUNDE
       statusInterval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         if (elapsed < 3) {
@@ -530,7 +521,6 @@ const AIChef = () => {
       
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
       
-      // 🔥 BOLJA POVRATNA INFORMACIJA SA IZVOROM I VREMENOM
       if (res.headers.get('X-Cache') === 'HIT') {
         setPoruka(`💾 Rezultati dohvaćeni iz keša (${elapsed}s)`);
       } else if (res.headers.get('X-Source') === 'database') {
@@ -543,14 +533,13 @@ const AIChef = () => {
 
       setSlika(null);
       
-      // 🔥 NAKON USPJEŠNE PRETRAGE, SMANJI BROJ SLIKANJA ZA FREE KORISNIKE!
+      // 🔥 NAKON USPJEŠNE PRETRAGE, POVEĆAJ BROJ ISKORIŠTENIH
       if (slika && !user?.premium) {
-        const novoPreostalo = Math.max(dailyLimit.preostalo - 1, 0);
         setDailyLimit(prev => ({
           ...prev,
-          preostalo: novoPreostalo,
           broj_pretraga: (prev.broj_pretraga || 0) + 1,
-          moze: novoPreostalo > 0
+          preostalo: Math.max(prev.max_pretraga - (prev.broj_pretraga + 1), 0),
+          moze: (prev.broj_pretraga + 1) < prev.max_pretraga
         }));
       }
       
@@ -589,7 +578,6 @@ const AIChef = () => {
   // 🔥 DIREKTNA PRETRAGA (ZA GLASOVNU) - BEZ DEBOUNCE
   // ============================================================
   const handlePretragaDirect = useCallback(async (directText) => {
-    // 🔥 AKO JE VEĆ LOADING, PRESKOČI
     if (loading) return;
 
     const searchText = directText || tekst;
@@ -602,18 +590,16 @@ const AIChef = () => {
     const email = user?.email || localStorage.getItem('userEmail');
     const currentLang = i18n.language || 'hr';
 
-    // 🔥 FREE KORISNIK - MORA IMATI SLIKANJE!
     if (slika && !user?.premium) {
-      if (dailyLimit.preostalo <= 0) {
-        setPoruka('📸 Nema slikanja! Pogledaj video za 1 slikanje.');
+      if (dailyLimit.broj_pretraga >= dailyLimit.max_pretraga) {
+        setPoruka(`📸 Nema slikanja! ${dailyLimit.broj_pretraga}/${dailyLimit.max_pretraga} iskorišteno. Pogledaj video za 1 slikanje.`);
         setTimeout(() => setPoruka(''), 4000);
         return;
       }
     }
 
-    // 🔥 PREMIUM - 15 SLIKANJA DNEVNO
-    if (slika && user?.premium && dailyLimit.preostalo <= 0) {
-      setPoruka('⚠️ Dostigli ste dnevni limit od 15 fotografija. Pokušajte sutra!');
+    if (slika && user?.premium && dailyLimit.broj_pretraga >= dailyLimit.max_pretraga) {
+      setPoruka(`⚠️ Dostigli ste dnevni limit od ${dailyLimit.max_pretraga} fotografija. Pokušajte sutra!`);
       setTimeout(() => setPoruka(''), 4000);
       return;
     }
@@ -699,12 +685,11 @@ const AIChef = () => {
       setSlika(null);
       
       if (slika && !user?.premium) {
-        const novoPreostalo = Math.max(dailyLimit.preostalo - 1, 0);
         setDailyLimit(prev => ({
           ...prev,
-          preostalo: novoPreostalo,
           broj_pretraga: (prev.broj_pretraga || 0) + 1,
-          moze: novoPreostalo > 0
+          preostalo: Math.max(prev.max_pretraga - (prev.broj_pretraga + 1), 0),
+          moze: (prev.broj_pretraga + 1) < prev.max_pretraga
         }));
       }
       
@@ -744,7 +729,6 @@ const AIChef = () => {
   // 🔥 DEBOUNCE - SAMO ZA TIPKANJE (NE ZA GLASOVNU)
   // ============================================================
   useEffect(() => {
-    // 🔥 AKO JE GLASOVNA PRETRAGA AKTIVNA, PRESKOČI DEBOUNCE
     if (isVoiceSearch) return;
     
     if (debouncedTekst.trim() && !loading) {
@@ -791,7 +775,6 @@ const AIChef = () => {
       return;
     }
 
-    // 🔥 SPRIJEČI DEBOUNCE ZA GLASOVNU PRETRAGU
     setIsVoiceSearch(true);
 
     try {
@@ -818,8 +801,6 @@ const AIChef = () => {
       
       recognition.onresult = (e) => {
         const transcript = e.results[0][0].transcript;
-        
-        // 🔥 POSTAVI TEKST ALI BEZ DEBOUNCE-A
         setTekst(transcript);
         
         if (e.results[0].isFinal) {
@@ -828,9 +809,7 @@ const AIChef = () => {
           setProgress(30);
           setVoiceActive(false);
           
-          // 🔥 ODMAH POKRENI PRETRAGU (BEZ DEBOUNCE-A)
           if (transcript.trim()) {
-            // Mali delay da se stanje ažurira
             setTimeout(() => {
               handlePretragaDirect(transcript);
             }, 100);
@@ -850,7 +829,6 @@ const AIChef = () => {
         console.log('🎤 Glasovna pretraga završila');
         setVoiceActive(false);
         
-        // 🔥 AKO NEMA TEKSTA I JOŠ UVJEK LOADING, POKAŽI GREŠKU
         if (!tekst.trim() && loading) {
           setPoruka('❌ Nisam prepoznao tekst. Pokušajte ponovo.');
           setLoading(false);
@@ -879,18 +857,14 @@ const AIChef = () => {
         setTimeout(() => setPoruka(''), 4000);
       };
       
-      // 🔥 POKRENI SLUŠANJE
       recognition.start();
       
-      // 🔥 TIMEOUT - AKO PREVIŠE TRAJE (10 sekundi)
       setTimeout(() => {
         try {
           if (recognitionRef.current) {
             recognitionRef.current.stop();
           }
-        } catch (e) {
-          // Ignoriraj grešku ako je već zaustavljeno
-        }
+        } catch (e) {}
         setIsVoiceSearch(false);
       }, 10000);
       
@@ -946,12 +920,12 @@ const AIChef = () => {
             ============================================================ */}
         {!user?.premium && (
           <div className="mb-4 space-y-3">
-            {/* STATUS */}
+            {/* 🔥 STATUS - POPRAVLJEN: prikazuje broj_pretraga umjesto preostalo */}
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-4 text-sm">
                 <span className="text-gray-600 dark:text-gray-400">
-                  📸 <span className={`font-semibold ${dailyLimit.preostalo === 0 ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
-                    {dailyLimit.preostalo}
+                  📸 <span className={`font-semibold ${dailyLimit.broj_pretraga >= dailyLimit.max_pretraga ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
+                    {dailyLimit.broj_pretraga}
                   </span>/{dailyLimit.max_pretraga} slikanja
                 </span>
                 <span className="text-gray-600 dark:text-gray-400">
@@ -960,27 +934,27 @@ const AIChef = () => {
                   </span>/{maxVideoAds} video
                 </span>
               </div>
-              {dailyLimit.preostalo === 0 && videoAdCount < maxVideoAds && (
+              {dailyLimit.broj_pretraga === 0 && videoAdCount < maxVideoAds && (
                 <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400 animate-pulse">
                   🎬 Pogledaj video za slikanje!
                 </span>
               )}
             </div>
 
-            {/* 📸 DUGME ZA SLIKANJE - FREE (ONEMOGUĆENO AKO JE 0/3) */}
+            {/* 📸 DUGME ZA SLIKANJE - POPRAVLJEN */}
             <div className="flex flex-col gap-2">
               <button
                 className={`px-8 py-4 rounded-2xl text-lg font-semibold transition shadow-md hover:shadow-lg flex items-center gap-3 w-full justify-center ${
-                  dailyLimit.preostalo > 0
+                  dailyLimit.broj_pretraga < dailyLimit.max_pretraga
                     ? 'bg-green-600 hover:bg-green-700 text-white'
                     : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                 }`}
-                onClick={() => dailyLimit.preostalo > 0 && document.getElementById('fileInput').click()}
-                disabled={dailyLimit.preostalo <= 0}
+                onClick={() => dailyLimit.broj_pretraga < dailyLimit.max_pretraga && document.getElementById('fileInput').click()}
+                disabled={dailyLimit.broj_pretraga >= dailyLimit.max_pretraga}
               >
                 <span className="text-3xl">📸</span> 
-                {dailyLimit.preostalo > 0 
-                  ? `Slikaj (${dailyLimit.preostalo} preostalo)` 
+                {dailyLimit.broj_pretraga < dailyLimit.max_pretraga 
+                  ? `Slikaj (${dailyLimit.max_pretraga - dailyLimit.broj_pretraga} preostalo)` 
                   : '🚫 Nema slikanja - pogledaj video za 1 slikanje!'
                 }
               </button>
@@ -998,7 +972,7 @@ const AIChef = () => {
               />
             </div>
 
-            {/* 🎬 VIDEO OTKLJUČAVANJE - SAMO FREE! */}
+            {/* 🎬 VIDEO OTKLJUČAVANJE - POPRAVLJEN */}
             {videoAdCount < maxVideoAds && (
               <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-2 border-yellow-400/50 dark:border-yellow-600/50 p-4 md:p-5 transition-all hover:border-yellow-500">
                 <div className="absolute -right-6 -top-6 text-7xl opacity-10 select-none">🎬</div>
@@ -1010,13 +984,13 @@ const AIChef = () => {
                     </div>
                     <div>
                       <h4 className="font-bold text-gray-800 dark:text-white">
-                        {dailyLimit.preostalo === 0 
+                        {dailyLimit.broj_pretraga >= dailyLimit.max_pretraga 
                           ? '🎬 Pogledaj video za 1 slikanje!' 
-                          : `🎬 Imaš ${dailyLimit.preostalo}/3 slikanja`
+                          : `🎬 Imaš ${dailyLimit.broj_pretraga}/${dailyLimit.max_pretraga} slikanja`
                         }
                       </h4>
                       <p className="text-sm text-gray-600 dark:text-gray-300">
-                        {dailyLimit.preostalo === 0 
+                        {dailyLimit.broj_pretraga >= dailyLimit.max_pretraga 
                           ? `Pogledaj video reklamu i dobij 1 slikanje (${videoAdCount}/${maxVideoAds} danas)`
                           : `Iskoristi slikanja pa pogledaj video za dodatno! (${videoAdCount}/${maxVideoAds} danas)`
                         }
@@ -1026,9 +1000,9 @@ const AIChef = () => {
                   
                   <button
                     onClick={handleUnlockWithVideo}
-                    disabled={loadingLimit || videoWatched || videoAdCount >= maxVideoAds || dailyLimit.preostalo >= 3}
+                    disabled={loadingLimit || videoWatched || videoAdCount >= maxVideoAds || dailyLimit.broj_pretraga >= dailyLimit.max_pretraga}
                     className={`relative flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all duration-300 w-full sm:w-auto justify-center ${
-                      loadingLimit || videoWatched || videoAdCount >= maxVideoAds || dailyLimit.preostalo >= 3
+                      loadingLimit || videoWatched || videoAdCount >= maxVideoAds || dailyLimit.broj_pretraga >= dailyLimit.max_pretraga
                         ? 'bg-gray-400 cursor-not-allowed opacity-60'
                         : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:scale-105 hover:shadow-lg active:scale-95'
                     }`}
@@ -1045,11 +1019,11 @@ const AIChef = () => {
                       '✅ +1 slikanje!'
                     ) : videoAdCount >= maxVideoAds ? (
                       '🚫 Limit iskorišten'
-                    ) : dailyLimit.preostalo >= 3 ? (
+                    ) : dailyLimit.broj_pretraga >= dailyLimit.max_pretraga ? (
                       '✅ Već 3/3 slikanja'
                     ) : (
                       <>
-                        <span>▶️</span> {dailyLimit.preostalo === 0 ? 'Pogledaj video → 1 slikanje' : 'Dodatno slikanje'}
+                        <span>▶️</span> {dailyLimit.broj_pretraga >= dailyLimit.max_pretraga ? 'Pogledaj video → 1 slikanje' : 'Dodatno slikanje'}
                       </>
                     )}
                   </button>
@@ -1065,7 +1039,7 @@ const AIChef = () => {
                       <span className="text-xl">✅</span> 
                       <span className="font-semibold">+1 slikanje!</span> 
                       <span className="text-green-600 dark:text-green-400">
-                        Sada imate <span className="font-bold">{dailyLimit.preostalo}</span>/3 slikanja
+                        Sada imate <span className="font-bold">{dailyLimit.broj_pretraga}</span>/{dailyLimit.max_pretraga} slikanja
                       </span>
                     </p>
                   </div>
@@ -1106,7 +1080,7 @@ const AIChef = () => {
               <div className="flex items-center gap-4 text-sm">
                 <span className="text-gray-600 dark:text-gray-400">
                   📸 <span className="font-semibold text-blue-600 dark:text-blue-400">
-                    {dailyLimit.preostalo}
+                    {dailyLimit.broj_pretraga}
                   </span>/{dailyLimit.max_pretraga} slikanja
                 </span>
                 <span className="text-gray-600 dark:text-gray-400">
@@ -1117,17 +1091,17 @@ const AIChef = () => {
 
             <button
               className={`px-8 py-4 rounded-2xl text-lg font-semibold transition shadow-md hover:shadow-lg flex items-center gap-3 w-full justify-center ${
-                dailyLimit.preostalo > 0
+                dailyLimit.broj_pretraga < dailyLimit.max_pretraga
                   ? 'bg-blue-600 hover:bg-blue-700 text-white'
                   : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
               }`}
-              onClick={() => dailyLimit.preostalo > 0 && document.getElementById('fileInputPremium').click()}
-              disabled={dailyLimit.preostalo <= 0}
+              onClick={() => dailyLimit.broj_pretraga < dailyLimit.max_pretraga && document.getElementById('fileInputPremium').click()}
+              disabled={dailyLimit.broj_pretraga >= dailyLimit.max_pretraga}
             >
               <span className="text-3xl">📸</span> 
-              {dailyLimit.preostalo > 0 
-                ? `Slikaj (${dailyLimit.preostalo} preostalo)` 
-                : '🚫 15/15 iskorišteno - sutra!'
+              {dailyLimit.broj_pretraga < dailyLimit.max_pretraga 
+                ? `Slikaj (${dailyLimit.max_pretraga - dailyLimit.broj_pretraga} preostalo)` 
+                : `🚫 ${dailyLimit.max_pretraga}/${dailyLimit.max_pretraga} iskorišteno - sutra!`
               }
             </button>
             
@@ -1144,7 +1118,7 @@ const AIChef = () => {
             />
 
             <p className="text-xs text-center text-blue-600 dark:text-blue-400 mt-1">
-              ⭐ Premium korisnici imaju 15 slikanja dnevno (bez video reklama)
+              ⭐ Premium korisnici imaju {dailyLimit.max_pretraga} slikanja dnevno (bez video reklama)
             </p>
           </div>
         )}
