@@ -17,40 +17,58 @@ const Profile = () => {
   const [badgesLoading, setBadgesLoading] = useState(true);
 
   // ============================================================
-  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA - RADI SA i18n!
+  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA - POPRAVLJEN REDOSLIJED!
   // ============================================================
   const translateValue = (value, type) => {
     if (!value) return t('profile.not_selected');
     
-    // 🔥 MAPIRANJE - KLJUČEVI SU VREDNOSTI IZ BAZE (HRVATSKI)
-    // 🔥 VREDNOSTI SE DOHVAĆAJU PREKO i18n
-    const getTranslation = (key, fallback) => {
+    // 🔥 LISTE MORAJU BITI ISTOG REDOSLIJEDA KAO U i18n FAJLOVIMA!
+    const getTranslation = (key, type) => {
       // Pokušaj prvo sa quiz opcijama
       const quizKey = `quiz.options.${type}.${getIndexForKey(key, type)}`;
       const translated = t(quizKey);
       if (translated !== quizKey) {
         return translated;
       }
-      return fallback || key;
+      return key;
     };
     
     // Pomoćna funkcija za pronalaženje indeksa
     const getIndexForKey = (key, type) => {
+      // 🔥 REDOSLIJED MORA BITI ISTI KAO U i18n FAJLOVIMA!
       const lists = {
-        vrsta: ['Slano', 'Deserti', 'Dijetalni recepti', 'Napitki', 'Svejedno'],
+        // ⚠️ VAŽNO: Redoslijed mora odgovarati onom u translation.json
+        // U translation.json: "vrsta": ["Deserti", "Slano", "Dijetalni recepti", "Napitci", "Svejedno"]
+        vrsta: ['Deserti', 'Slano', 'Dijetalni recepti', 'Napitci', 'Svejedno'],
+        
+        // U translation.json: "restrikcije": ["Bez restrikcija", "Bez glutena", "Bez laktoze", "Bez šećera", "Veganski", "Bez orašastih plodova"]
         restrikcije: ['Bez restrikcija', 'Bez glutena', 'Bez laktoze', 'Bez šećera', 'Veganski', 'Bez orašastih plodova'],
+        
+        // U translation.json: "preferencije": ["Visokoproteinski", "Bogat vlaknima", "Bogat ugljikohidratima", "Svejedno"]
         preferencije: ['Visokoproteinski', 'Bogat vlaknima', 'Bogat ugljikohidratima', 'Svejedno'],
+        
+        // U translation.json: "vrijeme": ["Kratko (15-30 min)", "Srednje (30-45 min)", "Duže (45-60+ min)"]
         vrijeme: ['Kratko (15-30 min)', 'Srednje (30-45 min)', 'Duže (45-60+ min)'],
+        
+        // U translation.json: "tezina": ["Početnik", "Srednji", "Profesionalac"]
         tezina: ['Početnik', 'Srednji', 'Profesionalac'],
+        
+        // U translation.json: "kalorije": ["Nisko (do 300 kcal)", "Umjereno (300-500 kcal)", "Srednje (500-700 kcal)", "Visoko (900+ kcal)"]
         kalorije: ['Nisko (do 300 kcal)', 'Umjereno (300-500 kcal)', 'Srednje (500-700 kcal)', 'Visoko (900+ kcal)']
       };
       
       const list = lists[type] || [];
-      const index = list.indexOf(key);
+      // Pokušaj pronaći index
+      let index = list.indexOf(key);
       // Ako nije pronađeno, pokušaj case-insensitive
       if (index === -1) {
         const lowerKey = key.toLowerCase().trim();
-        return list.findIndex(item => item.toLowerCase().trim() === lowerKey);
+        index = list.findIndex(item => item.toLowerCase().trim() === lowerKey);
+      }
+      // Ako i dalje nije pronađeno, vrati 0 kao fallback
+      if (index === -1) {
+        console.warn(`⚠️ Vrijednost "${key}" nije pronađena u listi ${type}`);
+        return 0;
       }
       return index;
     };
@@ -59,15 +77,13 @@ const Profile = () => {
     if (Array.isArray(value)) {
       const translated = value.map(v => {
         const index = getIndexForKey(v, type);
-        if (index !== -1) {
-          const quizKey = `quiz.options.${type}.${index}`;
-          const translatedText = t(quizKey);
-          if (translatedText !== quizKey) {
-            return translatedText;
-          }
+        const quizKey = `quiz.options.${type}.${index}`;
+        const translatedText = t(quizKey);
+        if (translatedText !== quizKey) {
+          return translatedText;
         }
         // Ako nije pronađen prijevod, vrati original
-        console.warn(`⚠️ Nema prijevoda za ${type}: "${v}"`);
+        console.warn(`⚠️ Nema prijevoda za ${type}: "${v}" (index: ${index})`);
         return v;
       });
       return translated.join(', ');
@@ -75,12 +91,10 @@ const Profile = () => {
     
     // 🔥 ZA STRING VRIJEDNOSTI (vrijeme, tezina, kalorije)
     const index = getIndexForKey(value, type);
-    if (index !== -1) {
-      const quizKey = `quiz.options.${type}.${index}`;
-      const translated = t(quizKey);
-      if (translated !== quizKey) {
-        return translated;
-      }
+    const quizKey = `quiz.options.${type}.${index}`;
+    const translated = t(quizKey);
+    if (translated !== quizKey) {
+      return translated;
     }
     
     console.warn(`⚠️ Nema prijevoda za ${type}: "${value}"`);
