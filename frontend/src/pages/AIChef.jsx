@@ -990,7 +990,9 @@ const AIChef = () => {
               />
             </div>
 
-            {/* 🎬 VIDEO OTKLJUČAVANJE - SAMO AKO JE preostalo === 0 I broj_pretraga < max */}
+            {/* ============================================================
+                🎬 VIDEO OTKLJUČAVANJE - POPRAVLJENO!
+                ============================================================ */}
             {videoAdCount < maxVideoAds && dailyLimit.preostalo === 0 && dailyLimit.broj_pretraga < dailyLimit.max_pretraga && (
               <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-2 border-yellow-400/50 dark:border-yellow-600/50 p-4 md:p-5 transition-all hover:border-yellow-500">
                 <div className="absolute -right-6 -top-6 text-7xl opacity-10 select-none">🎬</div>
@@ -1004,11 +1006,12 @@ const AIChef = () => {
                       <h4 className="font-bold text-gray-800 dark:text-white">
                         {t('aichef.unlock.watch_for_photo')}
                       </h4>
+                      {/* ✅ ISPRAVLJENO - direktan prikaz brojeva, bez t() */}
                       <p className="text-sm text-gray-600 dark:text-gray-300">
-                        {t('aichef.unlock.current_photos', { used: dailyLimit.broj_pretraga, max: dailyLimit.max_pretraga })}
+                        Trenutno: {dailyLimit.broj_pretraga}/{dailyLimit.max_pretraga} slikanja
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {t('aichef.unlock.remaining_videos', { count: maxVideoAds - videoAdCount })}
+                        Preostalo video reklama: {maxVideoAds - videoAdCount}
                       </p>
                     </div>
                   </div>
@@ -1049,8 +1052,9 @@ const AIChef = () => {
                     <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
                       <span className="text-xl">✅</span> 
                       <span className="font-semibold">{t('aichef.unlock.unlocked_photo')}</span> 
+                      {/* ✅ ISPRAVLJENO - direktan prikaz brojeva */}
                       <span className="text-green-600 dark:text-green-400">
-                        {t('aichef.unlock.now_have_photos', { count: dailyLimit.preostalo, max: dailyLimit.max_pretraga })}
+                        Sada imate {dailyLimit.preostalo} preostalih slikanja od {dailyLimit.max_pretraga}
                       </span>
                     </p>
                   </div>
@@ -1063,7 +1067,7 @@ const AIChef = () => {
               <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-700">
                 <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
                   <span className="text-xl">✅</span>
-                  <span>{t('aichef.unlock.use_remaining', { count: dailyLimit.preostalo })}</span>
+                  <span>Iskoristite {dailyLimit.preostalo} preostalih slikanja!</span>
                 </p>
               </div>
             )}
@@ -1072,7 +1076,7 @@ const AIChef = () => {
             {dailyLimit.broj_pretraga >= dailyLimit.max_pretraga && (
               <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-center border border-gray-200 dark:border-gray-700">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {t('aichef.unlock.all_photos_used', { max: dailyLimit.max_pretraga })}
+                  Potrošili ste svih {dailyLimit.max_pretraga} slikanja za danas
                 </p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                   Pokušajte sutra za nove pretrage
@@ -1084,7 +1088,7 @@ const AIChef = () => {
             {videoAdCount >= maxVideoAds && dailyLimit.broj_pretraga < dailyLimit.max_pretraga && (
               <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-center border border-gray-200 dark:border-gray-700">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  📺 {t('aichef.unlock.video_limit_reached', { max: maxVideoAds })}
+                  📺 Iskoristili ste svih {maxVideoAds} video reklama za danas
                 </p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                   Pokušajte sutra za nove pretrage
