@@ -44,6 +44,7 @@ const rateLimit = require('express-rate-limit');
 const cloudinary = require('cloudinary').v2;
 const speakeasy = require('speakeasy');
 const geoip = require('geoip-lite');
+const cron = require('node-cron');
 
 const app = express();
 
@@ -415,9 +416,6 @@ async function checkCache(inputHash) {
   return data;
 }
 
-// ============================================================
-// 🔥 AI CHEF - SAVE TO CACHE (120 dana)
-// ============================================================
 async function saveToCache(inputHash, inputType, results) {
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 120);
@@ -2675,13 +2673,12 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
 
     const brojPretraga = limitData?.broj_pretraga || 0;
 
-    // 5. 🔥 IZRAČUNAJ PREOSTALO:
-    // - Ako nema video reklama → preostalo = 0 (NEMA SLIKANJA!)
-    // - Ako ima video reklama → preostalo = brojVideoReklama - brojPretraga
-    let preostalo = 0;
-    if (brojVideoReklama > 0) {
-      preostalo = Math.max(brojVideoReklama - brojPretraga, 0);
-    }
+    // 🔥🔥🔥 NOVA LOGIKA:
+    // - preostalo = brojVideoReklama - brojPretraga
+    // - ali ne može biti manje od 0
+    // - i ne može biti više od maxPretraga (3)
+    let preostalo = Math.min(brojVideoReklama, maxPretraga) - brojPretraga;
+    preostalo = Math.max(preostalo, 0);
 
     console.log(`📊 ${email}: pretrage=${brojPretraga}/${maxPretraga}, video=${brojVideoReklama}/3, preostalo=${preostalo}`);
 
@@ -2795,7 +2792,7 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
 
       console.log(`📺 Video reklama ${newVideoCount}/3 za ${email}`);
 
-      // 🔥 KORISNIK SADA IMA 1 SLIKANJE PO VIDEO REKLAMI
+      // 🔥🔥🔥 KORISNIK SADA IMA ONOLIKO SLIKANJA KOLIKO JE VIDEO REKLAMA
       // Dohvati broj iskorištenih pretraga
       const { data: limitData } = await supabase
         .from('user_daily_limits')
@@ -2805,7 +2802,10 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
         .maybeSingle();
 
       const brojPretraga = limitData?.broj_pretraga || 0;
-      const preostalo = Math.max(newVideoCount - brojPretraga, 0);
+      
+      // 🔥 preostalo = brojVideoReklama - brojPretraga
+      let preostalo = Math.min(newVideoCount, maxPretraga) - brojPretraga;
+      preostalo = Math.max(preostalo, 0);
 
       return res.json({
         success: true,
@@ -2850,9 +2850,25 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
 
     const brojPretraga = limitData?.broj_pretraga || 0;
     
+    // 🔥 Provjeri da li je već iskoristio sve (max = 3)
     if (brojPretraga >= maxPretraga) {
       return res.status(400).json({ 
         error: 'Dostigli ste maksimum od 3 pretrage za danas.',
+        broj_pretraga: brojPretraga,
+        max_pretraga: maxPretraga,
+        preostalo: 0,
+        moze: false,
+        videoAdCount: brojVideoReklama
+      });
+    }
+
+    // 🔥🔥🔥 Provjeri da li ima preostalih slikanja
+    let trenutnoPreostalo = Math.min(brojVideoReklama, maxPretraga) - brojPretraga;
+    trenutnoPreostalo = Math.max(trenutnoPreostalo, 0);
+    
+    if (trenutnoPreostalo <= 0) {
+      return res.status(400).json({ 
+        error: 'Nemate preostalih slikanja! Pogledajte video reklamu.',
         broj_pretraga: brojPretraga,
         max_pretraga: maxPretraga,
         preostalo: 0,
@@ -2880,15 +2896,17 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
       return res.status(500).json({ error: upsertLimitError.message });
     }
 
-    const preostalo = Math.max(brojVideoReklama - newBrojPretraga, 0);
+    // 🔥 Izračunaj novo preostalo
+    let novoPreostalo = Math.min(brojVideoReklama, maxPretraga) - newBrojPretraga;
+    novoPreostalo = Math.max(novoPreostalo, 0);
 
     res.json({
       success: true,
       message: '✅ Pretraga otključana!',
       broj_pretraga: newBrojPretraga,
       max_pretraga: maxPretraga,
-      preostalo: preostalo,
-      moze: preostalo > 0,
+      preostalo: novoPreostalo,
+      moze: novoPreostalo > 0,
       videoAdCount: brojVideoReklama
     });
 
@@ -4347,7 +4365,7 @@ app.post('/api/test-quiz', (req, res) => {
 });
 
 // ============================================================
-// 45. AI SOMELIJER (SA KEŠOM!)
+// 45. AI SOMELIER (SA KEŠOM!)
 // ============================================================
 app.post('/api/ai-sommelier', async (req, res) => {
   console.log('\n🍷 === AI SOMELIJER ===');
@@ -4875,8 +4893,6 @@ app.get('/api/recepti/translate/status', async (req, res) => {
 // ============================================================
 // 54. 🔥 CRON JOB - PREMIUM ISTEK
 // ============================================================
-const cron = require('node-cron');
-
 cron.schedule('0 0 * * *', async () => {
   try {
     console.log('🔄 Provjeravam Premium istoke...');
