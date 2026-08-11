@@ -325,10 +325,10 @@
     "premium_hint": "⭐ Werden Sie Premium für unbegrenzte Suchanfragen und erweiterte Optionen.",
     "premium_link": "Premium werden →",
     "buttons": {
-      "photo": "Foto machen",
-      "photo_premium": "⭐ Premium - Foto machen",
-      "remaining": "Noch {{remaining}} von {{max}} kostenlosen Suchen übrig",
-      "remaining_zero": "Noch 0 von 3 kostenlosen Suchen übrig. Werden Sie Premium für unbegrenzte!",
+      "take_photo": "Foto machen",
+      "limit_used_tomorrow": "🚫 Limit verbraucht - morgen!",
+      "watch_video_unlock": "🔒 Video ansehen für 1 Foto",
+      "watch_video_action": "▶️ Video ansehen → 1 Foto",
       "type": "Eingeben",
       "voice": "Sprache",
       "search": "🔍 Rezepte suchen",
@@ -343,6 +343,13 @@
       "done": "✅ Fertig!",
       "waiting": "⏱️ Warten: {seconds} Sekunden"
     },
+    "status_labels": {
+      "photos": "Fotos",
+      "video": "Video",
+      "remaining": "übrig",
+      "limit_used": "Limit verbraucht",
+      "watch_video": "Video für Foto ansehen!"
+    },
     "results": {
       "title": "📋 Suchergebnisse",
       "found": "✅ {count} Rezepte gefunden!"
@@ -354,12 +361,25 @@
       "reset": "Zurücksetzen"
     },
     "unlock": {
-      "watch_video": "🎥 Sehen Sie sich das Video an und schalten Sie 1 Fotosuche frei",
-      "watch_button": "▶️ Video ansehen",
-      "loading": "⏳ Lädt...",
-      "max_reached": "🔒 Tagesmaximum erreicht",
-      "tomorrow": "⏳ Sie haben das Tagesmaximum erreicht. Kommen Sie morgen wieder!",
-      "success": "🎉 Sie haben 1 Suche freigeschaltet! Sie können jetzt ein Foto von Ihrem Kühlschrank machen."
+      "watch_for_photo": "🎬 Video ansehen für 1 Foto!",
+      "current_photos": "Aktuell: {used}/{max} Fotos",
+      "remaining_videos": "Verbleibende Videoanzeigen: {count}",
+      "unlocked_photo": "+1 Foto!",
+      "now_have_photos": "Sie haben jetzt {count}/{max} verbleibende Fotos",
+      "use_remaining": "Nutzen Sie Ihre {count} verbleibenden Fotos!",
+      "all_photos_used": "✅ Sie haben alle {max} Fotos heute verwendet!",
+      "premium_photos": "⭐ Premium-Nutzer haben {max} Fotos pro Tag (ohne Videoanzeigen)",
+      "video_limit_reached": "📺 Tägliches Limit für Videoanzeigen erreicht ({max}/{max})"
+    },
+    "messages": {
+      "no_photos_watch_video": "📸 Keine Fotos mehr! Video ansehen für 1 Foto.",
+      "daily_limit_reached": "⚠️ Sie haben das tägliche Limit von {max} Fotos erreicht. Versuchen Sie es morgen wieder!",
+      "premium_no_video": "⭐ Premium-Nutzer haben {max} Fotos pro Tag!",
+      "video_limit_reached": "⚠️ Sie haben das tägliche Limit von {max} Videoanzeigen erreicht. Versuchen Sie es morgen wieder!",
+      "already_have_photos": "✅ Sie haben bereits {count} verbleibende Fotos! Nutzen Sie sie.",
+      "already_used_all": "✅ Sie haben bereits alle {max} Fotos heute verwendet. Versuchen Sie es morgen wieder!",
+      "video_not_completed": "❌ Videoanzeige nicht abgeschlossen. Bitte versuchen Sie es erneut.",
+      "unlock_success": "✅ +1 Foto! Sie haben jetzt {remaining} verbleibende Fotos. {videoLeft} Videoanzeigen für heute übrig."
     },
     "errors": {
       "login_required": "⚠️ Sie müssen angemeldet sein.",

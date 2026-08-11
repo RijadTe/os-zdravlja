@@ -325,10 +325,10 @@
     "premium_hint": "⭐ Postanite Premium za neograničene pretrage i napredne opcije.",
     "premium_link": "Postani Premium →",
     "buttons": {
-      "photo": "Fotografiši",
-      "photo_premium": "⭐ Premium - Fotografiši",
-      "remaining": "Preostalo {{remaining}} od {{max}} besplatnih pretraga",
-      "remaining_zero": "Preostalo 0 od 3 besplatne pretrage. Postanite Premium za neograničeno!",
+      "take_photo": "Slikaj",
+      "limit_used_tomorrow": "🚫 Limit iskorišten - sutra!",
+      "watch_video_unlock": "🔒 Pogledaj video za 1 slikanje",
+      "watch_video_action": "▶️ Pogledaj video → 1 slikanje",
       "type": "Otkucaj",
       "voice": "Glasovna",
       "search": "🔍 Pretraži recepte",
@@ -343,6 +343,13 @@
       "done": "✅ Gotovo!",
       "waiting": "⏱️ Čekanje: {seconds} sekundi"
     },
+    "status_labels": {
+      "photos": "slikanja",
+      "video": "video",
+      "remaining": "preostalo",
+      "limit_used": "Limit iskorišten",
+      "watch_video": "Pogledaj video za slikanje!"
+    },
     "results": {
       "title": "📋 Rezultati pretrage",
       "found": "✅ Pronađeno {count} recepata!"
@@ -354,12 +361,25 @@
       "reset": "Resetuj"
     },
     "unlock": {
-      "watch_video": "🎥 Pogledaj video i otključaj 1 pretragu po fotografiji",
-      "watch_button": "▶️ Pogledaj video",
-      "loading": "⏳ Učitavanje...",
-      "max_reached": "🔒 Maksimum za danas",
-      "tomorrow": "⏳ Došli ste do maksimuma za danas. Vratite se sutra!",
-      "success": "🎉 Otključali ste 1 pretragu! Sada možete uslikati frižider."
+      "watch_for_photo": "🎬 Pogledaj video za 1 slikanje!",
+      "current_photos": "Trenutno: {used}/{max} slikanja",
+      "remaining_videos": "Preostalo video reklama: {count}",
+      "unlocked_photo": "+1 slikanje!",
+      "now_have_photos": "Sada imate {count}/{max} preostalih slikanja",
+      "use_remaining": "Iskoristite svojih {count} preostalih slikanja!",
+      "all_photos_used": "✅ Iskoristili ste svih {max} slikanja danas!",
+      "premium_photos": "⭐ Premium korisnici imaju {max} slikanja dnevno (bez video reklama)",
+      "video_limit_reached": "📺 Dnevni limit video reklama iskorišten ({max}/{max})"
+    },
+    "messages": {
+      "no_photos_watch_video": "📸 Nema slikanja! Pogledaj video za 1 slikanje.",
+      "daily_limit_reached": "⚠️ Dostigli ste dnevni limit od {max} fotografija. Pokušajte sutra!",
+      "premium_no_video": "⭐ Premium korisnici imaju {max} slikanja dnevno!",
+      "video_limit_reached": "⚠️ Dosegli ste dnevni limit od {max} video reklama. Pokušajte sutra!",
+      "already_have_photos": "✅ Već imate {count} preostalih slikanja! Iskoristite ih.",
+      "already_used_all": "✅ Već ste iskoristili svih {max} slikanja danas. Pokušajte sutra!",
+      "video_not_completed": "❌ Video reklama nije završena. Pokušajte ponovo.",
+      "unlock_success": "✅ +1 slikanje! Sada imate {remaining} preostalih slikanja. Preostalo {videoLeft} video reklama za danas."
     },
     "errors": {
       "login_required": "⚠️ Morate biti prijavljeni.",
