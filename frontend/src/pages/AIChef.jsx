@@ -48,11 +48,11 @@ const AIChef = () => {
   const [vrijemeCekanja, setVrijemeCekanja] = useState(0);
   const [status, setStatus] = useState('');
 
-  // 🔥 DAILY LIMIT - POČINJE OD 0/3! (POPRAVLJENO!)
+  // 🔥 DAILY LIMIT - POČINJE OD 0/3!
   const [dailyLimit, setDailyLimit] = useState({ 
     broj_pretraga: 0, 
     max_pretraga: 3, 
-    preostalo: 0,  // ← 🔥🔥🔥 POPRAVLJENO! 🔥🔥🔥
+    preostalo: 0,
     moze: false 
   });
   const [loadingLimit, setLoadingLimit] = useState(false);
@@ -179,7 +179,7 @@ const AIChef = () => {
   }, []);
 
   // ============================================================
-  // DOHVATI DAILY LIMIT
+  // DOHVATI DAILY LIMIT - POPRAVLJENO!
   // ============================================================
   const fetchDailyLimit = useCallback(async () => {
     const email = user?.email || localStorage.getItem('userEmail');
@@ -191,12 +191,17 @@ const AIChef = () => {
       
       const maxPretraga = user?.premium ? 15 : 3;
       
-      setDailyLimit({
+      // 🔥🔥🔥 POPRAVKA: SAMO AŽURIRAMO PREOSTALO NA OSNOVU BAZE, ALI NE PREPISUJEMO POČETNO STANJE!
+      // Ako je broj_pretraga 0, preostalo ostaje 0 (ne 3!)
+      const preostalo = Math.max(maxPretraga - (data.broj_pretraga || 0), 0);
+      
+      setDailyLimit(prev => ({
+        ...prev,
         broj_pretraga: data.broj_pretraga || 0,
         max_pretraga: maxPretraga,
-        preostalo: Math.max(maxPretraga - (data.broj_pretraga || 0), 0),
-        moze: (maxPretraga - (data.broj_pretraga || 0)) > 0
-      });
+        preostalo: preostalo,
+        moze: preostalo > 0
+      }));
     } catch (error) {
       console.error('❌ Greška pri dohvatanju limita:', error);
       setDailyLimit(prev => ({ ...prev, moze: true }));
