@@ -12,71 +12,81 @@ const Profile = () => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [badges, setBadges] = useState([]);
   const [badgesLoading, setBadgesLoading] = useState(true);
 
   // ============================================================
-  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA
+  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA (SA ZAŠTITOM)
   // ============================================================
   const translateValue = (value, type) => {
-    if (!value) return t('profile.not_selected');
-    
-    const maps = {
-      vrsta: {
-        'Slano': t('quiz.options.vrsta.0'),
-        'Deserti': t('quiz.options.vrsta.1'),
-        'Dijetalni recepti': t('quiz.options.vrsta.2'),
-        'Napitki': t('quiz.options.vrsta.3'),
-        'Svejedno': t('quiz.options.vrsta.4')
-      },
-      restrikcije: {
-        'Bez restrikcija': t('quiz.options.restrikcije.0'),
-        'Bez glutena': t('quiz.options.restrikcije.1'),
-        'Bez laktoze': t('quiz.options.restrikcije.2'),
-        'Bez šećera': t('quiz.options.restrikcije.3'),
-        'Veganski': t('quiz.options.restrikcije.4'),
-        'Bez orašastih plodova': t('quiz.options.restrikcije.5')
-      },
-      preferencije: {
-        'Visokoproteinski': t('quiz.options.preferencije.0'),
-        'Bogat vlaknima': t('quiz.options.preferencije.1'),
-        'Bogat ugljikohidratima': t('quiz.options.preferencije.2'),
-        'Svejedno': t('quiz.options.preferencije.3')
-      },
-      vrijeme: {
-        'Kratko (15-30 min)': t('quiz.options.vrijeme.0'),
-        'Srednje (30-45 min)': t('quiz.options.vrijeme.1'),
-        'Duže (45-60+ min)': t('quiz.options.vrijeme.2')
-      },
-      tezina: {
-        'Početnik': t('quiz.options.tezina.0'),
-        'Srednji': t('quiz.options.tezina.1'),
-        'Profesionalac': t('quiz.options.tezina.2')
-      },
-      kalorije: {
-        'Nisko (do 300 kcal)': t('quiz.options.kalorije.0'),
-        'Umjereno (300-500 kcal)': t('quiz.options.kalorije.1'),
-        'Srednje (500-700 kcal)': t('quiz.options.kalorije.2'),
-        'Visoko (900+ kcal)': t('quiz.options.kalorije.3')
-      }
-    };
+    try {
+      if (!value) return t('profile.not_selected');
+      
+      const maps = {
+        vrsta: {
+          'Slano': t('quiz.options.vrsta.0'),
+          'Deserti': t('quiz.options.vrsta.1'),
+          'Dijetalni recepti': t('quiz.options.vrsta.2'),
+          'Napitki': t('quiz.options.vrsta.3'),
+          'Svejedno': t('quiz.options.vrsta.4')
+        },
+        restrikcije: {
+          'Bez restrikcija': t('quiz.options.restrikcije.0'),
+          'Bez glutena': t('quiz.options.restrikcije.1'),
+          'Bez laktoze': t('quiz.options.restrikcije.2'),
+          'Bez šećera': t('quiz.options.restrikcije.3'),
+          'Veganski': t('quiz.options.restrikcije.4'),
+          'Bez orašastih plodova': t('quiz.options.restrikcije.5')
+        },
+        preferencije: {
+          'Visokoproteinski': t('quiz.options.preferencije.0'),
+          'Bogat vlaknima': t('quiz.options.preferencije.1'),
+          'Bogat ugljikohidratima': t('quiz.options.preferencije.2'),
+          'Svejedno': t('quiz.options.preferencije.3')
+        },
+        vrijeme: {
+          'Kratko (15-30 min)': t('quiz.options.vrijeme.0'),
+          'Srednje (30-45 min)': t('quiz.options.vrijeme.1'),
+          'Duže (45-60+ min)': t('quiz.options.vrijeme.2')
+        },
+        tezina: {
+          'Početnik': t('quiz.options.tezina.0'),
+          'Srednji': t('quiz.options.tezina.1'),
+          'Profesionalac': t('quiz.options.tezina.2')
+        },
+        kalorije: {
+          'Nisko (do 300 kcal)': t('quiz.options.kalorije.0'),
+          'Umjereno (300-500 kcal)': t('quiz.options.kalorije.1'),
+          'Srednje (500-700 kcal)': t('quiz.options.kalorije.2'),
+          'Visoko (900+ kcal)': t('quiz.options.kalorije.3')
+        }
+      };
 
-    const map = maps[type];
-    if (!map) return value;
-    
-    if (Array.isArray(value)) {
-      return value.map(v => map[v] || v).join(', ');
+      const map = maps[type];
+      if (!map) return value;
+      
+      if (Array.isArray(value)) {
+        return value.map(v => map[v] || v).join(', ');
+      }
+      
+      return map[value] || value;
+    } catch (err) {
+      console.warn('⚠️ Greška pri prevodu:', err);
+      return Array.isArray(value) ? value.join(', ') : value;
     }
-    
-    return map[value] || value;
   };
 
   // ============================================================
-  // 🔥 DOHVATI BEDŽEVE IZ BAZE
+  // 🔥 DOHVATI BEDŽEVE IZ BAZE (SA ZAŠTITOM)
   // ============================================================
   const fetchBadges = async (email) => {
-    if (!email) return;
+    if (!email) {
+      setBadges([]);
+      setBadgesLoading(false);
+      return;
+    }
     
     try {
       setBadgesLoading(true);
@@ -154,164 +164,135 @@ const Profile = () => {
   };
 
   // ============================================================
-  // 🔐 AUTH - SA DOHVATOM PREMIUM STATUSA IZ BAZE!
+  // 🔥 OPTIMIZIRANO - PROFIL IZ LOCALSTORAGE + POZADINSKO OSVJEŽAVANJE
   // ============================================================
   useEffect(() => {
-    const checkUser = async () => {
+    const loadProfile = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const email = localStorage.getItem('userEmail');
+        const userData = JSON.parse(localStorage.getItem('user'));
         
-        if (session?.user) {
-          console.log('✅ Korisnik prijavljen (Supabase):', session.user.email);
-          
-          const email = session.user.email;
-          
-          let premiumStatus = false;
-          let profileData = null;
-          
+        console.log('🔍 Učitavanje profila za:', email);
+        
+        // 1. PRVO PRIKAŽI IZ LOCALSTORAGE
+        const cachedProfile = localStorage.getItem('userProfile');
+        if (cachedProfile) {
           try {
-            const profileResponse = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
-            
-            if (profileResponse.ok) {
-              const profileResult = await profileResponse.json();
-              if (profileResult.success && profileResult.data) {
-                premiumStatus = profileResult.data.premium || false;
-                profileData = profileResult.data;
-                console.log('✅ Premium status iz baze:', premiumStatus);
-              }
-            }
-          } catch (profileError) {
-            console.warn('⚠️ Greška pri dohvatu profila:', profileError);
+            const parsed = JSON.parse(cachedProfile);
+            setProfile(parsed);
+            console.log('✅ Profil prikazan iz keša');
+          } catch (e) {
+            console.warn('⚠️ Greška pri parsiranju keširanog profila:', e);
           }
-          
-          const supabaseUser = {
-            id: session.user.id,
-            email: session.user.email,
-            ime: session.user.user_metadata?.ime || '',
-            premium: premiumStatus,
-            profile: profileData,
-            preferred_language: profileData?.preferred_language || 'hr'
-          };
-          
-          setUser(supabaseUser);
-          localStorage.setItem('user', JSON.stringify(supabaseUser));
-          localStorage.setItem('userEmail', session.user.email);
-          localStorage.setItem('userName', session.user.user_metadata?.ime || '');
-          
-          if (profileData) {
-            setProfile(profileData);
-            localStorage.setItem('userProfile', JSON.stringify(profileData));
-            await fetchBadges(email);
-            setLoading(false);
-          } else {
-            await fetchProfile(session.user.email);
-          }
-          return;
         }
         
-        const userData = JSON.parse(localStorage.getItem('user'));
-        if (!userData) {
+        if (userData) {
+          setUser(userData);
+        }
+        
+        if (!email) {
+          setLoading(false);
           navigate('/login');
           return;
         }
         
-        setUser(userData);
-        const email = localStorage.getItem('userEmail') || userData?.email;
-        if (email) {
-          await fetchProfile(email);
-        } else {
-          setLoading(false);
-        }
+        // 2. FETCH IZ BAZE U POZADINI
+        const fetchFromDatabase = async () => {
+          try {
+            console.log('📡 Dohvatam profil iz BAZE za:', email);
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+              console.warn('⏰ Fetch traje predugo, prekidam...');
+              controller.abort();
+            }, 5000);
+            
+            const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`, {
+              signal: controller.signal,
+              headers: {
+                'Cache-Control': 'no-cache'
+              }
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.status === 429) {
+              console.warn('⚠️ Rate limit (429) - zadržavam keš');
+              setLoading(false);
+              return;
+            }
+            
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success && data.data) {
+              const profileData = data.data;
+              
+              console.log('✅ Profil dohvaćen iz BAZE!');
+              console.log('📋 Premium:', profileData.premium);
+              console.log('📋 Filteri:', {
+                vrsta: profileData.vrsta,
+                izbjegava: profileData.izbjegava,
+                preferencije: profileData.preferencije
+              });
+              
+              // Ažuriraj profil
+              setProfile(profileData);
+              localStorage.setItem('userProfile', JSON.stringify(profileData));
+              
+              // Ažuriraj korisnika
+              if (userData) {
+                const updatedUser = {
+                  ...userData,
+                  premium: profileData.premium || false,
+                  kviz_zavrsen: profileData.kviz_zavrsen || false,
+                  vrsta: profileData.vrsta || [],
+                  izbjegava: profileData.izbjegava || [],
+                  preferencije: profileData.preferencije || [],
+                  preferred_language: profileData.preferred_language || 'hr'
+                };
+                setUser(updatedUser);
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+              }
+              
+              // Dohvati bedževe
+              await fetchBadges(email);
+              
+            } else {
+              console.warn('⚠️ Profil nije pronađen u bazi, kreiram...');
+              const newProfile = await createProfile(email, userData?.ime || t('profile.default_name'));
+              if (newProfile) {
+                setProfile(newProfile);
+                localStorage.setItem('userProfile', JSON.stringify(newProfile));
+                await fetchBadges(email);
+              }
+            }
+          } catch (error) {
+            if (error.name === 'AbortError') {
+              console.warn('⏰ Fetch prekinut zbog timeout-a, koristim keš');
+            } else {
+              console.error('❌ Greška pri dohvatu profila:', error);
+              setError(error.message);
+            }
+          } finally {
+            setLoading(false);
+          }
+        };
+        
+        await fetchFromDatabase();
+        
       } catch (error) {
-        console.error('❌ Greška pri provjeri korisnika:', error);
+        console.error('❌ Greška pri učitavanju profila:', error);
+        setError(error.message);
         setLoading(false);
       }
     };
-
-    checkUser();
-  }, [navigate]);
-
-  // ============================================================
-  // 📊 DOHVATI PROFIL - SA RATE LIMIT FALLBACKOM!
-  // ============================================================
-  const fetchProfile = async (email) => {
-    try {
-      console.log('📧 Dohvatam profil za:', email);
-      
-      const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
-      
-      if (response.status === 429) {
-        console.warn('⚠️ Rate limit (429) - koristim podatke iz localStorage');
-        const storedUser = JSON.parse(localStorage.getItem('user'));
-        if (storedUser) {
-          const fallbackProfile = {
-            ime: storedUser.ime || 'Korisnik',
-            email: storedUser.email || email,
-            premium: storedUser.premium || false,
-            kviz_zavrsen: storedUser.kviz_zavrsen || false,
-            vrsta: storedUser.vrsta || [],
-            izbjegava: storedUser.izbjegava || [],
-            preferencije: storedUser.preferencije || [],
-            vrijeme: storedUser.vrijeme || '',
-            tezina: storedUser.tezina || '',
-            kalorije: storedUser.kalorije || '',
-            skuhano_recepata: storedUser.skuhano_recepata || 0,
-            preferred_language: storedUser.preferred_language || 'hr'
-          };
-          setProfile(fallbackProfile);
-          console.log('✅ Profil dohvaćen iz localStorage (fallback)');
-        }
-        setLoading(false);
-        return;
-      }
-      
-      const data = await response.json();
-      console.log('📊 Profil dohvaćen:', data);
-      
-      if (data.success && data.data) {
-        setProfile(data.data);
-        localStorage.setItem('userProfile', JSON.stringify(data.data));
-        
-        const storedUser = JSON.parse(localStorage.getItem('user'));
-        if (storedUser) {
-          storedUser.premium = data.data.premium || false;
-          storedUser.profile = data.data;
-          storedUser.preferred_language = data.data.preferred_language || 'hr';
-          localStorage.setItem('user', JSON.stringify(storedUser));
-        }
-        
-        await fetchBadges(email);
-      } else {
-        console.error('❌ Profil nije pronađen');
-        await createProfile(email);
-      }
-    } catch (error) {
-      console.error('❌ Greška pri dohvatu profila:', error);
-      const storedUser = JSON.parse(localStorage.getItem('user'));
-      if (storedUser) {
-        const fallbackProfile = {
-          ime: storedUser.ime || 'Korisnik',
-          email: storedUser.email || email,
-          premium: storedUser.premium || false,
-          kviz_zavrsen: storedUser.kviz_zavrsen || false,
-          vrsta: storedUser.vrsta || [],
-          izbjegava: storedUser.izbjegava || [],
-          preferencije: storedUser.preferencije || [],
-          vrijeme: storedUser.vrijeme || '',
-          tezina: storedUser.tezina || '',
-          kalorije: storedUser.kalorije || '',
-          skuhano_recepata: storedUser.skuhano_recepata || 0,
-          preferred_language: storedUser.preferred_language || 'hr'
-        };
-        setProfile(fallbackProfile);
-        console.log('✅ Profil dohvaćen iz localStorage (fallback)');
-      } else {
-        await createProfile(email);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+    
+    loadProfile();
+  }, [navigate, t]);
 
   // ============================================================
   // 🔥 OSVJEŽI BEDŽEVE KADA SE JEZIK PROMIJENI
@@ -410,6 +391,26 @@ const Profile = () => {
   };
 
   // ============================================================
+  // 🖥️ RENDER - PRIKAZ GREŠKE AKO POSTOJI
+  // ============================================================
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
+          <p className="text-red-800 dark:text-red-200 text-lg">❌ Došlo je do greške</p>
+          <p className="text-red-600 dark:text-red-400 text-sm mt-2">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 inline-block bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition"
+          >
+            🔄 Pokušaj ponovo
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================================
   // 🖥️ RENDER - LOADING
   // ============================================================
   if (loading) {
@@ -438,7 +439,7 @@ const Profile = () => {
   }
 
   // ============================================================
-  // 🖥️ RENDER - GLAVNI UI
+  // 🖥️ RENDER - GLAVNI UI (SA ZAŠTITOM)
   // ============================================================
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
@@ -446,12 +447,12 @@ const Profile = () => {
       <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center text-3xl text-white">
-            {profile.ime?.charAt(0) || '👤'}
+            {profile?.ime?.charAt(0) || '👤'}
           </div>
           <div>
-            <h1 className="text-2xl font-bold">{profile.ime || t('profile.default_name')}</h1>
-            <p className="text-gray-500 dark:text-gray-400">{profile.email}</p>
-            {profile.premium ? (
+            <h1 className="text-2xl font-bold">{profile?.ime || t('profile.default_name')}</h1>
+            <p className="text-gray-500 dark:text-gray-400">{profile?.email}</p>
+            {profile?.premium ? (
               <span className="inline-block mt-1 bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 text-xs px-2 py-0.5 rounded-full font-semibold">
                 ⭐ {t('profile.premium')}
               </span>
@@ -463,7 +464,7 @@ const Profile = () => {
           </div>
         </div>
         <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          🌍 {t('profile.language')}: {profile.preferred_language === 'hr' ? 'Hrvatski' : profile.preferred_language === 'en' ? 'English' : 'Deutsch'}
+          🌍 {t('profile.language')}: {profile?.preferred_language === 'hr' ? 'Hrvatski' : profile?.preferred_language === 'en' ? 'English' : 'Deutsch'}
         </div>
       </div>
 
@@ -473,11 +474,11 @@ const Profile = () => {
         <div className="flex items-center gap-4">
           <div className="text-4xl">🍳</div>
           <div>
-            <p className="text-2xl font-bold">{profile.skuhano_recepata || 0}</p>
+            <p className="text-2xl font-bold">{profile?.skuhano_recepata || 0}</p>
             <p className="text-gray-500 dark:text-gray-400">{t('profile.recipes_cooked')}</p>
           </div>
           <div className="ml-8 text-sm text-gray-500 dark:text-gray-400">
-            <p>✅ {t('profile.quiz')}: {profile.kviz_zavrsen ? t('profile.completed') : t('profile.not_completed')}</p>
+            <p>✅ {t('profile.quiz')}: {profile?.kviz_zavrsen ? t('profile.completed') : t('profile.not_completed')}</p>
           </div>
         </div>
       </div>
@@ -591,14 +592,14 @@ const Profile = () => {
         )}
       </div>
 
-      {/* ===== PREFERENCIJE ===== */}
+      {/* ===== PREFERENCIJE - SA ZAŠTITOM ===== */}
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
         <h2 className="text-xl font-bold mb-4">{t('profile.preferences')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.preferences_types')}</p>
             <p className="font-semibold">
-              {profile.vrsta?.length 
+              {profile?.vrsta?.length 
                 ? translateValue(profile.vrsta, 'vrsta') 
                 : t('profile.not_selected')}
             </p>
@@ -606,7 +607,7 @@ const Profile = () => {
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.restrictions')}</p>
             <p className="font-semibold">
-              {profile.izbjegava?.length 
+              {profile?.izbjegava?.length 
                 ? translateValue(profile.izbjegava, 'restrikcije') 
                 : t('profile.none')}
             </p>
@@ -614,7 +615,7 @@ const Profile = () => {
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.preferences')}</p>
             <p className="font-semibold">
-              {profile.preferencije?.length 
+              {profile?.preferencije?.length 
                 ? translateValue(profile.preferencije, 'preferencije') 
                 : t('profile.not_selected')}
             </p>
@@ -622,7 +623,7 @@ const Profile = () => {
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.time')}</p>
             <p className="font-semibold">
-              {profile.vrijeme 
+              {profile?.vrijeme 
                 ? translateValue(profile.vrijeme, 'vrijeme') 
                 : t('profile.not_selected')}
             </p>
@@ -630,7 +631,7 @@ const Profile = () => {
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.skill')}</p>
             <p className="font-semibold">
-              {profile.tezina 
+              {profile?.tezina 
                 ? translateValue(profile.tezina, 'tezina') 
                 : t('profile.not_selected')}
             </p>
@@ -638,7 +639,7 @@ const Profile = () => {
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.calories')}</p>
             <p className="font-semibold">
-              {profile.kalorije 
+              {profile?.kalorije 
                 ? translateValue(profile.kalorije, 'kalorije') 
                 : t('profile.not_selected')}
             </p>
@@ -653,10 +654,10 @@ const Profile = () => {
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full text-sm font-semibold transition flex items-center gap-2"
         >
           <span>🔄</span>
-          {profile.kviz_zavrsen ? t('profile.edit_filters') : t('profile.take_quiz')}
+          {profile?.kviz_zavrsen ? t('profile.edit_filters') : t('profile.take_quiz')}
         </Link>
         
-        {!profile.premium && (
+        {!profile?.premium && (
           <Link
             to="/premium"
             className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-full text-sm font-semibold transition"
