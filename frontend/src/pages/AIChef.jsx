@@ -814,9 +814,7 @@ const AIChef = () => {
                   ⭐ Premium
                 </span>
               </div>
-              <span className="text-xs font-semibold text-green-600 dark:text-green-400">
-                ✅ Neograničeno
-              </span>
+              {/* 🔥 MAKNUO SAM "✅ Neograničeno" OVDJE */}
             </div>
 
             <button
