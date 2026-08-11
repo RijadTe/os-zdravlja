@@ -48,11 +48,11 @@ const AIChef = () => {
   const [vrijemeCekanja, setVrijemeCekanja] = useState(0);
   const [status, setStatus] = useState('');
 
-  // 🔥 DAILY LIMIT
+  // 🔥 DAILY LIMIT - POČINJE OD 0/3! (POPRAVLJENO!)
   const [dailyLimit, setDailyLimit] = useState({ 
     broj_pretraga: 0, 
     max_pretraga: 3, 
-    preostalo: 0,  // 🔥 POČINJE OD 0!
+    preostalo: 0,  // ← 🔥🔥🔥 POPRAVLJENO! 🔥🔥🔥
     moze: false 
   });
   const [loadingLimit, setLoadingLimit] = useState(false);
