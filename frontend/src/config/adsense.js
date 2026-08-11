@@ -9,12 +9,12 @@ export const ADSENSE_CLIENT = 'ca-pub-9027267899539658';
 
 // 🔥 TVOJI SLOT ID-EVI (ZAMIJENI SA SVOJIM!)
 export const DEFAULT_SLOTS = {
-  banner: '9876543210',        // Banner reklame (header, footer)
-  sidebar: '9876543211',       // Sidebar reklame
-  video: '9876543212',         // 🎬 Video reklame (AI Chef)
-  inFeed: '9876543213',        // In-feed reklame (između sadržaja)
-  native: '9876543214',        // Native reklame (izgledaju kao sadržaj)
-  display: '9876543215'        // Display reklame (standardne)
+  banner: '8508444317',        // Banner reklame (header, footer)
+  sidebar: '7426316998',       // Sidebar reklame
+  video: '8508444317',         // 🎬 Video reklame (AI Chef)
+  inFeed: '5374868722',        // In-feed reklame (između sadržaja)
+  native: '9438382605',        // Native reklame (izgledaju kao sadržaj)
+  display: '7135652891'        // Display reklame (standardne)
 };
 
 // 🔥 FORMATI REKLAMA
