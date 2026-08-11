@@ -36,7 +36,7 @@ const Profile = () => {
         'Bez laktoze': t('quiz.options.restrikcije.2'),
         'Bez šećera': t('quiz.options.restrikcije.3'),
         'Veganski': t('quiz.options.restrikcije.4'),
-        'Orašasti plodovi': t('quiz.options.restrikcije.5')
+        'Bez orašastih plodova': t('quiz.options.restrikcije.5')
       },
       preferencije: {
         'Visokoproteinski': t('quiz.options.preferencije.0'),
