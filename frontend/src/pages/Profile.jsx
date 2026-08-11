@@ -24,8 +24,8 @@ const Profile = () => {
     
     const maps = {
       vrsta: {
-        'Slano': t('quiz.options.vrsta.0'),
-        'Deserti': t('quiz.options.vrsta.1'),
+        'Deserti': t('quiz.options.vrsta.0'),
+        'Slano': t('quiz.options.vrsta.1'),
         'Dijetalni recepti': t('quiz.options.vrsta.2'),
         'Napitki': t('quiz.options.vrsta.3'),
         'Svejedno': t('quiz.options.vrsta.4')
