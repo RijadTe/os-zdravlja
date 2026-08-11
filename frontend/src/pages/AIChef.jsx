@@ -84,20 +84,27 @@ const AIChef = () => {
   }, []);
 
   // ============================================================
-  // 🔥 RESETIRANJE BROJA VIDEO REKLAMA SVAKI DAN
+  // 🔥 RESETIRANJE BROJA VIDEO REKLAMA I SLIKANJA SVAKI DAN
   // ============================================================
   useEffect(() => {
     const today = new Date().toDateString();
     const lastReset = localStorage.getItem('videoAdResetDate');
+    const maxPretraga = user?.premium ? 15 : 3;
     
     if (lastReset !== today) {
       localStorage.setItem('videoAdResetDate', today);
       setVideoAdCount(0);
-      // 🔥 RESETIRAJ I SLIKANJA NA 0!
-      setDailyLimit(prev => ({ ...prev, preostalo: 0, broj_pretraga: 0 }));
+      // 🔥 RESETIRAJ SLIKANJA NA 0!
+      setDailyLimit(prev => ({ 
+        ...prev, 
+        preostalo: 0, 
+        broj_pretraga: 0,
+        max_pretraga: maxPretraga,
+        moze: false 
+      }));
       console.log('🔄 Resetiran broj video reklama i slikanja za novi dan');
     }
-  }, []);
+  }, [user]);
 
   // ============================================================
   // TIMER ZA VRIJEME ČEKANJA
@@ -179,7 +186,7 @@ const AIChef = () => {
   }, []);
 
   // ============================================================
-  // DOHVATI DAILY LIMIT - POPRAVLJENO!
+  // 🔥 DOHVATI DAILY LIMIT - POPRAVLJENO!
   // ============================================================
   const fetchDailyLimit = useCallback(async () => {
     const email = user?.email || localStorage.getItem('userEmail');
@@ -190,26 +197,29 @@ const AIChef = () => {
       const data = await res.json();
       
       const maxPretraga = user?.premium ? 15 : 3;
+      const brojPretraga = data.broj_pretraga || 0;
+      const preostalo = Math.max(maxPretraga - brojPretraga, 0);
       
-      // 🔥🔥🔥 POPRAVKA: SAMO AŽURIRAMO PREOSTALO NA OSNOVU BAZE, ALI NE PREPISUJEMO POČETNO STANJE!
-      // Ako je broj_pretraga 0, preostalo ostaje 0 (ne 3!)
-      const preostalo = Math.max(maxPretraga - (data.broj_pretraga || 0), 0);
-      
-      setDailyLimit(prev => ({
-        ...prev,
-        broj_pretraga: data.broj_pretraga || 0,
+      setDailyLimit({
+        broj_pretraga: brojPretraga,
         max_pretraga: maxPretraga,
         preostalo: preostalo,
         moze: preostalo > 0
-      }));
+      });
     } catch (error) {
       console.error('❌ Greška pri dohvatanju limita:', error);
-      setDailyLimit(prev => ({ ...prev, moze: true }));
+      const maxPretraga = user?.premium ? 15 : 3;
+      setDailyLimit(prev => ({ 
+        ...prev, 
+        max_pretraga: maxPretraga,
+        preostalo: maxPretraga,
+        moze: true 
+      }));
     }
   }, [user]);
 
   // ============================================================
-  // DOHVATI BROJ VIDEO REKLAMA
+  // 🔥 DOHVATI BROJ VIDEO REKLAMA
   // ============================================================
   const fetchVideoAdCount = useCallback(async () => {
     const email = user?.email || localStorage.getItem('userEmail');
@@ -224,6 +234,9 @@ const AIChef = () => {
     }
   }, [user]);
 
+  // ============================================================
+  // 🔥 INICIJALNO DOHVATI LIMIT I VIDEO BROJ
+  // ============================================================
   useEffect(() => {
     const email = user?.email || localStorage.getItem('userEmail');
     if (email) {
@@ -378,10 +391,15 @@ const AIChef = () => {
       const data = await res.json();
       
       const maxPretraga = user?.premium ? 15 : 3;
-      const novoPreostalo = Math.min(maxPretraga - (data.broj_pretraga || 0), 3);
+      const brojPretraga = data.broj_pretraga || 0;
+      // 🔥 OGRANIČI NA MAKSIMALNO 3 ZA FREE KORISNIKE
+      const novoPreostalo = Math.min(
+        Math.max(maxPretraga - brojPretraga, 0),
+        3
+      );
       
       setDailyLimit({
-        broj_pretraga: data.broj_pretraga || 0,
+        broj_pretraga: brojPretraga,
         max_pretraga: maxPretraga,
         preostalo: novoPreostalo,
         moze: novoPreostalo > 0
@@ -407,7 +425,7 @@ const AIChef = () => {
   };
 
   // ============================================================
-  // 🔥 GLAVNA PRETRAGA
+  // 🔥 GLAVNA PRETRAGA - POPRAVLJENO!
   // ============================================================
   const handlePretraga = useCallback(async () => {
     if (loading) return;
@@ -485,13 +503,13 @@ const AIChef = () => {
 
       setSlika(null);
       
-      // 🔥 NAKON USPJEŠNE PRETRAGE, SMANJI BROJ SLIKANJA!
+      // 🔥 NAKON USPJEŠNE PRETRAGE, SMANJI BROJ SLIKANJA ZA FREE KORISNIKE!
       if (slika && !user?.premium) {
         const novoPreostalo = Math.max(dailyLimit.preostalo - 1, 0);
         setDailyLimit(prev => ({
           ...prev,
           preostalo: novoPreostalo,
-          broj_pretraga: prev.broj_pretraga + 1,
+          broj_pretraga: (prev.broj_pretraga || 0) + 1,
           moze: novoPreostalo > 0
         }));
       }
@@ -739,7 +757,7 @@ const AIChef = () => {
                 </div>
 
                 {/* VIDEO KONTEJNER */}
-                <div id="video-ad-container" className={`mt-4 min-h-[200px] bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden hidden`}></div>
+                <div id="video-ad-container" className={`mt-4 min-h-[200px] bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden ${videoWatched ? '' : 'hidden'}`}></div>
 
                 {/* OTKLJUČANO */}
                 {videoWatched && (
@@ -802,8 +820,13 @@ const AIChef = () => {
             </div>
 
             <button
-              className="px-8 py-4 rounded-2xl text-lg font-semibold transition shadow-md hover:shadow-lg flex items-center gap-3 w-full justify-center bg-blue-600 hover:bg-blue-700 text-white"
-              onClick={() => document.getElementById('fileInputPremium').click()}
+              className={`px-8 py-4 rounded-2xl text-lg font-semibold transition shadow-md hover:shadow-lg flex items-center gap-3 w-full justify-center ${
+                dailyLimit.preostalo > 0
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+              }`}
+              onClick={() => dailyLimit.preostalo > 0 && document.getElementById('fileInputPremium').click()}
+              disabled={dailyLimit.preostalo <= 0}
             >
               <span className="text-3xl">📸</span> 
               {dailyLimit.preostalo > 0 
