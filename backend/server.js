@@ -420,7 +420,7 @@ async function checkCache(inputHash) {
 // ============================================================
 async function saveToCache(inputHash, inputType, results) {
   const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 120); // 🔥 120 dana!
+  expiresAt.setDate(expiresAt.getDate() + 120);
 
   const { data, error } = await supabase
     .from('ai_chef_cache')
@@ -942,8 +942,6 @@ app.post('/api/auth/register',
           vrsta: [],
           izbjegava: [],
           preferencije: [],
-          ai_chef_pretrage: 0,
-          ai_chef_datum: null,
           twofa_secret: null,
           twofa_enabled: false,
           created_at: new Date().toISOString()
@@ -1048,8 +1046,6 @@ app.post('/api/auth/login',
             vrsta: [],
             izbjegava: [],
             preferencije: [],
-            ai_chef_pretrage: 0,
-            ai_chef_datum: null,
             twofa_secret: null,
             twofa_enabled: false,
             created_at: new Date().toISOString()
@@ -1217,8 +1213,6 @@ app.post('/api/quiz', async (req, res) => {
           kalorije: kalorije || '',
           kviz_zavrsen: true,
           premium: false,
-          ai_chef_pretrage: 0,
-          ai_chef_datum: null,
           twofa_secret: null,
           twofa_enabled: false,
           created_at: new Date().toISOString()
@@ -1758,8 +1752,6 @@ app.post('/api/profil', async (req, res) => {
         vrsta: vrsta || [],
         izbjegava: izbjegava || [],
         preferencije: preferencije || [],
-        ai_chef_pretrage: 0,
-        ai_chef_datum: null,
         twofa_secret: null,
         twofa_enabled: false,
         created_at: new Date().toISOString()
@@ -2614,13 +2606,14 @@ app.get('/api/tajni-recept', async (req, res) => {
 // ============================================================
 
 // ============================================================
-// 22. 🔥 AI CHEF - DOHVATI LIMIT (Premium = 15, FREE = 3)
+// 22. 🔥 AI CHEF - DOHVATI LIMIT (POPRAVLJENO - VRACA 0/3!)
 // ============================================================
 app.get('/api/ai-chef/limit/:email', async (req, res) => {
   try {
     const { email } = req.params;
     console.log(`🤖 Dohvatam AI Chef limit za: ${email}`);
     
+    // 🔥 1. DOHVATI KORISNIKA
     const { data: user, error: userError } = await supabase
       .from('profili')
       .select('id, premium')
@@ -2649,9 +2642,22 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
       });
     }
 
-    const danas = new Date().toISOString().split('T')[0];
-    const maxPretraga = user?.premium ? 15 : 3;
+    // 🔥 2. PREMIUM KORISNICI
+    if (user?.premium) {
+      console.log(`⭐ Premium korisnik ${email}, 15 slikanja dnevno`);
+      return res.json({
+        broj_pretraga: 0,
+        max_pretraga: 15,
+        preostalo: 15,
+        moze: true,
+        isPremium: true
+      });
+    }
 
+    const danas = new Date().toISOString().split('T')[0];
+    const maxPretraga = 3;
+
+    // 🔥 3. DOHVATI LIMIT IZ user_daily_limits
     const { data: limit, error: limitError } = await supabase
       .from('user_daily_limits')
       .select('broj_pretraga, max_pretraga')
@@ -2666,33 +2672,35 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
         max_pretraga: maxPretraga,
         preostalo: 0,
         moze: false,
-        isPremium: user?.premium || false
+        isPremium: false
       });
     }
 
+    // 🔥 4. AKO NEMA ZAPISA - VRATI 0/3 (PREOSTALO: 0!)
     if (!limit) {
-      console.log(`ℹ️ Nema zapisa za ${email}, vraćam 0/${maxPretraga} (preostalo: 0)`);
+      console.log(`ℹ️ Nema zapisa za ${email}, vraćam 0/3 (preostalo: 0, moze: false)`);
       return res.json({
         broj_pretraga: 0,
         max_pretraga: maxPretraga,
         preostalo: 0,
         moze: false,
-        isPremium: user?.premium || false
+        isPremium: false
       });
     }
 
+    // 🔥 5. IZRAČUNAJ PREOSTALO
     const brojPretraga = limit.broj_pretraga || 0;
     const maxPretragaUser = limit.max_pretraga || maxPretraga;
     const preostalo = Math.max(maxPretragaUser - brojPretraga, 0);
 
-    console.log(`📊 ${email}: ${brojPretraga}/${maxPretragaUser} pretraga, preostalo: ${preostalo}${user?.premium ? ' ⭐' : ''}`);
+    console.log(`📊 ${email}: ${brojPretraga}/${maxPretragaUser} pretraga, preostalo: ${preostalo}`);
 
     res.json({
       broj_pretraga: brojPretraga,
       max_pretraga: maxPretragaUser,
       preostalo: preostalo,
       moze: preostalo > 0,
-      isPremium: user?.premium || false
+      isPremium: false
     });
 
   } catch (error) {
@@ -2708,18 +2716,18 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
 });
 
 // ============================================================
-// 23. 🔥 AI CHEF - OTKLJUČAJ PRETRAGU (Premium = 15, FREE = 3)
+// 23. 🔥 AI CHEF - OTKLJUČAJ PRETRAGU (POPRAVLJENO)
 // ============================================================
 app.post('/api/ai-chef/unlock', async (req, res) => {
   try {
     const { email, type } = req.body;
     console.log(`🔓 Otključavanje pretrage za: ${email}`);
-    console.log(`📌 Tip: ${type || 'normal'}`);
 
     if (!email) {
       return res.status(400).json({ error: 'Email je obavezan.' });
     }
 
+    // 🔥 1. DOHVATI KORISNIKA
     const { data: user, error: userError } = await supabase
       .from('profili')
       .select('id, premium')
@@ -2727,14 +2735,25 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
       .maybeSingle();
 
     if (userError || !user) {
-      console.error('❌ Korisnik nije pronađen:', userError);
       return res.status(404).json({ error: 'Korisnik nije pronađen.' });
     }
 
-    const danas = new Date().toISOString().split('T')[0];
-    // 🔥 PREMIUM = 15, FREE = 3
-    const maxPretraga = user?.premium ? 15 : 3;
+    // 🔥 2. PREMIUM KORISNICI
+    if (user?.premium) {
+      return res.json({
+        success: true,
+        message: '⭐ Premium korisnici imaju 15 slikanja dnevno!',
+        broj_pretraga: 0,
+        max_pretraga: 15,
+        preostalo: 15,
+        moze: true
+      });
+    }
 
+    const danas = new Date().toISOString().split('T')[0];
+    const maxPretraga = 3;
+
+    // 🔥 3. DOHVATI TRENUTNI BROJ
     const { data: current, error: fetchError } = await supabase
       .from('user_daily_limits')
       .select('broj_pretraga, max_pretraga')
@@ -2750,6 +2769,7 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
     const currentCount = current?.broj_pretraga || 0;
     const currentMax = current?.max_pretraga || maxPretraga;
     
+    // 🔥 4. PROVJERA MAKSIMUMA
     if (currentCount >= currentMax) {
       return res.status(400).json({ 
         error: `Dostigli ste maksimum od ${currentMax} pretraga za danas.`,
@@ -2762,6 +2782,7 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
 
     const newCount = currentCount + 1;
     
+    // 🔥 5. UPSERT U user_daily_limits
     const { error: upsertError } = await supabase
       .from('user_daily_limits')
       .upsert({
@@ -2779,18 +2800,14 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
       return res.status(500).json({ error: upsertError.message });
     }
 
-    // 🔥 VIDEO REKLAME - SAMO ZA FREE KORISNIKE!
+    // 🔥 6. VIDEO REKLAME - SAMO ZA FREE KORISNIKE
     if (type === 'video_ad' && !user?.premium) {
-      const { data: videoData, error: videoError } = await supabase
+      const { data: videoData } = await supabase
         .from('ai_chef_video_ads')
         .select('broj_video_reklama')
         .eq('korisnik_id', user.id)
         .eq('datum', danas)
         .maybeSingle();
-
-      if (videoError) {
-        console.error('❌ Greška pri dohvatu video reklama:', videoError);
-      }
 
       const videoCount = videoData?.broj_video_reklama || 0;
       
@@ -2807,8 +2824,6 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
             onConflict: 'korisnik_id,datum'
           });
         console.log(`📺 Video reklama ${videoCount + 1}/3 za ${email}`);
-      } else {
-        console.log(`⚠️ Korisnik ${email} već ima 3 video reklame za danas`);
       }
     }
 
