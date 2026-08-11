@@ -17,59 +17,74 @@ const Profile = () => {
   const [badgesLoading, setBadgesLoading] = useState(true);
 
   // ============================================================
-  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA
+  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA - RADI SA i18n!
   // ============================================================
   const translateValue = (value, type) => {
     if (!value) return t('profile.not_selected');
     
-    const maps = {
-      vrsta: {
-        'Slano': t('quiz.options.vrsta.0'),
-        'Deserti': t('quiz.options.vrsta.1'),
-        'Dijetalni recepti': t('quiz.options.vrsta.2'),
-        'Napitki': t('quiz.options.vrsta.3'),
-        'Svejedno': t('quiz.options.vrsta.4')
-      },
-      restrikcije: {
-        'Bez restrikcija': t('quiz.options.restrikcije.0'),
-        'Bez glutena': t('quiz.options.restrikcije.1'),
-        'Bez laktoze': t('quiz.options.restrikcije.2'),
-        'Bez šećera': t('quiz.options.restrikcije.3'),
-        'Veganski': t('quiz.options.restrikcije.4'),
-        'Bez orašastih plodova': t('quiz.options.restrikcije.5')
-      },
-      preferencije: {
-        'Visokoproteinski': t('quiz.options.preferencije.0'),
-        'Bogat vlaknima': t('quiz.options.preferencije.1'),
-        'Bogat ugljikohidratima': t('quiz.options.preferencije.2'),
-        'Svejedno': t('quiz.options.preferencije.3')
-      },
-      vrijeme: {
-        'Kratko (15-30 min)': t('quiz.options.vrijeme.0'),
-        'Srednje (30-45 min)': t('quiz.options.vrijeme.1'),
-        'Duže (45-60+ min)': t('quiz.options.vrijeme.2')
-      },
-      tezina: {
-        'Početnik': t('quiz.options.tezina.0'),
-        'Srednji': t('quiz.options.tezina.1'),
-        'Profesionalac': t('quiz.options.tezina.2')
-      },
-      kalorije: {
-        'Nisko (do 300 kcal)': t('quiz.options.kalorije.0'),
-        'Umjereno (300-500 kcal)': t('quiz.options.kalorije.1'),
-        'Srednje (500-700 kcal)': t('quiz.options.kalorije.2'),
-        'Visoko (900+ kcal)': t('quiz.options.kalorije.3')
+    // 🔥 MAPIRANJE - KLJUČEVI SU VREDNOSTI IZ BAZE (HRVATSKI)
+    // 🔥 VREDNOSTI SE DOHVAĆAJU PREKO i18n
+    const getTranslation = (key, fallback) => {
+      // Pokušaj prvo sa quiz opcijama
+      const quizKey = `quiz.options.${type}.${getIndexForKey(key, type)}`;
+      const translated = t(quizKey);
+      if (translated !== quizKey) {
+        return translated;
       }
+      return fallback || key;
     };
-
-    const map = maps[type];
-    if (!map) return value;
     
+    // Pomoćna funkcija za pronalaženje indeksa
+    const getIndexForKey = (key, type) => {
+      const lists = {
+        vrsta: ['Slano', 'Deserti', 'Dijetalni recepti', 'Napitki', 'Svejedno'],
+        restrikcije: ['Bez restrikcija', 'Bez glutena', 'Bez laktoze', 'Bez šećera', 'Veganski', 'Bez orašastih plodova'],
+        preferencije: ['Visokoproteinski', 'Bogat vlaknima', 'Bogat ugljikohidratima', 'Svejedno'],
+        vrijeme: ['Kratko (15-30 min)', 'Srednje (30-45 min)', 'Duže (45-60+ min)'],
+        tezina: ['Početnik', 'Srednji', 'Profesionalac'],
+        kalorije: ['Nisko (do 300 kcal)', 'Umjereno (300-500 kcal)', 'Srednje (500-700 kcal)', 'Visoko (900+ kcal)']
+      };
+      
+      const list = lists[type] || [];
+      const index = list.indexOf(key);
+      // Ako nije pronađeno, pokušaj case-insensitive
+      if (index === -1) {
+        const lowerKey = key.toLowerCase().trim();
+        return list.findIndex(item => item.toLowerCase().trim() === lowerKey);
+      }
+      return index;
+    };
+    
+    // 🔥 AKO JE NIZ (array) - ZA VRSTA, RESTRIKCIJE, PREFERENCIJE
     if (Array.isArray(value)) {
-      return value.map(v => map[v] || v).join(', ');
+      const translated = value.map(v => {
+        const index = getIndexForKey(v, type);
+        if (index !== -1) {
+          const quizKey = `quiz.options.${type}.${index}`;
+          const translatedText = t(quizKey);
+          if (translatedText !== quizKey) {
+            return translatedText;
+          }
+        }
+        // Ako nije pronađen prijevod, vrati original
+        console.warn(`⚠️ Nema prijevoda za ${type}: "${v}"`);
+        return v;
+      });
+      return translated.join(', ');
     }
     
-    return map[value] || value;
+    // 🔥 ZA STRING VRIJEDNOSTI (vrijeme, tezina, kalorije)
+    const index = getIndexForKey(value, type);
+    if (index !== -1) {
+      const quizKey = `quiz.options.${type}.${index}`;
+      const translated = t(quizKey);
+      if (translated !== quizKey) {
+        return translated;
+      }
+    }
+    
+    console.warn(`⚠️ Nema prijevoda za ${type}: "${value}"`);
+    return value;
   };
 
   // ============================================================
