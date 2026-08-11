@@ -17,84 +17,86 @@ const Profile = () => {
   const [badgesLoading, setBadgesLoading] = useState(true);
 
   // ============================================================
-  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA - POPRAVLJEN REDOSLIJED!
+  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA - DIREKTNO MAPIRANJE!
   // ============================================================
   const translateValue = (value, type) => {
     if (!value) return t('profile.not_selected');
     
-    // 🔥 LISTE MORAJU BITI ISTOG REDOSLIJEDA KAO U i18n FAJLOVIMA!
-    const getTranslation = (key, type) => {
-      // Pokušaj prvo sa quiz opcijama
-      const quizKey = `quiz.options.${type}.${getIndexForKey(key, type)}`;
-      const translated = t(quizKey);
-      if (translated !== quizKey) {
-        return translated;
+    // 🔥 DIREKTNO MAPIRANJE - ključ je ono što dolazi iz baze
+    const directMap = {
+      vrsta: {
+        // 🔥 Ako baza vrati "Slano", prikazat će se kao "Slano" (ili prijevod)
+        // 🔥 Ako baza vrati "Deserti", prikazat će se kao "Deserti" (ili prijevod)
+        'Slano': 'quiz.options.vrsta.1',     // Slano → indeks 1
+        'Deserti': 'quiz.options.vrsta.0',   // Deserti → indeks 0
+        'Dijetalni recepti': 'quiz.options.vrsta.2',
+        'Napitci': 'quiz.options.vrsta.3',
+        'Napitki': 'quiz.options.vrsta.3',
+        'Svejedno': 'quiz.options.vrsta.4'
+      },
+      restrikcije: {
+        'Bez restrikcija': 'quiz.options.restrikcije.0',
+        'Bez glutena': 'quiz.options.restrikcije.1',
+        'Bez laktoze': 'quiz.options.restrikcije.2',
+        'Bez šećera': 'quiz.options.restrikcije.3',
+        'Veganski': 'quiz.options.restrikcije.4',
+        'Bez orašastih plodova': 'quiz.options.restrikcije.5'
+      },
+      preferencije: {
+        'Visokoproteinski': 'quiz.options.preferencije.0',
+        'Bogat vlaknima': 'quiz.options.preferencije.1',
+        'Bogat ugljikohidratima': 'quiz.options.preferencije.2',
+        'Svejedno': 'quiz.options.preferencije.3'
+      },
+      vrijeme: {
+        'Kratko (15-30 min)': 'quiz.options.vrijeme.0',
+        'Srednje (30-45 min)': 'quiz.options.vrijeme.1',
+        'Duže (45-60+ min)': 'quiz.options.vrijeme.2'
+      },
+      tezina: {
+        'Početnik': 'quiz.options.tezina.0',
+        'Srednji': 'quiz.options.tezina.1',
+        'Profesionalac': 'quiz.options.tezina.2'
+      },
+      kalorije: {
+        'Nisko (do 300 kcal)': 'quiz.options.kalorije.0',
+        'Umjereno (300-500 kcal)': 'quiz.options.kalorije.1',
+        'Srednje (500-700 kcal)': 'quiz.options.kalorije.2',
+        'Visoko (900+ kcal)': 'quiz.options.kalorije.3'
       }
-      return key;
     };
+
+    const map = directMap[type];
+    if (!map) {
+      console.warn(`⚠️ Nepoznat tip: ${type}`);
+      return value;
+    }
     
-    // Pomoćna funkcija za pronalaženje indeksa
-    const getIndexForKey = (key, type) => {
-      // 🔥 REDOSLIJED MORA BITI ISTI KAO U i18n FAJLOVIMA!
-      const lists = {
-        // ⚠️ VAŽNO: Redoslijed mora odgovarati onom u translation.json
-        // U translation.json: "vrsta": ["Deserti", "Slano", "Dijetalni recepti", "Napitci", "Svejedno"]
-        vrsta: ['Deserti', 'Slano', 'Dijetalni recepti', 'Napitci', 'Svejedno'],
-        
-        // U translation.json: "restrikcije": ["Bez restrikcija", "Bez glutena", "Bez laktoze", "Bez šećera", "Veganski", "Bez orašastih plodova"]
-        restrikcije: ['Bez restrikcija', 'Bez glutena', 'Bez laktoze', 'Bez šećera', 'Veganski', 'Bez orašastih plodova'],
-        
-        // U translation.json: "preferencije": ["Visokoproteinski", "Bogat vlaknima", "Bogat ugljikohidratima", "Svejedno"]
-        preferencije: ['Visokoproteinski', 'Bogat vlaknima', 'Bogat ugljikohidratima', 'Svejedno'],
-        
-        // U translation.json: "vrijeme": ["Kratko (15-30 min)", "Srednje (30-45 min)", "Duže (45-60+ min)"]
-        vrijeme: ['Kratko (15-30 min)', 'Srednje (30-45 min)', 'Duže (45-60+ min)'],
-        
-        // U translation.json: "tezina": ["Početnik", "Srednji", "Profesionalac"]
-        tezina: ['Početnik', 'Srednji', 'Profesionalac'],
-        
-        // U translation.json: "kalorije": ["Nisko (do 300 kcal)", "Umjereno (300-500 kcal)", "Srednje (500-700 kcal)", "Visoko (900+ kcal)"]
-        kalorije: ['Nisko (do 300 kcal)', 'Umjereno (300-500 kcal)', 'Srednje (500-700 kcal)', 'Visoko (900+ kcal)']
-      };
-      
-      const list = lists[type] || [];
-      // Pokušaj pronaći index
-      let index = list.indexOf(key);
-      // Ako nije pronađeno, pokušaj case-insensitive
-      if (index === -1) {
-        const lowerKey = key.toLowerCase().trim();
-        index = list.findIndex(item => item.toLowerCase().trim() === lowerKey);
-      }
-      // Ako i dalje nije pronađeno, vrati 0 kao fallback
-      if (index === -1) {
-        console.warn(`⚠️ Vrijednost "${key}" nije pronađena u listi ${type}`);
-        return 0;
-      }
-      return index;
-    };
-    
-    // 🔥 AKO JE NIZ (array) - ZA VRSTA, RESTRIKCIJE, PREFERENCIJE
+    // 🔥 AKO JE NIZ (array)
     if (Array.isArray(value)) {
       const translated = value.map(v => {
-        const index = getIndexForKey(v, type);
-        const quizKey = `quiz.options.${type}.${index}`;
-        const translatedText = t(quizKey);
-        if (translatedText !== quizKey) {
-          return translatedText;
+        // Pokušaj direktan match
+        if (map[v] !== undefined) {
+          const i18nKey = map[v];
+          const translatedText = t(i18nKey);
+          if (translatedText !== i18nKey) {
+            return translatedText;
+          }
         }
-        // Ako nije pronađen prijevod, vrati original
-        console.warn(`⚠️ Nema prijevoda za ${type}: "${v}" (index: ${index})`);
+        // Ako nije pronađen, vrati original
+        console.warn(`⚠️ Nema prijevoda za ${type}: "${v}"`);
         return v;
       });
       return translated.join(', ');
     }
     
-    // 🔥 ZA STRING VRIJEDNOSTI (vrijeme, tezina, kalorije)
-    const index = getIndexForKey(value, type);
-    const quizKey = `quiz.options.${type}.${index}`;
-    const translated = t(quizKey);
-    if (translated !== quizKey) {
-      return translated;
+    // 🔥 ZA STRING VRIJEDNOSTI
+    if (map[value] !== undefined) {
+      const i18nKey = map[value];
+      const translated = t(i18nKey);
+      if (translated !== i18nKey) {
+        return translated;
+      }
     }
     
     console.warn(`⚠️ Nema prijevoda za ${type}: "${value}"`);
