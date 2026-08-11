@@ -59,6 +59,7 @@ const AIChef = () => {
   const [videoWatched, setVideoWatched] = useState(false);
   const [videoAdCount, setVideoAdCount] = useState(0);
   const [maxVideoAds, setMaxVideoAds] = useState(3);
+  const [voiceActive, setVoiceActive] = useState(false); // 🔥 NOVO - za indikator glasovne pretrage
 
   const debouncedTekst = useDebounce(tekst, 400);
 
@@ -140,6 +141,7 @@ const AIChef = () => {
     } else {
       setProgress(0);
       setStatus('');
+      setVoiceActive(false); // 🔥 Resetiraj voice indikator
     }
     return () => clearInterval(interval);
   }, [loading, t]);
@@ -425,7 +427,7 @@ const AIChef = () => {
   };
 
   // ============================================================
-  // 🔥 GLAVNA PRETRAGA - POPRAVLJENO!
+  // 🔥 GLAVNA PRETRAGA - POPRAVLJENA SA BOLJOM POVRATNOM INFORMACIJOM
   // ============================================================
   const handlePretraga = useCallback(async () => {
     if (loading) return;
@@ -456,9 +458,14 @@ const AIChef = () => {
     }
 
     setLoading(true);
+    setVoiceActive(false);
     setPoruka(t('aichef.status.searching'));
     setProgress(10);
     setStatus(t('aichef.status.sending'));
+
+    // 🔥 TIMER ZA PRAĆENJE VREMENA
+    const startTime = Date.now();
+    let statusInterval;
 
     try {
       const formData = new FormData();
@@ -468,12 +475,34 @@ const AIChef = () => {
       formData.append('jezik', currentLang);
 
       setProgress(30);
+      setStatus('📡 Komuniciram sa serverom...');
+
+      // 🔥 AŽURIRAJ STATUS SVAKE 2 SEKUNDE
+      statusInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        if (elapsed < 3) {
+          setStatus(`🔍 Pretražujem bazu recepata... (${elapsed}s)`);
+        } else if (elapsed < 6) {
+          setStatus(`🤖 Konsultiram AI kuhara... (${elapsed}s)`);
+          setPoruka(`⏳ AI razmišlja... već ${elapsed} sekundi`);
+        } else if (elapsed < 10) {
+          setStatus(`🧠 AI generira recepte... (${elapsed}s)`);
+          setPoruka(`🧠 AI još uvijek razmišlja (${elapsed}s), hvala na strpljenju!`);
+        } else {
+          setStatus(`⏳ AI još uvijek radi... (${elapsed}s)`);
+          setPoruka(`⏳ Ovo traje malo duže (${elapsed}s), AI priprema savršene recepte!`);
+        }
+      }, 2000);
+
+      setProgress(50);
       setStatus(t('aichef.status.analyzing'));
 
       const res = await fetch(`${API_URL}/api/ai-chef`, {
         method: 'POST',
         body: formData
       });
+
+      clearInterval(statusInterval);
 
       setProgress(100);
       setStatus(t('aichef.status.done'));
@@ -495,8 +524,15 @@ const AIChef = () => {
       
       setRezultati(processedData);
       
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      
+      // 🔥 BOLJA POVRATNA INFORMACIJA SA IZVOROM I VREMENOM
       if (res.headers.get('X-Cache') === 'HIT') {
-        setPoruka(`💾 Rezultati dohvaćeni iz keša (${currentLang})`);
+        setPoruka(`💾 Rezultati dohvaćeni iz keša (${elapsed}s)`);
+      } else if (res.headers.get('X-Source') === 'database') {
+        setPoruka(`📚 Rezultati iz baze (${elapsed}s)`);
+      } else if (res.headers.get('X-Source') === 'ai_generated') {
+        setPoruka(`🤖 Rezultati generirani od strane AI (${elapsed}s)`);
       } else {
         setPoruka(t('aichef.results.found', { count: processedData.length }));
       }
@@ -531,11 +567,17 @@ const AIChef = () => {
       }
     } catch (error) {
       console.error('❌ Greška:', error);
+      clearInterval(statusInterval);
       setPoruka(t('aichef.errors.search_failed'));
       setStatus(t('aichef.errors.error'));
+      setTimeout(() => setPoruka(''), 4000);
     } finally {
       setLoading(false);
-      setTimeout(() => setPoruka(''), 3000);
+      setTimeout(() => {
+        if (!poruka.includes('✅') && !poruka.includes('❌') && !poruka.includes('⚠️')) {
+          setPoruka('');
+        }
+      }, 5000);
     }
   }, [tekst, slika, loading, user, dailyLimit, videoWatched, i18n.language, t, fetchDailyLimit, cestePretrage]);
 
@@ -578,7 +620,7 @@ const AIChef = () => {
   }, [filteri, rezultati, profil]);
 
   // ============================================================
-  // GLASOVNA PRETRAGA
+  // 🔥 GLASOVNA PRETRAGA - POPRAVLJENA SA BOLJOM POVRATNOM INFORMACIJOM
   // ============================================================
   const handleVoiceSearch = () => {
     if (!user?.premium) {
@@ -594,15 +636,91 @@ const AIChef = () => {
         setTimeout(() => setPoruka(''), 3000);
         return;
       }
+      
+      // 🔥 POSTAVKE ZA BOLJE ISKUSTVO
       recognition.lang = 'hr';
-      recognition.onresult = (e) => setTekst(e.results[0][0].transcript);
-      recognition.onerror = () => {
-        setPoruka(t('aichef.errors.voice_error'));
-        setTimeout(() => setPoruka(''), 3000);
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+      
+      // 🔥 INDIKATOR DA SLUŠA
+      setVoiceActive(true);
+      setPoruka('🎤 Slušam... Govorite svoj upit');
+      setLoading(true);
+      setStatus('🎤 Glasovna pretraga...');
+      setProgress(10);
+      
+      // 🔥 KADA KORISNIK GOVORI - PRIKAŽI PRIVREMENE REZULTATE
+      recognition.onresult = (e) => {
+        const transcript = e.results[0][0].transcript;
+        setTekst(transcript);
+        
+        // 🔥 AŽURIRAJ STATUS
+        if (e.results[0].isFinal) {
+          setPoruka(`✅ Prepoznato: "${transcript}"`);
+          setStatus('📝 Prepoznat tekst, pokrećem pretragu...');
+          setProgress(30);
+          setVoiceActive(false);
+        } else {
+          setPoruka(`🎤 Slušam: "${transcript}"`);
+        }
       };
+      
+      // 🔥 KADA PRESTANE SLUŠATI
+      recognition.onend = () => {
+        console.log('🎤 Glasovna pretraga završila');
+        setVoiceActive(false);
+        
+        // 🔥 AKO NEMA TEKSTA, POKAŽI GREŠKU
+        if (!tekst.trim()) {
+          setPoruka('❌ Nisam prepoznao tekst. Pokušajte ponovo.');
+          setLoading(false);
+          setProgress(0);
+          setTimeout(() => setPoruka(''), 3000);
+        } else {
+          setPoruka('🔄 Procesiram upit...');
+          setStatus('🤖 Tražim recepte...');
+          setProgress(50);
+        }
+      };
+      
+      // 🔥 GREŠKA
+      recognition.onerror = (event) => {
+        console.error('❌ Speech recognition error:', event.error);
+        setVoiceActive(false);
+        setLoading(false);
+        setProgress(0);
+        
+        if (event.error === 'not-allowed') {
+          setPoruka('❌ Dozvolite pristup mikrofonu za glasovnu pretragu.');
+        } else if (event.error === 'no-speech') {
+          setPoruka('❌ Nisam čuo govor. Pokušajte ponovo.');
+        } else if (event.error === 'audio-capture') {
+          setPoruka('❌ Nema pristupa mikrofonu. Provjerite postavke.');
+        } else {
+          setPoruka('❌ Greška pri glasovnoj pretrazi. Pokušajte ponovo.');
+        }
+        setTimeout(() => setPoruka(''), 4000);
+      };
+      
+      // 🔥 POKRENI SLUŠANJE
       recognition.start();
+      
+      // 🔥 TIMEOUT - AKO PREVIŠE TRAJE (10 sekundi)
+      setTimeout(() => {
+        try {
+          recognition.stop();
+        } catch (e) {
+          // Ignoriraj grešku ako je već zaustavljeno
+        }
+      }, 10000);
+      
     } catch (error) {
-      setPoruka(t('aichef.errors.voice_error'));
+      console.error('❌ Greška:', error);
+      setVoiceActive(false);
+      setLoading(false);
+      setProgress(0);
+      setPoruka('❌ Greška pri glasovnoj pretrazi. Pokušajte ponovo.');
       setTimeout(() => setPoruka(''), 3000);
     }
   };
@@ -633,6 +751,7 @@ const AIChef = () => {
           poruka.includes('✅') ? 'bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-200' : 
           poruka.includes('❌') || poruka.includes('⚠️') ? 'bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-200' : 
           poruka.includes('💾') ? 'bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-200' :
+          poruka.includes('🎤') ? 'bg-yellow-100 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-200' :
           'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
         }`}>
           {poruka}
@@ -865,31 +984,54 @@ const AIChef = () => {
           <button
             className={`px-8 py-4 rounded-2xl text-lg font-semibold transition shadow-md hover:shadow-lg flex items-center gap-3 ${
               user?.premium
-                ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 text-white'
+                ? `bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 text-white ${voiceActive ? 'animate-pulse ring-2 ring-red-500' : ''}`
                 : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
             }`}
             onClick={handleVoiceSearch}
-            disabled={!user?.premium}
+            disabled={!user?.premium || loading}
           >
-            <span className="text-3xl">🎤</span> {t('aichef.buttons.voice')} {!user?.premium && '⭐ PREMIUM'}
+            <span className="text-3xl">{voiceActive ? '🔴' : '🎤'}</span> 
+            {voiceActive ? 'Slušam...' : t('aichef.buttons.voice')} 
+            {!user?.premium && '⭐ PREMIUM'}
           </button>
         </div>
 
+        {/* 🔥 LOADING INDIKATOR SA BOLJOM POVRATNOM INFORMACIJOM */}
         {loading && (
           <div className="mb-4">
             <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300 mb-1">
-              <span>{status}</span>
+              <span className="flex items-center gap-2">
+                {voiceActive && <span className="text-red-500 animate-pulse text-lg">●</span>}
+                {status?.includes('AI') && '🤖'}
+                {status?.includes('bazu') && '🔍'}
+                {status?.includes('generira') && '🧠'}
+                {status}
+              </span>
               <span>{Math.round(progress)}%</span>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
               <div
-                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                className={`h-2.5 rounded-full transition-all duration-300 ${
+                  status?.includes('AI') || status?.includes('generira') 
+                    ? 'bg-purple-600' 
+                    : status?.includes('bazu') 
+                    ? 'bg-blue-600'
+                    : 'bg-green-600'
+                }`}
                 style={{ width: `${Math.min(progress, 100)}%` }}
               />
             </div>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-              ⏱️ {t('aichef.status.waiting', { seconds: vrijemeCekanja })}
-            </p>
+            <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 mt-1">
+              <span className="flex items-center gap-1">
+                <span className="animate-pulse">⏳</span>
+                {vrijemeCekanja > 0 && `${vrijemeCekanja}s`}
+              </span>
+              <span>
+                {poruka && poruka.includes('AI') && '🧠 AI generira recepte...'}
+                {poruka && poruka.includes('bazu') && '📚 Pretraga baze...'}
+                {poruka && poruka.includes('keša') && '💾 Dohvat iz keša...'}
+              </span>
+            </div>
           </div>
         )}
 
