@@ -1876,25 +1876,50 @@ app.post('/api/profil', async (req, res) => {
 });
 
 // ============================================================
-// 16. IZBRIŠI PROFIL
+// 16. 🔥 IZBRIŠI PROFIL - POPRAVLJENO BRISANJE (BRISE I AUTH USER-A)
 // ============================================================
 app.delete('/api/profil/:email/delete', async (req, res) => {
   try {
     const { email } = req.params;
     
-    console.log('🗑️ Brisanje profila:', email);
+    console.log('🗑️ Brisanje profila i auth user-a za:', email);
     
-    const { error } = await supabase
+    // 1. DOHVATI USER ID
+    const { data: userData, error: userError } = await supabase
+      .from('profili')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle();
+    
+    if (userError) throw userError;
+    
+    // 2. OBRISI PROFIL IZ profili TABELE
+    const { error: deleteProfileError } = await supabase
       .from('profili')
       .delete()
       .eq('email', email);
-
-    if (error) {
-      console.error('❌ Greška:', error);
-      return res.status(500).json({ success: false, error: error.message });
+    
+    if (deleteProfileError) throw deleteProfileError;
+    
+    // 3. 🔥 OBRISI AUTH USER-A IZ SUPABASE (AKO POSTOJI)
+    if (userData?.id) {
+      const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(
+        userData.id
+      );
+      
+      if (deleteAuthError) {
+        console.warn('⚠️ Greška pri brisanju auth user-a:', deleteAuthError);
+        // Nastavi dalje - profil je obrisan
+      } else {
+        console.log('✅ Auth user obrisan:', userData.id);
+      }
     }
     
-    res.json({ success: true, message: 'Profil izbrisan' });
+    res.json({ 
+      success: true, 
+      message: 'Profil i auth user uspješno izbrisani. Email je ponovo slobodan za registraciju.' 
+    });
+    
   } catch (error) {
     console.error('❌ Greška:', error);
     res.status(500).json({ success: false, error: error.message });
@@ -5256,8 +5281,7 @@ app.get('/api/badges/all/:email?', async (req, res) => {
     
     console.log(`📥 Dohvatam sve bedževe${email ? ` za korisnika ${email}` : ''}`);
     
-    const { data: sviBadgevi, error: badgeError } = await supabase
-      .from('badges')
+    const { data: sviBadgevi, error: badgeError } = await supabase      .from('badges')
       .select('*')
       .order('uvjet_value', { ascending: true });
     
