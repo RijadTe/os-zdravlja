@@ -293,6 +293,99 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 console.log('✅ Supabase povezan!');
 
 // ============================================================
+// 🔥 PREMIUM FUNKCIJE - PROVJERA STATUSA
+// ============================================================
+async function checkPremiumStatus(email) {
+  try {
+    if (!email) return { isPremium: false, error: 'Email je obavezan' };
+    
+    const { data: profile, error } = await supabase
+      .from('profili')
+      .select('premium, premium_do, ime')
+      .eq('email', email)
+      .maybeSingle();
+    
+    if (error) {
+      console.error('❌ Greška pri provjeri premiuma:', error);
+      return { isPremium: false, error: error.message };
+    }
+    
+    if (!profile) {
+      return { isPremium: false, error: 'Korisnik nije pronađen' };
+    }
+    
+    if (!profile.premium) {
+      return { isPremium: false, premium_do: null };
+    }
+    
+    const today = new Date().toISOString().split('T')[0];
+    if (profile.premium_do && profile.premium_do < today) {
+      console.log(`⏰ Premium istekao za ${email} (${profile.premium_do}), deaktiviram...`);
+      
+      const { error: updateError } = await supabase
+        .from('profili')
+        .update({ 
+          premium: false,
+          premium_do: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('email', email);
+      
+      if (updateError) {
+        console.error('❌ Greška pri deaktivaciji:', updateError);
+        return { isPremium: false, error: updateError.message };
+      }
+      
+      return { isPremium: false, premium_do: null, expired: true };
+    }
+    
+    return { 
+      isPremium: true, 
+      premium_do: profile.premium_do,
+      ime: profile.ime
+    };
+  } catch (error) {
+    console.error('❌ Greška pri provjeri premiuma:', error);
+    return { isPremium: false, error: error.message };
+  }
+}
+
+// ============================================================
+// 🔥 MIDDLEWARE - ZAŠTITA PREMIUM ENDPOINTA
+// ============================================================
+async function requirePremium(req, res, next) {
+  try {
+    const email = req.body.email || req.query.email || req.params.email;
+    
+    if (!email) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email je obavezan za premium funkcionalnosti.' 
+      });
+    }
+    
+    const premiumStatus = await checkPremiumStatus(email);
+    
+    if (!premiumStatus.isPremium) {
+      return res.status(403).json({ 
+        success: false, 
+        error: 'Ova funkcionalnost je dostupna samo Premium korisnicima. Obnovite Premium za nastavak.',
+        premium_do: premiumStatus.premium_do,
+        expired: premiumStatus.expired || false
+      });
+    }
+    
+    req.premiumStatus = premiumStatus;
+    next();
+  } catch (error) {
+    console.error('❌ Greška u premium middleware-u:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+console.log('✅ Premium middleware aktiviran');
+
+// ============================================================
 // OPENAI CLIENT
 // ============================================================
 let openai = null;
@@ -4782,11 +4875,11 @@ app.get('/api/recepti/translate/status', async (req, res) => {
 });
 
 // ============================================================
-// 54. 🔥 CRON JOB - RESET SVAKI DAN U 00:00
+// 54. 🔥 CRON JOB - AI CHEF RESET + PREMIUM ISTEK
 // ============================================================
 cron.schedule('0 0 * * *', async () => {
   try {
-    console.log('🔄 === AI CHEF RESET ===');
+    console.log('\n🔄 === DNEVNI RESET ===');
     console.log(`📅 Datum: ${new Date().toISOString()}`);
     
     const danas = new Date().toISOString().split('T')[0];
@@ -4794,7 +4887,10 @@ cron.schedule('0 0 * * *', async () => {
     prije7Dana.setDate(prije7Dana.getDate() - 7);
     const prije7DanaStr = prije7Dana.toISOString().split('T')[0];
     
-    console.log('🧹 Brišem stare podatke...');
+    // ============================================
+    // 1. AI CHEF RESET
+    // ============================================
+    console.log('🧹 Brišem stare AI Chef podatke...');
     
     const { error: deleteLimitError } = await supabase
       .from('user_daily_limits')
@@ -4818,7 +4914,7 @@ cron.schedule('0 0 * * *', async () => {
       console.log('✅ Stare video reklame obrisane');
     }
     
-    console.log('🔄 Resetujem podatke za danas...');
+    console.log('🔄 Resetujem AI Chef podatke za danas...');
     
     const { error: resetLimitError } = await supabase
       .from('user_daily_limits')
@@ -4854,7 +4950,58 @@ cron.schedule('0 0 * * *', async () => {
       console.log('✅ Broj video reklama resetovan na 0');
     }
     
-    console.log('✅ AI Chef reset završen!');
+    // ============================================
+    // 2. 🔥 PREMIUM ISTEK - AUTOMATSKA DEAKTIVACIJA
+    // ============================================
+    console.log('🔄 Provjeravam Premium istoke...');
+    
+    const { data: expiredUsers, error: premiumError } = await supabase
+      .from('profili')
+      .select('email, ime, premium_do')
+      .eq('premium', true)
+      .lt('premium_do', danas);
+    
+    if (premiumError) {
+      console.error('❌ Greška pri dohvatu Premium korisnika:', premiumError);
+    } else if (expiredUsers && expiredUsers.length > 0) {
+      console.log(`⏰ Pronađeno ${expiredUsers.length} korisnika sa isteklim Premiumom:`);
+      
+      for (const user of expiredUsers) {
+        console.log(`   - ${user.email} (Premium istekao: ${user.premium_do})`);
+        
+        const { error: updateError } = await supabase
+          .from('profili')
+          .update({ 
+            premium: false,
+            premium_do: null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('email', user.email);
+        
+        if (updateError) {
+          console.error(`❌ Greška pri deaktivaciji ${user.email}:`, updateError);
+        } else {
+          console.log(`✅ Deaktiviran: ${user.email}`);
+          
+          try {
+            await createNotification(
+              user.email,
+              'premium_istek',
+              `⚠️ Vaš Premium nalog je istekao ${user.premium_do}. Obnovite ga da biste nastavili koristiti Premium funkcionalnosti!`,
+              '/premium'
+            );
+          } catch (notifError) {
+            console.error(`❌ Greška pri slanju notifikacije za ${user.email}:`, notifError);
+          }
+        }
+      }
+      
+      console.log(`✅ Deaktivirano ${expiredUsers.length} korisnika.`);
+    } else {
+      console.log('✅ Nema isteklih Premium korisnika');
+    }
+    
+    console.log('✅ Dnevni reset završen!');
     console.log('=================================\n');
     
   } catch (error) {
@@ -4862,7 +5009,7 @@ cron.schedule('0 0 * * *', async () => {
   }
 });
 
-console.log('⏰ Cron job za AI Chef reset postavljen (svaki dan u 00:00)');
+console.log('⏰ Cron job za AI Chef reset i Premium istok postavljen (svaki dan u 00:00)');
 
 // ============================================================
 // 🏆 NAGRADE - PROVJERI I DODIJELI BEDŽEVE
