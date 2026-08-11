@@ -50,10 +50,10 @@ const AIChef = () => {
 
   // 🔥 DAILY LIMIT - POČINJE OD 0/3 ZA FREE!
   const [dailyLimit, setDailyLimit] = useState({ 
-    broj_pretraga: 0,     // ukupno iskorišteno (0-3 za FREE, 0-15 za PREMIUM)
-    max_pretraga: 3,      // max za FREE
-    preostalo: 0,         // POČINJE OD 0! (zaključano dok ne pogleda video)
-    moze: false           // false dok ne pogleda video
+    broj_pretraga: 0,
+    max_pretraga: 3,
+    preostalo: 0,
+    moze: false
   });
   const [loadingLimit, setLoadingLimit] = useState(false);
   const [videoWatched, setVideoWatched] = useState(false);
@@ -99,7 +99,7 @@ const AIChef = () => {
       setVideoAdCount(0);
       setDailyLimit(prev => ({ 
         ...prev, 
-        preostalo: 0,           // POČINJE OD 0!
+        preostalo: 0,
         broj_pretraga: 0,
         max_pretraga: maxPretraga,
         moze: false 
@@ -189,7 +189,7 @@ const AIChef = () => {
   }, []);
 
   // ============================================================
-  // 🔥 DOHVATI DAILY LIMIT
+  // 🔥 DOHVATI DAILY LIMIT - ISPRAVLJENO!
   // ============================================================
   const fetchDailyLimit = useCallback(async () => {
     const email = user?.email || localStorage.getItem('userEmail');
@@ -199,28 +199,28 @@ const AIChef = () => {
       const res = await fetch(`${API_URL}/api/ai-chef/limit/${email}`);
       const data = await res.json();
       
-      const maxPretraga = user?.premium ? 15 : 3;
-      const brojPretraga = data.broj_pretraga || 0;
-      
-      // 🔥 VAŽNO: preostalo = max - broj_pretraga
-      // Ako je broj_pretraga 0, preostalo je 0 (zaključano)
-      const preostalo = Math.max(maxPretraga - brojPretraga, 0);
-      
+      // 🔥 KORISTI PODATKE KOJE SERVER VRATI - NE PRERACUNAVAJ!
       setDailyLimit({
-        broj_pretraga: brojPretraga,
-        max_pretraga: maxPretraga,
-        preostalo: preostalo,
-        moze: preostalo > 0
+        broj_pretraga: data.broj_pretraga || 0,
+        max_pretraga: data.max_pretraga || 3,
+        preostalo: data.preostalo || 0,
+        moze: data.moze || false
       });
+      
+      // Ako server vrati videoAdCount, iskoristi ga
+      if (data.videoAdCount !== undefined) {
+        setVideoAdCount(data.videoAdCount);
+      }
+      
     } catch (error) {
       console.error('❌ Greška pri dohvatanju limita:', error);
-      const maxPretraga = user?.premium ? 15 : 3;
-      setDailyLimit(prev => ({ 
-        ...prev, 
-        max_pretraga: maxPretraga,
-        preostalo: 0,  // POČINJE OD 0!
-        moze: false 
-      }));
+      // FALLBACK - ZAKLJUČANO!
+      setDailyLimit({
+        broj_pretraga: 0,
+        max_pretraga: 3,
+        preostalo: 0,
+        moze: false
+      });
     }
   }, [user]);
 
@@ -404,20 +404,12 @@ const AIChef = () => {
       });
       const data = await res.json();
       
-      // 🔥 NOVA LOGIKA: 
-      // - broj_pretraga ostaje isti (npr. 0)
-      // - preostalo postaje 1 (dobio je 1 slikanje)
-      const maxPretraga = user?.premium ? 15 : 3;
-      const brojPretraga = data.broj_pretraga || 0;
-      
-      // 🔥 OVDJE SE DODAJE 1 NA preostalo
-      const novoPreostalo = Math.max(maxPretraga - brojPretraga, 0);
-      
+      // 🔥 KORISTI PODATKE KOJE SERVER VRATI
       setDailyLimit({
-        broj_pretraga: brojPretraga,
-        max_pretraga: maxPretraga,
-        preostalo: novoPreostalo,  // SADA IMA 1 SLIKANJE!
-        moze: novoPreostalo > 0
+        broj_pretraga: data.broj_pretraga || 0,
+        max_pretraga: data.max_pretraga || 3,
+        preostalo: data.preostalo || 0,
+        moze: data.moze || false
       });
       
       setVideoAdCount(prev => prev + 1);
@@ -428,7 +420,7 @@ const AIChef = () => {
       }, 3000);
       
       const remaining = maxVideoAds - (videoAdCount + 1);
-      setPoruka(`✅ +1 slikanje! Sada imate ${novoPreostalo} preostalih slikanja. Preostalo ${remaining} video reklama za danas.`);
+      setPoruka(`✅ +1 slikanje! Sada imate ${data.preostalo || 0} preostalih slikanja. Preostalo ${remaining} video reklama za danas.`);
       setTimeout(() => setPoruka(''), 4000);
     } catch (error) {
       console.error('❌ Greška:', error);
@@ -550,17 +542,9 @@ const AIChef = () => {
 
       setSlika(null);
       
-      // 🔥 NAKON USPJEŠNE PRETRAGE, SMANJI BROJ PREOSTALIH (SAMO ZA FREE)
+      // 🔥 NAKON USPJEŠNE PRETRAGE, osvježi limit sa servera
       if (slika && !user?.premium) {
-        const novoPreostalo = Math.max(dailyLimit.preostalo - 1, 0);
-        const noviBrojPretraga = (dailyLimit.broj_pretraga || 0) + 1;
-        
-        setDailyLimit(prev => ({
-          ...prev,
-          preostalo: novoPreostalo,
-          broj_pretraga: noviBrojPretraga,
-          moze: novoPreostalo > 0
-        }));
+        await fetchDailyLimit();
       }
       
       if (videoWatched) {
@@ -706,17 +690,9 @@ const AIChef = () => {
 
       setSlika(null);
       
-      // 🔥 NAKON USPJEŠNE PRETRAGE, SMANJI BROJ PREOSTALIH (SAMO ZA FREE)
+      // 🔥 NAKON USPJEŠNE PRETRAGE, osvježi limit sa servera
       if (slika && !user?.premium) {
-        const novoPreostalo = Math.max(dailyLimit.preostalo - 1, 0);
-        const noviBrojPretraga = (dailyLimit.broj_pretraga || 0) + 1;
-        
-        setDailyLimit(prev => ({
-          ...prev,
-          preostalo: novoPreostalo,
-          broj_pretraga: noviBrojPretraga,
-          moze: novoPreostalo > 0
-        }));
+        await fetchDailyLimit();
       }
       
       if (videoWatched) {

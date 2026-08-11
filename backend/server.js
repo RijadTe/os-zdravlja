@@ -2604,7 +2604,7 @@ app.get('/api/tajni-recept', async (req, res) => {
 // ============================================================
 
 // ============================================================
-// 22. 🔥 AI CHEF - DOHVATI LIMIT (NOVA LOGIKA - 0/3 na početku!)
+// 22. 🔥 AI CHEF - DOHVATI LIMIT (ZA FREE = ISTO KAO GOST)
 // ============================================================
 app.get('/api/ai-chef/limit/:email', async (req, res) => {
   try {
@@ -2619,7 +2619,7 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
       .maybeSingle();
 
     if (userError || !user) {
-      console.log(`ℹ️ Korisnik nije pronađen, vraćam 0/3`);
+      console.log(`ℹ️ Korisnik nije pronađen, vraćam 0/3 (zaključano)`);
       return res.json({
         broj_pretraga: 0,
         max_pretraga: 3,
@@ -2630,7 +2630,7 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
       });
     }
 
-    // 2. PREMIUM KORISNICI - 15 SLIKANJA
+    // 2. PREMIUM KORISNICI - 15 SLIKANJA (BEZ VIDEO REKLAMA)
     if (user?.premium) {
       return res.json({
         broj_pretraga: 0,
@@ -2673,12 +2673,14 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
 
     const brojPretraga = limitData?.broj_pretraga || 0;
 
-    // 🔥🔥🔥 NOVA LOGIKA:
-    // - preostalo = brojVideoReklama - brojPretraga
-    // - ali ne može biti manje od 0
-    // - i ne može biti više od maxPretraga (3)
-    let preostalo = Math.min(brojVideoReklama, maxPretraga) - brojPretraga;
-    preostalo = Math.max(preostalo, 0);
+    // 🔥🔥🔥 ISPRAVLJENA LOGIKA (ISTO KAO ZA GOSTA):
+    // - Ako nema video reklama → preostalo = 0 (NEMA SLIKANJA!)
+    // - Ako ima video reklama → preostalo = brojVideoReklama - brojPretraga
+    let preostalo = 0;
+    if (brojVideoReklama > 0) {
+      preostalo = Math.min(brojVideoReklama, maxPretraga) - brojPretraga;
+      preostalo = Math.max(preostalo, 0);
+    }
 
     console.log(`📊 ${email}: pretrage=${brojPretraga}/${maxPretraga}, video=${brojVideoReklama}/3, preostalo=${preostalo}`);
 
@@ -2705,7 +2707,7 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
 });
 
 // ============================================================
-// 23. 🔥 AI CHEF - OTKLJUČAJ PRETRAGU (NOVA LOGIKA)
+// 23. 🔥 AI CHEF - OTKLJUČAJ PRETRAGU
 // ============================================================
 app.post('/api/ai-chef/unlock', async (req, res) => {
   try {
@@ -2792,8 +2794,7 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
 
       console.log(`📺 Video reklama ${newVideoCount}/3 za ${email}`);
 
-      // 🔥🔥🔥 KORISNIK SADA IMA ONOLIKO SLIKANJA KOLIKO JE VIDEO REKLAMA
-      // Dohvati broj iskorištenih pretraga
+      // 🔥 IZRAČUNAJ PREOSTALO
       const { data: limitData } = await supabase
         .from('user_daily_limits')
         .select('broj_pretraga')
@@ -2802,8 +2803,6 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
         .maybeSingle();
 
       const brojPretraga = limitData?.broj_pretraga || 0;
-      
-      // 🔥 preostalo = brojVideoReklama - brojPretraga
       let preostalo = Math.min(newVideoCount, maxPretraga) - brojPretraga;
       preostalo = Math.max(preostalo, 0);
 
@@ -2819,7 +2818,6 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
     }
 
     // 4. 🔥 NORMALNA PRETRAGA - SMANJI BROJ PREOSTALIH
-    // Prvo provjeri da li ima video reklama
     const { data: videoData } = await supabase
       .from('ai_chef_video_ads')
       .select('broj_video_reklama')
@@ -2840,7 +2838,6 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
       });
     }
 
-    // Dohvati trenutni broj pretraga
     const { data: limitData } = await supabase
       .from('user_daily_limits')
       .select('broj_pretraga')
@@ -2850,7 +2847,6 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
 
     const brojPretraga = limitData?.broj_pretraga || 0;
     
-    // 🔥 Provjeri da li je već iskoristio sve (max = 3)
     if (brojPretraga >= maxPretraga) {
       return res.status(400).json({ 
         error: 'Dostigli ste maksimum od 3 pretrage za danas.',
@@ -2862,7 +2858,6 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
       });
     }
 
-    // 🔥🔥🔥 Provjeri da li ima preostalih slikanja
     let trenutnoPreostalo = Math.min(brojVideoReklama, maxPretraga) - brojPretraga;
     trenutnoPreostalo = Math.max(trenutnoPreostalo, 0);
     
@@ -2877,7 +2872,6 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
       });
     }
 
-    // 🔥 POVEĆAJ BROJ PRETRAGA (+1)
     const newBrojPretraga = brojPretraga + 1;
     const { error: upsertLimitError } = await supabase
       .from('user_daily_limits')
@@ -2896,7 +2890,6 @@ app.post('/api/ai-chef/unlock', async (req, res) => {
       return res.status(500).json({ error: upsertLimitError.message });
     }
 
-    // 🔥 Izračunaj novo preostalo
     let novoPreostalo = Math.min(brojVideoReklama, maxPretraga) - newBrojPretraga;
     novoPreostalo = Math.max(novoPreostalo, 0);
 
@@ -4891,58 +4884,91 @@ app.get('/api/recepti/translate/status', async (req, res) => {
 });
 
 // ============================================================
-// 54. 🔥 CRON JOB - PREMIUM ISTEK
+// 54. 🔥 CRON JOB - RESET SVAKI DAN U 00:00
 // ============================================================
 cron.schedule('0 0 * * *', async () => {
   try {
-    console.log('🔄 Provjeravam Premium istoke...');
+    console.log('🔄 === AI CHEF RESET ===');
+    console.log(`📅 Datum: ${new Date().toISOString()}`);
     
-    const danas = new Date();
-    const danasStr = danas.toISOString().split('T')[0];
+    const danas = new Date().toISOString().split('T')[0];
+    const prije7Dana = new Date();
+    prije7Dana.setDate(prije7Dana.getDate() - 7);
+    const prije7DanaStr = prije7Dana.toISOString().split('T')[0];
     
-    const { data: expiredUsers, error } = await supabase
-      .from('profili')
-      .select('email, ime')
-      .eq('premium', true)
-      .lt('premium_do', danasStr);
+    // 1. OČISTI STARE PODATKE (starije od 7 dana)
+    console.log('🧹 Brišem stare podatke...');
     
-    if (error) {
-      console.error('❌ Greška pri dohvatu:', error);
-      return;
+    const { error: deleteLimitError } = await supabase
+      .from('user_daily_limits')
+      .delete()
+      .lt('datum', prije7DanaStr);
+    
+    if (deleteLimitError) {
+      console.error('❌ Greška pri brisanju starih limita:', deleteLimitError);
+    } else {
+      console.log('✅ Stari limiti obrisani');
     }
     
-    if (expiredUsers.length === 0) {
-      console.log('✅ Nema isteklih Premium korisnika');
-      return;
+    const { error: deleteVideoError } = await supabase
+      .from('ai_chef_video_ads')
+      .delete()
+      .lt('datum', prije7DanaStr);
+    
+    if (deleteVideoError) {
+      console.error('❌ Greška pri brisanju starih video reklama:', deleteVideoError);
+    } else {
+      console.log('✅ Stare video reklame obrisane');
     }
     
-    console.log(`⏰ Pronađeno ${expiredUsers.length} korisnika sa isteklim Premiumom`);
+    // 2. RESETUJ PODATKE ZA DANAS (samo za FREE korisnike)
+    console.log('🔄 Resetujem podatke za danas...');
     
-    for (const user of expiredUsers) {
-      console.log(`   - ${user.email} (${user.ime || 'Bez imena'})`);
-      
-      const { error: updateError } = await supabase
-        .from('profili')
-        .update({ 
-          premium: false,
-          premium_do: null
-        })
-        .eq('email', user.email);
-      
-      if (updateError) {
-        console.error(`❌ Greška pri deaktivaciji ${user.email}:`, updateError);
-      } else {
-        console.log(`✅ Deaktiviran: ${user.email}`);
-      }
+    // Resetuj broj pretraga na 0 za FREE korisnike
+    const { error: resetLimitError } = await supabase
+      .from('user_daily_limits')
+      .update({ 
+        broj_pretraga: 0,
+        updated_at: new Date().toISOString()
+      })
+      .eq('datum', danas)
+      .in('korisnik_id', 
+        supabase.from('profili').select('id').eq('premium', false)
+      );
+    
+    if (resetLimitError) {
+      console.error('❌ Greška pri resetovanju limita:', resetLimitError);
+    } else {
+      console.log('✅ Broj pretraga resetovan na 0');
     }
     
-    console.log(`✅ Završeno. Deaktivirano ${expiredUsers.length} korisnika.`);
+    // Resetuj broj video reklama na 0 za FREE korisnike
+    const { error: resetVideoError } = await supabase
+      .from('ai_chef_video_ads')
+      .update({ 
+        broj_video_reklama: 0,
+        updated_at: new Date().toISOString()
+      })
+      .eq('datum', danas)
+      .in('korisnik_id', 
+        supabase.from('profili').select('id').eq('premium', false)
+      );
+    
+    if (resetVideoError) {
+      console.error('❌ Greška pri resetovanju video reklama:', resetVideoError);
+    } else {
+      console.log('✅ Broj video reklama resetovan na 0');
+    }
+    
+    console.log('✅ AI Chef reset završen!');
+    console.log('=================================\n');
+    
   } catch (error) {
     console.error('❌ Cron greška:', error);
   }
 });
 
-console.log('⏰ Cron job za Premium istok postavljen (svaki dan u 00:00)');
+console.log('⏰ Cron job za AI Chef reset postavljen (svaki dan u 00:00)');
 
 // ============================================================
 // 🏆 NAGRADE - PROVJERI I DODIJELI BEDŽEVE
