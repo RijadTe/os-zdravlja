@@ -17,30 +17,18 @@ const Profile = () => {
   const [badgesLoading, setBadgesLoading] = useState(true);
 
   // ============================================================
-  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA - POPRAVLJENO!
+  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA
   // ============================================================
   const translateValue = (value, type) => {
     if (!value) return t('profile.not_selected');
     
-    // 🔥 PROŠIRENE MAPE SA VIŠE VARIJANTI
     const maps = {
       vrsta: {
-        // Originalne vrijednosti iz kviza
         'Slano': t('quiz.options.vrsta.0'),
         'Deserti': t('quiz.options.vrsta.1'),
         'Dijetalni recepti': t('quiz.options.vrsta.2'),
         'Napitki': t('quiz.options.vrsta.3'),
-        'Svejedno': t('quiz.options.vrsta.4'),
-        // 🔥 DODATNE VARIJANTE (ako baza vraća drugačije)
-        'slano': t('quiz.options.vrsta.0'),
-        'deserti': t('quiz.options.vrsta.1'),
-        'dijetalni recepti': t('quiz.options.vrsta.2'),
-        'napitki': t('quiz.options.vrsta.3'),
-        'svejedno': t('quiz.options.vrsta.4'),
-        'Slana jela': t('quiz.options.vrsta.0'),
-        'Deserti i slatkiši': t('quiz.options.vrsta.1'),
-        'Zdravstveni recepti': t('quiz.options.vrsta.2'),
-        'Napitci': t('quiz.options.vrsta.3'),
+        'Svejedno': t('quiz.options.vrsta.4')
       },
       restrikcije: {
         'Bez restrikcija': t('quiz.options.restrikcije.0'),
@@ -48,142 +36,40 @@ const Profile = () => {
         'Bez laktoze': t('quiz.options.restrikcije.2'),
         'Bez šećera': t('quiz.options.restrikcije.3'),
         'Veganski': t('quiz.options.restrikcije.4'),
-        'Bez orašastih plodova': t('quiz.options.restrikcije.5'),
-        // 🔥 DODATNE VARIJANTE
-        'bez restrikcija': t('quiz.options.restrikcije.0'),
-        'bez glutena': t('quiz.options.restrikcije.1'),
-        'bez laktoze': t('quiz.options.restrikcije.2'),
-        'bez šećera': t('quiz.options.restrikcije.3'),
-        'veganski': t('quiz.options.restrikcije.4'),
-        'bez orašastih plodova': t('quiz.options.restrikcije.5'),
-        'Gluten': t('quiz.options.restrikcije.1'),
-        'Laktoza': t('quiz.options.restrikcije.2'),
-        'Šećer': t('quiz.options.restrikcije.3'),
-        'Vegan': t('quiz.options.restrikcije.4'),
-        'Orašasti plodovi': t('quiz.options.restrikcije.5'),
-        'Bez glutena (celijakija)': t('quiz.options.restrikcije.1'),
-        'Bez laktoze (intolerancija)': t('quiz.options.restrikcije.2'),
-        'Bez šećera (dijabetes)': t('quiz.options.restrikcije.3'),
+        'Bez orašastih plodova': t('quiz.options.restrikcije.5')
       },
       preferencije: {
         'Visokoproteinski': t('quiz.options.preferencije.0'),
         'Bogat vlaknima': t('quiz.options.preferencije.1'),
         'Bogat ugljikohidratima': t('quiz.options.preferencije.2'),
-        'Svejedno': t('quiz.options.preferencije.3'),
-        // 🔥 DODATNE VARIJANTE
-        'visokoproteinski': t('quiz.options.preferencije.0'),
-        'bogat vlaknima': t('quiz.options.preferencije.1'),
-        'bogat ugljikohidratima': t('quiz.options.preferencije.2'),
-        'svejedno': t('quiz.options.preferencije.3'),
-        'Visoko proteinski': t('quiz.options.preferencije.0'),
-        'Visoko vlaknasti': t('quiz.options.preferencije.1'),
-        'Visoko ugljikohidratni': t('quiz.options.preferencije.2'),
-        'Proteinski': t('quiz.options.preferencije.0'),
-        'Vlaknasti': t('quiz.options.preferencije.1'),
-        'Ugljikohidratni': t('quiz.options.preferencije.2'),
+        'Svejedno': t('quiz.options.preferencije.3')
       },
       vrijeme: {
         'Kratko (15-30 min)': t('quiz.options.vrijeme.0'),
         'Srednje (30-45 min)': t('quiz.options.vrijeme.1'),
-        'Duže (45-60+ min)': t('quiz.options.vrijeme.2'),
-        // 🔥 DODATNE VARIJANTE
-        'kratko (15-30 min)': t('quiz.options.vrijeme.0'),
-        'srednje (30-45 min)': t('quiz.options.vrijeme.1'),
-        'duže (45-60+ min)': t('quiz.options.vrijeme.2'),
-        'Kratko': t('quiz.options.vrijeme.0'),
-        'Srednje': t('quiz.options.vrijeme.1'),
-        'Duže': t('quiz.options.vrijeme.2'),
-        'kratko': t('quiz.options.vrijeme.0'),
-        'srednje': t('quiz.options.vrijeme.1'),
-        'duže': t('quiz.options.vrijeme.2'),
-        '15-30 min': t('quiz.options.vrijeme.0'),
-        '30-45 min': t('quiz.options.vrijeme.1'),
-        '45-60+ min': t('quiz.options.vrijeme.2'),
+        'Duže (45-60+ min)': t('quiz.options.vrijeme.2')
       },
       tezina: {
         'Početnik': t('quiz.options.tezina.0'),
         'Srednji': t('quiz.options.tezina.1'),
-        'Profesionalac': t('quiz.options.tezina.2'),
-        // 🔥 DODATNE VARIJANTE
-        'početnik': t('quiz.options.tezina.0'),
-        'srednji': t('quiz.options.tezina.1'),
-        'profesionalac': t('quiz.options.tezina.2'),
-        'Početni': t('quiz.options.tezina.0'),
-        'Napredni': t('quiz.options.tezina.1'),
-        'Ekspert': t('quiz.options.tezina.2'),
-        'Lako': t('quiz.options.tezina.0'),
-        'Srednje teško': t('quiz.options.tezina.1'),
-        'Teško': t('quiz.options.tezina.2'),
+        'Profesionalac': t('quiz.options.tezina.2')
       },
       kalorije: {
         'Nisko (do 300 kcal)': t('quiz.options.kalorije.0'),
         'Umjereno (300-500 kcal)': t('quiz.options.kalorije.1'),
         'Srednje (500-700 kcal)': t('quiz.options.kalorije.2'),
-        'Visoko (900+ kcal)': t('quiz.options.kalorije.3'),
-        // 🔥 DODATNE VARIJANTE
-        'nisko (do 300 kcal)': t('quiz.options.kalorije.0'),
-        'umjereno (300-500 kcal)': t('quiz.options.kalorije.1'),
-        'srednje (500-700 kcal)': t('quiz.options.kalorije.2'),
-        'visoko (900+ kcal)': t('quiz.options.kalorije.3'),
-        'Nisko': t('quiz.options.kalorije.0'),
-        'Umjereno': t('quiz.options.kalorije.1'),
-        'Srednje': t('quiz.options.kalorije.2'),
-        'Visoko': t('quiz.options.kalorije.3'),
-        'nisko': t('quiz.options.kalorije.0'),
-        'umjereno': t('quiz.options.kalorije.1'),
-        'srednje': t('quiz.options.kalorije.2'),
-        'visoko': t('quiz.options.kalorije.3'),
-        'do 300 kcal': t('quiz.options.kalorije.0'),
-        '300-500 kcal': t('quiz.options.kalorije.1'),
-        '500-700 kcal': t('quiz.options.kalorije.2'),
-        '900+ kcal': t('quiz.options.kalorije.3'),
+        'Visoko (900+ kcal)': t('quiz.options.kalorije.3')
       }
     };
 
     const map = maps[type];
-    if (!map) {
-      console.warn(`⚠️ Nepoznat tip: ${type}`);
-      return value;
-    }
+    if (!map) return value;
     
-    // 🔥 AKO JE NIZ (array)
     if (Array.isArray(value)) {
-      const translated = value.map(v => {
-        // Pokušaj prvo tačan match
-        if (map[v] !== undefined) return map[v];
-        
-        // Pokušaj case-insensitive
-        const lowerV = v.toLowerCase().trim();
-        for (const [key, val] of Object.entries(map)) {
-          if (key.toLowerCase().trim() === lowerV) {
-            return val;
-          }
-        }
-        
-        // 🔥 AKO NIŠTA NIJE PRONAĐENO, VRATI ORIGINAL
-        console.warn(`⚠️ Nepoznata vrijednost za ${type}: "${v}"`);
-        return v;
-      });
-      
-      // Ako ima više od jedne vrijednosti, spoji sa zarezom
-      return translated.join(', ');
+      return value.map(v => map[v] || v).join(', ');
     }
     
-    // 🔥 ZA STRING VRIJEDNOSTI (npr. vrijeme, tezina, kalorije)
-    // Pokušaj prvo tačan match
-    if (map[value] !== undefined) return map[value];
-    
-    // Pokušaj case-insensitive
-    const lowerValue = value.toLowerCase().trim();
-    for (const [key, val] of Object.entries(map)) {
-      if (key.toLowerCase().trim() === lowerValue) {
-        return val;
-      }
-    }
-    
-    // 🔥 AKO NIŠTA NIJE PRONAĐENO, VRATI ORIGINAL
-    console.warn(`⚠️ Nepoznata vrijednost za ${type}: "${value}"`);
-    return value;
+    return map[value] || value;
   };
 
   // ============================================================
@@ -223,23 +109,9 @@ const Profile = () => {
   };
 
   // ============================================================
-  // 📊 DOHVATI PROFIL - BRZO IZ KEŠA, ONDA IZ BAZE
+  // 📊 DOHVATI PROFIL - SA RATE LIMIT FALLBACKOM!
   // ============================================================
   const fetchProfile = async (email) => {
-    // 🔥🔥🔥 1. PRVO PRIKAŽI IZ LOCALSTORAGE (0.1s!) 🔥🔥🔥
-    const cachedProfile = localStorage.getItem('userProfile');
-    if (cachedProfile) {
-      try {
-        const parsed = JSON.parse(cachedProfile);
-        setProfile(parsed);
-        setLoading(false);
-        console.log('✅ Profil prikazan iz keša (trenutno!)');
-      } catch (e) {
-        console.warn('⚠️ Greška pri parsiranju keširanog profila:', e);
-      }
-    }
-
-    // 🔥 2. POKRENI FETCH U POZADINI (NE BLOKIRA UI)
     try {
       console.log('📧 Dohvatam profil za:', email);
       
@@ -247,49 +119,6 @@ const Profile = () => {
       
       if (response.status === 429) {
         console.warn('⚠️ Rate limit (429) - koristim podatke iz localStorage');
-        return;
-      }
-      
-      const data = await response.json();
-      console.log('📊 Profil dohvaćen iz baze:', data);
-      
-      if (data.success && data.data) {
-        // 🔥 LOG ZA DEBUG - VIDI ŠTA DOLAZI IZ BAZE
-        console.log('📊 VRSTA IZ BAZE:', data.data.vrsta);
-        console.log('📊 IZBJEGAVA IZ BAZE:', data.data.izbjegava);
-        console.log('📊 PREFERENCIJE IZ BAZE:', data.data.preferencije);
-        console.log('📊 VRIJEME IZ BAZE:', data.data.vrijeme);
-        console.log('📊 TEZINA IZ BAZE:', data.data.tezina);
-        console.log('📊 KALORIJE IZ BAZE:', data.data.kalorije);
-        
-        // 🔥 AŽURIRAJ PROFIL SA SVIJEŽIM PODACIMA IZ BAZE
-        setProfile(data.data);
-        localStorage.setItem('userProfile', JSON.stringify(data.data));
-        
-        const storedUser = JSON.parse(localStorage.getItem('user'));
-        if (storedUser) {
-          storedUser.premium = data.data.premium || false;
-          storedUser.profile = data.data;
-          storedUser.vrsta = data.data.vrsta || [];
-          storedUser.izbjegava = data.data.izbjegava || [];
-          storedUser.preferencije = data.data.preferencije || [];
-          storedUser.vrijeme = data.data.vrijeme || '';
-          storedUser.tezina = data.data.tezina || '';
-          storedUser.kalorije = data.data.kalorije || '';
-          storedUser.kviz_zavrsen = data.data.kviz_zavrsen || false;
-          storedUser.preferred_language = data.data.preferred_language || 'hr';
-          localStorage.setItem('user', JSON.stringify(storedUser));
-        }
-        
-        await fetchBadges(email);
-        setLoading(false);
-      } else {
-        console.error('❌ Profil nije pronađen');
-        await createProfile(email);
-      }
-    } catch (error) {
-      console.error('❌ Greška pri dohvatu profila:', error);
-      if (!cachedProfile) {
         const storedUser = JSON.parse(localStorage.getItem('user'));
         if (storedUser) {
           const fallbackProfile = {
@@ -307,12 +136,55 @@ const Profile = () => {
             preferred_language: storedUser.preferred_language || 'hr'
           };
           setProfile(fallbackProfile);
-          localStorage.setItem('userProfile', JSON.stringify(fallbackProfile));
-          setLoading(false);
-        } else {
-          await createProfile(email);
+          console.log('✅ Profil dohvaćen iz localStorage (fallback)');
         }
+        setLoading(false);
+        return;
       }
+      
+      const data = await response.json();
+      console.log('📊 Profil dohvaćen:', data);
+      
+      if (data.success && data.data) {
+        setProfile(data.data);
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        if (storedUser) {
+          storedUser.premium = data.data.premium || false;
+          storedUser.profile = data.data;
+          storedUser.preferred_language = data.data.preferred_language || 'hr';
+          localStorage.setItem('user', JSON.stringify(storedUser));
+        }
+        
+        await fetchBadges(email);
+      } else {
+        console.error('❌ Profil nije pronađen');
+        await createProfile(email);
+      }
+    } catch (error) {
+      console.error('❌ Greška pri dohvatu profila:', error);
+      const storedUser = JSON.parse(localStorage.getItem('user'));
+      if (storedUser) {
+        const fallbackProfile = {
+          ime: storedUser.ime || 'Korisnik',
+          email: storedUser.email || email,
+          premium: storedUser.premium || false,
+          kviz_zavrsen: storedUser.kviz_zavrsen || false,
+          vrsta: storedUser.vrsta || [],
+          izbjegava: storedUser.izbjegava || [],
+          preferencije: storedUser.preferencije || [],
+          vrijeme: storedUser.vrijeme || '',
+          tezina: storedUser.tezina || '',
+          kalorije: storedUser.kalorije || '',
+          skuhano_recepata: storedUser.skuhano_recepata || 0,
+          preferred_language: storedUser.preferred_language || 'hr'
+        };
+        setProfile(fallbackProfile);
+        console.log('✅ Profil dohvaćen iz localStorage (fallback)');
+      } else {
+        await createProfile(email);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -344,62 +216,84 @@ const Profile = () => {
       if (data.success) {
         console.log('✅ Profil kreiran:', data.data);
         setProfile(data.data);
-        localStorage.setItem('userProfile', JSON.stringify(data.data));
         await fetchBadges(email);
       }
     } catch (error) {
       console.error('❌ Greška pri kreiranju profila:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
   // ============================================================
-  // 🔐 AUTH - BRZO IZ KEŠA, ONDA IZ BAZE
+  // 🔐 AUTH - SA DOHVATOM PREMIUM STATUSA IZ BAZE!
   // ============================================================
   useEffect(() => {
     const checkUser = async () => {
       try {
-        // 🔥 1. PRVO PRIKAŽI IZ LOCALSTORAGE (0.1s!)
-        const storedUser = JSON.parse(localStorage.getItem('user'));
-        const storedProfile = localStorage.getItem('userProfile');
-        
-        if (storedUser && storedProfile) {
-          try {
-            const parsedProfile = JSON.parse(storedProfile);
-            setUser(storedUser);
-            setProfile(parsedProfile);
-            setLoading(false);
-            console.log('✅ Profil prikazan iz keša (trenutno!)');
-          } catch (e) {
-            console.warn('⚠️ Greška pri parsiranju keširanog profila:', e);
-          }
-        }
-
-        // 🔥 2. POKRENI SUPABASE FETCH U POZADINI
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
           console.log('✅ Korisnik prijavljen (Supabase):', session.user.email);
+          
           const email = session.user.email;
           
-          // 🔥 DOHVATI SVIJEŽE PODATKE IZ BAZE
+          let premiumStatus = false;
+          let profileData = null;
+          
+          try {
+            const profileResponse = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
+            
+            if (profileResponse.ok) {
+              const profileResult = await profileResponse.json();
+              if (profileResult.success && profileResult.data) {
+                premiumStatus = profileResult.data.premium || false;
+                profileData = profileResult.data;
+                console.log('✅ Premium status iz baze:', premiumStatus);
+              }
+            }
+          } catch (profileError) {
+            console.warn('⚠️ Greška pri dohvatu profila:', profileError);
+          }
+          
+          const supabaseUser = {
+            id: session.user.id,
+            email: session.user.email,
+            ime: session.user.user_metadata?.ime || '',
+            premium: premiumStatus,
+            profile: profileData,
+            preferred_language: profileData?.preferred_language || 'hr'
+          };
+          
+          setUser(supabaseUser);
+          localStorage.setItem('user', JSON.stringify(supabaseUser));
+          localStorage.setItem('userEmail', session.user.email);
+          localStorage.setItem('userName', session.user.user_metadata?.ime || '');
+          
+          if (profileData) {
+            setProfile(profileData);
+            await fetchBadges(email);
+            setLoading(false);
+          } else {
+            await fetchProfile(session.user.email);
+          }
+          return;
+        }
+        
+        const userData = JSON.parse(localStorage.getItem('user'));
+        if (!userData) {
+          navigate('/login');
+          return;
+        }
+        
+        setUser(userData);
+        const email = localStorage.getItem('userEmail') || userData?.email;
+        if (email) {
           await fetchProfile(email);
-          return;
-        }
-        
-        if (storedUser) {
-          console.log('ℹ️ Nema Supabase session, ali imamo keširane podatke');
-          return;
-        }
-        
-        navigate('/login');
-        
-      } catch (error) {
-        console.error('❌ Greška pri provjeri korisnika:', error);
-        if (!localStorage.getItem('userProfile')) {
+        } else {
           setLoading(false);
         }
+      } catch (error) {
+        console.error('❌ Greška pri provjeri korisnika:', error);
+        setLoading(false);
       }
     };
 
@@ -574,7 +468,7 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* ===== BEDŽEVI ===== */}
+      {/* ===== 🔥 BEDŽEVI IZ BAZE SA PRIJEVODIMA ===== */}
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
         <h2 className="text-xl font-bold mb-4">
           🏆 {t('profile.badges.title')}
@@ -599,6 +493,7 @@ const Profile = () => {
           <div className="flex flex-wrap gap-4">
             {badges.map((badge) => {
               const badgeData = badge.badge || badge;
+              // 🔥 Dohvati opis iz prijevoda ili koristi onaj iz baze
               const description = t(`profile.badges.descriptions.${badgeData.kljuc}`, { 
                 defaultValue: badgeData.opis || '' 
               });
@@ -612,6 +507,7 @@ const Profile = () => {
                   <span className="text-sm font-semibold mt-1 text-gray-800 dark:text-white text-center">
                     {badgeData.naziv || badgeData.name}
                   </span>
+                  {/* 🔥 PRIKAZ OPISA */}
                   {description && (
                     <span className="text-[10px] text-gray-500 dark:text-gray-400 text-center mt-0.5 leading-tight">
                       {description}
@@ -629,7 +525,7 @@ const Profile = () => {
           </div>
         )}
         
-        {/* Dostupni bedževi */}
+        {/* 🔥 PRIKAZ SVIH DOSTUPNIH BEDŽEVA (ZAKLJUČANIH) */}
         {!badgesLoading && (
           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
@@ -648,6 +544,7 @@ const Profile = () => {
                   (b.badge?.kljuc || b.kljuc) === availableBadge.key
                 );
                 
+                // 🔥 Dohvati opis za dostupni bedž
                 const description = t(`profile.badges.descriptions.${availableBadge.key}`, { 
                   defaultValue: '' 
                 });
@@ -683,7 +580,7 @@ const Profile = () => {
         )}
       </div>
 
-      {/* ===== PREFERENCIJE ===== */}
+      {/* ===== PREFERENCIJE - SA PREVODOM ===== */}
       <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
         <h2 className="text-xl font-bold mb-4">{t('profile.preferences')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
