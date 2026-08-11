@@ -1664,7 +1664,7 @@ app.get('/api/recepti/korisnik/:email', async (req, res) => {
 });
 
 // ============================================================
-// 13. DOHVATI PROFIL
+// 13. DOHVATI PROFIL (POPRAVLJEN - SA TOKEN PROVJEROM)
 // ============================================================
 app.get('/api/profil/:email', async (req, res) => {
   try {
@@ -1745,7 +1745,7 @@ app.get('/api/profil/:email', async (req, res) => {
 });
 
 // ============================================================
-// 14. AŽURIRAJ PROFIL
+// 14. AŽURIRAJ PROFIL (POPRAVLJEN - SA TOKEN PROVJEROM)
 // ============================================================
 app.put('/api/profil/:email', async (req, res) => {
   try {
@@ -2681,26 +2681,30 @@ app.get('/api/tajni-recept', async (req, res) => {
 });
 
 // ============================================================
-// 🔥🔥🔥 AI CHEF - POPRAVLJENI ENDPOINTI (NOVA LOGIKA)
+// 🔥🔥🔥 AI CHEF - POPRAVLJENI ENDPOINTI
 // ============================================================
 
 // ============================================================
-// 22. 🔥 AI CHEF - DOHVATI LIMIT (ZA FREE = ISTO KAO GOST)
+// 22. 🔥 AI CHEF - DOHVATI LIMIT
 // ============================================================
 app.get('/api/ai-chef/limit/:email', async (req, res) => {
   try {
     const { email } = req.params;
     console.log(`🤖 Dohvatam AI Chef limit za: ${email}`);
     
-    // 1. DOHVATI KORISNIKA
     const { data: user, error: userError } = await supabase
       .from('profili')
-      .select('id, premium')
+      .select('ai_chef_pretrage, ai_chef_datum, premium, video_ad_count')
       .eq('email', email)
       .maybeSingle();
 
-    if (userError || !user) {
-      console.log(`ℹ️ Korisnik nije pronađen, vraćam 0/3 (zaključano)`);
+    if (userError) {
+      console.error('❌ Greška pri dohvatu korisnika:', userError);
+      return res.status(500).json({ error: userError.message });
+    }
+
+    if (!user) {
+      console.log(`ℹ️ Korisnik nije pronađen: ${email}`);
       return res.json({
         broj_pretraga: 0,
         max_pretraga: 3,
@@ -2711,7 +2715,6 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
       });
     }
 
-    // 2. PREMIUM KORISNICI - 15 SLIKANJA (BEZ VIDEO REKLAMA)
     if (user?.premium) {
       return res.json({
         broj_pretraga: 0,
@@ -2725,45 +2728,21 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
 
     const danas = new Date().toISOString().split('T')[0];
     const maxPretraga = 3;
-
-    // 3. DOHVATI BROJ VIDEO REKLAMA ZA DANAS
-    const { data: videoData, error: videoError } = await supabase
-      .from('ai_chef_video_ads')
-      .select('broj_video_reklama')
-      .eq('korisnik_id', user.id)
-      .eq('datum', danas)
-      .maybeSingle();
-
-    if (videoError) {
-      console.error('❌ Greška pri dohvatu video reklama:', videoError);
+    
+    let brojPretraga = user?.ai_chef_pretrage || 0;
+    if (user?.ai_chef_datum !== danas) {
+      brojPretraga = 0;
     }
 
-    const brojVideoReklama = videoData?.broj_video_reklama || 0;
+    const videoAdCount = user?.video_ad_count || 0;
 
-    // 4. DOHVATI BROJ PRETRAGA ZA DANAS
-    const { data: limitData, error: limitError } = await supabase
-      .from('user_daily_limits')
-      .select('broj_pretraga')
-      .eq('korisnik_id', user.id)
-      .eq('datum', danas)
-      .maybeSingle();
-
-    if (limitError) {
-      console.error('❌ Greška pri dohvatu limita:', limitError);
-    }
-
-    const brojPretraga = limitData?.broj_pretraga || 0;
-
-    // 🔥🔥🔥 ISPRAVLJENA LOGIKA (ISTO KAO ZA GOSTA):
-    // - Ako nema video reklama → preostalo = 0 (NEMA SLIKANJA!)
-    // - Ako ima video reklama → preostalo = brojVideoReklama - brojPretraga
     let preostalo = 0;
-    if (brojVideoReklama > 0) {
-      preostalo = Math.min(brojVideoReklama, maxPretraga) - brojPretraga;
-      preostalo = Math.max(preostalo, 0);
+    if (videoAdCount > 0) {
+      preostalo = Math.max(videoAdCount - brojPretraga, 0);
+      preostalo = Math.min(preostalo, maxPretraga);
     }
 
-    console.log(`📊 ${email}: pretrage=${brojPretraga}/${maxPretraga}, video=${brojVideoReklama}/3, preostalo=${preostalo}`);
+    console.log(`📊 ${email}: pretrage=${brojPretraga}/${maxPretraga}, video=${videoAdCount}/3, preostalo=${preostalo}`);
 
     res.json({
       broj_pretraga: brojPretraga,
@@ -2771,19 +2750,11 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
       preostalo: preostalo,
       moze: preostalo > 0,
       isPremium: false,
-      videoAdCount: brojVideoReklama
+      videoAdCount: videoAdCount
     });
-
   } catch (error) {
-    console.error('❌ Greška:', error);
-    res.json({
-      broj_pretraga: 0,
-      max_pretraga: 3,
-      preostalo: 0,
-      moze: false,
-      isPremium: false,
-      videoAdCount: 0
-    });
+    console.error('❌ Greška pri dohvatu limita:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -2793,197 +2764,128 @@ app.get('/api/ai-chef/limit/:email', async (req, res) => {
 app.post('/api/ai-chef/unlock', async (req, res) => {
   try {
     const { email, type } = req.body;
-    console.log(`🔓 Otključavanje pretrage za: ${email}, tip: ${type}`);
+    console.log(`🔓 Otključavanje pretrage za: ${email}`);
+    console.log(`📌 Tip: ${type || 'normal'}`);
 
     if (!email) {
       return res.status(400).json({ error: 'Email je obavezan.' });
     }
 
-    // 1. DOHVATI KORISNIKA
-    const { data: user, error: userError } = await supabase
-      .from('profili')
-      .select('id, premium')
-      .eq('email', email)
-      .maybeSingle();
-
-    if (userError || !user) {
-      return res.status(404).json({ error: 'Korisnik nije pronađen.' });
-    }
-
-    // 2. PREMIUM KORISNICI - NEMA OTKLJUČAVANJA
-    if (user?.premium) {
-      return res.json({
-        success: true,
-        message: '⭐ Premium korisnici imaju 15 slikanja dnevno!',
-        broj_pretraga: 0,
-        max_pretraga: 15,
-        preostalo: 15,
-        moze: true,
-        videoAdCount: 0
-      });
-    }
-
     const danas = new Date().toISOString().split('T')[0];
     const maxPretraga = 3;
 
-    // 3. 🔥 VIDEO REKLAMA - DODAJ VIDEO I SLIKANJE
+    const { data: user, error: fetchError } = await supabase
+      .from('profili')
+      .select('ai_chef_pretrage, ai_chef_datum, premium, video_ad_count')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('❌ Greška pri dohvatu:', fetchError);
+      return res.status(500).json({ error: fetchError.message });
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: 'Korisnik nije pronađen.' });
+    }
+
+    if (user?.premium) {
+      return res.status(400).json({ error: 'Premium korisnici nemaju ograničenja.' });
+    }
+
+    let brojPretraga = user?.ai_chef_pretrage || 0;
+    if (user?.ai_chef_datum !== danas) {
+      brojPretraga = 0;
+    }
+
+    const videoAdCount = user?.video_ad_count || 0;
+
+    let preostalo = 0;
+    if (videoAdCount > 0) {
+      preostalo = Math.max(videoAdCount - brojPretraga, 0);
+      preostalo = Math.min(preostalo, maxPretraga);
+    }
+
     if (type === 'video_ad') {
-      // Dohvati trenutni broj video reklama
-      const { data: videoData, error: videoError } = await supabase
-        .from('ai_chef_video_ads')
-        .select('broj_video_reklama')
-        .eq('korisnik_id', user.id)
-        .eq('datum', danas)
-        .maybeSingle();
-
-      if (videoError) {
-        console.error('❌ Greška pri dohvatu video reklama:', videoError);
-      }
-
-      const videoCount = videoData?.broj_video_reklama || 0;
+      const noviVideoCount = (user?.video_ad_count || 0) + 1;
       
-      // 🔥 NE MOŽE PREĆI 3 VIDEO REKLAME
-      if (videoCount >= 3) {
+      if (noviVideoCount > 3) {
         return res.status(400).json({ 
           error: 'Dostigli ste maksimum od 3 video reklame za danas.',
-          broj_pretraga: 0,
+          broj_pretraga: brojPretraga,
           max_pretraga: maxPretraga,
           preostalo: 0,
           moze: false,
-          videoAdCount: videoCount
+          videoAdCount: videoAdCount
         });
       }
 
-      // 🔥 SPREMI VIDEO REKLAMU (+1)
-      const newVideoCount = videoCount + 1;
-      const { error: upsertVideoError } = await supabase
-        .from('ai_chef_video_ads')
-        .upsert({
-          korisnik_id: user.id,
-          datum: danas,
-          broj_video_reklama: newVideoCount,
-          max_video_reklama: 3,
+      const { error: updateError } = await supabase
+        .from('profili')
+        .update({
+          video_ad_count: noviVideoCount,
           updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'korisnik_id,datum'
-        });
+        })
+        .eq('email', email);
 
-      if (upsertVideoError) {
-        console.error('❌ Greška pri spremanju video reklame:', upsertVideoError);
-        return res.status(500).json({ error: upsertVideoError.message });
+      if (updateError) {
+        console.error('❌ Greška pri ažuriranju video reklama:', updateError);
+        return res.status(500).json({ error: updateError.message });
       }
 
-      console.log(`📺 Video reklama ${newVideoCount}/3 za ${email}`);
-
-      // 🔥 IZRAČUNAJ PREOSTALO
-      const { data: limitData } = await supabase
-        .from('user_daily_limits')
-        .select('broj_pretraga')
-        .eq('korisnik_id', user.id)
-        .eq('datum', danas)
-        .maybeSingle();
-
-      const brojPretraga = limitData?.broj_pretraga || 0;
-      let preostalo = Math.min(newVideoCount, maxPretraga) - brojPretraga;
-      preostalo = Math.max(preostalo, 0);
+      let novoPreostalo = Math.max(noviVideoCount - brojPretraga, 0);
+      novoPreostalo = Math.min(novoPreostalo, maxPretraga);
 
       return res.json({
         success: true,
-        message: `✅ Video reklama završena! +1 slikanje (${newVideoCount}/3)`,
+        message: '✅ Video reklama završena! +1 slikanje',
         broj_pretraga: brojPretraga,
         max_pretraga: maxPretraga,
-        preostalo: preostalo,
-        moze: preostalo > 0,
-        videoAdCount: newVideoCount
+        preostalo: novoPreostalo,
+        moze: novoPreostalo > 0,
+        videoAdCount: noviVideoCount
       });
     }
 
-    // 4. 🔥 NORMALNA PRETRAGA - SMANJI BROJ PREOSTALIH
-    const { data: videoData } = await supabase
-      .from('ai_chef_video_ads')
-      .select('broj_video_reklama')
-      .eq('korisnik_id', user.id)
-      .eq('datum', danas)
-      .maybeSingle();
-
-    const brojVideoReklama = videoData?.broj_video_reklama || 0;
-    
-    if (brojVideoReklama === 0) {
-      return res.status(400).json({ 
-        error: 'Morate prvo pogledati video reklamu!',
-        broj_pretraga: 0,
-        max_pretraga: maxPretraga,
-        preostalo: 0,
-        moze: false,
-        videoAdCount: 0
-      });
-    }
-
-    const { data: limitData } = await supabase
-      .from('user_daily_limits')
-      .select('broj_pretraga')
-      .eq('korisnik_id', user.id)
-      .eq('datum', danas)
-      .maybeSingle();
-
-    const brojPretraga = limitData?.broj_pretraga || 0;
-    
-    if (brojPretraga >= maxPretraga) {
-      return res.status(400).json({ 
-        error: 'Dostigli ste maksimum od 3 pretrage za danas.',
-        broj_pretraga: brojPretraga,
-        max_pretraga: maxPretraga,
-        preostalo: 0,
-        moze: false,
-        videoAdCount: brojVideoReklama
-      });
-    }
-
-    let trenutnoPreostalo = Math.min(brojVideoReklama, maxPretraga) - brojPretraga;
-    trenutnoPreostalo = Math.max(trenutnoPreostalo, 0);
-    
-    if (trenutnoPreostalo <= 0) {
+    if (preostalo <= 0) {
       return res.status(400).json({ 
         error: 'Nemate preostalih slikanja! Pogledajte video reklamu.',
         broj_pretraga: brojPretraga,
         max_pretraga: maxPretraga,
         preostalo: 0,
         moze: false,
-        videoAdCount: brojVideoReklama
+        videoAdCount: videoAdCount
       });
     }
 
-    const newBrojPretraga = brojPretraga + 1;
-    const { error: upsertLimitError } = await supabase
-      .from('user_daily_limits')
-      .upsert({
-        korisnik_id: user.id,
-        datum: danas,
-        broj_pretraga: newBrojPretraga,
-        max_pretraga: maxPretraga,
+    const noviBroj = brojPretraga + 1;
+
+    const { error: updateError } = await supabase
+      .from('profili')
+      .update({
+        ai_chef_pretrage: noviBroj,
+        ai_chef_datum: danas,
         updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'korisnik_id,datum'
-      });
+      })
+      .eq('email', email);
 
-    if (upsertLimitError) {
-      console.error('❌ Greška pri spremanju pretrage:', upsertLimitError);
-      return res.status(500).json({ error: upsertLimitError.message });
+    if (updateError) {
+      console.error('❌ Greška pri ažuriranju pretrage:', updateError);
+      return res.status(500).json({ error: updateError.message });
     }
 
-    let novoPreostalo = Math.min(brojVideoReklama, maxPretraga) - newBrojPretraga;
-    novoPreostalo = Math.max(novoPreostalo, 0);
+    let novoPreostalo = Math.max(videoAdCount - noviBroj, 0);
+    novoPreostalo = Math.min(novoPreostalo, maxPretraga);
 
     res.json({
       success: true,
       message: '✅ Pretraga otključana!',
-      broj_pretraga: newBrojPretraga,
+      broj_pretraga: noviBroj,
       max_pretraga: maxPretraga,
       preostalo: novoPreostalo,
       moze: novoPreostalo > 0,
-      videoAdCount: brojVideoReklama
+      videoAdCount: videoAdCount
     });
-
   } catch (error) {
     console.error('❌ Greška pri otključavanju:', error);
     res.status(500).json({ error: error.message });
@@ -2997,46 +2899,28 @@ app.get('/api/ai-chef/video-ads/:email', async (req, res) => {
   try {
     const { email } = req.params;
     console.log(`📺 Dohvatam broj video reklama za: ${email}`);
-    
-    const { data: user, error: userError } = await supabase
+
+    const { data: user, error } = await supabase
       .from('profili')
-      .select('id, premium')
+      .select('video_ad_count')
       .eq('email', email)
-      .maybeSingle();
-
-    if (userError || !user) {
-      return res.json({ broj_video_reklama: 0 });
-    }
-
-    // Premium korisnici nemaju video reklame
-    if (user?.premium) {
-      return res.json({ broj_video_reklama: 0 });
-    }
-
-    const danas = new Date().toISOString().split('T')[0];
-
-    const { data, error } = await supabase
-      .from('ai_chef_video_ads')
-      .select('broj_video_reklama')
-      .eq('korisnik_id', user.id)
-      .eq('datum', danas)
       .maybeSingle();
 
     if (error) {
       console.error('❌ Greška:', error);
-      return res.json({ broj_video_reklama: 0 });
+      return res.status(500).json({ success: false, error: error.message });
     }
 
-    const brojVideoReklama = data?.broj_video_reklama || 0;
+    const brojVideoReklama = user?.video_ad_count || 0;
     console.log(`📺 ${email}: ${brojVideoReklama}/3 video reklama`);
 
     res.json({
+      success: true,
       broj_video_reklama: brojVideoReklama
     });
-
   } catch (error) {
     console.error('❌ Greška:', error);
-    res.json({ broj_video_reklama: 0 });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -4977,7 +4861,6 @@ cron.schedule('0 0 * * *', async () => {
     prije7Dana.setDate(prije7Dana.getDate() - 7);
     const prije7DanaStr = prije7Dana.toISOString().split('T')[0];
     
-    // 1. OČISTI STARE PODATKE (starije od 7 dana)
     console.log('🧹 Brišem stare podatke...');
     
     const { error: deleteLimitError } = await supabase
@@ -5002,10 +4885,8 @@ cron.schedule('0 0 * * *', async () => {
       console.log('✅ Stare video reklame obrisane');
     }
     
-    // 2. RESETUJ PODATKE ZA DANAS (samo za FREE korisnike)
     console.log('🔄 Resetujem podatke za danas...');
     
-    // Resetuj broj pretraga na 0 za FREE korisnike
     const { error: resetLimitError } = await supabase
       .from('user_daily_limits')
       .update({ 
@@ -5023,7 +4904,6 @@ cron.schedule('0 0 * * *', async () => {
       console.log('✅ Broj pretraga resetovan na 0');
     }
     
-    // Resetuj broj video reklama na 0 za FREE korisnike
     const { error: resetVideoError } = await supabase
       .from('ai_chef_video_ads')
       .update({ 
