@@ -26,18 +26,38 @@ const useDebounce = (value, delay) => {
 };
 
 // ============================================================
+// STATISTIKE KARTICA
+// ============================================================
+const StatsCard = ({ icon, label, value, color, subtitle }) => (
+  <div className={`bg-gradient-to-br ${color} rounded-2xl p-4 shadow-lg border border-white/20 backdrop-blur-sm hover:scale-[1.02] transition-transform`}>
+    <div className="flex items-center gap-3">
+      <div className="p-2 bg-white/20 rounded-xl text-2xl">
+        {icon}
+      </div>
+      <div>
+        <p className="text-white/80 text-xs font-medium">{label}</p>
+        <p className="text-white text-xl font-bold">{value}</p>
+        {subtitle && <p className="text-white/60 text-xs">{subtitle}</p>}
+      </div>
+    </div>
+  </div>
+);
+
+// ============================================================
 // GLAVNA KOMPONENTA
 // ============================================================
 const AIChef = () => {
   const { t, i18n } = useTranslation();
   const [tekst, setTekst] = useState('');
   const [slika, setSlika] = useState(null);
+  const [slikaPreview, setSlikaPreview] = useState(null);
   const [rezultati, setRezultati] = useState([]);
   const [filteredRezultati, setFilteredRezultati] = useState([]);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [profil, setProfil] = useState(null);
   const [poruka, setPoruka] = useState('');
+  const [porukaType, setPorukaType] = useState('info');
   const [cestePretrage, setCestePretrage] = useState([]);
   const [filteri, setFilteri] = useState({
     vrsta: '',
@@ -47,8 +67,9 @@ const AIChef = () => {
   const [progress, setProgress] = useState(0);
   const [vrijemeCekanja, setVrijemeCekanja] = useState(0);
   const [status, setStatus] = useState('');
+  const [searchMode, setSearchMode] = useState('text');
 
-  // 🔥 DAILY LIMIT - POČINJE OD 0/3 ZA FREE!
+  // 🔥 DAILY LIMIT
   const [dailyLimit, setDailyLimit] = useState({ 
     broj_pretraga: 0,
     max_pretraga: 3,
@@ -62,6 +83,7 @@ const AIChef = () => {
   const [voiceActive, setVoiceActive] = useState(false);
   const [isVoiceSearch, setIsVoiceSearch] = useState(false);
   const recognitionRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const debouncedTekst = useDebounce(tekst, 400);
 
@@ -189,7 +211,7 @@ const AIChef = () => {
   }, []);
 
   // ============================================================
-  // 🔥 DOHVATI DAILY LIMIT - ISPRAVLJENO!
+  // 🔥 DOHVATI DAILY LIMIT
   // ============================================================
   const fetchDailyLimit = useCallback(async () => {
     const email = user?.email || localStorage.getItem('userEmail');
@@ -199,7 +221,6 @@ const AIChef = () => {
       const res = await fetch(`${API_URL}/api/ai-chef/limit/${email}`);
       const data = await res.json();
       
-      // 🔥 KORISTI PODATKE KOJE SERVER VRATI - NE PRERACUNAVAJ!
       setDailyLimit({
         broj_pretraga: data.broj_pretraga || 0,
         max_pretraga: data.max_pretraga || 3,
@@ -207,14 +228,12 @@ const AIChef = () => {
         moze: data.moze || false
       });
       
-      // Ako server vrati videoAdCount, iskoristi ga
       if (data.videoAdCount !== undefined) {
         setVideoAdCount(data.videoAdCount);
       }
       
     } catch (error) {
       console.error('❌ Greška pri dohvatanju limita:', error);
-      // FALLBACK - ZAKLJUČANO!
       setDailyLimit({
         broj_pretraga: 0,
         max_pretraga: 3,
@@ -259,13 +278,15 @@ const AIChef = () => {
       if (!ADSENSE_ENABLED) {
         let seconds = 0;
         setPoruka('🎬 Simulirana video reklama...');
+        setPorukaType('info');
         const interval = setInterval(() => {
           seconds++;
           setPoruka(`🎬 Simulirana reklama... ${seconds}/3 sekundi`);
           if (seconds >= 3) {
             clearInterval(interval);
             setPoruka('✅ Simulirana reklama završena!');
-            setTimeout(() => setPoruka(''), 1000);
+            setPorukaType('success');
+            setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 1000);
             resolve(true);
           }
         }, 1000);
@@ -273,11 +294,13 @@ const AIChef = () => {
       }
 
       setPoruka('🎬 Učitavam video reklamu... Molimo sačekajte.');
+      setPorukaType('info');
       
       const adContainer = document.getElementById('video-ad-container');
       if (!adContainer) {
         setPoruka('❌ Greška: kontejner za reklamu nije pronađen');
-        setTimeout(() => setPoruka(''), 3000);
+        setPorukaType('error');
+        setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
         resolve(false);
         return;
       }
@@ -305,7 +328,8 @@ const AIChef = () => {
       } catch (e) {
         console.error('❌ AdSense greška:', e);
         setPoruka('❌ Greška pri učitavanju reklame. Pokušajte ponovo.');
-        setTimeout(() => setPoruka(''), 3000);
+        setPorukaType('error');
+        setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
         resolve(false);
         return;
       }
@@ -321,7 +345,8 @@ const AIChef = () => {
         if (seconds >= 5 && !resolved) {
           clearInterval(timer);
           setPoruka('✅ Video reklama završena!');
-          setTimeout(() => setPoruka(''), 1000);
+          setPorukaType('success');
+          setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 1000);
           adContainer.classList.add('hidden');
           resolved = true;
           resolve(true);
@@ -332,7 +357,8 @@ const AIChef = () => {
         if (!resolved) {
           clearInterval(timer);
           setPoruka('⏳ Reklama se učitava, nastavljamo...');
-          setTimeout(() => setPoruka(''), 1000);
+          setPorukaType('info');
+          setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 1000);
           adContainer.classList.add('hidden');
           resolved = true;
           resolve(true);
@@ -342,13 +368,13 @@ const AIChef = () => {
   }, []);
 
   // ============================================================
-  // 🔥 OTKLJUČAJ 1 SLIKANJE NAKON VIDEO REKLAME - SAMO FREE!
+  // 🔥 OTKLJUČAJ 1 SLIKANJE NAKON VIDEO REKLAME
   // ============================================================
   const handleUnlockWithVideo = async () => {
-    // ⭐ Premium korisnici ne trebaju video
     if (user?.premium) {
       setPoruka('⭐ Premium korisnici imaju 15 slikanja dnevno!');
-      setTimeout(() => setPoruka(''), 3000);
+      setPorukaType('info');
+      setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
       return;
     }
 
@@ -356,44 +382,44 @@ const AIChef = () => {
     
     if (!email) {
       setPoruka(t('aichef.errors.login_required'));
-      setTimeout(() => setPoruka(''), 3000);
+      setPorukaType('error');
+      setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
       return;
     }
 
-    // Provjera limita video reklama
     if (videoAdCount >= maxVideoAds) {
       setPoruka(`⚠️ Dosegli ste dnevni limit od ${maxVideoAds} video reklama. Pokušajte sutra!`);
-      setTimeout(() => setPoruka(''), 4000);
+      setPorukaType('warning');
+      setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
       return;
     }
 
-    // 🔥 VAŽNO: Ako već ima preostalih slikanja, ne treba mu video
     if (dailyLimit.preostalo > 0) {
       setPoruka(`✅ Već imate ${dailyLimit.preostalo} preostalih slikanja! Iskoristite ih.`);
-      setTimeout(() => setPoruka(''), 4000);
+      setPorukaType('success');
+      setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
       return;
     }
 
-    // 🔥 VAŽNO: Ako je već dostigao max (3/3), ne može više
     if (dailyLimit.broj_pretraga >= dailyLimit.max_pretraga) {
       setPoruka(`✅ Već ste iskoristili svih ${dailyLimit.max_pretraga} slikanja danas. Pokušajte sutra!`);
-      setTimeout(() => setPoruka(''), 4000);
+      setPorukaType('warning');
+      setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
       return;
     }
 
     setLoadingLimit(true);
     try {
-      // Prikaži video reklamu
       const videoCompleted = await showVideoAd();
       
       if (!videoCompleted) {
         setPoruka('❌ Video reklama nije završena. Pokušajte ponovo.');
+        setPorukaType('error');
         setLoadingLimit(false);
-        setTimeout(() => setPoruka(''), 3000);
+        setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
         return;
       }
 
-      // 🔥 API poziv za DODAVANJE 1 SLIKANJA
       const res = await fetch(`${API_URL}/api/ai-chef/unlock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -404,7 +430,6 @@ const AIChef = () => {
       });
       const data = await res.json();
       
-      // 🔥 KORISTI PODATKE KOJE SERVER VRATI
       setDailyLimit({
         broj_pretraga: data.broj_pretraga || 0,
         max_pretraga: data.max_pretraga || 3,
@@ -421,18 +446,20 @@ const AIChef = () => {
       
       const remaining = maxVideoAds - (videoAdCount + 1);
       setPoruka(`✅ +1 slikanje! Sada imate ${data.preostalo || 0} preostalih slikanja. Preostalo ${remaining} video reklama za danas.`);
-      setTimeout(() => setPoruka(''), 4000);
+      setPorukaType('success');
+      setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
     } catch (error) {
       console.error('❌ Greška:', error);
       setPoruka(t('aichef.errors.general'));
-      setTimeout(() => setPoruka(''), 3000);
+      setPorukaType('error');
+      setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
     } finally {
       setLoadingLimit(false);
     }
   };
 
   // ============================================================
-  // 🔥 GLAVNA PRETRAGA - ZA TIPKANJE (SA DEBOUNCE-OM)
+  // 🔥 GLAVNA PRETRAGA
   // ============================================================
   const handlePretraga = useCallback(async () => {
     if (isVoiceSearch) return;
@@ -440,32 +467,34 @@ const AIChef = () => {
 
     if (!tekst.trim() && !slika) {
       setPoruka(t('aichef.errors.no_input'));
-      setTimeout(() => setPoruka(''), 3000);
+      setPorukaType('warning');
+      setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
       return;
     }
 
     const email = user?.email || localStorage.getItem('userEmail');
     const currentLang = i18n.language || 'hr';
 
-    // 🔥 FREE KORISNIK - MORA IMATI PREOSTALIH SLIKANJA!
     if (slika && !user?.premium) {
       if (dailyLimit.preostalo <= 0) {
         setPoruka('📸 Nema slikanja! Pogledaj video za 1 slikanje.');
-        setTimeout(() => setPoruka(''), 4000);
+        setPorukaType('warning');
+        setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
         return;
       }
     }
 
-    // 🔥 PREMIUM - 15 SLIKANJA DNEVNO
     if (slika && user?.premium && dailyLimit.preostalo <= 0) {
       setPoruka(`⚠️ Dostigli ste dnevni limit od ${dailyLimit.max_pretraga} fotografija. Pokušajte sutra!`);
-      setTimeout(() => setPoruka(''), 4000);
+      setPorukaType('warning');
+      setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
       return;
     }
 
     setLoading(true);
     setVoiceActive(false);
     setPoruka(t('aichef.status.searching'));
+    setPorukaType('info');
     setProgress(10);
     setStatus(t('aichef.status.sending'));
 
@@ -532,17 +561,21 @@ const AIChef = () => {
       
       if (res.headers.get('X-Cache') === 'HIT') {
         setPoruka(`💾 Rezultati dohvaćeni iz keša (${elapsed}s)`);
+        setPorukaType('info');
       } else if (res.headers.get('X-Source') === 'database') {
         setPoruka(`📚 Rezultati iz baze (${elapsed}s)`);
+        setPorukaType('success');
       } else if (res.headers.get('X-Source') === 'ai_generated') {
         setPoruka(`🤖 Rezultati generirani od strane AI (${elapsed}s)`);
+        setPorukaType('success');
       } else {
         setPoruka(t('aichef.results.found', { count: processedData.length }));
+        setPorukaType('success');
       }
 
       setSlika(null);
+      setSlikaPreview(null);
       
-      // 🔥 NAKON USPJEŠNE PRETRAGE, osvježi limit sa servera
       if (slika && !user?.premium) {
         await fetchDailyLimit();
       }
@@ -566,20 +599,22 @@ const AIChef = () => {
       console.error('❌ Greška:', error);
       clearInterval(statusInterval);
       setPoruka(t('aichef.errors.search_failed'));
+      setPorukaType('error');
       setStatus(t('aichef.errors.error'));
-      setTimeout(() => setPoruka(''), 4000);
+      setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
     } finally {
       setLoading(false);
       setTimeout(() => {
         if (!poruka.includes('✅') && !poruka.includes('❌') && !poruka.includes('⚠️')) {
           setPoruka('');
+          setPorukaType('info');
         }
       }, 5000);
     }
   }, [tekst, slika, loading, user, dailyLimit, videoWatched, i18n.language, t, fetchDailyLimit, cestePretrage, isVoiceSearch]);
 
   // ============================================================
-  // 🔥 DIREKTNA PRETRAGA (ZA GLASOVNU) - BEZ DEBOUNCE
+  // 🔥 DIREKTNA PRETRAGA (ZA GLASOVNU)
   // ============================================================
   const handlePretragaDirect = useCallback(async (directText) => {
     if (loading) return;
@@ -587,26 +622,27 @@ const AIChef = () => {
     const searchText = directText || tekst;
     if (!searchText.trim() && !slika) {
       setPoruka(t('aichef.errors.no_input'));
-      setTimeout(() => setPoruka(''), 3000);
+      setPorukaType('warning');
+      setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
       return;
     }
 
     const email = user?.email || localStorage.getItem('userEmail');
     const currentLang = i18n.language || 'hr';
 
-    // 🔥 FREE KORISNIK - MORA IMATI PREOSTALIH SLIKANJA!
     if (slika && !user?.premium) {
       if (dailyLimit.preostalo <= 0) {
         setPoruka('📸 Nema slikanja! Pogledaj video za 1 slikanje.');
-        setTimeout(() => setPoruka(''), 4000);
+        setPorukaType('warning');
+        setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
         return;
       }
     }
 
-    // 🔥 PREMIUM - 15 SLIKANJA DNEVNO
     if (slika && user?.premium && dailyLimit.preostalo <= 0) {
       setPoruka(`⚠️ Dostigli ste dnevni limit od ${dailyLimit.max_pretraga} fotografija. Pokušajte sutra!`);
-      setTimeout(() => setPoruka(''), 4000);
+      setPorukaType('warning');
+      setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
       return;
     }
 
@@ -614,6 +650,7 @@ const AIChef = () => {
     setVoiceActive(false);
     setIsVoiceSearch(false);
     setPoruka(t('aichef.status.searching'));
+    setPorukaType('info');
     setProgress(10);
     setStatus(t('aichef.status.sending'));
 
@@ -680,17 +717,21 @@ const AIChef = () => {
       
       if (res.headers.get('X-Cache') === 'HIT') {
         setPoruka(`💾 Rezultati dohvaćeni iz keša (${elapsed}s)`);
+        setPorukaType('info');
       } else if (res.headers.get('X-Source') === 'database') {
         setPoruka(`📚 Rezultati iz baze (${elapsed}s)`);
+        setPorukaType('success');
       } else if (res.headers.get('X-Source') === 'ai_generated') {
         setPoruka(`🤖 Rezultati generirani od strane AI (${elapsed}s)`);
+        setPorukaType('success');
       } else {
         setPoruka(t('aichef.results.found', { count: processedData.length }));
+        setPorukaType('success');
       }
 
       setSlika(null);
+      setSlikaPreview(null);
       
-      // 🔥 NAKON USPJEŠNE PRETRAGE, osvježi limit sa servera
       if (slika && !user?.premium) {
         await fetchDailyLimit();
       }
@@ -714,21 +755,23 @@ const AIChef = () => {
       console.error('❌ Greška:', error);
       clearInterval(statusInterval);
       setPoruka(t('aichef.errors.search_failed'));
+      setPorukaType('error');
       setStatus(t('aichef.errors.error'));
-      setTimeout(() => setPoruka(''), 4000);
+      setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
     } finally {
       setLoading(false);
       setIsVoiceSearch(false);
       setTimeout(() => {
         if (!poruka.includes('✅') && !poruka.includes('❌') && !poruka.includes('⚠️')) {
           setPoruka('');
+          setPorukaType('info');
         }
       }, 5000);
     }
   }, [slika, user, dailyLimit, videoWatched, i18n.language, t, fetchDailyLimit, cestePretrage, loading, tekst]);
 
   // ============================================================
-  // 🔥 DEBOUNCE - SAMO ZA TIPKANJE (NE ZA GLASOVNU)
+  // 🔥 DEBOUNCE - SAMO ZA TIPKANJE
   // ============================================================
   useEffect(() => {
     if (isVoiceSearch) return;
@@ -739,7 +782,7 @@ const AIChef = () => {
   }, [debouncedTekst, loading, handlePretraga, isVoiceSearch]);
 
   // ============================================================
-  // 🔥 FILTRIRAJ REZULTATE SA RESTRIKCIJAMA - POPRAVLJENO!
+  // FILTRIRAJ REZULTATE SA RESTRIKCIJAMA - POPRAVLJENO!
   // ============================================================
   useEffect(() => {
     let filtered = rezultati;
@@ -754,7 +797,6 @@ const AIChef = () => {
       filtered = filtered.filter(r => r.tezina === filteri.tezina);
     }
     
-    // 🔥 POPRAVLJENO - KORISTI izbjegava umjesto alergeni!
     if (profil?.izbjegava && profil.izbjegava.length > 0) {
       const restrikcije = profil.izbjegava.filter(r => 
         r !== 'Bez restrikcija' && r !== 'No restrictions' && r !== 'Keine Einschränkungen'
@@ -776,7 +818,8 @@ const AIChef = () => {
   const handleVoiceSearch = () => {
     if (!user?.premium) {
       setPoruka(t('aichef.errors.voice_premium'));
-      setTimeout(() => setPoruka(''), 3000);
+      setPorukaType('warning');
+      setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
       return;
     }
 
@@ -786,7 +829,8 @@ const AIChef = () => {
       const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
       if (!recognition) {
         setPoruka(t('aichef.errors.voice_not_supported'));
-        setTimeout(() => setPoruka(''), 3000);
+        setPorukaType('error');
+        setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
         setIsVoiceSearch(false);
         return;
       }
@@ -800,6 +844,7 @@ const AIChef = () => {
       
       setVoiceActive(true);
       setPoruka('🎤 Slušam... Govorite svoj upit');
+      setPorukaType('info');
       setLoading(true);
       setStatus('🎤 Glasovna pretraga...');
       setProgress(10);
@@ -810,6 +855,7 @@ const AIChef = () => {
         
         if (e.results[0].isFinal) {
           setPoruka(`✅ Prepoznato: "${transcript}"`);
+          setPorukaType('success');
           setStatus('📝 Prepoznat tekst, pokrećem pretragu...');
           setProgress(30);
           setVoiceActive(false);
@@ -820,13 +866,15 @@ const AIChef = () => {
             }, 100);
           } else {
             setPoruka('❌ Nisam prepoznao tekst. Pokušajte ponovo.');
+            setPorukaType('error');
             setLoading(false);
             setProgress(0);
             setIsVoiceSearch(false);
-            setTimeout(() => setPoruka(''), 3000);
+            setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
           }
         } else {
           setPoruka(`🎤 Slušam: "${transcript}"`);
+          setPorukaType('info');
         }
       };
       
@@ -836,10 +884,11 @@ const AIChef = () => {
         
         if (!tekst.trim() && loading) {
           setPoruka('❌ Nisam prepoznao tekst. Pokušajte ponovo.');
+          setPorukaType('error');
           setLoading(false);
           setProgress(0);
           setIsVoiceSearch(false);
-          setTimeout(() => setPoruka(''), 3000);
+          setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
         }
       };
       
@@ -859,7 +908,8 @@ const AIChef = () => {
         } else {
           setPoruka('❌ Greška pri glasovnoj pretrazi. Pokušajte ponovo.');
         }
-        setTimeout(() => setPoruka(''), 4000);
+        setPorukaType('error');
+        setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
       };
       
       recognition.start();
@@ -880,7 +930,8 @@ const AIChef = () => {
       setProgress(0);
       setIsVoiceSearch(false);
       setPoruka('❌ Greška pri glasovnoj pretrazi. Pokušajte ponovo.');
-      setTimeout(() => setPoruka(''), 3000);
+      setPorukaType('error');
+      setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
     }
   };
 
@@ -897,490 +948,411 @@ const AIChef = () => {
   // RENDER
   // ============================================================
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
-      <h1 className="text-3xl md:text-4xl font-extrabold text-gray-800 dark:text-white mb-2 text-center">
-        {t('aichef.title')}
-      </h1>
-      <p className="text-gray-600 dark:text-gray-300 text-center mb-6">
-        {t('aichef.subtitle')}
-      </p>
-
-      {poruka && (
-        <div className={`text-center p-3 mb-4 rounded-xl ${
-          poruka.includes('✅') ? 'bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-200' : 
-          poruka.includes('❌') || poruka.includes('⚠️') ? 'bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-200' : 
-          poruka.includes('💾') ? 'bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-200' :
-          poruka.includes('🎤') ? 'bg-yellow-100 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-200' :
-          'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200'
-        }`}>
-          {poruka}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-8 px-4">
+      <div className="max-w-6xl mx-auto">
+        {/* HERO SEKCIJA */}
+        <div className="text-center mb-8 animate-fadeIn">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 dark:from-purple-500/20 dark:to-blue-500/20 rounded-full px-4 py-1.5 mb-4 border border-purple-200/30 dark:border-purple-700/30">
+            <span className="text-purple-500">✨</span>
+            <span className="text-xs font-medium text-purple-600 dark:text-purple-400">
+              {user?.premium ? '⭐ PREMIUM' : '🔓 FREE'}
+            </span>
+          </div>
+          
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent">
+            {t('aichef.title')}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2 max-w-2xl mx-auto">
+            {t('aichef.subtitle')}
+          </p>
         </div>
-      )}
 
-      {/* GLAVNI KONTEJNER */}
-      <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 shadow-md mb-6">
-        
-        {/* ============================================================
-            🔥 FREE KORISNIK - VIDEO → SLIKANJE (POČINJE OD 0/3!)
-            ============================================================ */}
-        {!user?.premium && (
-          <div className="mb-4 space-y-3">
-            {/* 🔥 STATUS - prikazuje iskorišteno (0/3 na početku) */}
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-4 text-sm">
-                <span className="text-gray-600 dark:text-gray-400">
-                  📸 <span className={`font-semibold ${dailyLimit.broj_pretraga >= dailyLimit.max_pretraga ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
-                    {dailyLimit.broj_pretraga}
-                  </span>/{dailyLimit.max_pretraga} {t('aichef.status_labels.photos')}
-                </span>
-                <span className="text-gray-600 dark:text-gray-400">
-                  📺 <span className={`font-semibold ${videoAdCount >= maxVideoAds ? 'text-red-500' : 'text-yellow-600 dark:text-yellow-400'}`}>
-                    {maxVideoAds - videoAdCount}
-                  </span>/{maxVideoAds} {t('aichef.status_labels.video')}
-                </span>
-              </div>
-              
-              {/* 🔥 POKAŽI KOLIKO JE PREOSTALO */}
-              {dailyLimit.preostalo > 0 ? (
-                <span className="text-xs font-semibold text-green-600 dark:text-green-400">
-                  ✅ {dailyLimit.preostalo} {t('aichef.status_labels.remaining')}
-                </span>
-              ) : dailyLimit.broj_pretraga >= dailyLimit.max_pretraga ? (
-                <span className="text-xs font-semibold text-red-500">
-                  🚫 {t('aichef.status_labels.limit_used')}
-                </span>
-              ) : (
-                <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400 animate-pulse">
-                  🎬 {t('aichef.status_labels.watch_video')}
-                </span>
-              )}
-            </div>
-
-            {/* 📸 DUGME ZA SLIKANJE - ZAKLJUČANO AKO JE preostalo <= 0 */}
-            <div className="flex flex-col gap-2">
-              <button
-                className={`px-8 py-4 rounded-2xl text-lg font-semibold transition shadow-md hover:shadow-lg flex items-center gap-3 w-full justify-center ${
-                  dailyLimit.preostalo > 0
-                    ? 'bg-green-600 hover:bg-green-700 text-white animate-pulse'
-                    : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                }`}
-                onClick={() => {
-                  if (dailyLimit.preostalo > 0) {
-                    document.getElementById('fileInput').click();
-                  }
-                }}
-                disabled={dailyLimit.preostalo <= 0}
-              >
-                <span className="text-3xl">📸</span> 
-                {dailyLimit.preostalo > 0 
-                  ? `${t('aichef.buttons.take_photo')} (${dailyLimit.preostalo} ${t('aichef.status_labels.remaining')})`
-                  : dailyLimit.broj_pretraga >= dailyLimit.max_pretraga
-                    ? t('aichef.buttons.limit_used_tomorrow')
-                    : t('aichef.buttons.watch_video_unlock')
-                }
-              </button>
-              
-              <input
-                id="fileInput"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  if (e.target.files[0]) {
-                    setSlika(e.target.files[0]);
-                  }
-                }}
-              />
-            </div>
-
-            {/* ============================================================
-                🎬 VIDEO OTKLJUČAVANJE - POPRAVLJENO!
-                ============================================================ */}
-            {videoAdCount < maxVideoAds && dailyLimit.preostalo === 0 && dailyLimit.broj_pretraga < dailyLimit.max_pretraga && (
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-2 border-yellow-400/50 dark:border-yellow-600/50 p-4 md:p-5 transition-all hover:border-yellow-500">
-                <div className="absolute -right-6 -top-6 text-7xl opacity-10 select-none">🎬</div>
-                
-                <div className="relative flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex items-start gap-4 w-full sm:w-auto">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-yellow-500/20 text-2xl animate-pulse">
-                      🎬
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-gray-800 dark:text-white">
-                        {t('aichef.unlock.watch_for_photo')}
-                      </h4>
-                      {/* ✅ ISPRAVLJENO - direktan prikaz brojeva, bez t() */}
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        Trenutno: {dailyLimit.broj_pretraga}/{dailyLimit.max_pretraga} slikanja
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Preostalo video reklama: {maxVideoAds - videoAdCount}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <button
-                    onClick={handleUnlockWithVideo}
-                    disabled={loadingLimit || videoWatched || videoAdCount >= maxVideoAds}
-                    className={`relative flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white transition-all duration-300 w-full sm:w-auto justify-center ${
-                      loadingLimit || videoWatched || videoAdCount >= maxVideoAds
-                        ? 'bg-gray-400 cursor-not-allowed opacity-60'
-                        : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:scale-105 hover:shadow-lg active:scale-95'
-                    }`}
-                  >
-                    {loadingLimit ? (
-                      <>
-                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Učitavanje...
-                      </>
-                    ) : videoWatched ? (
-                      '✅ ' + t('aichef.unlock.unlocked_photo')
-                    ) : videoAdCount >= maxVideoAds ? (
-                      '🚫 ' + t('aichef.unlock.video_limit_reached')
-                    ) : (
-                      <>
-                        <span>▶️</span> {t('aichef.buttons.watch_video_action')}
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                <div id="video-ad-container" className={`mt-4 min-h-[200px] bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden ${videoWatched ? '' : 'hidden'}`}></div>
-
-                {videoWatched && (
-                  <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/30 rounded-xl border border-green-200 dark:border-green-700 animate-fadeIn">
-                    <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
-                      <span className="text-xl">✅</span> 
-                      <span className="font-semibold">{t('aichef.unlock.unlocked_photo')}</span> 
-                      {/* ✅ ISPRAVLJENO - direktan prikaz brojeva */}
-                      <span className="text-green-600 dark:text-green-400">
-                        Sada imate {dailyLimit.preostalo} preostalih slikanja od {dailyLimit.max_pretraga}
-                      </span>
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* KADA KORISNIK IMA PREOSTALIH SLIKANJA - pokaži mu da ih iskoristi */}
-            {dailyLimit.preostalo > 0 && dailyLimit.broj_pretraga < dailyLimit.max_pretraga && (
-              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-700">
-                <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
-                  <span className="text-xl">✅</span>
-                  <span>Iskoristite {dailyLimit.preostalo} preostalih slikanja!</span>
-                </p>
-              </div>
-            )}
-
-            {/* KADA JE POTROŠIO SVE SLIKE (3/3) */}
-            {dailyLimit.broj_pretraga >= dailyLimit.max_pretraga && (
-              <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-center border border-gray-200 dark:border-gray-700">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Potrošili ste svih {dailyLimit.max_pretraga} slikanja za danas
-                </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                  Pokušajte sutra za nove pretrage
-                </p>
-              </div>
-            )}
-
-            {/* Limit video iskorišten */}
-            {videoAdCount >= maxVideoAds && dailyLimit.broj_pretraga < dailyLimit.max_pretraga && (
-              <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-xl text-center border border-gray-200 dark:border-gray-700">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  📺 Iskoristili ste svih {maxVideoAds} video reklama za danas
-                </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                  Pokušajte sutra za nove pretrage
-                </p>
-              </div>
-            )}
-
-            {/* PREMIUM PROMO - POPRAVLJENO! */}
-            <div className="text-center mt-2">
-              <Link 
-                to="/premium" 
-                className="text-xs text-gray-400 dark:text-gray-500 hover:text-yellow-500 dark:hover:text-yellow-400 transition"
-              >
-                ⭐ Premium korisnici imaju 15 slikanja dnevno (bez video reklama) →
-              </Link>
+        {/* PORUKA */}
+        {poruka && (
+          <div className={`mb-6 p-4 rounded-2xl backdrop-blur-sm border animate-fadeIn ${
+            porukaType === 'success' 
+              ? 'bg-green-50/80 dark:bg-green-900/30 border-green-200 dark:border-green-700 text-green-700 dark:text-green-300'
+              : porukaType === 'error' 
+              ? 'bg-red-50/80 dark:bg-red-900/30 border-red-200 dark:border-red-700 text-red-700 dark:text-red-300'
+              : porukaType === 'warning'
+              ? 'bg-yellow-50/80 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300'
+              : 'bg-blue-50/80 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300'
+          }`}>
+            <div className="flex items-center gap-3">
+              <span className="text-xl flex-shrink-0">
+                {porukaType === 'success' && '✅'}
+                {porukaType === 'error' && '❌'}
+                {porukaType === 'warning' && '⚠️'}
+                {porukaType === 'info' && '✨'}
+              </span>
+              <p className="text-sm flex-1">{poruka}</p>
             </div>
           </div>
         )}
 
-        {/* ============================================================
-            ⭐ PREMIUM KORISNIK - 15 SLIKANJA, NEMA VIDEOREKLAMA!
-            ============================================================ */}
-        {user?.premium && (
-          <div className="mb-4">
-            <div className="flex items-center justify-between px-1 mb-3">
-              <div className="flex items-center gap-4 text-sm">
-                <span className="text-gray-600 dark:text-gray-400">
-                  📸 <span className="font-semibold text-blue-600 dark:text-blue-400">
-                    {dailyLimit.broj_pretraga}
-                  </span>/{dailyLimit.max_pretraga || 15} {t('aichef.status_labels.photos')}
+        {/* GLAVNI KONTEJNER */}
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-6 md:p-8 animate-fadeIn">
+          {/* STATISTIKE - SAMO AKO JE KORISNIK PRIJAVLJEN */}
+          {user && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+              <StatsCard
+                icon="📸"
+                label="Preostala slikanja"
+                value={dailyLimit.preostalo}
+                color="from-blue-500 to-blue-600"
+                subtitle={`/${dailyLimit.max_pretraga}`}
+              />
+              <StatsCard
+                icon="🎬"
+                label="Video reklame"
+                value={maxVideoAds - videoAdCount}
+                color="from-purple-500 to-purple-600"
+                subtitle={`/${maxVideoAds}`}
+              />
+              <StatsCard
+                icon="⭐"
+                label="Status"
+                value={user?.premium ? 'Premium' : 'Free'}
+                color="from-amber-500 to-amber-600"
+              />
+              <StatsCard
+                icon="⏱️"
+                label="Današnje pretrage"
+                value={dailyLimit.broj_pretraga}
+                color="from-emerald-500 to-emerald-600"
+                subtitle={`od ${dailyLimit.max_pretraga}`}
+              />
+            </div>
+          )}
+
+          {/* SEARCH MODE - DUGMAD */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            <button
+              onClick={() => setSearchMode('text')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                searchMode === 'text'
+                  ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg shadow-purple-500/25'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              <span>🔍</span>
+              Tekst
+            </button>
+            <button
+              onClick={() => {
+                setSearchMode('image');
+                if (dailyLimit.preostalo > 0 || user?.premium) {
+                  fileInputRef.current?.click();
+                } else {
+                  setPoruka('📸 Nema slikanja! Pogledaj video za 1 slikanje.');
+                  setPorukaType('warning');
+                  setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
+                }
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                searchMode === 'image'
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              <span>📷</span>
+              Slika
+              {!user?.premium && dailyLimit.preostalo > 0 && (
+                <span className="ml-1 text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full">
+                  {dailyLimit.preostalo}
                 </span>
-                <span className="text-gray-600 dark:text-gray-400">
-                  ⭐ Premium
-                </span>
-              </div>
-              {dailyLimit.preostalo > 0 && (
-                <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                  ✅ {dailyLimit.preostalo} {t('aichef.status_labels.remaining')}
-                </span>
+              )}
+            </button>
+            <button
+              onClick={handleVoiceSearch}
+              disabled={!user?.premium || loading}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                user?.premium && !loading
+                  ? voiceActive
+                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/25 animate-pulse'
+                    : 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-500/25 hover:shadow-xl'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              <span>🎤</span>
+              {voiceActive ? 'Slušam...' : 'Glas'}
+              {!user?.premium && ' ⭐'}
+            </button>
+          </div>
+
+          {/* INPUT KONTEJNER */}
+          <div className="relative">
+            <div className="relative">
+              <textarea
+                id="tekstInput"
+                value={tekst}
+                onChange={(e) => setTekst(e.target.value)}
+                placeholder={t('aichef.placeholder')}
+                className="w-full border-0 bg-gray-50/80 dark:bg-gray-700/50 rounded-2xl px-5 py-4 h-28 resize-none focus:outline-none focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-500 transition-all text-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+              />
+              {tekst && (
+                <button
+                  onClick={() => setTekst('')}
+                  className="absolute right-3 top-3 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                >
+                  <span className="text-gray-400">✕</span>
+                </button>
               )}
             </div>
 
-            <button
-              className={`px-8 py-4 rounded-2xl text-lg font-semibold transition shadow-md hover:shadow-lg flex items-center gap-3 w-full justify-center ${
-                dailyLimit.preostalo > 0
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                  : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-              }`}
-              onClick={() => dailyLimit.preostalo > 0 && document.getElementById('fileInputPremium').click()}
-              disabled={dailyLimit.preostalo <= 0}
-            >
-              <span className="text-3xl">📸</span> 
-              {dailyLimit.preostalo > 0 
-                ? `${t('aichef.buttons.take_photo')} (${dailyLimit.preostalo} ${t('aichef.status_labels.remaining')})`
-                : t('aichef.buttons.limit_used_tomorrow')
-              }
-            </button>
-            
+            {/* SLIKA PREVIEW */}
+            {slikaPreview && (
+              <div className="mt-3 relative inline-block animate-fadeIn">
+                <img 
+                  src={slikaPreview} 
+                  alt="Upload" 
+                  className="h-32 w-32 object-cover rounded-2xl border-2 border-purple-200 dark:border-purple-700"
+                />
+                <button
+                  onClick={() => {
+                    setSlika(null);
+                    setSlikaPreview(null);
+                    setSearchMode('text');
+                  }}
+                  className="absolute -top-2 -right-2 p-1.5 bg-red-500 hover:bg-red-600 rounded-full text-white transition shadow-lg"
+                >
+                  <span className="text-sm">🗑️</span>
+                </button>
+              </div>
+            )}
+
             <input
-              id="fileInputPremium"
+              ref={fileInputRef}
               type="file"
               accept="image/*"
               className="hidden"
               onChange={(e) => {
                 if (e.target.files[0]) {
                   setSlika(e.target.files[0]);
+                  setSlikaPreview(URL.createObjectURL(e.target.files[0]));
+                  setSearchMode('image');
                 }
               }}
             />
-
-            {/* 🔥 POPRAVLJENO - BROJ SE PRIKAZUJE DIREKTNO, BEZ t() ZA BROJEVE! */}
-            <p className="text-xs text-center text-blue-600 dark:text-blue-400 mt-1">
-              ⭐ Premium korisnici imaju {dailyLimit.max_pretraga || 15} slikanja dnevno (bez video reklama)
-            </p>
           </div>
-        )}
 
-        {/* ============================================================
-            ✏️ TEKST INPUT - ZAJEDNIČKI ZA SVE
-            ============================================================ */}
-        <div className="flex flex-wrap gap-4 justify-center mb-4">
+          {/* DUGME ZA PRETRAGU */}
           <button
-            className="bg-gray-600 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-8 py-4 rounded-2xl text-lg font-semibold transition shadow-md hover:shadow-lg flex items-center gap-3"
-            onClick={() => document.getElementById('tekstInput').focus()}
+            onClick={handlePretraga}
+            disabled={loading}
+            className="w-full mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-4 rounded-2xl font-semibold text-lg transition-all shadow-lg shadow-purple-500/25 hover:shadow-xl disabled:opacity-50 flex items-center justify-center gap-3"
           >
-            <span className="text-3xl">✏️</span> {t('aichef.buttons.type')}
+            {loading ? (
+              <>
+                <span className="animate-spin inline-block">⏳</span>
+                {t('aichef.buttons.searching')}
+              </>
+            ) : (
+              <>
+                <span>✨</span>
+                {t('aichef.buttons.search')}
+              </>
+            )}
           </button>
 
-          <button
-            className={`px-8 py-4 rounded-2xl text-lg font-semibold transition shadow-md hover:shadow-lg flex items-center gap-3 ${
-              user?.premium
-                ? `bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 text-white ${voiceActive ? 'animate-pulse ring-2 ring-red-500' : ''}`
-                : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-            }`}
-            onClick={handleVoiceSearch}
-            disabled={!user?.premium || loading}
-          >
-            <span className="text-3xl">{voiceActive ? '🔴' : '🎤'}</span> 
-            {voiceActive ? 'Slušam...' : t('aichef.buttons.voice')} 
-            {!user?.premium && '⭐ PREMIUM'}
-          </button>
-        </div>
-
-        {/* 🔥 LOADING INDIKATOR */}
-        {loading && (
-          <div className="mb-4">
-            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300 mb-1">
-              <span className="flex items-center gap-2">
-                {voiceActive && <span className="text-red-500 animate-pulse text-lg">●</span>}
-                {status?.includes('AI') && '🤖'}
-                {status?.includes('bazu') && '🔍'}
-                {status?.includes('generira') && '🧠'}
-                {status?.includes('Glasovna') && '🎤'}
-                {status}
-              </span>
-              <span>{Math.round(progress)}%</span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-              <div
-                className={`h-2.5 rounded-full transition-all duration-300 ${
-                  status?.includes('AI') || status?.includes('generira') 
-                    ? 'bg-purple-600' 
-                    : status?.includes('bazu') 
-                    ? 'bg-blue-600'
-                    : status?.includes('Glasovna')
-                    ? 'bg-yellow-500'
-                    : 'bg-green-600'
-                }`}
-                style={{ width: `${Math.min(progress, 100)}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 mt-1">
-              <span className="flex items-center gap-1">
-                <span className="animate-pulse">⏳</span>
-                {vrijemeCekanja > 0 && `${vrijemeCekanja}s`}
-              </span>
-              <span>
-                {poruka && poruka.includes('AI') && '🧠 AI generira recepte...'}
-                {poruka && poruka.includes('bazu') && '📚 Pretraga baze...'}
-                {poruka && poruka.includes('keša') && '💾 Dohvat iz keša...'}
-                {poruka && poruka.includes('Slušam') && '🎤 Slušam...'}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {slika && (
-          <div className="text-center mb-4">
-            <img src={URL.createObjectURL(slika)} alt="Upload" className="max-h-48 mx-auto rounded-lg" />
-            <button
-              onClick={() => setSlika(null)}
-              className="text-red-500 dark:text-red-400 text-sm mt-1 hover:underline"
-            >
-              {t('aichef.buttons.remove_image')}
-            </button>
-          </div>
-        )}
-
-        <textarea
-          id="tekstInput"
-          value={tekst}
-          onChange={(e) => setTekst(e.target.value)}
-          placeholder={t('aichef.placeholder')}
-          className="w-full border rounded-xl px-4 py-3 h-24 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:text-white dark:border-gray-600"
-        />
-
-        <button
-          onClick={handlePretraga}
-          disabled={loading}
-          className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white py-3 rounded-xl text-lg font-semibold transition mt-4 disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {loading ? (
-            <>
-              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              {t('aichef.buttons.searching')}
-            </>
-          ) : (
-            t('aichef.buttons.search')
-          )}
-        </button>
-
-        {!user?.premium && (
-          <div className="text-center mt-3">
-            <p className="text-xs text-gray-400 dark:text-gray-500">
-              {t('aichef.premium_hint')}
-            </p>
-            <Link to="/premium" className="text-sm text-yellow-600 dark:text-yellow-400 font-semibold hover:underline">
-              {t('aichef.premium_link')}
-            </Link>
-          </div>
-        )}
-      </div>
-
-      {/* REZULTATI */}
-      {rezultati.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">{t('aichef.results.title')}</h2>
-
-          <div className="flex flex-wrap gap-2 mb-4">
-            <select
-              className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600"
-              value={filteri.vrsta}
-              onChange={(e) => setFilteri({ ...filteri, vrsta: e.target.value })}
-            >
-              <option value="">🍽️ {t('aichef.filters.all_types')}</option>
-              {opcije.vrsta.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-            <select
-              className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600"
-              value={filteri.vrijeme}
-              onChange={(e) => setFilteri({ ...filteri, vrijeme: e.target.value })}
-            >
-              <option value="">⏱️ {t('aichef.filters.all_time')}</option>
-              {opcije.vrijeme.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-            <select
-              className="border rounded-lg px-3 py-1.5 text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600"
-              value={filteri.tezina}
-              onChange={(e) => setFilteri({ ...filteri, tezina: e.target.value })}
-            >
-              <option value="">🏋️ {t('aichef.filters.all_difficulty')}</option>
-              {opcije.tezina.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-            <button
-              onClick={() => setFilteri({ vrsta: '', vrijeme: '', tezina: '' })}
-              className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded-lg text-sm font-semibold transition"
-            >
-              🔄 {t('aichef.filters.reset')}
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredRezultati.map(recipe => (
-              <Link
-                key={recipe.id}
-                to={`/recipes/${recipe.id}`}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition overflow-hidden border border-gray-100 dark:border-gray-700 hover:scale-105 duration-200"
-              >
-                <img
-                  src={recipe.slika || 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Recept'}
-                  alt={recipe.naziv}
-                  className="w-full h-40 object-cover"
+          {/* LOADING PROGRESS */}
+          {loading && (
+            <div className="mt-4 space-y-2">
+              <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+                <span className="flex items-center gap-2">
+                  {status?.includes('AI') && '🤖'}
+                  {status?.includes('bazu') && '🔍'}
+                  {status?.includes('generira') && '🧠'}
+                  {status?.includes('Glasovna') && '🎤'}
+                  {status}
+                </span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min(progress, 100)}%` }}
                 />
-                <div className="p-4">
-                  <h3 className="font-bold text-base dark:text-white">{recipe.naziv}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{recipe.vrijeme} • {recipe.kalorije}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {cestePretrage.filter(p => p.rezultati > 0).length > 0 && (
-            <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
-              <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-2">{t('aichef.common_searches')}</h3>
-              <div className="flex flex-wrap gap-2">
-                {cestePretrage.filter(p => p.rezultati > 0).map((p, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setTekst(p.tekst)}
-                    className="bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200 px-3 py-1 rounded-full text-sm hover:bg-blue-200 dark:hover:bg-blue-700 transition"
-                  >
-                    {p.tekst} ({p.rezultati})
-                  </button>
-                ))}
+              </div>
+              <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500">
+                <span className="flex items-center gap-1">
+                  <span className="animate-pulse">⏳</span>
+                  {vrijemeCekanja > 0 && `${vrijemeCekanja}s`}
+                </span>
+                <span>
+                  {poruka && poruka.includes('AI') && '🧠 AI generira recepte...'}
+                  {poruka && poruka.includes('bazu') && '📚 Pretraga baze...'}
+                  {poruka && poruka.includes('keša') && '💾 Dohvat iz keša...'}
+                  {poruka && poruka.includes('Slušam') && '🎤 Slušam...'}
+                </span>
               </div>
             </div>
           )}
         </div>
-      )}
 
-      {!loading && rezultati.length === 0 && tekst && (
-        <div className="text-center py-8 bg-gray-50 dark:bg-gray-700 rounded-xl">
-          <p className="text-gray-500 dark:text-gray-400">{t('aichef.no_results')}</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">{t('aichef.try_again')}</p>
-        </div>
-      )}
+        {/* PREMIUM HINT */}
+        {!user?.premium && (
+          <div className="mt-4 text-center animate-fadeIn">
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              {t('aichef.premium_hint')}
+            </p>
+            <Link to="/premium" className="text-sm text-purple-600 dark:text-purple-400 font-semibold hover:underline inline-flex items-center gap-1">
+              {t('aichef.premium_link')} <span>→</span>
+            </Link>
+          </div>
+        )}
 
-      <Link to="/" className="inline-block mt-6 text-blue-500 dark:text-blue-400 hover:underline">
-        ⬅️ {t('aichef.back_home')}
-      </Link>
+        {/* REZULTATI */}
+        {rezultati.length > 0 && (
+          <div className="mt-8 animate-fadeIn">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+                {t('aichef.results.title')}
+              </h2>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {filteredRezultati.length} {t('aichef.results.recipes')}
+              </span>
+            </div>
+
+            {/* FILTERI */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <select
+                className="border-0 bg-gray-100 dark:bg-gray-700 rounded-xl px-4 py-2 text-sm dark:text-white focus:ring-2 focus:ring-purple-400"
+                value={filteri.vrsta}
+                onChange={(e) => setFilteri({ ...filteri, vrsta: e.target.value })}
+              >
+                <option value="">🍽️ {t('aichef.filters.all_types')}</option>
+                {opcije.vrsta.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+              <select
+                className="border-0 bg-gray-100 dark:bg-gray-700 rounded-xl px-4 py-2 text-sm dark:text-white focus:ring-2 focus:ring-purple-400"
+                value={filteri.vrijeme}
+                onChange={(e) => setFilteri({ ...filteri, vrijeme: e.target.value })}
+              >
+                <option value="">⏱️ {t('aichef.filters.all_time')}</option>
+                {opcije.vrijeme.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+              <select
+                className="border-0 bg-gray-100 dark:bg-gray-700 rounded-xl px-4 py-2 text-sm dark:text-white focus:ring-2 focus:ring-purple-400"
+                value={filteri.tezina}
+                onChange={(e) => setFilteri({ ...filteri, tezina: e.target.value })}
+              >
+                <option value="">🏋️ {t('aichef.filters.all_difficulty')}</option>
+                {opcije.tezina.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+              <button
+                onClick={() => setFilteri({ vrsta: '', vrijeme: '', tezina: '' })}
+                className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-xl text-sm font-medium transition"
+              >
+                🔄 {t('aichef.filters.reset')}
+              </button>
+            </div>
+
+            {/* RECEPTI GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredRezultati.map((recipe, index) => (
+                <div
+                  key={recipe.id}
+                  className="hover:-translate-y-1 transition-transform duration-300"
+                >
+                  <Link
+                    to={`/recipes/${recipe.id}`}
+                    className="block bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all border border-gray-100 dark:border-gray-700 group"
+                  >
+                    <div className="relative overflow-hidden">
+                      <img
+                        src={recipe.slika || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop'}
+                        alt={recipe.naziv}
+                        className="w-full h-48 object-cover group-hover:scale-105 transition duration-300"
+                      />
+                      {recipe._ai_generated && (
+                        <div className="absolute top-3 right-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
+                          <span>✨</span> AI
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-bold text-gray-800 dark:text-white mb-1 line-clamp-1">
+                        {recipe.naziv}
+                      </h3>
+                      <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                        <span className="flex items-center gap-1">
+                          <span>⏱️</span>
+                          {recipe.vrijeme || '30 min'}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span>🔥</span>
+                          {recipe.kalorije || 0} kcal
+                        </span>
+                        {recipe.tezina && (
+                          <span className="flex items-center gap-1">
+                            <span>⚡</span>
+                            {recipe.tezina}
+                          </span>
+                        )}
+                      </div>
+                      {recipe.izbjegava && recipe.izbjegava.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {recipe.izbjegava.slice(0, 2).map((item, i) => (
+                            <span key={i} className="text-[10px] bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-0.5 rounded-full">
+                              🚫 {item}
+                            </span>
+                          ))}
+                          {recipe.izbjegava.length > 2 && (
+                            <span className="text-[10px] text-gray-400">+{recipe.izbjegava.length - 2}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                </div>
+              ))}
+            </div>
+
+            {/* ČESTE PRETRAGE */}
+            {cestePretrage.filter(p => p.rezultati > 0).length > 0 && (
+              <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-2xl">
+                <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                  <span>⏱️</span>
+                  {t('aichef.common_searches')}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {cestePretrage.filter(p => p.rezultati > 0).map((p, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setTekst(p.tekst)}
+                      className="bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm px-3 py-1.5 rounded-full shadow-sm transition border border-gray-200 dark:border-gray-600"
+                    >
+                      {p.tekst} ({p.rezultati})
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* NO RESULTS */}
+        {!loading && rezultati.length === 0 && tekst && (
+          <div className="mt-8 text-center py-12 bg-white/50 dark:bg-gray-800/50 rounded-3xl border border-gray-200 dark:border-gray-700 animate-fadeIn">
+            <p className="text-4xl mb-3">🍽️</p>
+            <p className="text-gray-500 dark:text-gray-400">{t('aichef.no_results')}</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">{t('aichef.try_again')}</p>
+          </div>
+        )}
+
+        {/* BACK HOME */}
+        <Link to="/" className="inline-flex items-center gap-2 mt-6 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition">
+          <span>←</span>
+          {t('aichef.back_home')}
+        </Link>
+      </div>
     </div>
   );
 };
