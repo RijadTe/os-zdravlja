@@ -1,5 +1,5 @@
 // frontend/src/pages/Profile.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient';
@@ -15,11 +15,14 @@ const Profile = () => {
   const [deleting, setDeleting] = useState(false);
   const [badges, setBadges] = useState([]);
   const [badgesLoading, setBadgesLoading] = useState(true);
+  const [badgesVisible, setBadgesVisible] = useState(false);
+  const badgesRef = useRef(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   // ============================================================
   // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA
   // ============================================================
-  const translateValue = (value, type) => {
+  const translateValue = useCallback((value, type) => {
     if (!value) return t('profile.not_selected');
     
     const maps = {
@@ -79,18 +82,37 @@ const Profile = () => {
     if (map[trimmed] !== undefined) return map[trimmed];
     
     return value;
-  };
+  }, [t]);
 
   // ============================================================
-  // 🔥 DOHVATI BEDŽEVE IZ BAZE
+  // 🔥 DOHVATI BEDŽEVE IZ BAZE (sa cachingom)
   // ============================================================
-  const fetchBadges = async (email) => {
+  const fetchBadges = useCallback(async (email) => {
+    if (!email) return;
+    
+    // Provjeri cache u localStorage
+    const cacheKey = `badges_${email}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        const cacheTime = parsed._timestamp || 0;
+        // Cache vrijedi 5 minuta
+        if (Date.now() - cacheTime < 300000) {
+          setBadges(parsed.badges || []);
+          setBadgesLoading(false);
+          return;
+        }
+      } catch (e) {}
+    }
+    
     try {
       setBadgesLoading(true);
       const response = await fetch(`${API_URL}/api/badges/${encodeURIComponent(email)}`);
       
       if (response.status === 404) {
         setBadges([]);
+        setBadgesLoading(false);
         return;
       }
       
@@ -100,6 +122,11 @@ const Profile = () => {
       
       if (data.success && data.badges) {
         setBadges(data.badges);
+        // Spremi u cache
+        localStorage.setItem(cacheKey, JSON.stringify({
+          badges: data.badges,
+          _timestamp: Date.now()
+        }));
       } else {
         setBadges([]);
       }
@@ -109,17 +136,70 @@ const Profile = () => {
     } finally {
       setBadgesLoading(false);
     }
-  };
+  }, []);
 
   // ============================================================
-  // 📊 DOHVATI PROFIL
+  // 🔥 POZADINSKO OSVJEŽAVANJE PROFILA
   // ============================================================
-  const fetchProfile = async (email) => {
+  const refreshProfileInBackground = useCallback(async (email) => {
+    try {
+      const [profileRes, badgesRes] = await Promise.all([
+        fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`),
+        fetch(`${API_URL}/api/badges/${encodeURIComponent(email)}`).catch(() => ({ ok: false }))
+      ]);
+      
+      if (profileRes.ok) {
+        const data = await profileRes.json();
+        if (data.success && data.data) {
+          setProfile(data.data);
+          // Ažuriraj localStorage
+          const user = JSON.parse(localStorage.getItem('user') || '{}');
+          user.profile = data.data;
+          user.premium = data.data.premium || false;
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+      }
+      
+      if (badgesRes.ok) {
+        const data = await badgesRes.json();
+        if (data.success && data.badges) {
+          setBadges(data.badges);
+          // Spremi u cache
+          const cacheKey = `badges_${email}`;
+          localStorage.setItem(cacheKey, JSON.stringify({
+            badges: data.badges,
+            _timestamp: Date.now()
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('❌ Pozadinsko osvježavanje:', error);
+    }
+  }, []);
+
+  // ============================================================
+  // 📊 DOHVATI PROFIL (optimizirano)
+  // ============================================================
+  const fetchProfile = useCallback(async (email) => {
+    if (!email) return;
+    
+    // 🔥 PRVO PROVJERI LOCALSTORAGE CACHE
+    const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (cachedUser?.profile) {
+      setProfile(cachedUser.profile);
+      setUser(cachedUser);
+      setLoading(false);
+      
+      // U pozadini osvježi
+      refreshProfileInBackground(email);
+      return;
+    }
+    
     try {
       const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
       
       if (response.status === 429) {
-        const storedUser = JSON.parse(localStorage.getItem('user'));
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
         if (storedUser) {
           const fallbackProfile = {
             ime: storedUser.ime || 'Korisnik',
@@ -145,20 +225,33 @@ const Profile = () => {
       
       if (data.success && data.data) {
         setProfile(data.data);
-        const storedUser = JSON.parse(localStorage.getItem('user'));
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
         if (storedUser) {
           storedUser.premium = data.data.premium || false;
           storedUser.profile = data.data;
           storedUser.preferred_language = data.data.preferred_language || 'hr';
           localStorage.setItem('user', JSON.stringify(storedUser));
         }
-        await fetchBadges(email);
+        
+        // Badges će se učitati lazy kad korisnik skrola do njih
+        // ali ako su već u cache-u, prikaži ih odmah
+        const cacheKey = `badges_${email}`;
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            if (Date.now() - (parsed._timestamp || 0) < 300000) {
+              setBadges(parsed.badges || []);
+              setBadgesLoading(false);
+            }
+          } catch (e) {}
+        }
       } else {
         await createProfile(email);
       }
     } catch (error) {
       console.error('❌ Greška pri dohvatu profila:', error);
-      const storedUser = JSON.parse(localStorage.getItem('user'));
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
       if (storedUser) {
         const fallbackProfile = {
           ime: storedUser.ime || 'Korisnik',
@@ -181,12 +274,12 @@ const Profile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [refreshProfileInBackground]);
 
   // ============================================================
   // 🆕 KREIRAJ PROFIL
   // ============================================================
-  const createProfile = async (email) => {
+  const createProfile = useCallback(async (email) => {
     try {
       const preferredLanguage = localStorage.getItem('preferredLanguage') || 'hr';
       
@@ -208,64 +301,63 @@ const Profile = () => {
       
       if (data.success) {
         setProfile(data.data);
-        await fetchBadges(email);
       }
     } catch (error) {
       console.error('❌ Greška pri kreiranju profila:', error);
     }
-  };
+  }, [user, t]);
 
   // ============================================================
-  // 🔐 AUTH
+  // 🔐 AUTH (optimizirano)
   // ============================================================
   useEffect(() => {
     const checkUser = async () => {
       try {
+        // 🔥 PRVO PROVJERI LOCALSTORAGE
+        const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        if (cachedUser?.email && cachedUser?.profile) {
+          setUser(cachedUser);
+          setProfile(cachedUser.profile);
+          setLoading(false);
+          
+          // U pozadini osvježi
+          refreshProfileInBackground(cachedUser.email);
+          return;
+        }
+        
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
           const email = session.user.email;
-          let premiumStatus = false;
-          let profileData = null;
           
-          try {
-            const profileResponse = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
-            if (profileResponse.ok) {
-              const profileResult = await profileResponse.json();
-              if (profileResult.success && profileResult.data) {
-                premiumStatus = profileResult.data.premium || false;
-                profileData = profileResult.data;
-              }
-            }
-          } catch (profileError) {
-            console.warn('⚠️ Greška pri dohvatu profila:', profileError);
+          // Provjeri cache
+          if (cachedUser?.email === email && cachedUser?.profile) {
+            setUser(cachedUser);
+            setProfile(cachedUser.profile);
+            setLoading(false);
+            refreshProfileInBackground(email);
+            return;
           }
           
           const supabaseUser = {
             id: session.user.id,
             email: session.user.email,
             ime: session.user.user_metadata?.ime || '',
-            premium: premiumStatus,
-            profile: profileData,
-            preferred_language: profileData?.preferred_language || 'hr'
+            premium: false,
+            profile: null,
+            preferred_language: 'hr'
           };
           
           setUser(supabaseUser);
           localStorage.setItem('user', JSON.stringify(supabaseUser));
           localStorage.setItem('userEmail', session.user.email);
           
-          if (profileData) {
-            setProfile(profileData);
-            await fetchBadges(email);
-            setLoading(false);
-          } else {
-            await fetchProfile(session.user.email);
-          }
+          await fetchProfile(email);
           return;
         }
         
-        const userData = JSON.parse(localStorage.getItem('user'));
-        if (!userData) {
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!userData?.email) {
           navigate('/login');
           return;
         }
@@ -284,16 +376,35 @@ const Profile = () => {
     };
 
     checkUser();
-  }, [navigate]);
+  }, [navigate, fetchProfile, refreshProfileInBackground]);
 
   // ============================================================
-  // 🔥 OSVJEŽI BEDŽEVE KADA SE JEZIK PROMIJENI
+  // 🔥 LAZY LOAD BADGES - kad korisnik skrola do njih
   // ============================================================
   useEffect(() => {
-    if (profile?.email) {
+    if (!badgesRef.current || badgesVisible) return;
+    
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setBadgesVisible(true);
+        if (profile?.email) {
+          fetchBadges(profile.email);
+        }
+      }
+    }, { threshold: 0.1, rootMargin: '100px' });
+    
+    observer.observe(badgesRef.current);
+    return () => observer.disconnect();
+  }, [profile, fetchBadges, badgesVisible]);
+
+  // ============================================================
+  // 🔥 OSVJEŽI BEDŽEVE KADA SE JEZIK PROMIJENI (samo ako su vidljivi)
+  // ============================================================
+  useEffect(() => {
+    if (profile?.email && badgesVisible) {
       fetchBadges(profile.email);
     }
-  }, [i18n.language]);
+  }, [i18n.language, profile, fetchBadges, badgesVisible]);
 
   // ============================================================
   // 🗑️ IZBRIŠI SVE PODATKE
@@ -398,12 +509,10 @@ const Profile = () => {
       <div className="max-w-5xl mx-auto">
         {/* ===== HERO ===== */}
         <div className="relative bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl p-8 shadow-2xl overflow-hidden animate-fadeIn">
-          {/* Background decorations */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-400/10 rounded-full blur-2xl"></div>
           
           <div className="relative flex flex-col md:flex-row items-center gap-6">
-            {/* Avatar */}
             <div className="relative">
               <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-4xl text-white border-2 border-white/30 shadow-xl">
                 {profile.ime?.charAt(0) || '👤'}
@@ -508,26 +617,31 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* ===== BADGES ===== */}
-        <div className="mt-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl p-6 shadow-xl border border-gray-200/50 dark:border-gray-700/50">
+        {/* ===== BADGES - LAZY LOAD ===== */}
+        <div ref={badgesRef} className="mt-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl p-6 shadow-xl border border-gray-200/50 dark:border-gray-700/50">
           <div className="flex items-center gap-3 mb-4">
             <span className="text-2xl">🏆</span>
             <h2 className="text-xl font-bold text-gray-800 dark:text-white">
               {t('profile.badges.title')}
             </h2>
-            {badgesLoading && (
+            {badgesLoading && badgesVisible && (
               <div className="ml-auto">
                 <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent"></div>
               </div>
             )}
-            {!badgesLoading && (
+            {!badgesLoading && badgesVisible && (
               <span className="ml-auto text-sm text-gray-400 dark:text-gray-500">
                 {badges.length} / 6
               </span>
             )}
           </div>
 
-          {badgesLoading ? (
+          {!badgesVisible ? (
+            <div className="text-center py-8 text-gray-400 dark:text-gray-500">
+              <p className="text-4xl mb-2">🏆</p>
+              <p className="text-sm">Skrolajte za bedževe...</p>
+            </div>
+          ) : badgesLoading ? (
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-500 border-t-transparent"></div>
             </div>
@@ -574,8 +688,8 @@ const Profile = () => {
             </div>
           )}
 
-          {/* Available badges */}
-          {!badgesLoading && (
+          {/* Available badges - samo ako su vidljivi */}
+          {badgesVisible && !badgesLoading && (
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-2">
                 <span>🔒</span>
@@ -683,7 +797,7 @@ const Profile = () => {
             </div>
 
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">⚙️ {t('profile.settings')}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">⚙️ {t('profile.other_filters')}</p>
               <div className="flex flex-wrap gap-1.5">
                 {profile.vrijeme && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">
