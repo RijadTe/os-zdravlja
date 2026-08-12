@@ -64,6 +64,7 @@
       "start_quiz": "Započni kviz",
       "ai_chef": "AI Chef pretraga"
     },
+    "alert_required": "Molimo odgovorite na sva pitanja.",
     "no_profile": {
       "title": "Personalizujte svoje iskustvo!",
       "description": "Popunite kratki kviz i mi ćemo vam prikazati recepte koji su savršeni za vas.",
@@ -180,7 +181,6 @@
       "all_unlocked": "Sve funkcionalnosti su dostupne!",
       "all_locked": "Sve funkcionalnosti su zaključane. Postanite Premium da ih koristite."
     },
-    "alert_required": "Molimo odgovorite na sva pitanja.",
     "advice_tired_stressed": "😴 Primjećujem da ste umorni i pod stresom. Preporučujem lagane, hranjive obroke koji će vam dati energiju bez opterećenja.",
     "advice_bad_sleep_low_energy": "😴 Loš san i niska energija. Preporučujem obroke bogate proteinima i vitaminima za brzi oporavak.",
     "advice_bad_sleep_good_stress": "😴 San vam nije najbolji, ali ste opušteni. Preporučujem lagane večere koje ne opterećuju probavu.",
@@ -368,7 +368,7 @@
       "now_have_photos": "Sada imate {count}/{max} preostalih slikanja",
       "use_remaining": "Iskoristite svojih {count} preostalih slikanja!",
       "all_photos_used": "✅ Iskoristili ste svih {max} slikanja danas!",
-      "premium_photos": "Premium korisnici imaju {max} slikanja dnevno (bez video reklama)",
+      "premium_photos": "⭐ Premium korisnici imaju {max} slikanja dnevno (bez video reklama)",
       "video_limit_reached": "📺 Dnevni limit video reklama iskorišten ({max}/{max})"
     },
     "messages": {
@@ -552,15 +552,18 @@
     "remembered": "Sjetili ste se lozinke?",
     "login_link": "Prijavite se",
     "back_home": "Vrati se na početnu",
+    "check_spam": "Provjerite i spam/junk folder ako ne vidite email.",
     "button": {
       "send": "📧 Pošalji link",
-      "sending": "⏳ Slanje..."
+      "sending": "⏳ Slanje...",
+      "sent": "✅ Poslano"
     },
     "success": {
       "message": "✅ Link za resetovanje lozinke je poslan na vaš email."
     },
     "errors": {
       "email_required": "⚠️ Molimo unesite vaš email.",
+      "invalid_email": "⚠️ Molimo unesite ispravnu email adresu.",
       "general": "❌ Greška pri slanju linka. Pokušajte ponovo."
     }
   },
@@ -735,6 +738,7 @@
     "language": "Jezik",
     "no_badges": "Još nema osvojenih bedževa.",
     "badges_hint": "Objavljujte recepte i skupljajte lajkove da osvojite bedževe!",
+    "other_filters": "Ostali filteri",
     "badges": {
       "title": "Osvojeni bedževi",
       "first_recipe": "Prvi recept",
@@ -789,6 +793,8 @@
     "confirm_password_placeholder": "••••••••",
     "remembered": "Sjetili ste se lozinke?",
     "login_link": "Prijavite se",
+    "back_home": "Vrati se na početnu",
+    "password_hint": "Najmanje 6 karaktera",
     "button": {
       "reset": "🔐 Promijeni lozinku",
       "loading": "⏳ Promjena..."
