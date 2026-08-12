@@ -379,14 +379,13 @@ const FoodPlanner = () => {
   };
 
   // ============================================================
-  // 🔥 WEEKLY PLAN - BIRA RECEPTE IZ BAZE (NE AI GENERIŠE)
+  // 🔥 WEEKLY PLAN - KOMBINOVANI (BAZA + AI FALLBACK)
   // ============================================================
   const generateWeeklyPlan = async () => {
     setLoadingPlan(true);
     try {
       const email = user?.email || localStorage.getItem('userEmail');
       
-      // 🔥 PROMIJENJEN ENDPOINT: /api/weekly-plan (bira iz baze)
       const res = await fetch(`${API_URL}/api/weekly-plan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -403,22 +402,22 @@ const FoodPlanner = () => {
       });
       
       const data = await res.json();
-      console.log('📡 Weekly Plan (iz baze):', data);
+      console.log('📡 Weekly Plan odgovor:', data);
       setWeeklyPlan(data);
     } catch (error) {
       console.error('❌ Greška:', error);
       alert(t('foodplanner.alerts.plan_error'));
-      // Fallback plan - hard-coded
       setWeeklyPlan({
         dani: [
-          { naziv: 'Pon', dorucak: 'Ovsena kaša', rucak: 'Pileća prsa', vecera: 'Losos' },
-          { naziv: 'Uto', dorucak: 'Jaja', rucak: 'Salata', vecera: 'Tofu' },
-          { naziv: 'Sri', dorucak: 'Smoothie', rucak: 'Riba', vecera: 'Krompir' },
-          { naziv: 'Čet', dorucak: 'Palenta', rucak: 'Piletina', vecera: 'Povrće' },
-          { naziv: 'Pet', dorucak: 'Musli', rucak: 'Burger', vecera: 'Pizza' },
-          { naziv: 'Sub', dorucak: 'Palačinke', rucak: 'Ćevapi', vecera: 'Riba' },
-          { naziv: 'Ned', dorucak: 'Kajgana', rucak: 'Pečenje', vecera: 'Salata' },
-        ]
+          { naziv: 'Pon', dorucak: '---', rucak: '---', vecera: '---' },
+          { naziv: 'Uto', dorucak: '---', rucak: '---', vecera: '---' },
+          { naziv: 'Sri', dorucak: '---', rucak: '---', vecera: '---' },
+          { naziv: 'Čet', dorucak: '---', rucak: '---', vecera: '---' },
+          { naziv: 'Pet', dorucak: '---', rucak: '---', vecera: '---' },
+          { naziv: 'Sub', dorucak: '---', rucak: '---', vecera: '---' },
+          { naziv: 'Ned', dorucak: '---', rucak: '---', vecera: '---' }
+        ],
+        _izvor: 'error'
       });
     } finally {
       setLoadingPlan(false);
@@ -971,7 +970,7 @@ const FoodPlanner = () => {
       )}
 
       {/* ============================================================ */}
-      {/* TAB 3: PLAN OBROKA - SA PREVODOM DANA */}
+      {/* TAB 3: PLAN OBROKA - SA PRIKAZOM IZVORA I AI OZNAKAMA */}
       {/* ============================================================ */}
       {activeTab === 2 && (
         <div>
@@ -995,18 +994,87 @@ const FoodPlanner = () => {
             )}
           </button>
 
-          {weeklyPlan ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2">
-              {weeklyPlan.dani?.map((dan, i) => (
-                <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-200 dark:border-gray-700">
-                  <h4 className="font-bold text-sm dark:text-white">{getTranslatedDay(dan.naziv)}</h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">🌅 {dan.dorucak}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">☀️ {dan.rucak}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">🌙 {dan.vecera}</p>
+          {/* 🔥🔥🔥 PRIKAZ PLANA SA INDIKATORIMA IZVORA 🔥🔥🔥 */}
+          {weeklyPlan && (
+            <>
+              {/* INDIKATOR IZVORA */}
+              {weeklyPlan._izvor === 'baza' && (
+                <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-400 dark:border-green-600 rounded-xl p-3 mb-4">
+                  <p className="text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
+                    <span>✅</span>
+                    Plan generiran iz baze ({weeklyPlan._broj_iz_baze || 21} recepata)
+                  </p>
                 </div>
-              ))}
-            </div>
-          ) : (
+              )}
+              
+              {weeklyPlan._izvor === 'kombinovan' && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-400 dark:border-blue-600 rounded-xl p-3 mb-4">
+                  <p className="text-sm text-blue-600 dark:text-blue-400 flex items-center gap-2 flex-wrap">
+                    <span>🔄</span>
+                    Plan kombinovan: {weeklyPlan._broj_iz_baze || 0} iz baze + {weeklyPlan._broj_iz_ai || 0} sa AI
+                    {weeklyPlan._broj_iz_ai > 0 && (
+                      <span className="text-xs text-blue-400 dark:text-blue-300 ml-1">
+                        (✨ označava AI preporuke)
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
+              
+              {weeklyPlan._izvor === 'error' && (
+                <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-400 dark:border-red-600 rounded-xl p-3 mb-4">
+                  <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-2">
+                    <span>⚠️</span>
+                    Greška pri generisanju plana. Pokušajte ponovo.
+                  </p>
+                </div>
+              )}
+
+              {/* PRIKAZ PLANA */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2">
+                {weeklyPlan.dani?.map((dan, i) => (
+                  <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-200 dark:border-gray-700">
+                    <h4 className="font-bold text-sm dark:text-white">{getTranslatedDay(dan.naziv)}</h4>
+                    
+                    {/* 🔥 PRIKAZ SA OZNAKOM ZA AI RECEPTE */}
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      🌅 {dan.dorucak?.includes('✨') ? (
+                        <span className="text-blue-500 dark:text-blue-400 font-medium">{dan.dorucak} 🤖</span>
+                      ) : (
+                        dan.dorucak || '---'
+                      )}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      ☀️ {dan.rucak?.includes('✨') ? (
+                        <span className="text-blue-500 dark:text-blue-400 font-medium">{dan.rucak} 🤖</span>
+                      ) : (
+                        dan.rucak || '---'
+                      )}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      🌙 {dan.vecera?.includes('✨') ? (
+                        <span className="text-blue-500 dark:text-blue-400 font-medium">{dan.vecera} 🤖</span>
+                      ) : (
+                        dan.vecera || '---'
+                      )}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              
+              {/* STATISTIKA */}
+              {weeklyPlan._broj_iz_baze !== undefined && (
+                <div className="mt-4 text-xs text-gray-400 dark:text-gray-500 text-center">
+                  {weeklyPlan._ukupno || 0}/21 obroka popunjeno
+                  {weeklyPlan._broj_iz_baze > 0 && ` (${weeklyPlan._broj_iz_baze} iz baze)`}
+                  {weeklyPlan._broj_iz_ai > 0 && `, ${weeklyPlan._broj_iz_ai} sa AI`}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* KADA NEMA PLANA - PRIKAŽI PRAZNE KARTICE */}
+          {!weeklyPlan && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2">
               {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map((dayKey) => (
                 <div key={dayKey} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-200 dark:border-gray-700">
@@ -1020,7 +1088,7 @@ const FoodPlanner = () => {
           )}
           
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-4 text-center">
-            🤖 Plan bira recepte iz baze (Cilj: {dailyGoal.kalorije} kcal, {dailyGoal.proteini}g proteina)
+            🤖 Plan bira recepte iz baze, a ako nema dovoljno, AI popunjava prazna mjesta
             {restrictions.length > 0 && ` 🔒 Restrikcije: ${restrictions.join(', ')}`}
           </p>
         </div>
