@@ -9,7 +9,7 @@ const staticAssets = [
   '/index.html',
   '/manifest.json',
   '/vite.svg',
-  '/offline.html'
+  '/offline.html'  // ← DODAJ offline.html
 ];
 
 // ============================================================
@@ -61,7 +61,13 @@ self.addEventListener('fetch', event => {
   }
 
   // Preskoči Cloudinary slike (ne keširamo)
-  if (request.url.includes('cloudinary.com')) {
+  if (request.url.includes('cloudinary.com') || request.url.includes('res.cloudinary.com')) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  // Preskoči Supabase (ne keširamo)
+  if (request.url.includes('supabase.co')) {
     event.respondWith(fetch(request));
     return;
   }
@@ -76,28 +82,36 @@ self.addEventListener('fetch', event => {
         }
 
         // Ako nema u kešu – dohvati sa interneta
-        return fetch(request).then(networkResponse => {
-          // Spremi u dinamički keš (samo HTML, CSS, JS, slike)
-          if (
-            request.url.endsWith('.html') ||
-            request.url.endsWith('.css') ||
-            request.url.endsWith('.js') ||
-            request.url.match(/\.(png|jpg|jpeg|gif|svg|webp)$/)
-          ) {
-            return caches.open(DYNAMIC_CACHE).then(cache => {
-              cache.put(request, networkResponse.clone());
-              console.log(`💾 Dinamički keš: ${request.url}`);
-              return networkResponse;
-            });
-          }
+        return fetch(request)
+          .then(networkResponse => {
+            // Spremi u dinamički keš (samo HTML, CSS, JS, slike)
+            if (
+              request.url.endsWith('.html') ||
+              request.url.endsWith('.css') ||
+              request.url.endsWith('.js') ||
+              request.url.match(/\.(png|jpg|jpeg|gif|svg|webp|ico)$/)
+            ) {
+              return caches.open(DYNAMIC_CACHE).then(cache => {
+                cache.put(request, networkResponse.clone());
+                console.log(`💾 Dinamički keš: ${request.url}`);
+                return networkResponse;
+              });
+            }
 
-          return networkResponse;
-        });
-      })
-      .catch(() => {
-        // Ako nema interneta i nema keša – prikaži offline stranicu
-        console.log(`📡 Offline: ${request.url}`);
-        return caches.match('/offline.html');
+            return networkResponse;
+          })
+          .catch(() => {
+            // Ako nema interneta i nema keša – prikaži offline stranicu
+            console.log(`📡 Offline: ${request.url}`);
+            
+            // Ako je zahtjev za HTML stranicu, vrati offline.html
+            if (request.headers.get('accept')?.includes('text/html')) {
+              return caches.match('/offline.html');
+            }
+            
+            // Za sve ostale zahtjeve vrati offline.html
+            return caches.match('/offline.html');
+          });
       })
   );
 });
