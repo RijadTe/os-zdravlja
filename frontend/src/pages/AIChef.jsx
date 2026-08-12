@@ -28,10 +28,10 @@ const useDebounce = (value, delay) => {
 // ============================================================
 // STATISTIKE KARTICA
 // ============================================================
-const StatsCard = ({ icon, label, value, color, subtitle, onClick }) => (
+const StatsCard = ({ icon, label, value, color, subtitle, onClick, children }) => (
   <div 
     onClick={onClick}
-    className={`bg-gradient-to-br ${color} rounded-2xl p-4 shadow-lg border border-white/20 backdrop-blur-sm hover:scale-[1.02] transition-transform cursor-pointer ${onClick ? 'hover:shadow-xl' : ''}`}
+    className={`bg-gradient-to-br ${color} rounded-2xl p-4 shadow-lg border border-white/20 backdrop-blur-sm hover:scale-[1.02] transition-transform ${onClick ? 'cursor-pointer hover:shadow-xl' : ''}`}
   >
     <div className="flex items-center gap-3">
       <div className="p-2 bg-white/20 rounded-xl text-3xl flex-shrink-0">
@@ -41,6 +41,7 @@ const StatsCard = ({ icon, label, value, color, subtitle, onClick }) => (
         <p className="text-white/80 text-xs font-medium truncate">{label}</p>
         <p className="text-white text-xl font-bold truncate">{value}</p>
         {subtitle && <p className="text-white/60 text-xs truncate">{subtitle}</p>}
+        {children}
       </div>
     </div>
   </div>
@@ -1022,37 +1023,80 @@ const AIChef = () => {
               }}
             />
 
-            {/* 2. PREOSTALO SLIKANJA */}
+            {/* 2. PREOSTALO SLIKANJA - SA VIDEO OTKLJUČAVANJEM ZA FREE */}
             <StatsCard
               icon="🎯"
               label="Preostala slikanja"
               value={dailyLimit.preostalo}
               color={dailyLimit.preostalo > 0 ? 'from-purple-500 to-purple-600' : 'from-red-500 to-red-600'}
               subtitle={`/${dailyLimit.max_pretraga}`}
-            />
+            >
+              {/* 🔥 FREE KORISNICI - DUGME ZA VIDEO OTKLJUČAVANJE */}
+              {!user?.premium && dailyLimit.preostalo === 0 && dailyLimit.broj_pretraga < dailyLimit.max_pretraga && (
+                <button
+                  onClick={handleUnlockWithVideo}
+                  disabled={loadingLimit || videoWatched || videoAdCount >= maxVideoAds}
+                  className="mt-2 w-full text-xs bg-white/20 hover:bg-white/30 text-white font-semibold py-1.5 rounded-lg transition disabled:opacity-50"
+                >
+                  {loadingLimit ? '⏳...' : videoWatched ? '✅ Otključano' : '🎬 Gledaj video'}
+                </button>
+              )}
+              {!user?.premium && dailyLimit.broj_pretraga >= dailyLimit.max_pretraga && (
+                <p className="mt-1 text-[10px] text-white/70">⛔ Limit iskorišten</p>
+              )}
+              {user?.premium && (
+                <p className="mt-1 text-[10px] text-white/70">⭐ Premium - 15 slikanja</p>
+              )}
+            </StatsCard>
 
-            {/* 3. STATUS PREMIUM */}
+            {/* 3. STATUS - FREE → PREMIUM, PREMIUM → manji tekst */}
             <StatsCard
               icon={user?.premium ? '⭐' : '🔓'}
               label="Status"
               value={user?.premium ? 'Premium' : 'Free'}
               color={user?.premium ? 'from-amber-500 to-yellow-600' : 'from-gray-500 to-gray-600'}
-              subtitle={user?.premium ? '⭐ Aktivan' : '🔒 Ograničen'}
+              subtitle={user?.premium ? '' : '🔒 Ograničen'}
               onClick={() => {
                 if (!user?.premium) {
                   window.location.href = '/premium';
                 }
               }}
-            />
+            >
+              {!user?.premium && (
+                <button 
+                  onClick={() => window.location.href = '/premium'}
+                  className="mt-1 text-[10px] text-white/70 hover:text-white underline transition"
+                >
+                  ⭐ Postani Premium →
+                </button>
+              )}
+              {user?.premium && (
+                <p className="mt-1 text-[10px] text-white/70">✅ Sve funkcionalnosti</p>
+              )}
+            </StatsCard>
 
-            {/* 4. DANAŠNJE PRETRAGE */}
+            {/* 4. DANAŠNJE PRETRAGE - FREE: 0/3, PREMIUM: Glasovna pretraga */}
             <StatsCard
-              icon="⏱️"
-              label="Današnje pretrage"
-              value={dailyLimit.broj_pretraga}
-              color={dailyLimit.broj_pretraga < dailyLimit.max_pretraga ? 'from-emerald-500 to-emerald-600' : 'from-orange-500 to-orange-600'}
-              subtitle={`od ${dailyLimit.max_pretraga}`}
-            />
+              icon={user?.premium ? '🎤' : '⏱️'}
+              label={user?.premium ? 'Glasovna pretraga' : 'Današnje pretrage'}
+              value={user?.premium ? '⭐ Dostupna' : `${dailyLimit.broj_pretraga}`}
+              color={user?.premium ? 'from-rose-500 to-pink-500' : 
+                     dailyLimit.broj_pretraga < dailyLimit.max_pretraga ? 'from-emerald-500 to-emerald-600' : 'from-orange-500 to-orange-600'}
+              subtitle={user?.premium ? '🎤 Klikni za govor' : `od ${dailyLimit.max_pretraga}`}
+              onClick={() => {
+                if (user?.premium) {
+                  handleVoiceSearch();
+                }
+              }}
+            >
+              {user?.premium ? (
+                <p className="mt-1 text-[10px] text-white/70">✅ Premium funkcija</p>
+              ) : (
+                <p className="mt-1 text-[10px] text-white/70">
+                  {dailyLimit.broj_pretraga >= dailyLimit.max_pretraga ? '⛔ Potrošeno' : '📸 Slikaj za +1'}
+                </p>
+              )}
+            </StatsCard>
           </div>
         )}
 
