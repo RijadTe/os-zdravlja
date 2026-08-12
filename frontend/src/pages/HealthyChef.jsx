@@ -185,19 +185,17 @@ const HealthyChef = () => {
   }, []);
 
   // ============================================================
-  // 🔥 DOHVATI RECEPTE ZA KATEGORIJU (BEZ FAZA) - POPRAVLJENO!
+  // 🔥 DOHVATI RECEPTE ZA KATEGORIJU (BEZ FAZA)
   // ============================================================
   const fetchReceptiZaKategoriju = async (kategorijaId, email) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
-        // 🔥 NE ŠALJI fazaId za kategorije bez faza!
         kategorijaId: kategorijaId,
         email: email || '',
         ...filters
       });
       
-      // 🔥 DODAJ RESTRIKCIJE
       if (userRestrictions.length > 0) {
         const hasNoRestrictions = userRestrictions.some(r => 
           r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
@@ -238,7 +236,6 @@ const HealthyChef = () => {
         ...filters
       });
       
-      // 🔥 DODAJ RESTRIKCIJE
       if (userRestrictions.length > 0) {
         const hasNoRestrictions = userRestrictions.some(r => 
           r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
@@ -268,7 +265,7 @@ const HealthyChef = () => {
   };
 
   // ============================================================
-  // DOHVATI KATEGORIJE I FAZE
+  // 🔥🔥🔥 POPRAVLJENA FUNKCIJA ZA DOHVAT KATEGORIJA I FAZA
   // ============================================================
   useEffect(() => {
     const fetchAllData = async (retry = 0) => {
@@ -277,17 +274,60 @@ const HealthyChef = () => {
         
         const katRes = await fetch(`${API_URL}/api/healthy-chef/kategorije`);
         const katData = await katRes.json();
-        console.log('📊 Kategorije dohvaćene:', katData?.length || 0);
         
-        const mappedKategorije = katData.map(kat => {
-          const key = categoryKeyMap[kat.naziv] || kat.naziv.toLowerCase().replace(/ /g, '_');
+        console.log('📊 SIROVI API ODGOVOR:', JSON.stringify(katData, null, 2));
+        
+        // 🔥 IZVLAČIMO PODATKE IZ HIJERARHIJSKOG ODGOVORA
+        let hijerarhijskiPodaci = [];
+        if (katData.success && Array.isArray(katData.data)) {
+          hijerarhijskiPodaci = katData.data;
+        } else if (Array.isArray(katData)) {
+          hijerarhijskiPodaci = katData;
+        } else if (katData.data && Array.isArray(katData.data)) {
+          hijerarhijskiPodaci = katData.data;
+        } else {
+          console.warn('⚠️ Neočekivani format podataka:', katData);
+          hijerarhijskiPodaci = [];
+        }
+        
+        console.log(`📊 Pronađeno ${hijerarhijskiPodaci.length} hijerarhijskih kategorija`);
+        
+        // 🔥 KONVERTUJEMO HIJERARHIJSKE PODATKE U RAVNE ZA FRONTEND
+        const sveKategorije = [];
+        const sveFaze = [];
+        
+        hijerarhijskiPodaci.forEach(kategorija => {
+          // Dodaj glavnu kategoriju
+          sveKategorije.push({
+            ...kategorija,
+            parent_id: null
+          });
+          
+          // Dodaj faze (ako postoje)
+          if (kategorija.faze && Array.isArray(kategorija.faze)) {
+            kategorija.faze.forEach(faza => {
+              sveFaze.push({
+                ...faza,
+                parent_id: kategorija.id
+              });
+            });
+          }
+        });
+        
+        console.log(`📊 Kategorije: ${sveKategorije.length}, Faze: ${sveFaze.length}`);
+        console.log('📊 Faze:', sveFaze);
+        
+        // MAPPIRAJ KATEGORIJE
+        const mappedKategorije = sveKategorije.map(kat => {
+          const key = categoryKeyMap[kat.naziv] || kat.naziv?.toLowerCase().replace(/ /g, '_') || `kat_${kat.id}`;
           return {
             ...kat,
             key: key,
             nazivKey: `healthychef.categories.items.${key}`
           };
         });
-        console.log('📊 Mapped kategorije:', mappedKategorije.map(k => ({ naziv: k.naziv, key: k.key })));
+        
+        console.log('📊 Mapped kategorije:', mappedKategorije.map(k => ({ id: k.id, naziv: k.naziv, key: k.key })));
         setKategorije(mappedKategorije);
         
         if (kategorijaId) {
@@ -302,10 +342,14 @@ const HealthyChef = () => {
           
           setLoadingFaze(true);
           
-          const fazeData = katData.filter(kat => kat.parent_id === kategorijaId);
-          console.log('📊 Faze dohvaćene:', fazeData?.length || 0);
+          // 🔥 KORISTIMO IZDVOJENE FAZE
+          console.log(`🔍 Tražim faze za kategoriju ID: ${kategorijaId}`);
+          const fazeData = sveFaze.filter(faza => faza.parent_id === kategorijaId);
+          console.log(`📊 Faze dohvaćene: ${fazeData?.length || 0}`);
+          console.log('📊 Faze:', fazeData);
           
           if (fazeData.length === 0) {
+            console.log('ℹ️ Kategorija nema faza - direktno dohvatam recepte');
             setKategorijaBezFaza(true);
             setFaze([]);
             if (user) {
@@ -313,10 +357,11 @@ const HealthyChef = () => {
             }
             setLoadingFaze(false);
           } else {
+            console.log('✅ Kategorija ima faza:', fazeData.length);
             setKategorijaBezFaza(false);
             
             const mappedFaze = fazeData.map(faza => {
-              const key = phaseKeyMap[faza.naziv] || faza.naziv.toLowerCase().replace(/ /g, '_');
+              const key = phaseKeyMap[faza.naziv] || faza.naziv?.toLowerCase().replace(/ /g, '_') || `faza_${faza.id}`;
               const parentKat = mappedKategorije.find(k => k.id === faza.parent_id);
               const parentKey = parentKat?.key || 'hormonal_cycle';
               return {
@@ -325,7 +370,7 @@ const HealthyChef = () => {
                 nazivKey: `healthychef.phases.items.${parentKey}.${key}`
               };
             });
-            console.log('📊 Mapped faze:', mappedFaze.map(f => ({ naziv: f.naziv, key: f.key })));
+            console.log('📊 Mapped faze:', mappedFaze.map(f => ({ id: f.id, naziv: f.naziv, key: f.key })));
             setFaze(mappedFaze);
             
             if (fazaId) {
@@ -334,7 +379,6 @@ const HealthyChef = () => {
                 setPhaseNameKey(faza.nazivKey);
                 setPhaseNameFallback(faza.naziv);
                 console.log('📊 Postavljen phaseNameKey:', faza.nazivKey);
-                // ⭐ Dohvati recepte za fazu ako je fazaId postavljen
                 if (user) {
                   await fetchReceptiZaFazu(fazaId, user.email);
                 }
