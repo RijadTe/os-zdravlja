@@ -18,6 +18,7 @@ const Profile = () => {
   const [badgesVisible, setBadgesVisible] = useState(false);
   const badgesRef = useRef(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // ============================================================
   // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA
@@ -90,17 +91,30 @@ const Profile = () => {
   const fetchBadges = useCallback(async (email) => {
     if (!email) return;
     
-    // Provjeri cache u localStorage
+    // 🔥 PROVJERI sessionStorage PRVO (brže)
+    const sessionKey = `badges_session_${email}`;
+    const sessionCached = sessionStorage.getItem(sessionKey);
+    if (sessionCached) {
+      try {
+        const parsed = JSON.parse(sessionCached);
+        setBadges(parsed.badges || []);
+        setBadgesLoading(false);
+        return;
+      } catch (e) {}
+    }
+    
+    // 🔥 ONDA localStorage
     const cacheKey = `badges_${email}`;
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
         const cacheTime = parsed._timestamp || 0;
-        // Cache vrijedi 5 minuta
         if (Date.now() - cacheTime < 300000) {
           setBadges(parsed.badges || []);
           setBadgesLoading(false);
+          // Spremi i u sessionStorage za brži pristup
+          sessionStorage.setItem(sessionKey, JSON.stringify({ badges: parsed.badges }));
           return;
         }
       } catch (e) {}
@@ -122,11 +136,12 @@ const Profile = () => {
       
       if (data.success && data.badges) {
         setBadges(data.badges);
-        // Spremi u cache
+        // Spremi u oba cache-a
         localStorage.setItem(cacheKey, JSON.stringify({
           badges: data.badges,
           _timestamp: Date.now()
         }));
+        sessionStorage.setItem(sessionKey, JSON.stringify({ badges: data.badges }));
       } else {
         setBadges([]);
       }
@@ -139,9 +154,12 @@ const Profile = () => {
   }, []);
 
   // ============================================================
-  // 🔥 POZADINSKO OSVJEŽAVANJE PROFILA
+  // 🔥 POZADINSKO OSVJEŽAVANJE PROFILA (uvijek u pozadini)
   // ============================================================
   const refreshProfileInBackground = useCallback(async (email) => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    
     try {
       const [profileRes, badgesRes] = await Promise.all([
         fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`),
@@ -152,11 +170,12 @@ const Profile = () => {
         const data = await profileRes.json();
         if (data.success && data.data) {
           setProfile(data.data);
-          // Ažuriraj localStorage
+          // Ažuriraj localStorage i sessionStorage
           const user = JSON.parse(localStorage.getItem('user') || '{}');
           user.profile = data.data;
           user.premium = data.data.premium || false;
           localStorage.setItem('user', JSON.stringify(user));
+          sessionStorage.setItem('user_profile', JSON.stringify(data.data));
         }
       }
       
@@ -164,17 +183,43 @@ const Profile = () => {
         const data = await badgesRes.json();
         if (data.success && data.badges) {
           setBadges(data.badges);
-          // Spremi u cache
           const cacheKey = `badges_${email}`;
           localStorage.setItem(cacheKey, JSON.stringify({
             badges: data.badges,
             _timestamp: Date.now()
           }));
+          sessionStorage.setItem(`badges_session_${email}`, JSON.stringify({ badges: data.badges }));
         }
       }
     } catch (error) {
       console.error('❌ Pozadinsko osvježavanje:', error);
+    } finally {
+      setIsRefreshing(false);
     }
+  }, [isRefreshing]);
+
+  // ============================================================
+  // 📊 DOHVATI PROFIL - INSTANT IZ CACHE-A
+  // ============================================================
+  const getCachedProfile = useCallback((email) => {
+    // 🔥 1. PRVO sessionStorage (najbrže)
+    const sessionProfile = sessionStorage.getItem('user_profile');
+    if (sessionProfile) {
+      try {
+        const parsed = JSON.parse(sessionProfile);
+        if (parsed.email === email) {
+          return parsed;
+        }
+      } catch (e) {}
+    }
+    
+    // 🔥 2. ONDA localStorage
+    const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (cachedUser?.profile && cachedUser?.email === email) {
+      return cachedUser.profile;
+    }
+    
+    return null;
   }, []);
 
   // ============================================================
@@ -183,18 +228,18 @@ const Profile = () => {
   const fetchProfile = useCallback(async (email) => {
     if (!email) return;
     
-    // 🔥 PRVO PROVJERI LOCALSTORAGE CACHE
-    const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
-    if (cachedUser?.profile) {
-      setProfile(cachedUser.profile);
-      setUser(cachedUser);
+    // 🔥 PRVO PRIKAŽI IZ CACHE-A (trenutno!)
+    const cachedProfile = getCachedProfile(email);
+    if (cachedProfile) {
+      setProfile(cachedProfile);
       setLoading(false);
       
-      // U pozadini osvježi
+      // 🔥 U POZADINI OSVJEŽI (uvijek, ali bez čekanja)
       refreshProfileInBackground(email);
       return;
     }
     
+    // Ako nema cache-a, moramo čekati API
     try {
       const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
       
@@ -216,6 +261,7 @@ const Profile = () => {
             preferred_language: storedUser.preferred_language || 'hr'
           };
           setProfile(fallbackProfile);
+          sessionStorage.setItem('user_profile', JSON.stringify(fallbackProfile));
         }
         setLoading(false);
         return;
@@ -225,16 +271,15 @@ const Profile = () => {
       
       if (data.success && data.data) {
         setProfile(data.data);
+        // Spremi u sve cache-ove
         const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-        if (storedUser) {
-          storedUser.premium = data.data.premium || false;
-          storedUser.profile = data.data;
-          storedUser.preferred_language = data.data.preferred_language || 'hr';
-          localStorage.setItem('user', JSON.stringify(storedUser));
-        }
+        storedUser.premium = data.data.premium || false;
+        storedUser.profile = data.data;
+        storedUser.preferred_language = data.data.preferred_language || 'hr';
+        localStorage.setItem('user', JSON.stringify(storedUser));
+        sessionStorage.setItem('user_profile', JSON.stringify(data.data));
         
-        // Badges će se učitati lazy kad korisnik skrola do njih
-        // ali ako su već u cache-u, prikaži ih odmah
+        // Badges iz cache-a
         const cacheKey = `badges_${email}`;
         const cached = localStorage.getItem(cacheKey);
         if (cached) {
@@ -268,13 +313,14 @@ const Profile = () => {
           preferred_language: storedUser.preferred_language || 'hr'
         };
         setProfile(fallbackProfile);
+        sessionStorage.setItem('user_profile', JSON.stringify(fallbackProfile));
       } else {
         await createProfile(email);
       }
     } finally {
       setLoading(false);
     }
-  }, [refreshProfileInBackground]);
+  }, [getCachedProfile, refreshProfileInBackground]);
 
   // ============================================================
   // 🆕 KREIRAJ PROFIL
@@ -301,6 +347,7 @@ const Profile = () => {
       
       if (data.success) {
         setProfile(data.data);
+        sessionStorage.setItem('user_profile', JSON.stringify(data.data));
       }
     } catch (error) {
       console.error('❌ Greška pri kreiranju profila:', error);
@@ -313,14 +360,30 @@ const Profile = () => {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        // 🔥 PRVO PROVJERI LOCALSTORAGE
+        // 🔥 PRVO IZ sessionStorage (najbrže)
+        const sessionUser = sessionStorage.getItem('user_session');
+        if (sessionUser) {
+          try {
+            const parsed = JSON.parse(sessionUser);
+            if (parsed?.email && parsed?.profile) {
+              setUser(parsed);
+              setProfile(parsed.profile);
+              setLoading(false);
+              // U pozadini osvježi
+              refreshProfileInBackground(parsed.email);
+              return;
+            }
+          } catch (e) {}
+        }
+        
+        // 🔥 ONDA IZ localStorage
         const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
         if (cachedUser?.email && cachedUser?.profile) {
           setUser(cachedUser);
           setProfile(cachedUser.profile);
           setLoading(false);
-          
-          // U pozadini osvježi
+          // Spremi u sessionStorage za brži pristup
+          sessionStorage.setItem('user_session', JSON.stringify(cachedUser));
           refreshProfileInBackground(cachedUser.email);
           return;
         }
@@ -329,15 +392,6 @@ const Profile = () => {
         
         if (session?.user) {
           const email = session.user.email;
-          
-          // Provjeri cache
-          if (cachedUser?.email === email && cachedUser?.profile) {
-            setUser(cachedUser);
-            setProfile(cachedUser.profile);
-            setLoading(false);
-            refreshProfileInBackground(email);
-            return;
-          }
           
           const supabaseUser = {
             id: session.user.id,
@@ -351,6 +405,7 @@ const Profile = () => {
           setUser(supabaseUser);
           localStorage.setItem('user', JSON.stringify(supabaseUser));
           localStorage.setItem('userEmail', session.user.email);
+          sessionStorage.setItem('user_session', JSON.stringify(supabaseUser));
           
           await fetchProfile(email);
           return;
@@ -379,7 +434,7 @@ const Profile = () => {
   }, [navigate, fetchProfile, refreshProfileInBackground]);
 
   // ============================================================
-  // 🔥 LAZY LOAD BADGES - kad korisnik skrola do njih
+  // 🔥 LAZY LOAD BADGES
   // ============================================================
   useEffect(() => {
     if (!badgesRef.current || badgesVisible) return;
@@ -398,7 +453,7 @@ const Profile = () => {
   }, [profile, fetchBadges, badgesVisible]);
 
   // ============================================================
-  // 🔥 OSVJEŽI BEDŽEVE KADA SE JEZIK PROMIJENI (samo ako su vidljivi)
+  // 🔥 OSVJEŽI BEDŽEVE KADA SE JEZIK PROMIJENI
   // ============================================================
   useEffect(() => {
     if (profile?.email && badgesVisible) {
@@ -436,6 +491,7 @@ const Profile = () => {
       }
 
       localStorage.clear();
+      sessionStorage.clear();
       await supabase.auth.signOut();
       navigate('/register');
       
@@ -463,6 +519,7 @@ const Profile = () => {
     localStorage.removeItem('userName');
     localStorage.removeItem('remember_me');
     localStorage.removeItem('supabase_session');
+    sessionStorage.clear();
     navigate('/login');
   };
 
