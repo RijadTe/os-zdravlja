@@ -47,13 +47,41 @@ export default defineConfig({
     target: 'es2020',
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-i18n': ['i18next', 'react-i18next'],
-          'vendor-charts': ['chart.js', 'react-chartjs-2'],
-          'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-ui': ['react-toastify'],
-          'vendor-utils': ['axios', 'date-fns'],
+        // 🔥 MANUAL CHUNKS - funkcija umjesto objekta
+        manualChunks: (id) => {
+          // React ekosistem
+          if (id.includes('node_modules/react') || 
+              id.includes('node_modules/react-dom') || 
+              id.includes('node_modules/react-router-dom')) {
+            return 'vendor-react';
+          }
+          // i18n
+          if (id.includes('node_modules/i18next') || 
+              id.includes('node_modules/react-i18next')) {
+            return 'vendor-i18n';
+          }
+          // Chart.js
+          if (id.includes('node_modules/chart.js') || 
+              id.includes('node_modules/react-chartjs-2')) {
+            return 'vendor-charts';
+          }
+          // Supabase
+          if (id.includes('node_modules/@supabase')) {
+            return 'vendor-supabase';
+          }
+          // Toast/UI
+          if (id.includes('node_modules/react-toastify')) {
+            return 'vendor-ui';
+          }
+          // Axios i ostali utils
+          if (id.includes('node_modules/axios') || 
+              id.includes('node_modules/date-fns')) {
+            return 'vendor-utils';
+          }
+          // Sve ostalo iz node_modules
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
         },
         entryFileNames: 'assets/[name].[hash].js',
         chunkFileNames: 'assets/[name].[hash].js',
@@ -69,11 +97,11 @@ export default defineConfig({
           }
           return 'assets/[name].[hash].[ext]';
         },
-        experimentalMinChunkSize: 10000,
       },
     },
   },
   
+  // 🔥 optimizeDeps - koristi rolldownOptions umjesto esbuildOptions
   optimizeDeps: {
     include: [
       'react', 
@@ -86,7 +114,8 @@ export default defineConfig({
       'react-chartjs-2',
       'react-toastify',
     ],
-    esbuildOptions: {
+    // 🔥 ZAMJENJENO esbuildOptions SA rolldownOptions
+    rolldownOptions: {
       target: 'es2020',
     },
   },
