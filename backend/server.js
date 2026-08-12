@@ -1955,9 +1955,10 @@ app.get('/api/healthy-chef/faze/:kategorijaId', async (req, res) => {
 // ============================================================
 app.get('/api/healthy-chef/recepti', async (req, res) => {
   try {
-    const { fazaId, email, vrsta, vrijeme, tezina, page = 1, limit = 20 } = req.query;
+    // 🔥 DODAJ kategorijaId U QUERY PARAMETRE!
+    const { fazaId, kategorijaId, email, vrsta, vrijeme, tezina, page = 1, limit = 20 } = req.query;
     
-    console.log(`🌿 Dohvatam recepte za fazu: ${fazaId}`);
+    console.log(`🌿 Dohvatam recepte za: ${fazaId || kategorijaId || 'sve'}`);
     console.log(`👤 Korisnik: ${email}`);
     console.log('📦 Filteri:', { vrsta, vrijeme, tezina });
     console.log(`📄 Page: ${page}, Limit: ${limit}`);
@@ -1980,12 +1981,31 @@ app.get('/api/healthy-chef/recepti', async (req, res) => {
     
     let query = supabase
       .from('recepti')
-      .select('*', { count: 'exact' })
-      .eq('faza_id', fazaId);
+      .select('*', { count: 'exact' });
     
-    if (vrsta) query = query.eq('vrsta', vrsta);
-    if (vrijeme) query = query.eq('vrijeme', vrijeme);
-    if (tezina) query = query.eq('tezina', tezina);
+    // 🔥 POPRAVLJENO: Podržava i fazaId i kategorijaId
+    if (fazaId) {
+      query = query.eq('faza_id', fazaId);
+      console.log(`📍 Filtriram po fazi: ${fazaId}`);
+    } else if (kategorijaId) {
+      // 🔥 NOVO: Podrška za kategorije bez faza (Tiroida, Kosti, Anemija)
+      // Koristimo faza_id = kategorijaId jer su recepti povezani sa kategorijom preko faza_id
+      query = query.eq('faza_id', kategorijaId);
+      console.log(`📍 Filtriram po kategoriji (bez faza): ${kategorijaId}`);
+    }
+    
+    if (vrsta) {
+      query = query.eq('vrsta', vrsta);
+      console.log(`📍 Filtriram po vrsti: ${vrsta}`);
+    }
+    if (vrijeme) {
+      query = query.eq('vrijeme', vrijeme);
+      console.log(`📍 Filtriram po vremenu: ${vrijeme}`);
+    }
+    if (tezina) {
+      query = query.eq('tezina', tezina);
+      console.log(`📍 Filtriram po težini: ${tezina}`);
+    }
     
     const { data: recepti, error, count } = await query;
     
@@ -1994,7 +2014,7 @@ app.get('/api/healthy-chef/recepti', async (req, res) => {
       return res.status(500).json({ error: error.message });
     }
     
-    console.log(`📊 Pronađeno ${recepti?.length || 0} recepata za fazu`);
+    console.log(`📊 Pronađeno ${recepti?.length || 0} recepata`);
     
     let filteredRecepti = recepti || [];
     

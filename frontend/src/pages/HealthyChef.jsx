@@ -185,13 +185,14 @@ const HealthyChef = () => {
   }, []);
 
   // ============================================================
-  // DOHVATI RECEPTE ZA KATEGORIJU (BEZ FAZA) - SA RESTRIKCIJAMA
+  // 🔥 DOHVATI RECEPTE ZA KATEGORIJU (BEZ FAZA) - POPRAVLJENO!
   // ============================================================
   const fetchReceptiZaKategoriju = async (kategorijaId, email) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
-        fazaId: kategorijaId,
+        // 🔥 NE ŠALJI fazaId za kategorije bez faza!
+        kategorijaId: kategorijaId,
         email: email || '',
         ...filters
       });
@@ -208,6 +209,8 @@ const HealthyChef = () => {
           console.log('✅ HealthyChef - Korisnik nema restrikcija');
         }
       }
+      
+      console.log('📡 URL za kategoriju:', `${API_URL}/api/healthy-chef/recepti?${params}`);
       
       const res = await fetch(`${API_URL}/api/healthy-chef/recepti?${params}`);
       const data = await res.json();
@@ -247,6 +250,8 @@ const HealthyChef = () => {
           console.log('✅ HealthyChef - Korisnik nema restrikcija');
         }
       }
+      
+      console.log('📡 URL za fazu:', `${API_URL}/api/healthy-chef/recepti?${params}`);
       
       const res = await fetch(`${API_URL}/api/healthy-chef/recepti?${params}`);
       const data = await res.json();
