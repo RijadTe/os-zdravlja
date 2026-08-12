@@ -1,7 +1,7 @@
 // frontend/src/pages/AIChef.jsx
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { useTranslation }react-i18next';
+import { useTranslation } from 'react-i18next';
 import { ADSENSE_CLIENT, ADSENSE_ENABLED, DEFAULT_SLOTS } from '../config/adsense';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
