@@ -28,16 +28,19 @@ const useDebounce = (value, delay) => {
 // ============================================================
 // STATISTIKE KARTICA
 // ============================================================
-const StatsCard = ({ icon, label, value, color, subtitle }) => (
-  <div className={`bg-gradient-to-br ${color} rounded-2xl p-4 shadow-lg border border-white/20 backdrop-blur-sm hover:scale-[1.02] transition-transform`}>
+const StatsCard = ({ icon, label, value, color, subtitle, onClick }) => (
+  <div 
+    onClick={onClick}
+    className={`bg-gradient-to-br ${color} rounded-2xl p-4 shadow-lg border border-white/20 backdrop-blur-sm hover:scale-[1.02] transition-transform cursor-pointer ${onClick ? 'hover:shadow-xl' : ''}`}
+  >
     <div className="flex items-center gap-3">
-      <div className="p-2 bg-white/20 rounded-xl text-2xl">
+      <div className="p-2 bg-white/20 rounded-xl text-3xl flex-shrink-0">
         {icon}
       </div>
-      <div>
-        <p className="text-white/80 text-xs font-medium">{label}</p>
-        <p className="text-white text-xl font-bold">{value}</p>
-        {subtitle && <p className="text-white/60 text-xs">{subtitle}</p>}
+      <div className="min-w-0 flex-1">
+        <p className="text-white/80 text-xs font-medium truncate">{label}</p>
+        <p className="text-white text-xl font-bold truncate">{value}</p>
+        {subtitle && <p className="text-white/60 text-xs truncate">{subtitle}</p>}
       </div>
     </div>
   </div>
@@ -271,9 +274,14 @@ const AIChef = () => {
   }, [user, fetchDailyLimit, fetchVideoAdCount]);
 
   // ============================================================
-  // 🔥 PRIKAŽI VIDEO REKLAMU
+  // 🔥 PRIKAŽI VIDEO REKLAMU - SAMO ZA FREE KORISNIKE!
   // ============================================================
   const showVideoAd = useCallback(() => {
+    // ⭐ Premium korisnici NE GLEDAJU VIDEO REKLAME!
+    if (user?.premium) {
+      return Promise.resolve(true);
+    }
+
     return new Promise((resolve) => {
       if (!ADSENSE_ENABLED) {
         let seconds = 0;
@@ -365,12 +373,13 @@ const AIChef = () => {
         }
       }, 10000);
     });
-  }, []);
+  }, [user]);
 
   // ============================================================
-  // 🔥 OTKLJUČAJ 1 SLIKANJE NAKON VIDEO REKLAME
+  // 🔥 OTKLJUČAJ 1 SLIKANJE NAKON VIDEO REKLAME - SAMO FREE!
   // ============================================================
   const handleUnlockWithVideo = async () => {
+    // ⭐ Premium korisnici - ne treba im video
     if (user?.premium) {
       setPoruka('⭐ Premium korisnici imaju 15 slikanja dnevno!');
       setPorukaType('info');
@@ -949,7 +958,7 @@ const AIChef = () => {
   // ============================================================
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-8 px-4">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* HERO SEKCIJA */}
         <div className="text-center mb-8 animate-fadeIn">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 dark:from-purple-500/20 dark:to-blue-500/20 rounded-full px-4 py-1.5 mb-4 border border-purple-200/30 dark:border-purple-700/30">
@@ -990,57 +999,19 @@ const AIChef = () => {
           </div>
         )}
 
-        {/* GLAVNI KONTEJNER */}
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-6 md:p-8 animate-fadeIn">
-          {/* STATISTIKE - SAMO AKO JE KORISNIK PRIJAVLJEN */}
-          {user && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-              <StatsCard
-                icon="📸"
-                label="Preostala slikanja"
-                value={dailyLimit.preostalo}
-                color="from-blue-500 to-blue-600"
-                subtitle={`/${dailyLimit.max_pretraga}`}
-              />
-              <StatsCard
-                icon="🎬"
-                label="Video reklame"
-                value={maxVideoAds - videoAdCount}
-                color="from-purple-500 to-purple-600"
-                subtitle={`/${maxVideoAds}`}
-              />
-              <StatsCard
-                icon="⭐"
-                label="Status"
-                value={user?.premium ? 'Premium' : 'Free'}
-                color="from-amber-500 to-amber-600"
-              />
-              <StatsCard
-                icon="⏱️"
-                label="Današnje pretrage"
-                value={dailyLimit.broj_pretraga}
-                color="from-emerald-500 to-emerald-600"
-                subtitle={`od ${dailyLimit.max_pretraga}`}
-              />
-            </div>
-          )}
-
-          {/* SEARCH MODE - DUGMAD */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            <button
-              onClick={() => setSearchMode('text')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                searchMode === 'text'
-                  ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg shadow-purple-500/25'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-              }`}
-            >
-              <span>🔍</span>
-              Tekst
-            </button>
-            <button
+        {/* ============================================================
+            🔥🔥🔥 4 VELIKE KARTICE 🔥🔥🔥
+            ============================================================ */}
+        {user && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            {/* 1. SLIKA - KARTICA ZA UPLOAD */}
+            <StatsCard
+              icon="📸"
+              label="Slika"
+              value={slikaPreview ? '✅' : 'Dodaj'}
+              color={slikaPreview ? 'from-green-500 to-emerald-500' : 'from-blue-500 to-blue-600'}
+              subtitle={slikaPreview ? 'Spremna' : 'Klikni za upload'}
               onClick={() => {
-                setSearchMode('image');
                 if (dailyLimit.preostalo > 0 || user?.premium) {
                   fileInputRef.current?.click();
                 } else {
@@ -1049,24 +1020,83 @@ const AIChef = () => {
                   setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
                 }
               }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                searchMode === 'image'
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            />
+
+            {/* 2. PREOSTALO SLIKANJA */}
+            <StatsCard
+              icon="🎯"
+              label="Preostala slikanja"
+              value={dailyLimit.preostalo}
+              color={dailyLimit.preostalo > 0 ? 'from-purple-500 to-purple-600' : 'from-red-500 to-red-600'}
+              subtitle={`/${dailyLimit.max_pretraga}`}
+            />
+
+            {/* 3. STATUS PREMIUM */}
+            <StatsCard
+              icon={user?.premium ? '⭐' : '🔓'}
+              label="Status"
+              value={user?.premium ? 'Premium' : 'Free'}
+              color={user?.premium ? 'from-amber-500 to-yellow-600' : 'from-gray-500 to-gray-600'}
+              subtitle={user?.premium ? '⭐ Aktivan' : '🔒 Ograničen'}
+              onClick={() => {
+                if (!user?.premium) {
+                  window.location.href = '/premium';
+                }
+              }}
+            />
+
+            {/* 4. DANAŠNJE PRETRAGE */}
+            <StatsCard
+              icon="⏱️"
+              label="Današnje pretrage"
+              value={dailyLimit.broj_pretraga}
+              color={dailyLimit.broj_pretraga < dailyLimit.max_pretraga ? 'from-emerald-500 to-emerald-600' : 'from-orange-500 to-orange-600'}
+              subtitle={`od ${dailyLimit.max_pretraga}`}
+            />
+          </div>
+        )}
+
+        {/* HIDDEN FILE INPUT */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files[0]) {
+              setSlika(e.target.files[0]);
+              setSlikaPreview(URL.createObjectURL(e.target.files[0]));
+              setSearchMode('image');
+            }
+          }}
+        />
+
+        {/* ============================================================
+            🔥🔥🔥 VELIKI PRAVOUGAONIK - UNOS 🔥🔥🔥
+            ============================================================ */}
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-6 md:p-8 animate-fadeIn">
+          
+          {/* DUGMAD - JEDNO ISPOD DRUGOG, NA CENTRU */}
+          <div className="flex flex-col items-center gap-3 mb-6">
+            <button
+              onClick={() => {
+                setSearchMode('text');
+                document.getElementById('tekstInput').focus();
+              }}
+              className={`w-full max-w-xs flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all ${
+                searchMode === 'text'
+                  ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg shadow-purple-500/25'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
-              <span>📷</span>
-              Slika
-              {!user?.premium && dailyLimit.preostalo > 0 && (
-                <span className="ml-1 text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full">
-                  {dailyLimit.preostalo}
-                </span>
-              )}
+              <span>✏️</span>
+              {t('aichef.buttons.type')}
             </button>
+
             <button
               onClick={handleVoiceSearch}
               disabled={!user?.premium || loading}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              className={`w-full max-w-xs flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all ${
                 user?.premium && !loading
                   ? voiceActive
                     ? 'bg-red-500 text-white shadow-lg shadow-red-500/25 animate-pulse'
@@ -1075,66 +1105,50 @@ const AIChef = () => {
               }`}
             >
               <span>🎤</span>
-              {voiceActive ? 'Slušam...' : 'Glas'}
+              {voiceActive ? 'Slušam...' : t('aichef.buttons.voice')}
               {!user?.premium && ' ⭐'}
             </button>
           </div>
 
-          {/* INPUT KONTEJNER */}
+          {/* TEKST INPUT */}
           <div className="relative">
-            <div className="relative">
-              <textarea
-                id="tekstInput"
-                value={tekst}
-                onChange={(e) => setTekst(e.target.value)}
-                placeholder={t('aichef.placeholder')}
-                className="w-full border-0 bg-gray-50/80 dark:bg-gray-700/50 rounded-2xl px-5 py-4 h-28 resize-none focus:outline-none focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-500 transition-all text-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
-              />
-              {tekst && (
-                <button
-                  onClick={() => setTekst('')}
-                  className="absolute right-3 top-3 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
-                >
-                  <span className="text-gray-400">✕</span>
-                </button>
-              )}
-            </div>
-
-            {/* SLIKA PREVIEW */}
-            {slikaPreview && (
-              <div className="mt-3 relative inline-block animate-fadeIn">
-                <img 
-                  src={slikaPreview} 
-                  alt="Upload" 
-                  className="h-32 w-32 object-cover rounded-2xl border-2 border-purple-200 dark:border-purple-700"
-                />
-                <button
-                  onClick={() => {
-                    setSlika(null);
-                    setSlikaPreview(null);
-                    setSearchMode('text');
-                  }}
-                  className="absolute -top-2 -right-2 p-1.5 bg-red-500 hover:bg-red-600 rounded-full text-white transition shadow-lg"
-                >
-                  <span className="text-sm">🗑️</span>
-                </button>
-              </div>
-            )}
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                if (e.target.files[0]) {
-                  setSlika(e.target.files[0]);
-                  setSlikaPreview(URL.createObjectURL(e.target.files[0]));
-                  setSearchMode('image');
-                }
-              }}
+            <textarea
+              id="tekstInput"
+              value={tekst}
+              onChange={(e) => setTekst(e.target.value)}
+              placeholder={t('aichef.placeholder')}
+              className="w-full border-0 bg-gray-50/80 dark:bg-gray-700/50 rounded-2xl px-5 py-4 h-28 resize-none focus:outline-none focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-500 transition-all text-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
             />
+            {tekst && (
+              <button
+                onClick={() => setTekst('')}
+                className="absolute right-3 top-3 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+              >
+                <span className="text-gray-400">✕</span>
+              </button>
+            )}
           </div>
+
+          {/* SLIKA PREVIEW */}
+          {slikaPreview && (
+            <div className="mt-3 relative inline-block animate-fadeIn">
+              <img 
+                src={slikaPreview} 
+                alt="Upload" 
+                className="h-32 w-32 object-cover rounded-2xl border-2 border-purple-200 dark:border-purple-700"
+              />
+              <button
+                onClick={() => {
+                  setSlika(null);
+                  setSlikaPreview(null);
+                  setSearchMode('text');
+                }}
+                className="absolute -top-2 -right-2 p-1.5 bg-red-500 hover:bg-red-600 rounded-full text-white transition shadow-lg"
+              >
+                <span className="text-sm">🗑️</span>
+              </button>
+            </div>
+          )}
 
           {/* DUGME ZA PRETRAGU */}
           <button
