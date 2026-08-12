@@ -1,16 +1,11 @@
 // frontend/src/pages/AIChef.jsx
 
-const AIChef = () => {
-  return (
-    <>
+{
       <SEO 
         title="AI Chef"
         description="Pretražite recepte po sastojcima ili uslikajte namirnice – AI Chef prepoznaje i predlaže savršene recepte!"
         url="https://os-zdravlja.vercel.app/ai-chef"
       />
-      {/* Ostatak koda */}
-    </>
-  );
 };
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';

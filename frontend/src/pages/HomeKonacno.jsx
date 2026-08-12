@@ -1,16 +1,11 @@
 // frontend/src/pages/HomeKonacno.jsx
 
-const HomeKonacno = () => {
-  return (
-    <>
+{  
       <SEO 
         title="Početna"
         description="Otkrivajte recepte prilagođene vašim potrebama, dijetama i ukusu. AI Chef, Food Planner i HealthyChef – sve na jednom mjestu!"
         url="https://os-zdravlja.vercel.app/"
       />
-      {/* Ostatak koda */}
-    </>
-  );
 };
 
 

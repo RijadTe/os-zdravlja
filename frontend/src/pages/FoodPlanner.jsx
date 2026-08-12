@@ -1,16 +1,11 @@
 // frontend/src/pages/FoodPlanner.jsx
 
-const FoodPlanner = () => {
-  return (
-    <>
+ {
       <SEO 
         title="Food Planner"
         description="Pratite svoje obroke, analizirajte ishranu i planirajte sedmicu uz AI asistenta. Dnevnik ishrane sa emojijima!"
         url="https://os-zdravlja.vercel.app/food-planner"
       />
-      {/* Ostatak koda */}
-    </>
-  );
 };
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';

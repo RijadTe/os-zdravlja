@@ -1,16 +1,11 @@
 // frontend/src/pages/HealthyChef.jsx
 
-const HealthyChef = () => {
-  return (
-    <>
+ {
       <SEO 
         title="HealthyChef"
         description="Personalizovani recepti za vaše zdravstvene potrebe – hormonski ciklus, tiroida, anemija, menopauza, PCOS i kosti."
         url="https://os-zdravlja.vercel.app/healthy-chef"
       />
-      {/* Ostatak koda */}
-    </>
-  );
 };
 
 import React, { useState, useEffect } from 'react';

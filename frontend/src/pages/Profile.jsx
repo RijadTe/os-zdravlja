@@ -1,16 +1,11 @@
 // frontend/src/pages/Profile.jsx
 
-const Profile = () => {
-  return (
-    <>
+{
       <SEO 
         title="Profil"
         description="Vaš profil – pregledajte svoje preferencije, osvojene bedževe i napredak na OS Zdravlja."
         url="https://os-zdravlja.vercel.app/profile"
       />
-      {/* Ostatak koda */}
-    </>
-  );
 };
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';

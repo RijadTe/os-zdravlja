@@ -1,16 +1,11 @@
 // frontend/src/pages/Community.jsx
 
-const Community = () => {
-  return (
-    <>
+ {
       <SEO 
         title="Zajednica"
         description="Podijelite svoje recepte, lajkajte tuđe i budite dio zajednice OS Zdravlja. Osvojite bedževe za svoje objave!"
         url="https://os-zdravlja.vercel.app/community"
-      />
-      {/* Ostatak koda */}
-    </>
-  );
+/>
 };
 
 import React, { useState, useEffect } from 'react';

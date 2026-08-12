@@ -1,16 +1,11 @@
 // frontend/src/pages/Quiz.jsx
 
-const Quiz = () => {
-  return (
-    <>
+{
       <SEO 
         title="Kviz"
         description="Popunite kratki kviz i mi ćemo vam prikazati recepte koji su savršeni za vas. Personalizirajte svoje iskustvo!"
         url="https://os-zdravlja.vercel.app/quiz"
       />
-      {/* Ostatak koda */}
-    </>
-  );
 };
 
 import React, { useState, useEffect } from 'react';
