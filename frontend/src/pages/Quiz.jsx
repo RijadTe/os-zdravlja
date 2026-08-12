@@ -1,9 +1,24 @@
 // frontend/src/pages/Quiz.jsx
+
+const Quiz = () => {
+  return (
+    <>
+      <SEO 
+        title="Kviz"
+        description="Popunite kratki kviz i mi ćemo vam prikazati recepte koji su savršeni za vas. Personalizirajte svoje iskustvo!"
+        url="https://os-zdravlja.vercel.app/quiz"
+      />
+      {/* Ostatak koda */}
+    </>
+  );
+};
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Toast from '../components/Toast';
 import { supabase } from '../supabaseClient';
+import SEO from '../components/SEO';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 

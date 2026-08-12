@@ -1,4 +1,19 @@
 // frontend/src/pages/HomeKonacno.jsx
+
+const HomeKonacno = () => {
+  return (
+    <>
+      <SEO 
+        title="Početna"
+        description="Otkrivajte recepte prilagođene vašim potrebama, dijetama i ukusu. AI Chef, Food Planner i HealthyChef – sve na jednom mjestu!"
+        url="https://os-zdravlja.vercel.app/"
+      />
+      {/* Ostatak koda */}
+    </>
+  );
+};
+
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -6,6 +21,7 @@ import RecipeCard from '../components/RecipeCard';
 import ScanReceipt from '../components/ScanReceipt';
 import AdBanner from '../components/AdBanner';
 import { DEFAULT_SLOTS } from '../config/adsense';
+import SEO from '../components/SEO';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 

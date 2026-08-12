@@ -963,7 +963,7 @@ app.post('/api/auth/2fa/verify', async (req, res) => {
 });
 
 // ============================================================
-// 🔥 REGISTRACIJA
+// 🔥 REGISTRACIJA - DODAT preferred_language
 // ============================================================
 app.post('/api/auth/register',
   body('email').isEmail().withMessage('Neispravan email format'),
@@ -984,7 +984,7 @@ app.post('/api/auth/register',
     console.log('📦 Podaci:', req.body);
     
     try {
-      const { email, ime, lozinka } = req.body;
+      const { email, ime, lozinka, preferred_language } = req.body;
 
       console.log('🔍 Provjeravam email:', email);
       const { data: existingUser, error: checkError } = await supabase
@@ -1033,6 +1033,7 @@ app.post('/api/auth/register',
           vrsta: [],
           izbjegava: [],
           preferencije: [],
+          preferred_language: preferred_language || 'hr',
           twofa_secret: null,
           twofa_enabled: false,
           created_at: new Date().toISOString()
@@ -1054,6 +1055,7 @@ app.post('/api/auth/register',
       }
 
       console.log('✅ Profil kreiran:', profileData);
+      console.log('🌍 preferred_language sačuvan:', preferred_language || 'hr');
 
       await createNotification(
         email,
@@ -1137,6 +1139,7 @@ app.post('/api/auth/login',
             vrsta: [],
             izbjegava: [],
             preferencije: [],
+            preferred_language: 'hr',
             twofa_secret: null,
             twofa_enabled: false,
             created_at: new Date().toISOString()
@@ -1304,6 +1307,7 @@ app.post('/api/quiz', async (req, res) => {
           kalorije: kalorije || '',
           kviz_zavrsen: true,
           premium: false,
+          preferred_language: 'hr',
           twofa_secret: null,
           twofa_enabled: false,
           created_at: new Date().toISOString()
@@ -1747,6 +1751,7 @@ app.get('/api/profil/:email', async (req, res) => {
     }
     
     console.log(`✅ Profil pronađen za: ${email}`);
+    console.log(`🌍 preferred_language:`, data.preferred_language || 'hr');
     res.json({ success: true, data });
   } catch (error) {
     console.error('❌ Greška pri dohvatu profila:', error);
@@ -1793,13 +1798,23 @@ app.put('/api/profil/:email', async (req, res) => {
 });
 
 // ============================================================
-// 15. KREIRAJ PROFIL
+// 15. KREIRAJ PROFIL - DODAT preferred_language
 // ============================================================
 app.post('/api/profil', async (req, res) => {
   try {
-    const { email, ime, premium, kviz_zavrsen, vrsta, izbjegava, preferencije } = req.body;
+    const { 
+      email, 
+      ime, 
+      premium, 
+      kviz_zavrsen, 
+      vrsta, 
+      izbjegava, 
+      preferencije,
+      preferred_language 
+    } = req.body;
     
     console.log('🆕 Kreiranje profila:', email);
+    console.log('🌍 preferred_language:', preferred_language);
 
     const { data: existingUser } = await supabase
       .from('profili')
@@ -1821,6 +1836,7 @@ app.post('/api/profil', async (req, res) => {
         vrsta: vrsta || [],
         izbjegava: izbjegava || [],
         preferencije: preferencije || [],
+        preferred_language: preferred_language || 'hr',
         twofa_secret: null,
         twofa_enabled: false,
         created_at: new Date().toISOString()
@@ -1832,6 +1848,7 @@ app.post('/api/profil', async (req, res) => {
       return res.status(500).json({ success: false, error: error.message });
     }
     
+    console.log('✅ Profil kreiran sa preferred_language:', preferred_language || 'hr');
     res.json({ success: true, data: data[0] });
   } catch (error) {
     console.error('❌ Greška:', error);
@@ -2079,7 +2096,6 @@ app.post('/api/weekly-plan', async (req, res) => {
       .from('recepti')
       .select('*');
 
-    // 🔥 FILTRIRAJ PO RESTRIKCIJAMA
     if (restrikcije && restrikcije.length > 0) {
       const hasNoRestrictions = restrikcije.some(r => 
         r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'

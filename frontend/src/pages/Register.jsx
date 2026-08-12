@@ -1,10 +1,9 @@
 // frontend/src/pages/Register.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient';
 
-// 🔥 DODANO - API_URL za profile
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const Register = () => {
@@ -19,6 +18,18 @@ const Register = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // 🔥 DODAJ - provjeri da li je korisnik već prijavljen
+  const [isAlreadyLoggedIn, setIsAlreadyLoggedIn] = useState(false);
+
+  // 🔥 DODAJ - provjera da li je korisnik već prijavljen
+  useEffect(() => {
+    const user = localStorage.getItem('user');
+    if (user) {
+      setIsAlreadyLoggedIn(true);
+      navigate('/');
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -51,7 +62,6 @@ const Register = () => {
     try {
       console.log('📝 Registracija sa Supabase...');
 
-      // ✅ OVO OSTAJE - Supabase provjera emaila
       const { data: existingUser, error: checkError } = await supabase
         .from('profili')
         .select('email')
@@ -71,7 +81,6 @@ const Register = () => {
 
       console.log('✅ Email slobodan:', formData.email);
 
-      // ✅ OVO OSTAJE - Supabase auth registracija
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.lozinka,
@@ -95,11 +104,15 @@ const Register = () => {
 
       console.log('✅ Auth korisnik kreiran:', authData.user?.id);
 
-      // 🔥 DODAJ SELECTED LANGUAGE
+      // 🔥 ZAKLJUČAJ JEZIK - KORISTI TRENUTNI JEZIK IZ i18n
       const selectedLanguage = i18n.language || 'hr';
+      
+      // 🔥 SPREMI JEZIK U LOCALSTORAGE (ZA CIJELU APLIKACIJU)
       localStorage.setItem('preferredLanguage', selectedLanguage);
+      localStorage.setItem('languageLocked', 'true'); // 🔥 DODAJ - zaključaj jezik
 
-      // 🔥 PROMIJENJENO - koristi API umjesto direktnog Supabase poziva
+      console.log('🌍 Jezik zaključan na:', selectedLanguage);
+
       try {
         console.log('📡 Kreiram profil preko API-ja...');
         const response = await fetch(`${API_URL}/api/profil`, {
@@ -124,7 +137,6 @@ const Register = () => {
           console.log('✅ Profil kreiran preko API-ja:', result.data);
         } else {
           console.warn('⚠️ Profil nije kreiran preko API-ja:', result);
-          // Pokušaj direktno sa Supabase kao fallback
           const { data: profileData, error: profileError } = await supabase
             .from('profili')
             .insert([{
@@ -152,7 +164,6 @@ const Register = () => {
         }
       } catch (apiError) {
         console.warn('⚠️ Greška pri API pozivu, koristim Supabase fallback:', apiError);
-        // Fallback na direktan Supabase poziv
         const { data: profileData, error: profileError } = await supabase
           .from('profili')
           .insert([{
@@ -184,7 +195,8 @@ const Register = () => {
         email: formData.email,
         ime: formData.ime,
         premium: false,
-        preferred_language: selectedLanguage
+        preferred_language: selectedLanguage,
+        languageLocked: true // 🔥 DODAJ
       };
       
       localStorage.setItem('user', JSON.stringify(userData));
@@ -196,7 +208,7 @@ const Register = () => {
       }
 
       console.log('👤 Sačuvan user:', userData);
-      console.log('🌍 Odabrani jezik:', selectedLanguage);
+      console.log('🌍 Jezik zaključan:', selectedLanguage);
 
       setSuccess(t('register.success'));
 
@@ -212,24 +224,27 @@ const Register = () => {
     }
   };
 
-  // Mapa zastava za jezike
   const languageFlags = {
     hr: '🇭🇷',
     en: '🇬🇧',
     de: '🇩🇪'
   };
 
-  // Mapa naziva jezika
   const languageNames = {
     hr: 'Hrvatski',
     en: 'English',
     de: 'Deutsch'
   };
 
+  // 🔥 Ako je već prijavljen, ne prikazuj registraciju
+  if (isAlreadyLoggedIn) {
+    return null;
+  }
+
   return (
     <div className="flex justify-center items-start min-h-screen bg-white dark:bg-gray-900 p-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8 mt-6">
-        {/* 🔥 IZBOR JEZIKA - SA ZASTAVAMA */}
+        {/* 🔥 IZBOR JEZIKA - PRIJE REGISTRACIJE */}
         <div className="mb-6 flex justify-center">
           <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-700 px-5 py-2.5 rounded-full shadow-sm">
             <span className="text-lg">🌍</span>
@@ -252,6 +267,13 @@ const Register = () => {
         <p className="text-center text-gray-500 dark:text-gray-300 mb-6">
           {t('register.subtitle')}
         </p>
+
+        {/* 🔥 DODAJ - OBAVIJEST O JEZIKU */}
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 mb-4 text-center">
+          <p className="text-xs text-blue-600 dark:text-blue-400">
+            🌍 {t('register.language_hint') || 'Odabrani jezik se ne može promijeniti nakon registracije.'}
+          </p>
+        </div>
 
         {error && (
           <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-600 dark:text-red-300 p-3 rounded-xl mb-4">

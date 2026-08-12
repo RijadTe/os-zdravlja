@@ -1,7 +1,22 @@
 // frontend/src/pages/Community.jsx
+
+const Community = () => {
+  return (
+    <>
+      <SEO 
+        title="Zajednica"
+        description="Podijelite svoje recepte, lajkajte tuđe i budite dio zajednice OS Zdravlja. Osvojite bedževe za svoje objave!"
+        url="https://os-zdravlja.vercel.app/community"
+      />
+      {/* Ostatak koda */}
+    </>
+  );
+};
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import SEO from '../components/SEO';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 

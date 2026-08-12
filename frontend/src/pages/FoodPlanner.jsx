@@ -1,9 +1,24 @@
 // frontend/src/pages/FoodPlanner.jsx
+
+const FoodPlanner = () => {
+  return (
+    <>
+      <SEO 
+        title="Food Planner"
+        description="Pratite svoje obroke, analizirajte ishranu i planirajte sedmicu uz AI asistenta. Dnevnik ishrane sa emojijima!"
+        url="https://os-zdravlja.vercel.app/food-planner"
+      />
+      {/* Ostatak koda */}
+    </>
+  );
+};
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Line, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
+import SEO from '../components/SEO';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
 
