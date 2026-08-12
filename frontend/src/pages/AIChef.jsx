@@ -1101,17 +1101,23 @@ const AIChef = () => {
               }}
               className={`bg-gradient-to-br ${slikaPreview ? 'from-green-500 to-emerald-500' : 'from-blue-500 to-blue-600'} rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-white/20 backdrop-blur-sm hover:scale-[1.02] transition-transform cursor-pointer hover:shadow-xl flex flex-col h-full min-h-[90px] sm:min-h-[130px]`}
             >
-              <div className="flex items-start gap-2 sm:gap-3 flex-1">
-                <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg sm:rounded-xl text-2xl sm:text-3xl flex-shrink-0 mt-0.5">📸</div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-white/80 text-[10px] sm:text-xs font-medium truncate">Slika</p>
-                  {user?.premium ? (
-                    <p className="text-white text-lg sm:text-xl font-bold truncate">{slikaPreview ? '✅' : '📷'}</p>
-                  ) : (
-                    <p className="text-white text-lg sm:text-xl font-bold truncate">{slikaPreview ? '✅' : '0/3'}</p>
-                  )}
-                  <p className="text-white/60 text-[10px] sm:text-xs truncate">{slikaPreview ? 'Spremna' : 'Dodaj'}</p>
+              <div className="flex flex-col items-center justify-center flex-1 text-center">
+                <div className="text-5xl sm:text-6xl mb-1">
+                  {slikaPreview ? '✅' : '📸'}
                 </div>
+                <p className={`text-white font-bold ${user?.premium ? 'text-lg sm:text-xl' : 'text-base sm:text-lg'}`}>
+                  Slika
+                </p>
+                {!user?.premium && (
+                  <p className="text-white/70 text-[10px] sm:text-xs">
+                    {slikaPreview ? 'Spremna' : '0/3'}
+                  </p>
+                )}
+                {user?.premium && slikaPreview && (
+                  <p className="text-white/70 text-[10px] sm:text-xs">
+                    Spremna
+                  </p>
+                )}
               </div>
               <p className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-white/70 text-center leading-tight">
                 Slikaj ili dodaj fotografiju
