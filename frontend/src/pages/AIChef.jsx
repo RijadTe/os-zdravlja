@@ -28,19 +28,29 @@ const useDebounce = (value, delay) => {
 // ============================================================
 // STATISTIKE KARTICA
 // ============================================================
-const StatsCard = ({ icon, label, value, color, subtitle, onClick, children }) => (
+const StatsCard = ({ icon, label, value, color, subtitle, onClick, children, labelAbove, valueAbove }) => (
   <div 
     onClick={onClick}
     className={`bg-gradient-to-br ${color} rounded-2xl p-4 shadow-lg border border-white/20 backdrop-blur-sm hover:scale-[1.02] transition-transform ${onClick ? 'cursor-pointer hover:shadow-xl' : ''}`}
   >
-    <div className="flex items-center gap-3">
-      <div className="p-2 bg-white/20 rounded-xl text-3xl flex-shrink-0">
+    <div className="flex items-start gap-3">
+      <div className="p-2 bg-white/20 rounded-xl text-3xl flex-shrink-0 mt-0.5">
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-white/80 text-xs font-medium truncate">{label}</p>
-        <p className="text-white text-xl font-bold truncate">{value}</p>
-        {subtitle && <p className="text-white/60 text-xs truncate">{subtitle}</p>}
+        {labelAbove ? (
+          <>
+            <p className="text-white/80 text-xs font-medium truncate">{labelAbove}</p>
+            <p className="text-white text-xl font-bold truncate">{valueAbove || value}</p>
+            {subtitle && <p className="text-white/60 text-xs truncate">{subtitle}</p>}
+          </>
+        ) : (
+          <>
+            <p className="text-white/80 text-xs font-medium truncate">{label}</p>
+            <p className="text-white text-xl font-bold truncate">{value}</p>
+            {subtitle && <p className="text-white/60 text-xs truncate">{subtitle}</p>}
+          </>
+        )}
         {children}
       </div>
     </div>
@@ -278,7 +288,6 @@ const AIChef = () => {
   // 🔥 PRIKAŽI VIDEO REKLAMU - SAMO ZA FREE KORISNIKE!
   // ============================================================
   const showVideoAd = useCallback(() => {
-    // ⭐ Premium korisnici NE GLEDAJU VIDEO REKLAME!
     if (user?.premium) {
       return Promise.resolve(true);
     }
@@ -380,7 +389,6 @@ const AIChef = () => {
   // 🔥 OTKLJUČAJ 1 SLIKANJE NAKON VIDEO REKLAME - SAMO FREE!
   // ============================================================
   const handleUnlockWithVideo = async () => {
-    // ⭐ Premium korisnici - ne treba im video
     if (user?.premium) {
       setPoruka('⭐ Premium korisnici imaju 15 slikanja dnevno!');
       setPorukaType('info');
@@ -823,7 +831,7 @@ const AIChef = () => {
   }, [filteri, rezultati, profil]);
 
   // ============================================================
-  // 🔥 GLASOVNA PRETRAGA
+  // 🔥 GLASOVNA PRETRAGA - DIREKTNO IZ KARTICE (PREMIUM)
   // ============================================================
   const handleVoiceSearch = () => {
     if (!user?.premium) {
@@ -1005,7 +1013,10 @@ const AIChef = () => {
             ============================================================ */}
         {user && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-            {/* 1. SLIKA - KARTICA ZA UPLOAD */}
+            
+            {/* ============================================================
+                1. SLIKA - ZAJEDNIČKI ZA FREE I PREMIUM
+                ============================================================ */}
             <StatsCard
               icon="📸"
               label="Slika"
@@ -1021,41 +1032,63 @@ const AIChef = () => {
                   setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
                 }
               }}
-            />
-
-            {/* 2. PREOSTALO SLIKANJA - SA VIDEO OTKLJUČAVANJEM ZA FREE */}
-            <StatsCard
-              icon="🎯"
-              label="Preostala slikanja"
-              value={dailyLimit.preostalo}
-              color={dailyLimit.preostalo > 0 ? 'from-purple-500 to-purple-600' : 'from-red-500 to-red-600'}
-              subtitle={`/${dailyLimit.max_pretraga}`}
             >
-              {/* 🔥 FREE KORISNICI - DUGME ZA VIDEO OTKLJUČAVANJE */}
-              {!user?.premium && dailyLimit.preostalo === 0 && dailyLimit.broj_pretraga < dailyLimit.max_pretraga && (
-                <button
-                  onClick={handleUnlockWithVideo}
-                  disabled={loadingLimit || videoWatched || videoAdCount >= maxVideoAds}
-                  className="mt-2 w-full text-xs bg-white/20 hover:bg-white/30 text-white font-semibold py-1.5 rounded-lg transition disabled:opacity-50"
-                >
-                  {loadingLimit ? '⏳...' : videoWatched ? '✅ Otključano' : '🎬 Gledaj video'}
-                </button>
-              )}
-              {!user?.premium && dailyLimit.broj_pretraga >= dailyLimit.max_pretraga && (
-                <p className="mt-1 text-[10px] text-white/70">⛔ Limit iskorišten</p>
-              )}
-              {user?.premium && (
-                <p className="mt-1 text-[10px] text-white/70">⭐ Premium - 15 slikanja</p>
-              )}
+              <p className="mt-1 text-[10px] text-white/70">Slikaj ili dodaj fotografiju</p>
             </StatsCard>
 
-            {/* 3. STATUS - FREE → PREMIUM, PREMIUM → manji tekst */}
+            {/* ============================================================
+                2. FREE: VIDEO | PREMIUM: PREOSTALO SLIKANJA
+                ============================================================ */}
+            {!user?.premium ? (
+              // 🔥 FREE - VIDEO KARTICA
+              <StatsCard
+                icon="📺"
+                label="Video"
+                value={`${videoAdCount}/${maxVideoAds}`}
+                color={videoAdCount < maxVideoAds ? 'from-purple-500 to-purple-600' : 'from-red-500 to-red-600'}
+                subtitle={videoAdCount < maxVideoAds ? 'Pogledaj video za otključavanje fotografije' : '⛔ Limit iskorišten'}
+                onClick={videoAdCount < maxVideoAds ? handleUnlockWithVideo : undefined}
+              >
+                {videoAdCount < maxVideoAds && dailyLimit.preostalo === 0 && dailyLimit.broj_pretraga < dailyLimit.max_pretraga && (
+                  <button
+                    onClick={handleUnlockWithVideo}
+                    disabled={loadingLimit || videoWatched}
+                    className="mt-1 w-full text-[10px] bg-white/20 hover:bg-white/30 text-white font-semibold py-1 rounded-lg transition disabled:opacity-50"
+                  >
+                    {loadingLimit ? '⏳...' : videoWatched ? '✅ Otključano' : '🎬 Gledaj video'}
+                  </button>
+                )}
+                {dailyLimit.preostalo > 0 && (
+                  <p className="mt-1 text-[10px] text-green-300">✅ Imaš slikanja</p>
+                )}
+                {dailyLimit.broj_pretraga >= dailyLimit.max_pretraga && (
+                  <p className="mt-1 text-[10px] text-white/70">⛔ Limit iskorišten</p>
+                )}
+              </StatsCard>
+            ) : (
+              // 🔥 PREMIUM - PREOSTALO SLIKANJA
+              <StatsCard
+                icon="🎯"
+                label="Preostalo"
+                value={`slikanja`}
+                color="from-purple-500 to-purple-600"
+                subtitle={`${dailyLimit.preostalo}/${dailyLimit.max_pretraga}`}
+                labelAbove="Preostalo"
+                valueAbove={`${dailyLimit.preostalo}/${dailyLimit.max_pretraga}`}
+              >
+                <p className="mt-1 text-[10px] text-white/70">⭐ Premium korisnik</p>
+              </StatsCard>
+            )}
+
+            {/* ============================================================
+                3. STATUS - FREE → PREMIUM | PREMIUM → VIDLJIVO
+                ============================================================ */}
             <StatsCard
               icon={user?.premium ? '⭐' : '🔓'}
-              label="Status"
+              label={user?.premium ? 'Status' : 'Status'}
               value={user?.premium ? 'Premium' : 'Free'}
               color={user?.premium ? 'from-amber-500 to-yellow-600' : 'from-gray-500 to-gray-600'}
-              subtitle={user?.premium ? '' : '🔒 Ograničen'}
+              subtitle={user?.premium ? '✅ Sve funkcionalnosti' : '🔒 Ograničen'}
               onClick={() => {
                 if (!user?.premium) {
                   window.location.href = '/premium';
@@ -1075,28 +1108,39 @@ const AIChef = () => {
               )}
             </StatsCard>
 
-            {/* 4. DANAŠNJE PRETRAGE - FREE: 0/3, PREMIUM: Glasovna pretraga */}
-            <StatsCard
-              icon={user?.premium ? '🎤' : '⏱️'}
-              label={user?.premium ? 'Glasovna pretraga' : 'Današnje pretrage'}
-              value={user?.premium ? '⭐ Dostupna' : `${dailyLimit.broj_pretraga}`}
-              color={user?.premium ? 'from-rose-500 to-pink-500' : 
-                     dailyLimit.broj_pretraga < dailyLimit.max_pretraga ? 'from-emerald-500 to-emerald-600' : 'from-orange-500 to-orange-600'}
-              subtitle={user?.premium ? '🎤 Klikni za govor' : `od ${dailyLimit.max_pretraga}`}
-              onClick={() => {
-                if (user?.premium) {
-                  handleVoiceSearch();
-                }
-              }}
-            >
-              {user?.premium ? (
-                <p className="mt-1 text-[10px] text-white/70">✅ Premium funkcija</p>
-              ) : (
+            {/* ============================================================
+                4. FREE: DANAŠNJE PRETRAGE | PREMIUM: GLASOVNA PRETRAGA
+                ============================================================ */}
+            {!user?.premium ? (
+              // 🔥 FREE - DANAŠNJE PRETRAGE
+              <StatsCard
+                icon="⏱️"
+                label="Današnja"
+                value="pretraga"
+                color={dailyLimit.broj_pretraga < dailyLimit.max_pretraga ? 'from-emerald-500 to-emerald-600' : 'from-orange-500 to-orange-600'}
+                subtitle={`${dailyLimit.broj_pretraga}/${dailyLimit.max_pretraga}`}
+                labelAbove="Današnja"
+                valueAbove={`${dailyLimit.broj_pretraga}/${dailyLimit.max_pretraga}`}
+              >
                 <p className="mt-1 text-[10px] text-white/70">
                   {dailyLimit.broj_pretraga >= dailyLimit.max_pretraga ? '⛔ Potrošeno' : '📸 Slikaj za +1'}
                 </p>
-              )}
-            </StatsCard>
+              </StatsCard>
+            ) : (
+              // 🔥 PREMIUM - GLASOVNA PRETRAGA
+              <StatsCard
+                icon="🎤"
+                label="Glasovna"
+                value="pretraga"
+                color="from-rose-500 to-pink-500"
+                subtitle="⭐ Premium funkcija"
+                labelAbove="Glasovna"
+                valueAbove="pretraga"
+                onClick={handleVoiceSearch}
+              >
+                <p className="mt-1 text-[10px] text-white/70">🎤 Klikni za govor</p>
+              </StatsCard>
+            )}
           </div>
         )}
 
@@ -1120,7 +1164,7 @@ const AIChef = () => {
             ============================================================ */}
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-6 md:p-8 animate-fadeIn">
           
-          {/* DUGMAD - JEDNO ISPOD DRUGOG, NA CENTRU */}
+          {/* DUGME - SAMO OTKUCAJ (UKLONJEN GLASOVNO) */}
           <div className="flex flex-col items-center gap-3 mb-6">
             <button
               onClick={() => {
@@ -1134,23 +1178,7 @@ const AIChef = () => {
               }`}
             >
               <span>✏️</span>
-              {t('aichef.buttons.type')}
-            </button>
-
-            <button
-              onClick={handleVoiceSearch}
-              disabled={!user?.premium || loading}
-              className={`w-full max-w-xs flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all ${
-                user?.premium && !loading
-                  ? voiceActive
-                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/25 animate-pulse'
-                    : 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-500/25 hover:shadow-xl'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              <span>🎤</span>
-              {voiceActive ? 'Slušam...' : t('aichef.buttons.voice')}
-              {!user?.premium && ' ⭐'}
+              Otkucaj
             </button>
           </div>
 
