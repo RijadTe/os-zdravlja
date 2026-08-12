@@ -73,9 +73,10 @@ const Community = () => {
   // 🔥 State za prikaz notifikacije o bedževima
   const [badgeNotification, setBadgeNotification] = useState(null);
 
+  // 🔥 PROMIJENJENO: alergeni → izbjegava
   const [filters, setFilters] = useState({
     vrsta: '',
-    alergeni: [],
+    izbjegava: [],
     vrijeme: '',
     tezina: '',
     kalorije: ''
@@ -110,7 +111,7 @@ const Community = () => {
   }, []);
 
   // ============================================================
-  // 🔥 IZMJENJEN fetchProfile - ISKLJUČEN KALORIJE FILTER!
+  // 🔥 fetchProfile - KORISTI izbjegava
   // ============================================================
   const fetchProfile = async (email) => {
     try {
@@ -130,10 +131,13 @@ const Community = () => {
           }
         }
         
+        // 🔥 POPRAVLJENO - KORISTI izbjegava
         if (data.data.izbjegava && data.data.izbjegava.length > 0) {
-          const restrikcije = data.data.izbjegava.filter(r => r !== 'Bez restrikcija');
+          const restrikcije = data.data.izbjegava.filter(r => 
+            r !== 'Bez restrikcija' && r !== 'No restrictions' && r !== 'Keine Einschränkungen'
+          );
           if (restrikcije.length > 0) {
-            newFilters.alergeni = restrikcije;
+            newFilters.izbjegava = restrikcije;
           }
         }
         
@@ -145,18 +149,6 @@ const Community = () => {
           newFilters.tezina = data.data.tezina;
         }
         
-        // 🔥🔥🔥 KALORIJE FILTER JE ISKLJUČEN - NE POSTAVLJA SE AUTOMATSKI!
-        // Korisnik će morati ručno odabrati filter za kalorije ako želi
-        // if (data.data.kalorije) {
-        //   const kalorijeMap = {
-        //     'Nisko (do 300 kcal)': 'do_300',
-        //     'Umjereno (300-500 kcal)': '300_500',
-        //     'Srednje (500-700 kcal)': '500_700',
-        //     'Visoko (900+ kcal)': '900_plus'
-        //   };
-        //   newFilters.kalorije = kalorijeMap[data.data.kalorije] || '';
-        // }
-        
         setFilters(prev => ({ ...prev, ...newFilters }));
       }
     } catch (error) {
@@ -167,7 +159,7 @@ const Community = () => {
   };
 
   // ============================================================
-  // 📥 DOHVATI OBJAVE - SA BOLJIM LOGOVIMA
+  // 📥 DOHVATI OBJAVE
   // ============================================================
   const fetchObjave = async () => {
     try {
@@ -209,7 +201,7 @@ const Community = () => {
   };
 
   // ============================================================
-  // 2. FILTRIRANJE OBJAVA - SA LOGOVIMA
+  // 2. FILTRIRANJE OBJAVA - POPRAVLJENO!
   // ============================================================
   useEffect(() => {
     console.log('🔍 Filtriram objave, ukupno:', objave.length);
@@ -222,14 +214,20 @@ const Community = () => {
       console.log('🔍 Nakon filtera vrsta:', filtered.length);
     }
     
-    if (filters.alergeni && filters.alergeni.length > 0) {
-      filtered = filtered.filter(objava => {
-        const objavaAlergeni = objava.alergeni || [];
-        return !filters.alergeni.some(restrikcija => 
-          objavaAlergeni.includes(restrikcija)
-        );
-      });
-      console.log('🔍 Nakon filtera alergeni:', filtered.length);
+    // 🔥 POPRAVLJENO - KORISTI izbjegava!
+    if (filters.izbjegava && filters.izbjegava.length > 0) {
+      const restrikcije = filters.izbjegava;
+      const hasNoRestrictions = restrikcije.some(r => 
+        r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
+      );
+      
+      if (!hasNoRestrictions) {
+        filtered = filtered.filter(objava => {
+          const izbjegava = objava.izbjegava || [];
+          return restrikcije.every(r => izbjegava.includes(r));
+        });
+        console.log('🔍 Nakon filtera izbjegava:', filtered.length);
+      }
     }
     
     if (filters.vrijeme) {
@@ -286,32 +284,24 @@ const Community = () => {
         }
       }
       
+      // 🔥 POPRAVLJENO - KORISTI izbjegava
       if (profil.izbjegava && profil.izbjegava.length > 0) {
-        const restrikcije = profil.izbjegava.filter(r => r !== 'Bez restrikcija');
+        const restrikcije = profil.izbjegava.filter(r => 
+          r !== 'Bez restrikcija' && r !== 'No restrictions' && r !== 'Keine Einschränkungen'
+        );
         if (restrikcije.length > 0) {
-          resetFilters.alergeni = restrikcije;
+          resetFilters.izbjegava = restrikcije;
         }
       }
       
       if (profil.vrijeme) resetFilters.vrijeme = profil.vrijeme;
       if (profil.tezina) resetFilters.tezina = profil.tezina;
       
-      // 🔥 NE RESETUJ KALORIJE - ostavi prazno
-      // if (profil.kalorije) {
-      //   const kalorijeMap = {
-      //     'Nisko (do 300 kcal)': 'do_300',
-      //     'Umjereno (300-500 kcal)': '300_500',
-      //     'Srednje (500-700 kcal)': '500_700',
-      //     'Visoko (900+ kcal)': '900_plus'
-      //   };
-      //   resetFilters.kalorije = kalorijeMap[profil.kalorije] || '';
-      // }
-      
       setFilters(prev => ({ ...prev, ...resetFilters }));
     } else {
       setFilters({
         vrsta: '',
-        alergeni: [],
+        izbjegava: [],
         vrijeme: '',
         tezina: '',
         kalorije: ''
@@ -378,7 +368,7 @@ const Community = () => {
   };
 
   // ============================================================
-  // 🔥 handleSubmit - slanje objave
+  // 🔥 handleSubmit - slanje objave (POPRAVLJENO!)
   // ============================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -412,8 +402,9 @@ const Community = () => {
       formData.append('sastojci', novaObjava.sastojci || '');
       if (novaObjava.slika) formData.append('slika', novaObjava.slika);
       
-      const alergeniValues = (novaObjava.alergeni || []).map(key => alergenKeyToValue[key] || key);
-      formData.append('alergeni', JSON.stringify(alergeniValues));
+      // 🔥 POPRAVLJENO - KORISTI izbjegava umjesto alergeni!
+      const izbjegavaValues = (novaObjava.alergeni || []).map(key => alergenKeyToValue[key] || key);
+      formData.append('izbjegava', JSON.stringify(izbjegavaValues));
       formData.append('vrijeme', novaObjava.vrijeme || '');
       formData.append('tezina', novaObjava.tezina || '');
 
@@ -423,7 +414,7 @@ const Community = () => {
         vrsta: novaObjava.vrsta,
         opis: novaObjava.opis,
         sastojci: novaObjava.sastojci,
-        alergeni: alergeniValues,
+        izbjegava: izbjegavaValues,
         vrijeme: novaObjava.vrijeme,
         tezina: novaObjava.tezina
       });
@@ -576,7 +567,7 @@ const Community = () => {
       )}
 
       {/* ============================================================
-          🔥 FORMA ZA NOVU OBJAVU - PRVA!
+          🔥 FORMA ZA NOVU OBJAVU
       ============================================================ */}
       {user ? (
         <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md mb-8">
@@ -758,7 +749,7 @@ const Community = () => {
       )}
 
       {/* ============================================================
-          🔥 FILTERI - SADA ISPOD FORME (samo ako ima objava)
+          🔥 FILTERI
       ============================================================ */}
       {profil && filteredObjave.length > 0 && (
         <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 mb-6 border border-gray-200 dark:border-gray-700">
@@ -830,11 +821,11 @@ const Community = () => {
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700">
           <p className="text-2xl mb-2">📭</p>
           <p className="text-gray-500 dark:text-gray-400">
-            {filters.vrsta || filters.alergeni.length > 0 || filters.vrijeme || filters.tezina || filters.kalorije
+            {filters.vrsta || filters.izbjegava.length > 0 || filters.vrijeme || filters.tezina || filters.kalorije
               ? t('community.no_results', { defaultValue: 'Nema objava koje odgovaraju vašim filterima.' })
               : t('community.no_posts', { defaultValue: 'Nema objava u zajednici.' })}
           </p>
-          {(filters.vrsta || filters.alergeni.length > 0 || filters.vrijeme || filters.tezina || filters.kalorije) && (
+          {(filters.vrsta || filters.izbjegava.length > 0 || filters.vrijeme || filters.tezina || filters.kalorije) && (
             <button
               onClick={handleResetFilters}
               className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition"
@@ -842,7 +833,7 @@ const Community = () => {
               {t('community.filters.reset', { defaultValue: 'Resetuj filtere' })}
             </button>
           )}
-          {user && !filters.vrsta && !filters.alergeni.length && !filters.vrijeme && !filters.tezina && !filters.kalorije && (
+          {user && !filters.vrsta && !filters.izbjegava.length && !filters.vrijeme && !filters.tezina && !filters.kalorije && (
             <p className="text-sm text-gray-400 mt-2">
               {t('community.be_first', { defaultValue: 'Budite prvi koji će podijeliti recept! 🍽️' })}
             </p>
@@ -889,17 +880,17 @@ const Community = () => {
                     {objava.opis || objava.description || ''}
                   </p>
                   
-                  {objava.alergeni && objava.alergeni.length > 0 && (
+                  {objava.izbjegava && objava.izbjegava.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
-                      {objava.alergeni.slice(0, 2).map((alergen, i) => (
+                      {objava.izbjegava.slice(0, 2).map((restrikcija, i) => (
                         <span key={i} className="bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded-full text-[10px] font-medium">
-                          🚫 {getTranslatedAlergen(alergen).substring(0, 12)}
-                          {getTranslatedAlergen(alergen).length > 12 && '...'}
+                          🚫 {getTranslatedAlergen(restrikcija).substring(0, 12)}
+                          {getTranslatedAlergen(restrikcija).length > 12 && '...'}
                         </span>
                       ))}
-                      {objava.alergeni.length > 2 && (
+                      {objava.izbjegava.length > 2 && (
                         <span className="text-[10px] text-gray-400 dark:text-gray-500">
-                          +{objava.alergeni.length - 2}
+                          +{objava.izbjegava.length - 2}
                         </span>
                       )}
                     </div>

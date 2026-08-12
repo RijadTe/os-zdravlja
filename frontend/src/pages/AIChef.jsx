@@ -739,7 +739,7 @@ const AIChef = () => {
   }, [debouncedTekst, loading, handlePretraga, isVoiceSearch]);
 
   // ============================================================
-  // FILTRIRAJ REZULTATE SA RESTRIKCIJAMA
+  // 🔥 FILTRIRAJ REZULTATE SA RESTRIKCIJAMA - POPRAVLJENO!
   // ============================================================
   useEffect(() => {
     let filtered = rezultati;
@@ -754,12 +754,15 @@ const AIChef = () => {
       filtered = filtered.filter(r => r.tezina === filteri.tezina);
     }
     
+    // 🔥 POPRAVLJENO - KORISTI izbjegava umjesto alergeni!
     if (profil?.izbjegava && profil.izbjegava.length > 0) {
-      const restrikcije = profil.izbjegava.filter(r => r !== 'Bez restrikcija');
+      const restrikcije = profil.izbjegava.filter(r => 
+        r !== 'Bez restrikcija' && r !== 'No restrictions' && r !== 'Keine Einschränkungen'
+      );
       if (restrikcije.length > 0) {
         filtered = filtered.filter(recipe => {
-          const alergeni = recipe.alergeni || [];
-          return !restrikcije.some(r => alergeni.includes(r));
+          const izbjegava = recipe.izbjegava || [];
+          return restrikcije.every(r => izbjegava.includes(r));
         });
       }
     }

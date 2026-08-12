@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import RecipeCard from '../components/RecipeCard';
 import ScanReceipt from '../components/ScanReceipt';
 import AdBanner from '../components/AdBanner';
-import { DEFAULT_SLOTS } from '../config/adsense'; // 🔥 DODANO ZA ADSENSE!
+import { DEFAULT_SLOTS } from '../config/adsense';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -41,7 +41,7 @@ const HomeKonacno = () => {
   });
 
   // ============================================================
-  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA (ISTO KAO U PROFILU)
+  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA
   // ============================================================
   const translateValue = (value, type) => {
     if (!value) return t('profile.not_selected');
@@ -145,7 +145,7 @@ const HomeKonacno = () => {
   }, []);
 
   // ============================================================
-  // 2. DOHVATI PROFIL IZ BAZE - SA RATE LIMIT FALLBACKOM!
+  // 2. DOHVATI PROFIL IZ BAZE
   // ============================================================
   useEffect(() => {
     const dohvatiProfil = async () => {
@@ -195,7 +195,7 @@ const HomeKonacno = () => {
               if (odabranePref.length > 0) noviFilteri.preferencije = odabranePref[0];
             }
             if (fallbackProfil.izbjegava && fallbackProfil.izbjegava.length > 0) {
-              const restrikcije = fallbackProfil.izbjegava.filter(r => r !== 'Bez restrikcija');
+              const restrikcije = fallbackProfil.izbjegava.filter(r => r !== 'Bez restrikcija' && r !== 'No restrictions' && r !== 'Keine Einschränkungen');
               if (restrikcije.length > 0) noviFilteri.restrikcije = restrikcije;
             }
             if (fallbackProfil.vrijeme) noviFilteri.vrijeme = fallbackProfil.vrijeme;
@@ -239,8 +239,11 @@ const HomeKonacno = () => {
             }
           }
           
+          // 🔥 POPRAVLJENO - koristi izbjegava
           if (data.data.izbjegava && data.data.izbjegava.length > 0) {
-            const restrikcije = data.data.izbjegava.filter(r => r !== 'Bez restrikcija');
+            const restrikcije = data.data.izbjegava.filter(r => 
+              r !== 'Bez restrikcija' && r !== 'No restrictions' && r !== 'Keine Einschränkungen'
+            );
             if (restrikcije.length > 0) {
               noviFilteri.restrikcije = restrikcije;
             }
@@ -303,7 +306,7 @@ const HomeKonacno = () => {
   }, [user]);
 
   // ============================================================
-  // 3. DOHVATI RECEPTE - SA PAGINACIJOM (SAMO PRVIH 50)
+  // 3. DOHVATI RECEPTE
   // ============================================================
   const fetchRecipes = useCallback(async () => {
     try {
@@ -365,8 +368,11 @@ const HomeKonacno = () => {
         }
       }
       
+      // 🔥 POPRAVLJENO - koristi izbjegava
       if (profil.izbjegava && profil.izbjegava.length > 0) {
-        const restrikcije = profil.izbjegava.filter(r => r !== 'Bez restrikcija');
+        const restrikcije = profil.izbjegava.filter(r => 
+          r !== 'Bez restrikcija' && r !== 'No restrictions' && r !== 'Keine Einschränkungen'
+        );
         if (restrikcije.length > 0) {
           resetFilteri.restrikcije = restrikcije;
         }
@@ -390,7 +396,7 @@ const HomeKonacno = () => {
   }, [profil]);
 
   // ============================================================
-  // 5. FILTRIRANI RECEPTI - SA SIGURNOSNOM PROVJEROM
+  // 5. FILTRIRANI RECEPTI - POPRAVLJENO!
   // ============================================================
   const filteredReceptiMemo = useMemo(() => {
     let filtered = Array.isArray(recepti) ? recepti : [];
@@ -418,14 +424,15 @@ const HomeKonacno = () => {
       }
     }
     
+    // 🔥 POPRAVLJENO - KORISTI izbjegava umjesto alergeni!
     if (filters.restrikcije && filters.restrikcije.length > 0) {
       const restrikcije = Array.isArray(filters.restrikcije) 
         ? filters.restrikcije 
         : [filters.restrikcije];
       
       filtered = filtered.filter(recipe => {
-        const alergeni = recipe.alergeni || [];
-        return !restrikcije.some(r => alergeni.includes(r));
+        const izbjegava = recipe.izbjegava || [];
+        return restrikcije.every(r => izbjegava.includes(r));
       });
     }
     
@@ -454,7 +461,7 @@ const HomeKonacno = () => {
   }, [recepti, filters]);
 
   // ============================================================
-  // 6. LIFESTYLE COACH
+  // 6. LIFESTYLE COACH - POPRAVLJENO!
   // ============================================================
   const getCoachAdvice = useCallback(async () => {
     if (!sleep || !energy || !stress) {
@@ -493,14 +500,15 @@ const HomeKonacno = () => {
       if (baseRecipes.length > 0) {
         let filteredBase = baseRecipes;
         
+        // 🔥 POPRAVLJENO - KORISTI izbjegava umjesto alergeni!
         if (filters.restrikcije && filters.restrikcije.length > 0) {
           const restrikcije = Array.isArray(filters.restrikcije) 
             ? filters.restrikcije 
             : [filters.restrikcije];
           
           filteredBase = filteredBase.filter(recipe => {
-            const alergeni = recipe.alergeni || [];
-            return !restrikcije.some(r => alergeni.includes(r));
+            const izbjegava = recipe.izbjegava || [];
+            return restrikcije.every(r => izbjegava.includes(r));
           });
         }
 
@@ -572,9 +580,8 @@ const HomeKonacno = () => {
   }, [sleep, energy, stress, user, recepti, filters.restrikcije, t]);
 
   // ============================================================
-  // 7. FRIŽIDER FUNKCIJE - SA CHECKBOX ZA KUPLJENO
+  // 7. FRIŽIDER FUNKCIJE
   // ============================================================
-  
   const saveFridgeToDatabase = useCallback(async (items) => {
     const email = user?.email || localStorage.getItem('userEmail');
     if (!email) return;
@@ -820,7 +827,7 @@ const HomeKonacno = () => {
         </section>
       )}
 
-      {/* ===== 🔥 PRIKAZ PROFILA IZ KVIZA - SADA ISTO KAO U PROFILU ===== */}
+      {/* ===== PRIKAZ PROFILA IZ KVIZA ===== */}
       {!profilLoading && profil && (
         <section className="py-6 px-4 max-w-7xl mx-auto">
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-6 shadow-lg border border-blue-200 dark:border-blue-800">
@@ -881,7 +888,6 @@ const HomeKonacno = () => {
               </div>
             </div>
             
-            {/* 🔥 SADA KORISTI translateValue ISTO KAO U PROFILU */}
             <div className="flex flex-wrap gap-3 mt-3 text-xs text-gray-500 dark:text-gray-400">
               <span>⏱️ {translateValue(profil.vrijeme, 'vrijeme')}</span>
               <span>👨‍🍳 {translateValue(profil.tezina, 'tezina')}</span>
@@ -891,9 +897,7 @@ const HomeKonacno = () => {
         </section>
       )}
 
-      {/* ============================================================ */}
-      {/* 🔥🔥🔥 AD BANNER 1 - SAMO ZA FREE KORISNIKE! 🔥🔥🔥 */}
-      {/* ============================================================ */}
+      {/* ===== AD BANNER 1 ===== */}
       {!isPremium && (
         <section className="py-3 px-4 flex justify-center bg-gray-50 dark:bg-gray-800">
           <div className="w-full max-w-4xl">
@@ -1136,9 +1140,7 @@ const HomeKonacno = () => {
         </div>
       </section>
 
-      {/* ============================================================ */}
-      {/* 🔥🔥🔥 AD BANNER 2 - SAMO ZA FREE KORISNIKE! 🔥🔥🔥 */}
-      {/* ============================================================ */}
+      {/* ===== AD BANNER 2 ===== */}
       {!isPremium && (
         <section className="py-3 px-4 flex justify-center bg-gray-50 dark:bg-gray-800">
           <div className="w-full max-w-4xl">
@@ -1204,9 +1206,7 @@ const HomeKonacno = () => {
         </div>
       </section>
 
-      {/* ============================================================ */}
-      {/* 🔥🔥🔥 AD BANNER 3 - SAMO ZA FREE KORISNIKE! 🔥🔥🔥 */}
-      {/* ============================================================ */}
+      {/* ===== AD BANNER 3 ===== */}
       {!isPremium && (
         <section className="py-3 px-4 flex justify-center bg-gray-50 dark:bg-gray-800">
           <div className="w-full max-w-4xl">
@@ -1328,9 +1328,7 @@ const HomeKonacno = () => {
         )}
       </section>
 
-      {/* ============================================================ */}
-      {/* 🔥🔥🔥 AD BANNER 4 - SAMO ZA FREE KORISNIKE! 🔥🔥🔥 */}
-      {/* ============================================================ */}
+      {/* ===== AD BANNER 4 ===== */}
       {!isPremium && (
         <section className="py-3 px-4 flex justify-center bg-gray-50 dark:bg-gray-800">
           <div className="w-full max-w-4xl">

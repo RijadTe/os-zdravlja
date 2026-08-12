@@ -114,17 +114,24 @@ const FoodPlanner = () => {
   };
 
   // ============================================================
-  // 🔥 FILTRIRAJ RECEPTE NA OSNOVU RESTRIKCIJA
+  // 🔥 FILTRIRAJ RECEPTE NA OSNOVU RESTRIKCIJA - POPRAVLJENO!
   // ============================================================
   const filterRecipesByRestrictions = useCallback((recipes) => {
     if (!recipes || recipes.length === 0) return [];
     if (!restrictions || restrictions.length === 0) return recipes;
     
+    // 🔥 PROVJERI DA LI KORISNIK IMA "BEZ RESTRIKCIJA"
+    const hasNoRestrictions = restrictions.some(r => 
+      r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
+    );
+    
+    if (hasNoRestrictions) return recipes;
+    
+    // 🔥 POPRAVLJENO - KORISTI izbjegava!
     return recipes.filter(recipe => {
-      const alergeni = recipe.alergeni || [];
-      return !restrictions.some(restriction => 
-        alergeni.includes(restriction)
-      );
+      const izbjegava = recipe.izbjegava || [];
+      // Recept prolazi ako SVE restrikcije postoje u izbjegava
+      return restrictions.every(r => izbjegava.includes(r));
     });
   }, [restrictions]);
 
