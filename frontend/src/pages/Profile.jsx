@@ -17,7 +17,7 @@ const Profile = () => {
   const [badgesLoading, setBadgesLoading] = useState(true);
 
   // ============================================================
-  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA (ISTO KAO U HOMEOKONACNO)
+  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA
   // ============================================================
   const translateValue = (value, type) => {
     if (!value) return t('profile.not_selected');
@@ -67,18 +67,13 @@ const Profile = () => {
     
     if (Array.isArray(value)) {
       return value.map(v => {
-        // Pokušaj prvo direktan match
         if (map[v] !== undefined) return map[v];
-        
-        // Ako nije pronađeno, pokušaj da ukloniš "Bez " sa početka (za restrikcije)
         const trimmed = v.replace(/^Bez /, '');
         if (map[trimmed] !== undefined) return map[trimmed];
-        
         return v;
       }).join(', ');
     }
     
-    // Za string vrijednosti
     if (map[value] !== undefined) return map[value];
     const trimmed = value.replace(/^Bez /, '');
     if (map[trimmed] !== undefined) return map[trimmed];
@@ -92,24 +87,18 @@ const Profile = () => {
   const fetchBadges = async (email) => {
     try {
       setBadgesLoading(true);
-      console.log('🏆 Dohvatam bedževe za:', email);
-      
       const response = await fetch(`${API_URL}/api/badges/${encodeURIComponent(email)}`);
       
       if (response.status === 404) {
-        console.log('ℹ️ Nema bedževa za korisnika');
         setBadges([]);
         return;
       }
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       
       const data = await response.json();
       
       if (data.success && data.badges) {
-        console.log(`✅ Dohvaćeno ${data.badges.length} bedževa`);
         setBadges(data.badges);
       } else {
         setBadges([]);
@@ -123,16 +112,13 @@ const Profile = () => {
   };
 
   // ============================================================
-  // 📊 DOHVATI PROFIL - SA RATE LIMIT FALLBACKOM!
+  // 📊 DOHVATI PROFIL
   // ============================================================
   const fetchProfile = async (email) => {
     try {
-      console.log('📧 Dohvatam profil za:', email);
-      
       const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
       
       if (response.status === 429) {
-        console.warn('⚠️ Rate limit (429) - koristim podatke iz localStorage');
         const storedUser = JSON.parse(localStorage.getItem('user'));
         if (storedUser) {
           const fallbackProfile = {
@@ -150,14 +136,12 @@ const Profile = () => {
             preferred_language: storedUser.preferred_language || 'hr'
           };
           setProfile(fallbackProfile);
-          console.log('✅ Profil dohvaćen iz localStorage (fallback)');
         }
         setLoading(false);
         return;
       }
       
       const data = await response.json();
-      console.log('📊 Profil dohvaćen:', data);
       
       if (data.success && data.data) {
         setProfile(data.data);
@@ -168,10 +152,8 @@ const Profile = () => {
           storedUser.preferred_language = data.data.preferred_language || 'hr';
           localStorage.setItem('user', JSON.stringify(storedUser));
         }
-        
         await fetchBadges(email);
       } else {
-        console.error('❌ Profil nije pronađen');
         await createProfile(email);
       }
     } catch (error) {
@@ -193,7 +175,6 @@ const Profile = () => {
           preferred_language: storedUser.preferred_language || 'hr'
         };
         setProfile(fallbackProfile);
-        console.log('✅ Profil dohvaćen iz localStorage (fallback)');
       } else {
         await createProfile(email);
       }
@@ -207,8 +188,6 @@ const Profile = () => {
   // ============================================================
   const createProfile = async (email) => {
     try {
-      console.log('🆕 Kreiram profil za:', email);
-      
       const preferredLanguage = localStorage.getItem('preferredLanguage') || 'hr';
       
       const res = await fetch(`${API_URL}/api/profil`, {
@@ -228,7 +207,6 @@ const Profile = () => {
       const data = await res.json();
       
       if (data.success) {
-        console.log('✅ Profil kreiran:', data.data);
         setProfile(data.data);
         await fetchBadges(email);
       }
@@ -238,7 +216,7 @@ const Profile = () => {
   };
 
   // ============================================================
-  // 🔐 AUTH - SA DOHVATOM PREMIUM STATUSA IZ BAZE!
+  // 🔐 AUTH
   // ============================================================
   useEffect(() => {
     const checkUser = async () => {
@@ -246,22 +224,17 @@ const Profile = () => {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
-          console.log('✅ Korisnik prijavljen (Supabase):', session.user.email);
-          
           const email = session.user.email;
-          
           let premiumStatus = false;
           let profileData = null;
           
           try {
             const profileResponse = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
-            
             if (profileResponse.ok) {
               const profileResult = await profileResponse.json();
               if (profileResult.success && profileResult.data) {
                 premiumStatus = profileResult.data.premium || false;
                 profileData = profileResult.data;
-                console.log('✅ Premium status iz baze:', premiumStatus);
               }
             }
           } catch (profileError) {
@@ -280,7 +253,6 @@ const Profile = () => {
           setUser(supabaseUser);
           localStorage.setItem('user', JSON.stringify(supabaseUser));
           localStorage.setItem('userEmail', session.user.email);
-          localStorage.setItem('userName', session.user.user_metadata?.ime || '');
           
           if (profileData) {
             setProfile(profileData);
@@ -331,23 +303,18 @@ const Profile = () => {
       '⚠️ Jeste li sigurni da želite izbrisati SVE svoje podatke?\n\n' +
       '🗑️ Ova radnja je NEPOVRATNA!\n' +
       '📝 Nakon brisanja, morat ćete se ponovno registrirati.\n' +
-      '🔒 Nećete se moći prijaviti sa starim podacima.\n\n' +
-      'Želite li nastaviti?'
-    )) {
-      return;
-    }
+      '🔒 Nećete se moći prijaviti sa starim podacima.'
+    )) return;
     
     setDeleting(true);
     try {
       const email = user?.email || localStorage.getItem('userEmail');
-      
       if (!email) {
-        alert('❌ Niste prijavljeni. Molimo prijavite se.');
+        alert('❌ Niste prijavljeni.');
         setDeleting(false);
         return;
       }
 
-      console.log('🗑️ Brišem profil za:', email);
       const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}/delete`, { 
         method: 'DELETE' 
       });
@@ -357,26 +324,8 @@ const Profile = () => {
         throw new Error(errorData.error || 'Greška pri brisanju profila');
       }
 
-      const result = await response.json();
-      console.log('✅ Profil izbrisan:', result);
-
       localStorage.clear();
-
-      try {
-        await supabase.auth.signOut();
-        console.log('🚪 Korisnik odjavljen iz Supabase');
-      } catch (signOutError) {
-        console.warn('⚠️ Greška pri odjavi:', signOutError);
-      }
-
-      alert(
-        '🗑️ Vaš profil je uspješno izbrisan iz baze korisnika.\n\n' +
-        '📝 Molimo da se ponovno izvršite registraciju.\n' +
-        '🔒 Ne možete se prijaviti sa starim podacima.\n\n' +
-        '✅ Svi vaši podaci su sigurno obrisani.\n' +
-        'Hvala na razumijevanju!'
-      );
-
+      await supabase.auth.signOut();
       navigate('/register');
       
     } catch (error) {
@@ -390,10 +339,8 @@ const Profile = () => {
   // 🚪 ODJAVA
   // ============================================================
   const handleLogout = async () => {
-    if (!window.confirm('Jeste li sigurni da se želite odjaviti?')) {
-      return;
-    }
-
+    if (!window.confirm('Jeste li sigurni da se želite odjaviti?')) return;
+    
     try {
       await supabase.auth.signOut();
     } catch (error) {
@@ -405,7 +352,6 @@ const Profile = () => {
     localStorage.removeItem('userName');
     localStorage.removeItem('remember_me');
     localStorage.removeItem('supabase_session');
-    
     navigate('/login');
   };
 
@@ -414,9 +360,11 @@ const Profile = () => {
   // ============================================================
   if (loading) {
     return (
-      <div className="text-center py-12 dark:text-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-        <p className="mt-4">{t('profile.loading')}</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent mx-auto"></div>
+          <p className="mt-4 text-gray-500 dark:text-gray-400">{t('profile.loading')}</p>
+        </div>
       </div>
     );
   }
@@ -426,10 +374,11 @@ const Profile = () => {
   // ============================================================
   if (!profile) {
     return (
-      <div className="max-w-4xl mx-auto py-8 px-4">
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6 text-center">
-          <p className="text-yellow-800 dark:text-yellow-200 text-lg">{t('profile.not_found')}</p>
-          <Link to="/quiz" className="mt-4 inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl p-8 max-w-md text-center shadow-2xl border border-gray-200/50 dark:border-gray-700/50">
+          <p className="text-4xl mb-4">👤</p>
+          <p className="text-gray-800 dark:text-white text-lg font-semibold">{t('profile.not_found')}</p>
+          <Link to="/quiz" className="mt-6 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg shadow-blue-500/25">
             🧠 {t('profile.take_quiz')}
           </Link>
         </div>
@@ -440,248 +389,362 @@ const Profile = () => {
   // ============================================================
   // 🖥️ RENDER - GLAVNI UI
   // ============================================================
+  const isPremium = profile.premium || false;
+  const isQuizCompleted = profile.kviz_zavrsen || false;
+  const cookedCount = profile.skuhano_recepata || 0;
+
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
-      {/* ===== KORISNIČKI PODACI ===== */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center text-3xl text-white">
-            {profile.ime?.charAt(0) || '👤'}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-8 px-4">
+      <div className="max-w-5xl mx-auto">
+        {/* ===== HERO ===== */}
+        <div className="relative bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl p-8 shadow-2xl overflow-hidden animate-fadeIn">
+          {/* Background decorations */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-400/10 rounded-full blur-2xl"></div>
+          
+          <div className="relative flex flex-col md:flex-row items-center gap-6">
+            {/* Avatar */}
+            <div className="relative">
+              <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-4xl text-white border-2 border-white/30 shadow-xl">
+                {profile.ime?.charAt(0) || '👤'}
+              </div>
+              {isPremium && (
+                <div className="absolute -top-1 -right-1 bg-yellow-400 rounded-full p-1 border-2 border-white">
+                  <span className="text-xs">⭐</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex-1 text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start gap-3 flex-wrap">
+                <h1 className="text-2xl md:text-3xl font-bold text-white">
+                  {profile.ime || t('profile.default_name')}
+                </h1>
+                {isPremium ? (
+                  <span className="inline-flex items-center gap-1 bg-yellow-400/20 backdrop-blur-sm text-yellow-200 px-3 py-1 rounded-full text-xs font-semibold border border-yellow-400/30">
+                    ⭐ {t('profile.premium')}
+                  </span>
+                ) : (
+                  <Link to="/premium" className="inline-flex items-center gap-1 bg-white/10 backdrop-blur-sm text-white/80 px-3 py-1 rounded-full text-xs font-semibold hover:bg-white/20 transition border border-white/10">
+                    ⭐ {t('profile.become_premium')}
+                  </Link>
+                )}
+              </div>
+              <div className="flex items-center justify-center md:justify-start gap-2 text-white/70 text-sm mt-1">
+                <span>📧</span>
+                <span>{profile.email}</span>
+              </div>
+              <div className="flex items-center justify-center md:justify-start gap-2 text-white/60 text-xs mt-1">
+                <span>✨</span>
+                <span>🌍 {t('profile.language')}: {
+                  profile.preferred_language === 'hr' ? 'Hrvatski' : 
+                  profile.preferred_language === 'en' ? 'English' : 'Deutsch'
+                }</span>
+              </div>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold">{profile.ime || t('profile.default_name')}</h1>
-            <p className="text-gray-500 dark:text-gray-400">{profile.email}</p>
-            {profile.premium ? (
-              <span className="inline-block mt-1 bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 text-xs px-2 py-0.5 rounded-full font-semibold">
-                ⭐ {t('profile.premium')}
+        </div>
+
+        {/* ===== STATS ===== */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+          <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-4 shadow-lg border border-white/20 backdrop-blur-sm hover:scale-[1.02] transition-transform">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-emerald-400/30">👨‍🍳</div>
+              <div>
+                <p className="text-white/80 text-xs font-medium">Skuhano recepata</p>
+                <p className="text-white text-xl font-bold">{cookedCount}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-4 shadow-lg border border-white/20 backdrop-blur-sm hover:scale-[1.02] transition-transform">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-amber-400/30">🏆</div>
+              <div>
+                <p className="text-white/80 text-xs font-medium">Osvojenih bedževa</p>
+                <p className="text-white text-xl font-bold">{badges.length}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className={`rounded-2xl p-4 shadow-lg border border-white/20 backdrop-blur-sm hover:scale-[1.02] transition-transform ${
+            isQuizCompleted 
+              ? 'bg-gradient-to-br from-green-500 to-green-600' 
+              : 'bg-gradient-to-br from-orange-500 to-orange-600'
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className={`p-2.5 rounded-xl ${
+                isQuizCompleted ? 'bg-green-400/30' : 'bg-orange-400/30'
+              }`}>
+                {isQuizCompleted ? '✅' : '⏳'}
+              </div>
+              <div>
+                <p className="text-white/80 text-xs font-medium">{t('profile.quiz')}</p>
+                <p className="text-white text-lg font-bold">
+                  {isQuizCompleted ? 'Završen' : 'Nije završen'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className={`rounded-2xl p-4 shadow-lg border border-white/20 backdrop-blur-sm hover:scale-[1.02] transition-transform ${
+            isPremium 
+              ? 'bg-gradient-to-br from-yellow-500 to-yellow-600' 
+              : 'bg-gradient-to-br from-gray-500 to-gray-600'
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className={`p-2.5 rounded-xl ${
+                isPremium ? 'bg-yellow-400/30' : 'bg-gray-400/30'
+              }`}>
+                {isPremium ? '👑' : '🔓'}
+              </div>
+              <div>
+                <p className="text-white/80 text-xs font-medium">Status</p>
+                <p className="text-white text-lg font-bold">
+                  {isPremium ? '⭐ Premium' : 'Free'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ===== BADGES ===== */}
+        <div className="mt-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl p-6 shadow-xl border border-gray-200/50 dark:border-gray-700/50">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl">🏆</span>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+              {t('profile.badges.title')}
+            </h2>
+            {badgesLoading && (
+              <div className="ml-auto">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent"></div>
+              </div>
+            )}
+            {!badgesLoading && (
+              <span className="ml-auto text-sm text-gray-400 dark:text-gray-500">
+                {badges.length} / 6
               </span>
-            ) : (
-              <Link to="/premium" className="inline-block mt-1 text-yellow-600 dark:text-yellow-400 text-sm hover:underline">
-                {t('profile.become_premium')} →
-              </Link>
             )}
           </div>
-        </div>
-        <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          🌍 {t('profile.language')}: {profile.preferred_language === 'hr' ? 'Hrvatski' : profile.preferred_language === 'en' ? 'English' : 'Deutsch'}
-        </div>
-      </div>
 
-      {/* ===== NAPREDAK ===== */}
-      <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
-        <h2 className="text-xl font-bold mb-4">{t('profile.progress')}</h2>
-        <div className="flex items-center gap-4">
-          <div className="text-4xl">🍳</div>
-          <div>
-            <p className="text-2xl font-bold">{profile.skuhano_recepata || 0}</p>
-            <p className="text-gray-500 dark:text-gray-400">{t('profile.recipes_cooked')}</p>
-          </div>
-          <div className="ml-8 text-sm text-gray-500 dark:text-gray-400">
-            <p>✅ {t('profile.quiz')}: {profile.kviz_zavrsen ? t('profile.completed') : t('profile.not_completed')}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* ===== 🔥 BEDŽEVI IZ BAZE SA PRIJEVODIMA ===== */}
-      <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
-        <h2 className="text-xl font-bold mb-4">
-          🏆 {t('profile.badges.title')}
-          {badgesLoading && (
-            <span className="ml-2 text-sm text-gray-400 animate-pulse">⏳ Učitavanje...</span>
-          )}
-        </h2>
-        
-        {badgesLoading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          </div>
-        ) : badges.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            <p className="text-4xl mb-2">🏆</p>
-            <p>{t('profile.no_badges') || 'Još nema osvojenih bedževa.'}</p>
-            <p className="text-sm mt-1">
-              {t('profile.badges_hint') || 'Objavljujte recepte i skupljajte lajkove da osvojite bedževe!'}
-            </p>
-          </div>
-        ) : (
-          <div className="flex flex-wrap gap-4">
-            {badges.map((badge) => {
-              const badgeData = badge.badge || badge;
-              // 🔥 Dohvati opis iz prijevoda ili koristi onaj iz baze
-              const description = t(`profile.badges.descriptions.${badgeData.kljuc}`, { 
-                defaultValue: badgeData.opis || '' 
-              });
-              
-              return (
-                <div
-                  key={badge.id}
-                  className="flex flex-col items-center p-4 rounded-xl border-2 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 min-w-[100px] max-w-[140px]"
-                >
-                  <span className="text-3xl">{badgeData.ikona || '🏆'}</span>
-                  <span className="text-sm font-semibold mt-1 text-gray-800 dark:text-white text-center">
-                    {badgeData.naziv || badgeData.name}
-                  </span>
-                  {/* 🔥 PRIKAZ OPISA */}
-                  {description && (
-                    <span className="text-[10px] text-gray-500 dark:text-gray-400 text-center mt-0.5 leading-tight">
-                      {description}
-                    </span>
-                  )}
-                  <span className="text-xs text-green-500 mt-0.5">
-                    {t('profile.badges.earned')} 🎉
-                  </span>
-                  <span className="text-[10px] text-gray-400 mt-0.5">
-                    {new Date(badge.osvojeno_na || badge.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-        
-        {/* 🔥 PRIKAZ SVIH DOSTUPNIH BEDŽEVA (ZAKLJUČANIH) */}
-        {!badgesLoading && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-              🔒 {t('profile.badges.available') || 'Dostupni bedževi:'}
-            </p>
+          {badgesLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-500 border-t-transparent"></div>
+            </div>
+          ) : badges.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-4xl mb-2">🏆</p>
+              <p className="text-gray-500 dark:text-gray-400">{t('profile.no_badges')}</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                {t('profile.badges_hint') || 'Objavljujte recepte i skupljajte lajkove da osvojite bedževe!'}
+              </p>
+            </div>
+          ) : (
             <div className="flex flex-wrap gap-3">
-              {[
-                { key: 'first_recipe', icon: '🏆', name: t('profile.badges.first_recipe') },
-                { key: 'three_recipes', icon: '🥉', name: '3 recepta' },
-                { key: 'ten_recipes', icon: '🥈', name: '10 recepata' },
-                { key: 'twenty_recipes', icon: '🥇', name: '20 recepata' },
-                { key: 'popular_recipe', icon: '⭐', name: '10 lajkova' },
-                { key: 'super_popular', icon: '🌟', name: '50 lajkova' },
-              ].map((availableBadge) => {
-                const hasBadge = badges.some(b => 
-                  (b.badge?.kljuc || b.kljuc) === availableBadge.key
-                );
-                
-                // 🔥 Dohvati opis za dostupni bedž
-                const description = t(`profile.badges.descriptions.${availableBadge.key}`, { 
-                  defaultValue: '' 
+              {badges.map((badge) => {
+                const badgeData = badge.badge || badge;
+                const description = t(`profile.badges.descriptions.${badgeData.kljuc}`, { 
+                  defaultValue: badgeData.opis || '' 
                 });
-                
                 return (
                   <div
-                    key={availableBadge.key}
-                    className={`flex flex-col items-center px-3 py-1.5 rounded-full border ${
-                      hasBadge
-                        ? 'border-green-400 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                        : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 text-gray-400 dark:text-gray-500 opacity-60'
-                    }`}
+                    key={badge.id}
+                    className="flex flex-col items-center p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 border-2 border-amber-400 dark:border-amber-500 shadow-lg shadow-amber-500/20 min-w-[100px] max-w-[130px] hover:scale-105 transition-transform"
                   >
-                    <div className="flex items-center gap-2">
-                      <span>{availableBadge.icon}</span>
-                      <span className="text-xs font-medium">{availableBadge.name}</span>
-                      {hasBadge ? (
-                        <span className="text-[10px] text-green-500">✅</span>
-                      ) : (
-                        <span className="text-[10px]">🔒</span>
-                      )}
+                    <div className="absolute -top-2 -right-2">
+                      <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full font-bold">
+                        ✅
+                      </span>
                     </div>
+                    <span className="text-4xl">{badgeData.ikona || '🏆'}</span>
+                    <span className="text-xs font-semibold mt-1 text-center text-gray-800 dark:text-white">
+                      {badgeData.naziv || badgeData.name}
+                    </span>
                     {description && (
-                      <span className="text-[8px] text-gray-400 dark:text-gray-500 text-center mt-0.5 leading-tight max-w-[120px]">
+                      <span className="text-[9px] text-gray-500 dark:text-gray-400 text-center mt-0.5 leading-tight">
                         {description}
                       </span>
                     )}
+                    <span className="text-[9px] text-green-500 mt-0.5 font-medium">
+                      🎉 Osvojen
+                    </span>
                   </div>
                 );
               })}
             </div>
-          </div>
-        )}
-      </div>
+          )}
 
-      {/* ===== PREFERENCIJE - SA PREVODOM ===== */}
-      <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md border border-gray-100 dark:border-gray-700">
-        <h2 className="text-xl font-bold mb-4">{t('profile.preferences')}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.preferences_types')}</p>
-            <p className="font-semibold">
-              {profile.vrsta?.length 
-                ? translateValue(profile.vrsta, 'vrsta') 
-                : t('profile.not_selected')}
-            </p>
+          {/* Available badges */}
+          {!badgesLoading && (
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-2">
+                <span>🔒</span>
+                {t('profile.badges.available') || 'Dostupni bedževi:'}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { key: 'first_recipe', icon: '🏆', name: 'Prvi recept' },
+                  { key: 'three_recipes', icon: '🥉', name: '3 recepta' },
+                  { key: 'ten_recipes', icon: '🥈', name: '10 recepata' },
+                  { key: 'twenty_recipes', icon: '🥇', name: '20 recepata' },
+                  { key: 'popular_recipe', icon: '⭐', name: '10 lajkova' },
+                  { key: 'super_popular', icon: '🌟', name: '50 lajkova' },
+                ].map((availableBadge) => {
+                  const hasBadge = badges.some(b => 
+                    (b.badge?.kljuc || b.kljuc) === availableBadge.key
+                  );
+                  const description = t(`profile.badges.descriptions.${availableBadge.key}`, { 
+                    defaultValue: '' 
+                  });
+                  return (
+                    <div
+                      key={availableBadge.key}
+                      className={`flex flex-col items-center px-3 py-1.5 rounded-full border ${
+                        hasBadge
+                          ? 'border-green-400 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                          : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 text-gray-400 dark:text-gray-500 opacity-60'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>{availableBadge.icon}</span>
+                        <span className="text-xs font-medium">{availableBadge.name}</span>
+                        {hasBadge ? (
+                          <span className="text-[10px] text-green-500">✅</span>
+                        ) : (
+                          <span className="text-[10px]">🔒</span>
+                        )}
+                      </div>
+                      {description && (
+                        <span className="text-[8px] text-gray-400 dark:text-gray-500 text-center mt-0.5 leading-tight max-w-[120px]">
+                          {description}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ===== PREFERENCES ===== */}
+        <div className="mt-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl p-6 shadow-xl border border-gray-200/50 dark:border-gray-700/50">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl">👤</span>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+              {t('profile.preferences')}
+            </h2>
           </div>
-          <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.restrictions')}</p>
-            <p className="font-semibold">
-              {profile.izbjegava?.length 
-                ? translateValue(profile.izbjegava, 'restrikcije') 
-                : t('profile.none')}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.preferences')}</p>
-            <p className="font-semibold">
-              {profile.preferencije?.length 
-                ? translateValue(profile.preferencije, 'preferencije') 
-                : t('profile.not_selected')}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.time')}</p>
-            <p className="font-semibold">
-              {profile.vrijeme 
-                ? translateValue(profile.vrijeme, 'vrijeme') 
-                : t('profile.not_selected')}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.skill')}</p>
-            <p className="font-semibold">
-              {profile.tezina 
-                ? translateValue(profile.tezina, 'tezina') 
-                : t('profile.not_selected')}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.calories')}</p>
-            <p className="font-semibold">
-              {profile.kalorije 
-                ? translateValue(profile.kalorije, 'kalorije') 
-                : t('profile.not_selected')}
-            </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">🍽️ {t('profile.preferences_types')}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {profile.vrsta?.length ? (
+                  profile.vrsta.map((v, i) => (
+                    <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
+                      🍽️ {translateValue(v, 'vrsta')}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-sm text-gray-400 dark:text-gray-500">{t('profile.not_selected')}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">🚫 {t('profile.restrictions')}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {profile.izbjegava?.length ? (
+                  profile.izbjegava.map((r, i) => (
+                    <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300">
+                      🚫 {translateValue(r, 'restrikcije')}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-sm text-gray-400 dark:text-gray-500">{t('profile.none')}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">💪 {t('profile.preferences')}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {profile.preferencije?.length ? (
+                  profile.preferencije.map((p, i) => (
+                    <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300">
+                      💪 {translateValue(p, 'preferencije')}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-sm text-gray-400 dark:text-gray-500">{t('profile.not_selected')}</span>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">⚙️ {t('profile.settings')}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {profile.vrijeme && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">
+                    ⏱️ {translateValue(profile.vrijeme, 'vrijeme')}
+                  </span>
+                )}
+                {profile.tezina && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300">
+                    👨‍🍳 {translateValue(profile.tezina, 'tezina')}
+                  </span>
+                )}
+                {profile.kalorije && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300">
+                    🔥 {translateValue(profile.kalorije, 'kalorije')}
+                  </span>
+                )}
+                {!profile.vrijeme && !profile.tezina && !profile.kalorije && (
+                  <span className="text-sm text-gray-400 dark:text-gray-500">{t('profile.not_selected')}</span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* ===== DUGMAD ===== */}
-      <div className="mt-8 flex flex-wrap gap-4">
-        <Link
-          to="/quiz"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full text-sm font-semibold transition flex items-center gap-2"
-        >
-          <span>🔄</span>
-          {profile.kviz_zavrsen ? t('profile.edit_filters') : t('profile.take_quiz')}
-        </Link>
-        
-        {!profile.premium && (
+        {/* ===== ACTIONS ===== */}
+        <div className="mt-6 flex flex-wrap gap-3">
           <Link
-            to="/premium"
-            className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-full text-sm font-semibold transition"
+            to="/quiz"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg shadow-blue-500/25 hover:shadow-xl"
           >
-            ⭐ {t('profile.become_premium')}
+            <span>✏️</span>
+            {isQuizCompleted ? t('profile.edit_filters') : t('profile.take_quiz')}
           </Link>
-        )}
-        
-        <button
-          onClick={handleDeleteData}
-          disabled={deleting}
-          className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full text-sm font-semibold transition disabled:opacity-50"
-        >
-          {deleting ? t('profile.deleting') : t('profile.delete_data')}
-        </button>
-        
-        <button
-          onClick={handleLogout}
-          className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-full text-sm font-semibold transition"
-        >
-          🚪 {t('profile.logout')}
-        </button>
+
+          {!isPremium && (
+            <Link
+              to="/premium"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white px-6 py-3 rounded-xl font-semibold transition shadow-lg shadow-yellow-500/25 hover:shadow-xl"
+            >
+              <span>👑</span>
+              {t('profile.become_premium')}
+            </Link>
+          )}
+
+          <button
+            onClick={handleLogout}
+            className="inline-flex items-center gap-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 px-6 py-3 rounded-xl font-semibold transition"
+          >
+            <span>🚪</span>
+            {t('profile.logout')}
+          </button>
+
+          <button
+            onClick={handleDeleteData}
+            disabled={deleting}
+            className="inline-flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 px-6 py-3 rounded-xl font-semibold transition border border-red-200 dark:border-red-800/30 disabled:opacity-50"
+          >
+            <span>🗑️</span>
+            {deleting ? t('profile.deleting') : t('profile.delete_data')}
+          </button>
+        </div>
       </div>
     </div>
   );
