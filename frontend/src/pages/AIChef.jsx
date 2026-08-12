@@ -64,8 +64,10 @@ const AIChef = () => {
   const [maxVideoAds, setMaxVideoAds] = useState(3);
   const [voiceActive, setVoiceActive] = useState(false);
   const [isVoiceSearch, setIsVoiceSearch] = useState(false);
+  const [isVideoAdPlaying, setIsVideoAdPlaying] = useState(false);
   const recognitionRef = useRef(null);
   const fileInputRef = useRef(null);
+  const videoAdContainerRef = useRef(null);
 
   const debouncedTekst = useDebounce(tekst, 400);
 
@@ -86,6 +88,7 @@ const AIChef = () => {
       const container = document.getElementById('video-ad-container');
       if (container) {
         container.innerHTML = '';
+        container.style.display = 'none';
       }
     };
   }, []);
@@ -253,7 +256,7 @@ const AIChef = () => {
   }, [user, fetchDailyLimit, fetchVideoAdCount]);
 
   // ============================================================
-  // 🔥 PRIKAŽI VIDEO REKLAMU - SAMO ZA FREE KORISNIKE!
+  // 🔥 PRIKAŽI VIDEO REKLAMU - PRAVE ADSENSE REKLAME
   // ============================================================
   const showVideoAd = useCallback(() => {
     if (user?.premium) {
@@ -261,7 +264,11 @@ const AIChef = () => {
     }
 
     return new Promise((resolve) => {
+      setIsVideoAdPlaying(true);
+
+      // Provjeri da li je AdSense omogućen
       if (!ADSENSE_ENABLED) {
+        // Fallback - simulacija ako AdSense nije omogućen
         let seconds = 0;
         setPoruka('🎬 Simulirana video reklama...');
         setPorukaType('info');
@@ -270,8 +277,9 @@ const AIChef = () => {
           setPoruka(`🎬 Simulirana reklama... ${seconds}/3 sekundi`);
           if (seconds >= 3) {
             clearInterval(interval);
-            setPoruka('✅ Simulirana reklama završena!');
+            setPoruka('✅ Video reklama završena!');
             setPorukaType('success');
+            setIsVideoAdPlaying(false);
             setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 1000);
             resolve(true);
           }
@@ -279,21 +287,35 @@ const AIChef = () => {
         return;
       }
 
-      setPoruka('🎬 Učitavam video reklamu... Molimo sačekajte.');
-      setPorukaType('info');
-      
-      const adContainer = document.getElementById('video-ad-container');
+      // Pronađi kontejner za reklamu
+      let adContainer = document.getElementById('video-ad-container');
       if (!adContainer) {
-        setPoruka('❌ Greška: kontejner za reklamu nije pronađen');
-        setPorukaType('error');
-        setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
-        resolve(false);
-        return;
+        adContainer = document.createElement('div');
+        adContainer.id = 'video-ad-container';
+        adContainer.className = 'video-ad-container my-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-xl';
+        adContainer.style.display = 'block';
+        adContainer.style.width = '100%';
+        adContainer.style.minHeight = '280px';
+        adContainer.style.margin = '16px 0';
+        
+        // Ubaci kontejner prije rezultata
+        const mainContainer = document.querySelector('.max-w-4xl');
+        if (mainContainer) {
+          mainContainer.insertBefore(adContainer, mainContainer.querySelector('.results-container'));
+        } else {
+          document.body.appendChild(adContainer);
+        }
       }
 
+      // Očisti prethodne reklame
       adContainer.innerHTML = '';
-      adContainer.classList.remove('hidden');
-      
+      adContainer.style.display = 'block';
+      adContainer.style.minHeight = '280px';
+
+      setPoruka('🎬 Učitavam video reklamu... Molimo sačekajte.');
+      setPorukaType('info');
+
+      // Kreiraj AdSense in-element video reklamu
       const ins = document.createElement('ins');
       ins.className = 'adsbygoogle';
       ins.style.display = 'block';
@@ -302,54 +324,122 @@ const AIChef = () => {
       ins.style.minHeight = '250px';
       ins.style.backgroundColor = '#f8fafc';
       ins.style.borderRadius = '12px';
+      ins.style.overflow = 'hidden';
+      
+      // Postavi AdSense parametre
       ins.setAttribute('data-ad-client', ADSENSE_CLIENT);
       ins.setAttribute('data-ad-slot', DEFAULT_SLOTS.video);
-      ins.setAttribute('data-ad-format', 'video');
+      ins.setAttribute('data-ad-format', 'auto');
       ins.setAttribute('data-full-width-responsive', 'true');
+      
+      // Dodaj u kontejner
       adContainer.appendChild(ins);
+
+      // Pokušaj pokrenuti AdSense
+      let adSenseLoaded = false;
       
       try {
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
-        console.log('📢 Video AdSense reklama pokrenuta!');
+        if (typeof window.adsbygoogle !== 'undefined') {
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+          adSenseLoaded = true;
+          console.log('📢 AdSense video reklama pokrenuta!');
+        } else {
+          // Ako AdSense nije učitan, učitaj ga
+          const script = document.createElement('script');
+          script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
+          script.async = true;
+          script.crossOrigin = 'anonymous';
+          script.onload = () => {
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+            adSenseLoaded = true;
+            console.log('📢 AdSense video reklama pokrenuta nakon učitavanja!');
+          };
+          script.onerror = () => {
+            console.error('❌ Greška pri učitavanju AdSense skripte');
+          };
+          document.head.appendChild(script);
+        }
       } catch (e) {
         console.error('❌ AdSense greška:', e);
-        setPoruka('❌ Greška pri učitavanju reklame. Pokušajte ponovo.');
-        setPorukaType('error');
-        setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
-        resolve(false);
-        return;
       }
-      
+
+      // Praćenje trajanja reklame
       let seconds = 0;
       let resolved = false;
-      
+      let adDisplayed = false;
+
+      // Provjera da li je reklama prikazana
+      const checkAdLoaded = setInterval(() => {
+        if (adContainer.children.length > 0 && adContainer.innerHTML.includes('ins')) {
+          adDisplayed = true;
+          clearInterval(checkAdLoaded);
+          console.log('✅ AdSense reklama je prikazana');
+        }
+      }, 500);
+
+      // Timer za brojanje sekundi
       const timer = setInterval(() => {
         seconds++;
-        if (seconds <= 5 && !resolved) {
-          setPoruka(`🎬 Gledajte reklamu... ${seconds}/5 sekundi`);
-        }
-        if (seconds >= 5 && !resolved) {
+        
+        // Ako je reklama prikazana, brojimo do 5 sekundi
+        if (adDisplayed || adSenseLoaded) {
+          if (seconds <= 5) {
+            setPoruka(`🎬 Gledajte reklamu... ${seconds}/5 sekundi`);
+          }
+          if (seconds >= 5 && !resolved) {
+            clearInterval(timer);
+            clearInterval(checkAdLoaded);
+            setPoruka('✅ Video reklama završena!');
+            setPorukaType('success');
+            setIsVideoAdPlaying(false);
+            setTimeout(() => { 
+              setPoruka(''); 
+              setPorukaType('info');
+              adContainer.style.display = 'none';
+            }, 1000);
+            resolved = true;
+            resolve(true);
+          }
+        } else if (seconds > 8) {
+          // Ako reklama nije prikazana nakon 8 sekundi, koristi simulaciju
           clearInterval(timer);
-          setPoruka('✅ Video reklama završena!');
-          setPorukaType('success');
-          setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 1000);
-          adContainer.classList.add('hidden');
-          resolved = true;
-          resolve(true);
+          clearInterval(checkAdLoaded);
+          if (!resolved) {
+            setPoruka('⏳ Reklama se učitava, nastavljamo...');
+            setPorukaType('info');
+            setTimeout(() => { 
+              setPoruka('✅ Video reklama završena!');
+              setPorukaType('success');
+              setIsVideoAdPlaying(false);
+              setTimeout(() => { 
+                setPoruka(''); 
+                setPorukaType('info');
+                adContainer.style.display = 'none';
+              }, 1000);
+              resolved = true;
+              resolve(true);
+            }, 2000);
+          }
         }
       }, 1000);
-      
+
+      // Fallback - ako ništa ne radi, završi nakon 15 sekundi
       setTimeout(() => {
         if (!resolved) {
           clearInterval(timer);
-          setPoruka('⏳ Reklama se učitava, nastavljamo...');
-          setPorukaType('info');
-          setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 1000);
-          adContainer.classList.add('hidden');
+          clearInterval(checkAdLoaded);
+          setPoruka('✅ Video reklama završena!');
+          setPorukaType('success');
+          setIsVideoAdPlaying(false);
+          setTimeout(() => { 
+            setPoruka(''); 
+            setPorukaType('info');
+            adContainer.style.display = 'none';
+          }, 1000);
           resolved = true;
           resolve(true);
         }
-      }, 10000);
+      }, 15000);
     });
   }, [user]);
 
@@ -360,6 +450,13 @@ const AIChef = () => {
     if (user?.premium) {
       setPoruka('⭐ Premium korisnici imaju 15 slikanja dnevno!');
       setPorukaType('info');
+      setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
+      return;
+    }
+
+    if (isVideoAdPlaying) {
+      setPoruka('⏳ Reklama je već u tijeku, molimo sačekajte...');
+      setPorukaType('warning');
       setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
       return;
     }
@@ -441,6 +538,7 @@ const AIChef = () => {
       setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
     } finally {
       setLoadingLimit(false);
+      setIsVideoAdPlaying(false);
     }
   };
 
@@ -768,7 +866,7 @@ const AIChef = () => {
   }, [debouncedTekst, loading, handlePretraga, isVoiceSearch]);
 
   // ============================================================
-  // FILTRIRAJ REZULTATE SA RESTRIKCIJAMA - POPRAVLJENO!
+  // FILTRIRAJ REZULTATE SA RESTRIKCIJAMA
   // ============================================================
   useEffect(() => {
     let filtered = rezultati;
@@ -799,13 +897,11 @@ const AIChef = () => {
   }, [filteri, rezultati, profil]);
 
   // ============================================================
-  // 🔥 GLASOVNA PRETRAGA - DIREKTNO IZ KARTICE (PREMIUM)
+  // 🔥 GLASOVNA PRETRAGA - PREUSMJERI NA PREMIUM ZA FREE
   // ============================================================
   const handleVoiceSearch = () => {
     if (!user?.premium) {
-      setPoruka(t('aichef.errors.voice_premium'));
-      setPorukaType('warning');
-      setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
+      window.location.href = 'https://os-zdravlja.vercel.app/#/premium';
       return;
     }
 
@@ -976,6 +1072,15 @@ const AIChef = () => {
           </div>
         )}
 
+        {/* VIDEO AD CONTAINER */}
+        <div 
+          id="video-ad-container" 
+          className="video-ad-container my-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-xl hidden"
+          style={{ minHeight: '280px', display: 'none' }}
+        >
+          {/* AdSense će se ovdje renderirati */}
+        </div>
+
         {/* ============================================================
             🔥🔥🔥 4 VELIKE KARTICE - RESPONZIVNO 🔥🔥🔥
             ============================================================ */}
@@ -1001,11 +1106,17 @@ const AIChef = () => {
                 <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg sm:rounded-xl text-2xl sm:text-3xl flex-shrink-0 mt-0.5">📸</div>
                 <div className="min-w-0 flex-1">
                   <p className="text-white/80 text-[10px] sm:text-xs font-medium truncate">Slika</p>
-                  <p className="text-white text-lg sm:text-xl font-bold truncate">{slikaPreview ? '✅' : '0/3'}</p>
+                  {user?.premium ? (
+                    <p className="text-white text-lg sm:text-xl font-bold truncate">{slikaPreview ? '✅' : '📷'}</p>
+                  ) : (
+                    <p className="text-white text-lg sm:text-xl font-bold truncate">{slikaPreview ? '✅' : '0/3'}</p>
+                  )}
                   <p className="text-white/60 text-[10px] sm:text-xs truncate">{slikaPreview ? 'Spremna' : 'Dodaj'}</p>
                 </div>
               </div>
-              <p className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-white/70 text-center leading-tight">Slikaj ili dodaj fotografiju</p>
+              <p className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-white/70 text-center leading-tight">
+                Slikaj ili dodaj fotografiju
+              </p>
             </div>
 
             {/* ============================================================
@@ -1015,7 +1126,6 @@ const AIChef = () => {
               // 🔥 FREE - VIDEO KARTICA
               <div 
                 className={`bg-gradient-to-br ${videoAdCount < maxVideoAds ? 'from-purple-500 to-purple-600' : 'from-red-500 to-red-600'} rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-white/20 backdrop-blur-sm ${videoAdCount < maxVideoAds ? 'cursor-pointer hover:scale-[1.02] hover:shadow-xl' : ''} transition-transform flex flex-col h-full min-h-[90px] sm:min-h-[130px]`}
-                onClick={videoAdCount < maxVideoAds ? handleUnlockWithVideo : undefined}
               >
                 <div className="flex items-start gap-2 sm:gap-3 flex-1">
                   <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg sm:rounded-xl text-2xl sm:text-3xl flex-shrink-0 mt-0.5">📺</div>
@@ -1032,10 +1142,10 @@ const AIChef = () => {
                         e.stopPropagation();
                         handleUnlockWithVideo();
                       }}
-                      disabled={loadingLimit || videoWatched}
+                      disabled={loadingLimit || videoWatched || isVideoAdPlaying}
                       className="w-full text-[8px] sm:text-[10px] bg-white/20 hover:bg-white/30 text-white font-semibold py-1 px-1 rounded-lg transition disabled:opacity-50"
                     >
-                      {loadingLimit ? '⏳...' : videoWatched ? '✅ Otključano' : '🎬 Gledaj video'}
+                      {loadingLimit || isVideoAdPlaying ? '⏳...' : videoWatched ? '✅ Otključano' : '🎬 Gledaj video'}
                     </button>
                   ) : dailyLimit.preostalo > 0 ? (
                     '✅ Imaš slikanja'
@@ -1062,13 +1172,13 @@ const AIChef = () => {
             )}
 
             {/* ============================================================
-                3. STATUS - FREE → "🔒 Free" | PREMIUM → "Premium korisnik"
+                3. STATUS - PREUSMJERI NA PREMIUM ZA FREE
                 ============================================================ */}
             <div 
               className={`bg-gradient-to-br ${user?.premium ? 'from-amber-500 to-yellow-600' : 'from-gray-500 to-gray-600'} rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-white/20 backdrop-blur-sm ${!user?.premium ? 'cursor-pointer hover:scale-[1.02] hover:shadow-xl' : ''} transition-transform flex flex-col h-full min-h-[90px] sm:min-h-[130px]`}
               onClick={() => {
                 if (!user?.premium) {
-                  window.location.href = '/premium';
+                  window.location.href = 'https://os-zdravlja.vercel.app/#/premium';
                 }
               }}
             >
@@ -1078,7 +1188,7 @@ const AIChef = () => {
                   <p className="text-white/80 text-[10px] sm:text-xs font-medium truncate">Status</p>
                   <p className="text-white text-lg sm:text-xl font-bold truncate">{user?.premium ? 'Premium' : '🔒 Free'}</p>
                   <p className="text-white/60 text-[10px] sm:text-xs truncate">
-                    {user?.premium ? '✅ Sve' : '🔒 Free'}
+                    {user?.premium ? '✅ Sve funkcionalnosti' : '🔒 Ograničen'}
                   </p>
                 </div>
               </div>
@@ -1086,7 +1196,7 @@ const AIChef = () => {
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.location.href = '/premium';
+                    window.location.href = 'https://os-zdravlja.vercel.app/#/premium';
                   }}
                   className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-white/80 hover:text-white underline transition text-center"
                 >
@@ -1098,11 +1208,14 @@ const AIChef = () => {
             </div>
 
             {/* ============================================================
-                4. FREE: GLASOVNA (ZAKLJUČANA) | PREMIUM: GLASOVNA (OTKLJUČANA)
+                4. GLASOVNA - PREUSMJERI NA PREMIUM ZA FREE
                 ============================================================ */}
             {!user?.premium ? (
-              // 🔥 FREE - GLASOVNA (ZAKLJUČANA)
-              <div className="bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-white/20 backdrop-blur-sm opacity-70 flex flex-col h-full min-h-[90px] sm:min-h-[130px]">
+              // 🔥 FREE - GLASOVNA (ZAKLJUČANA - preusmjerava na premium)
+              <div 
+                className="bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-white/20 backdrop-blur-sm cursor-pointer hover:scale-[1.02] hover:shadow-xl transition-transform flex flex-col h-full min-h-[90px] sm:min-h-[130px]"
+                onClick={() => window.location.href = 'https://os-zdravlja.vercel.app/#/premium'}
+              >
                 <div className="flex items-start gap-2 sm:gap-3 flex-1">
                   <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg sm:rounded-xl text-2xl sm:text-3xl flex-shrink-0 mt-0.5">🎤</div>
                   <div className="min-w-0 flex-1">
@@ -1111,7 +1224,9 @@ const AIChef = () => {
                     <p className="text-white/60 text-[10px] sm:text-xs truncate">🔒 Zaključano</p>
                   </div>
                 </div>
-                <p className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-white/70 text-center leading-tight">🔒 Zaključano za FREE</p>
+                <p className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-white/70 text-center leading-tight">
+                  ⭐ Postani Premium za glasovnu pretragu
+                </p>
               </div>
             ) : (
               // 🔥 PREMIUM - GLASOVNA (OTKLJUČANA)
@@ -1214,13 +1329,18 @@ const AIChef = () => {
           {/* DUGME ZA PRETRAGU */}
           <button
             onClick={handlePretraga}
-            disabled={loading}
+            disabled={loading || isVideoAdPlaying}
             className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-semibold text-base sm:text-lg transition-all shadow-lg shadow-purple-500/25 hover:shadow-xl disabled:opacity-50 flex items-center justify-center gap-2 sm:gap-3"
           >
             {loading ? (
               <>
                 <span className="animate-spin inline-block">⏳</span>
                 {t('aichef.buttons.searching')}
+              </>
+            ) : isVideoAdPlaying ? (
+              <>
+                <span>🎬</span>
+                Gledajte reklamu...
               </>
             ) : (
               <>
@@ -1271,15 +1391,20 @@ const AIChef = () => {
             <p className="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500">
               {t('aichef.premium_hint')}
             </p>
-            <Link to="/premium" className="text-xs sm:text-sm text-purple-600 dark:text-purple-400 font-semibold hover:underline inline-flex items-center gap-1">
+            <a 
+              href="https://os-zdravlja.vercel.app/#/premium" 
+              className="text-xs sm:text-sm text-purple-600 dark:text-purple-400 font-semibold hover:underline inline-flex items-center gap-1"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {t('aichef.premium_link')} <span>→</span>
-            </Link>
+            </a>
           </div>
         )}
 
         {/* REZULTATI */}
         {rezultati.length > 0 && (
-          <div className="mt-6 sm:mt-8 animate-fadeIn">
+          <div className="mt-6 sm:mt-8 animate-fadeIn results-container">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3 sm:mb-4">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
                 {t('aichef.results.title')}
