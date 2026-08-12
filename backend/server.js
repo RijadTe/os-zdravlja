@@ -1930,32 +1930,8 @@ app.get('/api/healthy-chef/kategorije', async (req, res) => {
 // ============================================================
 // 18. DOHVATI FAZE ZA KATEGORIJU
 // ============================================================
-app.get('/api/healthy-chef/faze/:kategorijaId', async (req, res) => {
-  try {
-    const { kategorijaId } = req.params;
-    console.log(`🌿 Dohvatam faze za kategoriju: ${kategorijaId}`);
-    
-    const { data, error } = await supabase
-      .from('healthy_chef_kategorije')
-      .select('*')
-      .eq('parent_id', kategorijaId)
-      .order('redoslijed', { ascending: true });
-
-    if (error) throw error;
-    console.log(`✅ Dohvaćeno ${data?.length || 0} faza`);
-    res.json(data || []);
-  } catch (error) {
-    console.error('❌ Greška pri dohvatu faza:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ============================================================
-// 19. 🔥 RECEPTI ZA FAZU SA FILTRIRANJEM PO KORISNIKU + PAGINACIJA (IZMJENA 3 - POPRAVLJENO)
-// ============================================================
 app.get('/api/healthy-chef/recepti', async (req, res) => {
   try {
-    // 🔥 DODAJ kategorijaId U QUERY PARAMETRE!
     const { fazaId, kategorijaId, email, vrsta, vrijeme, tezina, page = 1, limit = 20 } = req.query;
     
     console.log(`🌿 Dohvatam recepte za: ${fazaId || kategorijaId || 'sve'}`);
@@ -1983,15 +1959,15 @@ app.get('/api/healthy-chef/recepti', async (req, res) => {
       .from('recepti')
       .select('*', { count: 'exact' });
     
-    // 🔥 POPRAVLJENO: Podržava i fazaId i kategorijaId
+    // 🔥 POPRAVLJENO - KORISTI PRAVE KOLONE!
     if (fazaId) {
+      // Ako imamo fazaId, filtriraj po fazi
       query = query.eq('faza_id', fazaId);
       console.log(`📍 Filtriram po fazi: ${fazaId}`);
     } else if (kategorijaId) {
-      // 🔥 NOVO: Podrška za kategorije bez faza (Tiroida, Kosti, Anemija)
-      // Koristimo faza_id = kategorijaId jer su recepti povezani sa kategorijom preko faza_id
-      query = query.eq('faza_id', kategorijaId);
-      console.log(`📍 Filtriram po kategoriji (bez faza): ${kategorijaId}`);
+      // 🔥 KORISTI kategorija_id DIREKTNO (kolona postoji u tabeli!)
+      query = query.eq('kategorija_id', kategorijaId);
+      console.log(`📍 Filtriram po kategoriji: ${kategorijaId}`);
     }
     
     if (vrsta) {
@@ -2018,7 +1994,7 @@ app.get('/api/healthy-chef/recepti', async (req, res) => {
     
     let filteredRecepti = recepti || [];
     
-    // 🔥 IZMJENA 3 - POPRAVLJENO: SAMO izbjegava
+    // 🔥 FILTRIRANJE PO RESTRIKCIJAMA - KORISTI izbjegava
     if (userRestrictions.length > 0) {
       const hasNoRestrictions = userRestrictions.some(r => 
         r === 'Bez restrikcija' || 
