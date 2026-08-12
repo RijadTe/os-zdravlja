@@ -11,7 +11,7 @@ export const ADSENSE_CLIENT = 'ca-pub-9027267899539658';
 export const DEFAULT_SLOTS = {
   banner: '8508444317',        // Banner reklame (header, footer)
   sidebar: '7426316998',       // Sidebar reklame
-  video: '8508444317',         // 🎬 Video reklame (AI Chef)
+  video: '9159013136',         // 🎬 Video reklame (AI Chef)
   inFeed: '5374868722',        // In-feed reklame (između sadržaja)
   native: '9438382605',        // Native reklame (izgledaju kao sadržaj)
   display: '7135652891'        // Display reklame (standardne)

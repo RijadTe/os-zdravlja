@@ -67,7 +67,6 @@ const AIChef = () => {
   const [isVideoAdPlaying, setIsVideoAdPlaying] = useState(false);
   const recognitionRef = useRef(null);
   const fileInputRef = useRef(null);
-  const videoAdContainerRef = useRef(null);
 
   const debouncedTekst = useDebounce(tekst, 400);
 
@@ -315,7 +314,7 @@ const AIChef = () => {
       setPoruka('🎬 Učitavam video reklamu... Molimo sačekajte.');
       setPorukaType('info');
 
-      // Kreiraj AdSense in-element video reklamu
+      // Kreiraj AdSense reklamu
       const ins = document.createElement('ins');
       ins.className = 'adsbygoogle';
       ins.style.display = 'block';
@@ -326,9 +325,9 @@ const AIChef = () => {
       ins.style.borderRadius = '12px';
       ins.style.overflow = 'hidden';
       
-      // Postavi AdSense parametre
+      // Postavi AdSense parametre - KORISTI DISPLAY SLOT
       ins.setAttribute('data-ad-client', ADSENSE_CLIENT);
-      ins.setAttribute('data-ad-slot', DEFAULT_SLOTS.video);
+      ins.setAttribute('data-ad-slot', DEFAULT_SLOTS.display); // Koristi display slot (7135652891)
       ins.setAttribute('data-ad-format', 'auto');
       ins.setAttribute('data-full-width-responsive', 'true');
       
@@ -342,7 +341,7 @@ const AIChef = () => {
         if (typeof window.adsbygoogle !== 'undefined') {
           (window.adsbygoogle = window.adsbygoogle || []).push({});
           adSenseLoaded = true;
-          console.log('📢 AdSense video reklama pokrenuta!');
+          console.log('📢 AdSense reklama pokrenuta! Slot:', DEFAULT_SLOTS.display);
         } else {
           // Ako AdSense nije učitan, učitaj ga
           const script = document.createElement('script');
@@ -352,7 +351,7 @@ const AIChef = () => {
           script.onload = () => {
             (window.adsbygoogle = window.adsbygoogle || []).push({});
             adSenseLoaded = true;
-            console.log('📢 AdSense video reklama pokrenuta nakon učitavanja!');
+            console.log('📢 AdSense reklama pokrenuta nakon učitavanja!');
           };
           script.onerror = () => {
             console.error('❌ Greška pri učitavanju AdSense skripte');
