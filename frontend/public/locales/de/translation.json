@@ -991,7 +991,7 @@
   "showing": "Zeige",
   "of": "von",
   "recipes": "Rezepten",
-  "filters_active": "Filter aktiv",
+  "filters_active": "aktive Filter",
   "search": "🔍 Rezepte suchen...",
   "excluding": "Ohne",
   "short": "Kurz",
@@ -1005,9 +1005,9 @@
   "no_results": "Keine Rezepte entsprechen deinen Kriterien.",
   "reset_filters": "Filter zurücksetzen",
   "categories": {
-    "diet": "Diät",
+    "diet": "Diät-Rezepte",
     "desserts": "Desserts",
-    "savory": "Herzhaft",
+    "savory": "Herzhafte Gerichte",
     "drinks": "Getränke"
   },
   "filters": {

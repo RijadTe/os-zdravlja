@@ -977,7 +977,7 @@
     "kcal": "kcal",
     "restrictions": "restrictions"
   },
-  "recipes": {
+ "recipes": {
   "category_recipes": "Recipes in category: {{category}}",
   "all": "All recipes",
   "all_recipes": "All recipes",
@@ -1005,9 +1005,9 @@
   "no_results": "No recipes match your criteria.",
   "reset_filters": "Reset filters",
   "categories": {
-    "diet": "Diet",
+    "diet": "Diet recipes",
     "desserts": "Desserts",
-    "savory": "Savory",
+    "savory": "Savory dishes",
     "drinks": "Drinks"
   },
   "filters": {

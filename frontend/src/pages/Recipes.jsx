@@ -235,13 +235,45 @@ const Recipes = () => {
     fetchRecipes(page);
   };
 
-  // Mapiranje naziva kategorija
-  const categoryNames = {
-    'Dijetalni recepti': '🥗 ' + t('recipes.categories.diet'),
-    'Deserti': '🍰 ' + t('recipes.categories.desserts'),
-    'Slano': '🍕 ' + t('recipes.categories.savory'),
-    'Napitki': '🍹 ' + t('recipes.categories.drinks')
-  };
+// Mapiranje naziva kategorija
+const categoryNames = {
+  'Dijetalni recepti': '🥗 ' + t('recipes.categories.diet'),
+  'Deserti': '🍰 ' + t('recipes.categories.desserts'),
+  'Slano': '🍕 ' + t('recipes.categories.savory'),
+  'Napitki': '🍹 ' + t('recipes.categories.drinks')
+};
+
+// ============================================================
+// 🔥 MAPIRANJE FILTERA ZA SVE JEZIKE
+// ============================================================
+const filterTranslations = {
+  // VRIJEME
+  'Kratko (15-30 min)': t('recipes.short'),
+  'Srednje (30-45 min)': t('recipes.medium'),
+  'Duže (45-60+ min)': t('recipes.long'),
+  
+  // TEŽINA
+  'Početnik': t('recipes.beginner'),
+  'Srednji': t('recipes.intermediate'),
+  'Profesionalac': t('recipes.professional'),
+  
+  // KALORIJE
+  'Nisko (do 300 kcal)': t('recipes.low_cal'),
+  'Umjereno (300-500 kcal)': t('recipes.moderate'),
+  'Srednje (500-700 kcal)': t('recipes.medium_cal'),
+  'Visoko (900+ kcal)': t('recipes.high_cal'),
+  
+  // PREFERENCIJE
+  'Visokoproteinski': t('recipes.high_protein'),
+  'Bogat vlaknima': t('recipes.high_fiber'),
+  'Bogat ugljikohidratima': t('recipes.high_carb'),
+  
+  // VRSTA
+  'Dijetalni recepti': t('recipes.categories.diet'),
+  'Deserti': t('recipes.categories.desserts'),
+  'Slano': t('recipes.categories.savory'),
+  'Napitki': t('recipes.categories.drinks')
+};
 
   // ============================================================
   // 🖥️ RENDER - LOADING (PRIKAZANO SAMO DOK SE UČITAVA)
@@ -283,12 +315,13 @@ const Recipes = () => {
         )}
         {activeFiltersCount() > 0 && (
           <span className="text-blue-600 dark:text-blue-400 text-xs bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">
-            {activeFiltersCount()} {t('recipes.filters')}
+         {activeFiltersCount()} {t('recipes.filter_label')}
           </span>
         )}
       </nav>
 
       {/* NASLOV */}
+
       <h1 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-2">
         {categoryNames[filter] || filter || '📚 ' + t('recipes.all')}
       </h1>
@@ -317,110 +350,111 @@ const Recipes = () => {
       {/* ============================================================
           🔥🔥🔥 FILTERI - UVJEK VIDLJIVI (ČAK I KADA NEMA RECEPATA)
           ============================================================ */}
+
       <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl mb-6 border border-gray-200 dark:border-gray-700">
-        <div className="flex flex-wrap items-center gap-3">
-          {/* PRETRAGA */}
-          <div className="flex-1 min-w-[180px]">
-            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">🔍 PRETRAGA</label>
-            <input
-              type="text"
-              placeholder={t('recipes.search')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-3 border rounded-xl bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition text-sm"
-            />
-          </div>
-          
-          {/* VRIJEME */}
-          <div className="flex-1 min-w-[130px] max-w-[180px]">
-            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">⏱️ VRIJEME</label>
-            <select
-              value={filters.vrijeme || ''}
-              onChange={(e) => setFilters(prev => ({ ...prev, vrijeme: e.target.value }))}
-              className="w-full p-3 border rounded-xl bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition text-sm"
-            >
-              <option value="">Svo vrijeme</option>
-              <option value="Kratko (15-30 min)">⚡ Kratko</option>
-              <option value="Srednje (30-45 min)">⏳ Srednje</option>
-              <option value="Duže (45-60+ min)">🐢 Duže</option>
-            </select>
-          </div>
+  <div className="flex flex-wrap items-center gap-3">
+    {/* PRETRAGA */}
+    <div className="flex-1 min-w-[180px]">
+      <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">🔍 {t('recipes.filters.search_label')}</label>
+      <input
+        type="text"
+        placeholder={t('recipes.search')}
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="w-full p-3 border rounded-xl bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition text-sm"
+      />
+    </div>
+    
+    {/* VRIJEME */}
+    <div className="flex-1 min-w-[130px] max-w-[180px]">
+      <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">⏱️ {t('recipes.filters.time_label')}</label>
+      <select
+        value={filters.vrijeme || ''}
+        onChange={(e) => setFilters(prev => ({ ...prev, vrijeme: e.target.value }))}
+        className="w-full p-3 border rounded-xl bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition text-sm"
+      >
+        <option value="">{t('recipes.all_time')}</option>
+        <option value="Kratko (15-30 min)">{t('recipes.short')}</option>
+        <option value="Srednje (30-45 min)">{t('recipes.medium')}</option>
+        <option value="Duže (45-60+ min)">{t('recipes.long')}</option>
+      </select>
+    </div>
 
-          {/* TEŽINA */}
-          <div className="flex-1 min-w-[130px] max-w-[180px]">
-            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">🏋️ TEŽINA</label>
-            <select
-              value={filters.tezina || ''}
-              onChange={(e) => setFilters(prev => ({ ...prev, tezina: e.target.value }))}
-              className="w-full p-3 border rounded-xl bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition text-sm"
-            >
-              <option value="">Sva težina</option>
-              <option value="Početnik">👶 Početnik</option>
-              <option value="Srednji">👨‍🍳 Srednji</option>
-              <option value="Profesionalac">👨‍🍳⭐ Profesionalac</option>
-            </select>
-          </div>
+    {/* TEŽINA */}
+    <div className="flex-1 min-w-[130px] max-w-[180px]">
+      <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">🏋️ {t('recipes.filters.difficulty_label')}</label>
+      <select
+        value={filters.tezina || ''}
+        onChange={(e) => setFilters(prev => ({ ...prev, tezina: e.target.value }))}
+        className="w-full p-3 border rounded-xl bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition text-sm"
+      >
+        <option value="">{t('recipes.all_levels')}</option>
+        <option value="Početnik">{t('recipes.beginner')}</option>
+        <option value="Srednji">{t('recipes.intermediate')}</option>
+        <option value="Profesionalac">{t('recipes.professional')}</option>
+      </select>
+    </div>
 
-          {/* PREFERENCIJE */}
-          <div className="flex-1 min-w-[130px] max-w-[180px]">
-            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">💪 PREFERENCIJE</label>
-            <select
-              value={filters.preferencije || ''}
-              onChange={(e) => setFilters(prev => ({ ...prev, preferencije: e.target.value }))}
-              className="w-full p-3 border rounded-xl bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition text-sm"
-            >
-              <option value="">Sve preferencije</option>
-              <option value="Visokoproteinski">💪 Visokoproteinski</option>
-              <option value="Bogat vlaknima">🌾 Bogat vlaknima</option>
-              <option value="Bogat ugljikohidratima">🍞 Bogat ugljikohidratima</option>
-            </select>
-          </div>
+    {/* PREFERENCIJE */}
+    <div className="flex-1 min-w-[130px] max-w-[180px]">
+      <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">💪 {t('recipes.filters.preferences_label')}</label>
+      <select
+        value={filters.preferencije || ''}
+        onChange={(e) => setFilters(prev => ({ ...prev, preferencije: e.target.value }))}
+        className="w-full p-3 border rounded-xl bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition text-sm"
+      >
+        <option value="">{t('recipes.filters.all_preferences')}</option>
+        <option value="Visokoproteinski">{t('recipes.high_protein')}</option>
+        <option value="Bogat vlaknima">{t('recipes.high_fiber')}</option>
+        <option value="Bogat ugljikohidratima">{t('recipes.high_carb')}</option>
+      </select>
+    </div>
 
-          {/* RESET DUGME */}
-          {(filter || filters.vrijeme || filters.tezina || filters.preferencije || filters.kalorije || searchTerm) && (
-            <button
-              onClick={resetAllFilters}
-              className="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl transition text-sm flex items-center gap-1 self-end"
-            >
-              🔄 Reset
-            </button>
-          )}
-        </div>
-        
-        {/* AKTIVNI FILTERI - BADGEVI */}
-        <div className="flex flex-wrap gap-2 mt-3">
-          {filter && (
-            <span className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-xs">
-              🍽️ {filter}
-            </span>
-          )}
-          {filters.vrijeme && (
-            <span className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-3 py-1 rounded-full text-xs">
-              ⏱️ {filters.vrijeme.replace(' (15-30 min)', '').replace(' (30-45 min)', '').replace(' (45-60+ min)', '')}
-            </span>
-          )}
-          {filters.tezina && (
-            <span className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full text-xs">
-              🏋️ {filters.tezina}
-            </span>
-          )}
-          {filters.preferencije && (
-            <span className="bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 px-3 py-1 rounded-full text-xs">
-              💪 {filters.preferencije}
-            </span>
-          )}
-          {filters.kalorije && (
-            <span className="bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-3 py-1 rounded-full text-xs">
-              🔥 {filters.kalorije.replace(' (do 300 kcal)', '').replace(' (300-500 kcal)', '').replace(' (500-700 kcal)', '').replace(' (900+ kcal)', '')}
-            </span>
-          )}
-          {searchTerm && searchTerm.trim() && (
-            <span className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs">
-              🔍 "{searchTerm}"
-            </span>
-          )}
-        </div>
-      </div>
+    {/* RESET DUGME */}
+    {(filter || filters.vrijeme || filters.tezina || filters.preferencije || filters.kalorije || searchTerm) && (
+      <button
+        onClick={resetAllFilters}
+        className="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl transition text-sm flex items-center gap-1 self-end"
+      >
+        🔄 {t('recipes.reset_filters')}
+      </button>
+    )}
+  </div>
+  
+  {/* AKTIVNI FILTERI - BADGEVI */}
+  <div className="flex flex-wrap gap-2 mt-3">
+    {filter && (
+      <span className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-xs">
+        {t('recipes.badges.type')} {filterTranslations[filter] || filter}
+      </span>
+    )}
+    {filters.vrijeme && (
+      <span className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-3 py-1 rounded-full text-xs">
+        {t('recipes.badges.time')} {filterTranslations[filters.vrijeme] || filters.vrijeme}
+      </span>
+    )}
+    {filters.tezina && (
+      <span className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full text-xs">
+        {t('recipes.badges.difficulty')} {filterTranslations[filters.tezina] || filters.tezina}
+      </span>
+    )}
+    {filters.preferencije && (
+      <span className="bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 px-3 py-1 rounded-full text-xs">
+        {t('recipes.badges.preference')} {filterTranslations[filters.preferencije] || filters.preferencije}
+      </span>
+    )}
+    {filters.kalorije && (
+      <span className="bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-3 py-1 rounded-full text-xs">
+        {t('recipes.badges.calories')} {filterTranslations[filters.kalorije] || filters.kalorije}
+      </span>
+    )}
+    {searchTerm && searchTerm.trim() && (
+      <span className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs">
+        {t('recipes.badges.search')} "{searchTerm}"
+      </span>
+    )}
+  </div>
+</div>
 
       {/* ============================================================
           🖥️ RENDER - SADRŽAJ (RECEPTI ILI PORUKA O GREŠCI)
