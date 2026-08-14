@@ -615,14 +615,15 @@
     "none": "No restrictions"
   },
   "alergeni": {
-    "bez_glutena": "Gluten-free",
-    "bez_laktoze": "Lactose-free",
-    "bez_secera": "Sugar-free",
-    "veganski": "Vegan",
-    "bez_orasastih": "Nuts-free",
-    "recipe_type": "Dish type",
-    "select_type": "Select dish type..."
-  },
+  "bez_glutena": "Gluten-free",
+  "bez_laktoze": "Lactose-free",
+  "bez_secera": "Sugar-free",
+  "veganski": "Vegan",
+  "bez_orasastih": "Nuts-free"
+},
+"recipe_type": "Dish type",
+"select_type": "Select dish type..."
+},
   "forgotpassword": {
     "title": "Forgot your password?",
     "subtitle": "Enter your email and we'll send you a password reset link.",

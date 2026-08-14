@@ -620,6 +620,7 @@
     "bez_secera": "Zuckerfrei",
     "veganski": "Vegan",
     "bez_orasastih": "Nussfrei",
+    },
     "recipe_type": "Art des Gerichts",
     "select_type": "Wählen Sie die Art des Gerichts..."
   },
