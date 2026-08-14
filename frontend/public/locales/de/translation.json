@@ -611,8 +611,6 @@
     "selected": "Ausgewählt",
     "untitled": "Ohne Titel",
     "click_for_details": "📖 Für Details zur Zubereitung öffnen Sie das Rezept",
-     "restrictions": {
-    "none": "Keine Einschränkungen"
   },
   "alergeni": {
     "bez_glutena": "Glutenfrei",

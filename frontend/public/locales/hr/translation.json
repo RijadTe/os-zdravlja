@@ -611,8 +611,6 @@
     "selected": "Odabrano",
     "untitled": "Bez naslova",
     "click_for_details": "📖 Za detaljalje pripreme otvorite recept",
-      "restrictions": {
-  "none": "Bez restrikcija"
 },
 "alergeni": {
   "bez_glutena": "Bez glutena",
