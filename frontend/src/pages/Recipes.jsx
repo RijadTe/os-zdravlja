@@ -321,7 +321,7 @@ const Recipes = () => {
         <div className="flex flex-wrap items-center gap-3">
           {/* PRETRAGA */}
           <div className="flex-1 min-w-[180px]">
-            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">🔍 {t('recipes.filters.search')}</label>
+            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">🔍 PRETRAGA</label>
             <input
               type="text"
               placeholder={t('recipes.search')}
@@ -333,46 +333,46 @@ const Recipes = () => {
           
           {/* VRIJEME */}
           <div className="flex-1 min-w-[130px] max-w-[180px]">
-            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">⏱️ {t('recipes.filters.time')}</label>
+            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">⏱️ VRIJEME</label>
             <select
               value={filters.vrijeme || ''}
               onChange={(e) => setFilters(prev => ({ ...prev, vrijeme: e.target.value }))}
               className="w-full p-3 border rounded-xl bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition text-sm"
             >
-              <option value="">{t('recipes.filters.all_time')}</option>
-              <option value="Kratko (15-30 min)">{t('recipes.filters.short')}</option>
-              <option value="Srednje (30-45 min)">{t('recipes.filters.medium')}</option>
-              <option value="Duže (45-60+ min)">{t('recipes.filters.long')}</option>
+              <option value="">Svo vrijeme</option>
+              <option value="Kratko (15-30 min)">⚡ Kratko</option>
+              <option value="Srednje (30-45 min)">⏳ Srednje</option>
+              <option value="Duže (45-60+ min)">🐢 Duže</option>
             </select>
           </div>
 
           {/* TEŽINA */}
           <div className="flex-1 min-w-[130px] max-w-[180px]">
-            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">🏋️ {t('recipes.filters.difficulty')}</label>
+            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">🏋️ TEŽINA</label>
             <select
               value={filters.tezina || ''}
               onChange={(e) => setFilters(prev => ({ ...prev, tezina: e.target.value }))}
               className="w-full p-3 border rounded-xl bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition text-sm"
             >
-              <option value="">{t('recipes.filters.all_difficulty')}</option>
-              <option value="Početnik">{t('recipes.filters.beginner')}</option>
-              <option value="Srednji">{t('recipes.filters.intermediate')}</option>
-              <option value="Profesionalac">{t('recipes.filters.professional')}</option>
+              <option value="">Sva težina</option>
+              <option value="Početnik">👶 Početnik</option>
+              <option value="Srednji">👨‍🍳 Srednji</option>
+              <option value="Profesionalac">👨‍🍳⭐ Profesionalac</option>
             </select>
           </div>
 
           {/* PREFERENCIJE */}
           <div className="flex-1 min-w-[130px] max-w-[180px]">
-            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">💪 {t('recipes.filters.preferences')}</label>
+            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">💪 PREFERENCIJE</label>
             <select
               value={filters.preferencije || ''}
               onChange={(e) => setFilters(prev => ({ ...prev, preferencije: e.target.value }))}
               className="w-full p-3 border rounded-xl bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition text-sm"
             >
-              <option value="">{t('recipes.filters.all_preferences')}</option>
-              <option value="Visokoproteinski">{t('recipes.filters.high_protein')}</option>
-              <option value="Bogat vlaknima">{t('recipes.filters.high_fiber')}</option>
-              <option value="Bogat ugljikohidratima">{t('recipes.filters.high_carbs')}</option>
+              <option value="">Sve preferencije</option>
+              <option value="Visokoproteinski">💪 Visokoproteinski</option>
+              <option value="Bogat vlaknima">🌾 Bogat vlaknima</option>
+              <option value="Bogat ugljikohidratima">🍞 Bogat ugljikohidratima</option>
             </select>
           </div>
 
@@ -382,7 +382,7 @@ const Recipes = () => {
               onClick={resetAllFilters}
               className="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl transition text-sm flex items-center gap-1 self-end"
             >
-              🔄 {t('recipes.filters.reset')}
+              🔄 Reset
             </button>
           )}
         </div>
@@ -391,32 +391,32 @@ const Recipes = () => {
         <div className="flex flex-wrap gap-2 mt-3">
           {filter && (
             <span className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-xs">
-              {t('recipes.badges.type')} {filter}
+              🍽️ {filter}
             </span>
           )}
           {filters.vrijeme && (
             <span className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-3 py-1 rounded-full text-xs">
-              {t('recipes.badges.time')} {filters.vrijeme.replace(' (15-30 min)', '').replace(' (30-45 min)', '').replace(' (45-60+ min)', '')}
+              ⏱️ {filters.vrijeme.replace(' (15-30 min)', '').replace(' (30-45 min)', '').replace(' (45-60+ min)', '')}
             </span>
           )}
           {filters.tezina && (
             <span className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full text-xs">
-              {t('recipes.badges.difficulty')} {filters.tezina}
+              🏋️ {filters.tezina}
             </span>
           )}
           {filters.preferencije && (
             <span className="bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 px-3 py-1 rounded-full text-xs">
-              {t('recipes.badges.preference')} {filters.preferencije}
+              💪 {filters.preferencije}
             </span>
           )}
           {filters.kalorije && (
             <span className="bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-3 py-1 rounded-full text-xs">
-              {t('recipes.badges.calories')} {filters.kalorije.replace(' (do 300 kcal)', '').replace(' (300-500 kcal)', '').replace(' (500-700 kcal)', '').replace(' (900+ kcal)', '')}
+              🔥 {filters.kalorije.replace(' (do 300 kcal)', '').replace(' (300-500 kcal)', '').replace(' (500-700 kcal)', '').replace(' (900+ kcal)', '')}
             </span>
           )}
           {searchTerm && searchTerm.trim() && (
             <span className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs">
-              {t('recipes.badges.search')} "{searchTerm}"
+              🔍 "{searchTerm}"
             </span>
           )}
         </div>
@@ -429,10 +429,10 @@ const Recipes = () => {
       {/* BROJ RECEPATA (samo ako ima recepata) */}
       {recepti.length > 0 && (
         <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">
-          {t('recipes.filters.showing')} {recepti.length} {t('recipes.filters.of')} {pagination.total} {t('recipes.filters.recipes')}
+          {t('recipes.showing')} {recepti.length} {t('recipes.of')} {pagination.total} {t('recipes.recipes')}
           {pagination.pages > 1 && (
             <span className="ml-2 text-xs text-gray-400">
-              ({t('recipes.filters.page')} {pagination.page} {t('recipes.filters.of')} {pagination.pages})
+              (Stranica {pagination.page} od {pagination.pages})
             </span>
           )}
           
@@ -490,7 +490,7 @@ const Recipes = () => {
           {pagination.pages > 1 && (
             <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                {t('recipes.filters.showing')} {recepti.length} {t('recipes.filters.of')} {pagination.total} {t('recipes.filters.recipes')}
+                Prikazano {recepti.length} od {pagination.total} recepata
               </div>
               
               <div className="flex items-center gap-2 flex-wrap">
@@ -500,7 +500,7 @@ const Recipes = () => {
                   disabled={pagination.page === 1}
                   className="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
                 >
-                  {t('recipes.filters.first')}
+                  ⏮
                 </button>
                 
                 {/* DUGME ZA PREVIOUS */}
@@ -509,12 +509,12 @@ const Recipes = () => {
                   disabled={pagination.page === 1}
                   className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
                 >
-                  {t('recipes.filters.previous')}
+                  ⬅️ Prethodna
                 </button>
                 
                 {/* BROJ STRANICA */}
                 <span className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-sm font-semibold">
-                  {t('recipes.filters.page')} {pagination.page} / {pagination.pages}
+                  {pagination.page} / {pagination.pages}
                 </span>
                 
                 {/* DUGME ZA NEXT */}
@@ -523,7 +523,7 @@ const Recipes = () => {
                   disabled={pagination.page === pagination.pages}
                   className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
                 >
-                  {t('recipes.filters.next')}
+                  Sljedeća ➡️
                 </button>
                 
                 {/* DUGME ZA ZADNJU STRANICU */}
@@ -532,7 +532,7 @@ const Recipes = () => {
                   disabled={pagination.page === pagination.pages}
                   className="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
                 >
-                  {t('recipes.filters.last')}
+                  ⏭
                 </button>
               </div>
             </div>

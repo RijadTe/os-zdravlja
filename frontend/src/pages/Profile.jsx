@@ -574,13 +574,6 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-8 px-4">
       <div className="max-w-5xl mx-auto">
-        {/* ===== SEO ===== */}
-        <SEO 
-          title={t('profile.seo_title')}
-          description={t('profile.seo_description')}
-          url="https://os-zdravlja.vercel.app/profile"
-        />
-
         {/* ===== HERO ===== */}
         <div className="relative bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl p-8 shadow-2xl overflow-hidden animate-fadeIn">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
@@ -634,7 +627,7 @@ const Profile = () => {
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-emerald-400/30">👨‍🍳</div>
               <div>
-                <p className="text-white/80 text-xs font-medium">{t('profile.stats.recipes_cooked')}</p>
+                <p className="text-white/80 text-xs font-medium">Skuhano recepata</p>
                 <p className="text-white text-xl font-bold">{cookedCount}</p>
               </div>
             </div>
@@ -644,7 +637,7 @@ const Profile = () => {
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-amber-400/30">🏆</div>
               <div>
-                <p className="text-white/80 text-xs font-medium">{t('profile.stats.badges_earned')}</p>
+                <p className="text-white/80 text-xs font-medium">Osvojenih bedževa</p>
                 <p className="text-white text-xl font-bold">{badges.length}</p>
               </div>
             </div>
@@ -664,7 +657,7 @@ const Profile = () => {
               <div>
                 <p className="text-white/80 text-xs font-medium">{t('profile.quiz')}</p>
                 <p className="text-white text-lg font-bold">
-                  {isQuizCompleted ? t('profile.stats.quiz_completed') : t('profile.stats.quiz_not_completed')}
+                  {isQuizCompleted ? 'Završen' : 'Nije završen'}
                 </p>
               </div>
             </div>
@@ -682,9 +675,9 @@ const Profile = () => {
                 {isPremium ? '👑' : '🔓'}
               </div>
               <div>
-                <p className="text-white/80 text-xs font-medium">{t('profile.stats.status')}</p>
+                <p className="text-white/80 text-xs font-medium">Status</p>
                 <p className="text-white text-lg font-bold">
-                  {isPremium ? t('profile.stats.status_premium') : t('profile.stats.status_free')}
+                  {isPremium ? '⭐ Premium' : 'Free'}
                 </p>
               </div>
             </div>
@@ -713,7 +706,7 @@ const Profile = () => {
           {!badgesVisible ? (
             <div className="text-center py-8 text-gray-400 dark:text-gray-500">
               <p className="text-4xl mb-2">🏆</p>
-              <p className="text-sm">{t('profile.badges.scroll_hint')}</p>
+              <p className="text-sm">Skrolajte za bedževe...</p>
             </div>
           ) : badgesLoading ? (
             <div className="flex justify-center py-8">
@@ -724,7 +717,7 @@ const Profile = () => {
               <p className="text-4xl mb-2">🏆</p>
               <p className="text-gray-500 dark:text-gray-400">{t('profile.no_badges')}</p>
               <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                {t('profile.badges_hint')}
+                {t('profile.badges_hint') || 'Objavljujte recepte i skupljajte lajkove da osvojite bedževe!'}
               </p>
             </div>
           ) : (
@@ -737,7 +730,7 @@ const Profile = () => {
                 return (
                   <div
                     key={badge.id}
-                    className="relative flex flex-col items-center p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 border-2 border-amber-400 dark:border-amber-500 shadow-lg shadow-amber-500/20 min-w-[100px] max-w-[130px] hover:scale-105 transition-transform"
+                    className="flex flex-col items-center p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-amber-900/30 dark:to-yellow-900/30 border-2 border-amber-400 dark:border-amber-500 shadow-lg shadow-amber-500/20 min-w-[100px] max-w-[130px] hover:scale-105 transition-transform"
                   >
                     <div className="absolute -top-2 -right-2">
                       <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full font-bold">
@@ -754,7 +747,7 @@ const Profile = () => {
                       </span>
                     )}
                     <span className="text-[9px] text-green-500 mt-0.5 font-medium">
-                      {t('profile.badges.earned')}
+                      🎉 Osvojen
                     </span>
                   </div>
                 );
@@ -767,16 +760,16 @@ const Profile = () => {
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-2">
                 <span>🔒</span>
-                {t('profile.badges.available')}
+                {t('profile.badges.available') || 'Dostupni bedževi:'}
               </p>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { key: 'first_recipe', icon: '🏆', name: t('profile.badges.available_list.first_recipe') },
-                  { key: 'three_recipes', icon: '🥉', name: t('profile.badges.available_list.three_recipes') },
-                  { key: 'ten_recipes', icon: '🥈', name: t('profile.badges.available_list.ten_recipes') },
-                  { key: 'twenty_recipes', icon: '🥇', name: t('profile.badges.available_list.twenty_recipes') },
-                  { key: 'popular_recipe', icon: '⭐', name: t('profile.badges.available_list.ten_likes') },
-                  { key: 'super_popular', icon: '🌟', name: t('profile.badges.available_list.fifty_likes') },
+                  { key: 'first_recipe', icon: '🏆', name: 'Prvi recept' },
+                  { key: 'three_recipes', icon: '🥉', name: '3 recepta' },
+                  { key: 'ten_recipes', icon: '🥈', name: '10 recepata' },
+                  { key: 'twenty_recipes', icon: '🥇', name: '20 recepata' },
+                  { key: 'popular_recipe', icon: '⭐', name: '10 lajkova' },
+                  { key: 'super_popular', icon: '🌟', name: '50 lajkova' },
                 ].map((availableBadge) => {
                   const hasBadge = badges.some(b => 
                     (b.badge?.kljuc || b.kljuc) === availableBadge.key
