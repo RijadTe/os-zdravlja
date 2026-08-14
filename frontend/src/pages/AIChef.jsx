@@ -8,6 +8,8 @@
       />
 };
 
+// frontend/src/pages/AIChef.jsx
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -279,14 +281,14 @@ const AIChef = () => {
       if (!ADSENSE_ENABLED) {
         // Fallback - simulacija ako AdSense nije omogućen
         let seconds = 0;
-        setPoruka('🎬 Simulirana video reklama...');
+        setPoruka(t('aichef.messages.simulated_ad'));
         setPorukaType('info');
         const interval = setInterval(() => {
           seconds++;
-          setPoruka(`🎬 Simulirana reklama... ${seconds}/3 sekundi`);
+          setPoruka(t('aichef.messages.simulated_ad_countdown', { seconds }));
           if (seconds >= 3) {
             clearInterval(interval);
-            setPoruka('✅ Video reklama završena!');
+            setPoruka(t('aichef.messages.video_ad_finished'));
             setPorukaType('success');
             setIsVideoAdPlaying(false);
             setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 1000);
@@ -321,7 +323,7 @@ const AIChef = () => {
       adContainer.style.display = 'block';
       adContainer.style.minHeight = '280px';
 
-      setPoruka('🎬 Učitavam video reklamu... Molimo sačekajte.');
+      setPoruka(t('aichef.messages.loading_video_ad'));
       setPorukaType('info');
 
       // Kreiraj AdSense reklamu
@@ -337,7 +339,7 @@ const AIChef = () => {
       
       // Postavi AdSense parametre - KORISTI DISPLAY SLOT
       ins.setAttribute('data-ad-client', ADSENSE_CLIENT);
-      ins.setAttribute('data-ad-slot', DEFAULT_SLOTS.display); // Koristi display slot (7135652891)
+      ins.setAttribute('data-ad-slot', DEFAULT_SLOTS.display);
       ins.setAttribute('data-ad-format', 'auto');
       ins.setAttribute('data-full-width-responsive', 'true');
       
@@ -393,12 +395,12 @@ const AIChef = () => {
         // Ako je reklama prikazana, brojimo do 5 sekundi
         if (adDisplayed || adSenseLoaded) {
           if (seconds <= 5) {
-            setPoruka(`🎬 Gledajte reklamu... ${seconds}/5 sekundi`);
+            setPoruka(t('aichef.messages.watching_ad', { seconds }));
           }
           if (seconds >= 5 && !resolved) {
             clearInterval(timer);
             clearInterval(checkAdLoaded);
-            setPoruka('✅ Video reklama završena!');
+            setPoruka(t('aichef.messages.video_ad_finished'));
             setPorukaType('success');
             setIsVideoAdPlaying(false);
             setTimeout(() => { 
@@ -414,10 +416,10 @@ const AIChef = () => {
           clearInterval(timer);
           clearInterval(checkAdLoaded);
           if (!resolved) {
-            setPoruka('⏳ Reklama se učitava, nastavljamo...');
+            setPoruka(t('aichef.messages.loading_video_ad'));
             setPorukaType('info');
             setTimeout(() => { 
-              setPoruka('✅ Video reklama završena!');
+              setPoruka(t('aichef.messages.video_ad_finished'));
               setPorukaType('success');
               setIsVideoAdPlaying(false);
               setTimeout(() => { 
@@ -437,7 +439,7 @@ const AIChef = () => {
         if (!resolved) {
           clearInterval(timer);
           clearInterval(checkAdLoaded);
-          setPoruka('✅ Video reklama završena!');
+          setPoruka(t('aichef.messages.video_ad_finished'));
           setPorukaType('success');
           setIsVideoAdPlaying(false);
           setTimeout(() => { 
@@ -457,14 +459,14 @@ const AIChef = () => {
   // ============================================================
   const handleUnlockWithVideo = async () => {
     if (user?.premium) {
-      setPoruka('⭐ Premium korisnici imaju 15 slikanja dnevno!');
+      setPoruka(t('aichef.messages.premium_access'));
       setPorukaType('info');
       setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
       return;
     }
 
     if (isVideoAdPlaying) {
-      setPoruka('⏳ Reklama je već u tijeku, molimo sačekajte...');
+      setPoruka(t('aichef.messages.ad_already_playing'));
       setPorukaType('warning');
       setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
       return;
@@ -480,21 +482,21 @@ const AIChef = () => {
     }
 
     if (videoAdCount >= maxVideoAds) {
-      setPoruka(`⚠️ Dosegli ste dnevni limit od ${maxVideoAds} video reklama. Pokušajte sutra!`);
+      setPoruka(t('aichef.messages.video_ad_limit_reached', { maxVideoAds }));
       setPorukaType('warning');
       setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
       return;
     }
 
     if (dailyLimit.preostalo > 0) {
-      setPoruka(`✅ Već imate ${dailyLimit.preostalo} preostalih slikanja! Iskoristite ih.`);
+      setPoruka(t('aichef.messages.daily_limit_remaining', { remaining: dailyLimit.preostalo }));
       setPorukaType('success');
       setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
       return;
     }
 
     if (dailyLimit.broj_pretraga >= dailyLimit.max_pretraga) {
-      setPoruka(`✅ Već ste iskoristili svih ${dailyLimit.max_pretraga} slikanja danas. Pokušajte sutra!`);
+      setPoruka(t('aichef.messages.daily_limit_reached', { max_pretraga: dailyLimit.max_pretraga }));
       setPorukaType('warning');
       setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
       return;
@@ -505,14 +507,14 @@ const AIChef = () => {
       const videoCompleted = await showVideoAd();
       
       if (!videoCompleted) {
-        setPoruka('❌ Video reklama nije završena. Pokušajte ponovo.');
+        setPoruka(t('aichef.messages.video_ad_not_finished'));
         setPorukaType('error');
         setLoadingLimit(false);
         setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
         return;
       }
 
-      const res = await fetch(`${API_URL}/api/ai-chef/unlock`, {
+            const res = await fetch(`${API_URL}/api/ai-chef/unlock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -537,7 +539,7 @@ const AIChef = () => {
       }, 3000);
       
       const remaining = maxVideoAds - (videoAdCount + 1);
-      setPoruka(`✅ +1 slikanje! Sada imate ${data.preostalo || 0} preostalih slikanja. Preostalo ${remaining} video reklama za danas.`);
+      setPoruka(t('aichef.messages.video_ad_unlocked', { remaining }));
       setPorukaType('success');
       setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
     } catch (error) {
@@ -570,7 +572,7 @@ const AIChef = () => {
 
     if (slika && !user?.premium) {
       if (dailyLimit.preostalo <= 0) {
-        setPoruka('📸 Nema slikanja! Pogledaj video za 1 slikanje.');
+        setPoruka(t('aichef.messages.no_more_pictures'));
         setPorukaType('warning');
         setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
         return;
@@ -578,7 +580,7 @@ const AIChef = () => {
     }
 
     if (slika && user?.premium && dailyLimit.preostalo <= 0) {
-      setPoruka(`⚠️ Dostigli ste dnevni limit od ${dailyLimit.max_pretraga} fotografija. Pokušajte sutra!`);
+      setPoruka(t('aichef.messages.daily_limit_reached', { max_pretraga: dailyLimit.max_pretraga }));
       setPorukaType('warning');
       setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
       return;
@@ -602,21 +604,21 @@ const AIChef = () => {
       formData.append('jezik', currentLang);
 
       setProgress(30);
-      setStatus('📡 Komuniciram sa serverom...');
+      setStatus(t('aichef.status.sending'));
 
       statusInterval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         if (elapsed < 3) {
-          setStatus(`🔍 Pretražujem bazu recepata... (${elapsed}s)`);
+          setStatus(t('aichef.status.searching_database', { elapsed }));
         } else if (elapsed < 6) {
-          setStatus(`🤖 Konsultiram AI kuhara... (${elapsed}s)`);
-          setPoruka(`⏳ AI razmišlja... već ${elapsed} sekundi`);
+          setStatus(t('aichef.status.consulting_ai', { elapsed }));
+          setPoruka(t('aichef.messages.ai_thinking', { elapsed }));
         } else if (elapsed < 10) {
-          setStatus(`🧠 AI generira recepte... (${elapsed}s)`);
-          setPoruka(`🧠 AI još uvijek razmišlja (${elapsed}s), hvala na strpljenju!`);
+          setStatus(t('aichef.status.ai_generating_recipes', { elapsed }));
+          setPoruka(t('aichef.messages.ai_generating_recipes', { elapsed }));
         } else {
-          setStatus(`⏳ AI još uvijek radi... (${elapsed}s)`);
-          setPoruka(`⏳ Ovo traje malo duže (${elapsed}s), AI priprema savršene recepte!`);
+          setStatus(t('aichef.status.ai_processing', { elapsed }));
+          setPoruka(t('aichef.messages.ai_processing', { elapsed }));
         }
       }, 2000);
 
@@ -653,13 +655,13 @@ const AIChef = () => {
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
       
       if (res.headers.get('X-Cache') === 'HIT') {
-        setPoruka(`💾 Rezultati dohvaćeni iz keša (${elapsed}s)`);
+        setPoruka(t('aichef.messages.cache_hit', { elapsed }));
         setPorukaType('info');
       } else if (res.headers.get('X-Source') === 'database') {
-        setPoruka(`📚 Rezultati iz baze (${elapsed}s)`);
+        setPoruka(t('aichef.messages.database_result', { elapsed }));
         setPorukaType('success');
       } else if (res.headers.get('X-Source') === 'ai_generated') {
-        setPoruka(`🤖 Rezultati generirani od strane AI (${elapsed}s)`);
+        setPoruka(t('aichef.messages.ai_generated', { elapsed }));
         setPorukaType('success');
       } else {
         setPoruka(t('aichef.results.found', { count: processedData.length }));
@@ -725,7 +727,7 @@ const AIChef = () => {
 
     if (slika && !user?.premium) {
       if (dailyLimit.preostalo <= 0) {
-        setPoruka('📸 Nema slikanja! Pogledaj video za 1 slikanje.');
+        setPoruka(t('aichef.messages.no_more_pictures'));
         setPorukaType('warning');
         setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
         return;
@@ -733,7 +735,7 @@ const AIChef = () => {
     }
 
     if (slika && user?.premium && dailyLimit.preostalo <= 0) {
-      setPoruka(`⚠️ Dostigli ste dnevni limit od ${dailyLimit.max_pretraga} fotografija. Pokušajte sutra!`);
+      setPoruka(t('aichef.messages.daily_limit_reached', { max_pretraga: dailyLimit.max_pretraga }));
       setPorukaType('warning');
       setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
       return;
@@ -758,21 +760,21 @@ const AIChef = () => {
       formData.append('jezik', currentLang);
 
       setProgress(30);
-      setStatus('📡 Komuniciram sa serverom...');
+      setStatus(t('aichef.status.communicating_with_server'));
 
       statusInterval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         if (elapsed < 3) {
-          setStatus(`🔍 Pretražujem bazu recepata... (${elapsed}s)`);
+          setStatus(t('aichef.status.searching_database', { elapsed }));
         } else if (elapsed < 6) {
-          setStatus(`🤖 Konsultiram AI kuhara... (${elapsed}s)`);
-          setPoruka(`⏳ AI razmišlja... već ${elapsed} sekundi`);
+          setStatus(t('aichef.status.consulting_ai', { elapsed }));
+          setPoruka(t('aichef.messages.ai_thinking', { elapsed }));
         } else if (elapsed < 10) {
-          setStatus(`🧠 AI generira recepte... (${elapsed}s)`);
-          setPoruka(`🧠 AI još uvijek razmišlja (${elapsed}s), hvala na strpljenju!`);
+          setStatus(t('aichef.status.ai_generating_recipes', { elapsed }));
+          setPoruka(t('aichef.messages.ai_generating_recipes', { elapsed }));
         } else {
-          setStatus(`⏳ AI još uvijek radi... (${elapsed}s)`);
-          setPoruka(`⏳ Ovo traje malo duže (${elapsed}s), AI priprema savršene recepte!`);
+          setStatus(t('aichef.status.ai_processing', { elapsed }));
+          setPoruka(t('aichef.messages.ai_processing', { elapsed }));
         }
       }, 2000);
 
@@ -809,13 +811,13 @@ const AIChef = () => {
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
       
       if (res.headers.get('X-Cache') === 'HIT') {
-        setPoruka(`💾 Rezultati dohvaćeni iz keša (${elapsed}s)`);
+        setPoruka(t('aichef.messages.cache_hit', { elapsed }));
         setPorukaType('info');
       } else if (res.headers.get('X-Source') === 'database') {
-        setPoruka(`📚 Rezultati iz baze (${elapsed}s)`);
+        setPoruka(t('aichef.messages.database_result', { elapsed }));
         setPorukaType('success');
       } else if (res.headers.get('X-Source') === 'ai_generated') {
-        setPoruka(`🤖 Rezultati generirani od strane AI (${elapsed}s)`);
+        setPoruka(t('aichef.messages.ai_generated', { elapsed }));
         setPorukaType('success');
       } else {
         setPoruka(t('aichef.results.found', { count: processedData.length }));
@@ -934,10 +936,10 @@ const AIChef = () => {
       recognition.maxAlternatives = 1;
       
       setVoiceActive(true);
-      setPoruka('🎤 Slušam... Govorite svoj upit');
+      setPoruka(t('aichef.voice.listening'));
       setPorukaType('info');
       setLoading(true);
-      setStatus('🎤 Glasovna pretraga...');
+      setStatus(t('aichef.status.voice_search'));
       setProgress(10);
       
       recognition.onresult = (e) => {
@@ -945,9 +947,9 @@ const AIChef = () => {
         setTekst(transcript);
         
         if (e.results[0].isFinal) {
-          setPoruka(`✅ Prepoznato: "${transcript}"`);
+          setPoruka(t('aichef.voice.recognized', { text: transcript }));
           setPorukaType('success');
-          setStatus('📝 Prepoznat tekst, pokrećem pretragu...');
+          setStatus(t('aichef.voice.text_recognized'));
           setProgress(30);
           setVoiceActive(false);
           
@@ -956,7 +958,7 @@ const AIChef = () => {
               handlePretragaDirect(transcript);
             }, 100);
           } else {
-            setPoruka('❌ Nisam prepoznao tekst. Pokušajte ponovo.');
+            setPoruka(t('aichef.voice.not_recognized'));
             setPorukaType('error');
             setLoading(false);
             setProgress(0);
@@ -964,7 +966,7 @@ const AIChef = () => {
             setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
           }
         } else {
-          setPoruka(`🎤 Slušam: "${transcript}"`);
+          setPoruka(t('aichef.voice.listening'));
           setPorukaType('info');
         }
       };
@@ -974,7 +976,7 @@ const AIChef = () => {
         setVoiceActive(false);
         
         if (!tekst.trim() && loading) {
-          setPoruka('❌ Nisam prepoznao tekst. Pokušajte ponovo.');
+          setPoruka(t('aichef.voice.not_recognized'));
           setPorukaType('error');
           setLoading(false);
           setProgress(0);
@@ -991,13 +993,13 @@ const AIChef = () => {
         setIsVoiceSearch(false);
         
         if (event.error === 'not-allowed') {
-          setPoruka('❌ Dozvolite pristup mikrofonu za glasovnu pretragu.');
+          setPoruka(t('aichef.voice.microphone_access'));
         } else if (event.error === 'no-speech') {
-          setPoruka('❌ Nisam čuo govor. Pokušajte ponovo.');
+          setPoruka(t('aichef.voice.no_speech'));
         } else if (event.error === 'audio-capture') {
-          setPoruka('❌ Nema pristupa mikrofonu. Provjerite postavke.');
+          setPoruka(t('aichef.voice.no_microphone'));
         } else {
-          setPoruka('❌ Greška pri glasovnoj pretrazi. Pokušajte ponovo.');
+          setPoruka(t('aichef.voice.error'));
         }
         setPorukaType('error');
         setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
@@ -1020,7 +1022,7 @@ const AIChef = () => {
       setLoading(false);
       setProgress(0);
       setIsVoiceSearch(false);
-      setPoruka('❌ Greška pri glasovnoj pretrazi. Pokušajte ponovo.');
+      setPoruka(t('aichef.voice.error'));
       setPorukaType('error');
       setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 3000);
     }
@@ -1041,12 +1043,19 @@ const AIChef = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-4 sm:py-8 px-3 sm:px-4">
       <div className="max-w-4xl mx-auto">
+        {/* SEO */}
+        <SEO 
+          title={t('aichef.seo_title')}
+          description={t('aichef.seo_description')}
+          url="https://os-zdravlja.vercel.app/ai-chef"
+        />
+
         {/* HERO SEKCIJA */}
         <div className="text-center mb-6 sm:mb-8 animate-fadeIn">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500/10 to-blue-500/10 dark:from-purple-500/20 dark:to-blue-500/20 rounded-full px-3 sm:px-4 py-1 mb-3 sm:mb-4 border border-purple-200/30 dark:border-purple-700/30">
             <span className="text-purple-500">✨</span>
             <span className="text-[10px] sm:text-xs font-medium text-purple-600 dark:text-purple-400">
-              {user?.premium ? '⭐ PREMIUM' : '🔓 FREE'}
+              {user?.premium ? t('aichef.card.premium_badge') : t('aichef.card.free_badge')}
             </span>
           </div>
           
@@ -1104,7 +1113,7 @@ const AIChef = () => {
                 if (dailyLimit.preostalo > 0 || user?.premium) {
                   fileInputRef.current?.click();
                 } else {
-                  setPoruka('📸 Nema slikanja! Pogledaj video za 1 slikanje.');
+                  setPoruka(t('aichef.messages.no_photos_watch_video'));
                   setPorukaType('warning');
                   setTimeout(() => { setPoruka(''); setPorukaType('info'); }, 4000);
                 }
@@ -1116,21 +1125,21 @@ const AIChef = () => {
                   {slikaPreview ? '✅' : '📸'}
                 </div>
                 <p className={`text-white font-bold ${user?.premium ? 'text-lg sm:text-xl' : 'text-base sm:text-lg'}`}>
-                  Slika
+                  {t('aichef.card.photo')}
                 </p>
                 {!user?.premium && (
                   <p className="text-white/70 text-[10px] sm:text-xs">
-                    {slikaPreview ? 'Spremna' : '0/3'}
+                    {slikaPreview ? t('aichef.card.ready') : t('aichef.card.photos_count')}
                   </p>
                 )}
                 {user?.premium && slikaPreview && (
                   <p className="text-white/70 text-[10px] sm:text-xs">
-                    Spremna
+                    {t('aichef.card.ready')}
                   </p>
                 )}
               </div>
               <p className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-white/70 text-center leading-tight">
-                Slikaj ili dodaj fotografiju
+                {t('aichef.card.photo_hint')}
               </p>
             </div>
 
@@ -1145,9 +1154,9 @@ const AIChef = () => {
                 <div className="flex items-start gap-2 sm:gap-3 flex-1">
                   <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg sm:rounded-xl text-2xl sm:text-3xl flex-shrink-0 mt-0.5">📺</div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-white/80 text-[10px] sm:text-xs font-medium truncate">Video</p>
+                    <p className="text-white/80 text-[10px] sm:text-xs font-medium truncate">{t('aichef.card.video')}</p>
                     <p className="text-white text-lg sm:text-xl font-bold truncate">{`${videoAdCount}/${maxVideoAds}`}</p>
-                    <p className="text-white/60 text-[10px] sm:text-xs truncate">Gledaj</p>
+                    <p className="text-white/60 text-[10px] sm:text-xs truncate">{t('aichef.card.watch')}</p>
                   </div>
                 </div>
                 <div className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-white/70 text-center leading-tight">
@@ -1160,14 +1169,14 @@ const AIChef = () => {
                       disabled={loadingLimit || videoWatched || isVideoAdPlaying}
                       className="w-full text-[8px] sm:text-[10px] bg-white/20 hover:bg-white/30 text-white font-semibold py-1 px-1 rounded-lg transition disabled:opacity-50"
                     >
-                      {loadingLimit || isVideoAdPlaying ? '⏳...' : videoWatched ? '✅ Otključano' : '🎬 Gledaj video'}
+                      {loadingLimit || isVideoAdPlaying ? '⏳...' : videoWatched ? t('aichef.card.unlocked') : t('aichef.card.watch_video')}
                     </button>
                   ) : dailyLimit.preostalo > 0 ? (
-                    '✅ Imaš slikanja'
+                    t('aichef.card.has_photos')
                   ) : dailyLimit.broj_pretraga >= dailyLimit.max_pretraga ? (
-                    '⛔ Limit iskorišten'
+                    t('aichef.card.limit_used')
                   ) : (
-                    '🎬 Pogledaj video'
+                    t('aichef.card.watch_video')
                   )}
                 </div>
               </div>
@@ -1177,12 +1186,12 @@ const AIChef = () => {
                 <div className="flex items-start gap-2 sm:gap-3 flex-1">
                   <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg sm:rounded-xl text-2xl sm:text-3xl flex-shrink-0 mt-0.5">🎯</div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-white/80 text-[10px] sm:text-xs font-medium truncate">Preostalo</p>
+                    <p className="text-white/80 text-[10px] sm:text-xs font-medium truncate">{t('aichef.card.remaining')}</p>
                     <p className="text-white text-lg sm:text-xl font-bold truncate">{`${dailyLimit.preostalo}/${dailyLimit.max_pretraga}`}</p>
-                    <p className="text-white/60 text-[10px] sm:text-xs truncate">slikanja</p>
+                    <p className="text-white/60 text-[10px] sm:text-xs truncate">{t('aichef.card.photos')}</p>
                   </div>
                 </div>
-                <p className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-white/70 text-center leading-tight">⭐ Premium korisnik</p>
+                <p className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-white/70 text-center leading-tight">{t('aichef.card.premium_user')}</p>
               </div>
             )}
 
@@ -1200,10 +1209,10 @@ const AIChef = () => {
               <div className="flex items-start gap-2 sm:gap-3 flex-1">
                 <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg sm:rounded-xl text-2xl sm:text-3xl flex-shrink-0 mt-0.5">⭐</div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-white/80 text-[10px] sm:text-xs font-medium truncate">Status</p>
-                  <p className="text-white text-lg sm:text-xl font-bold truncate">{user?.premium ? 'Premium' : '🔒 Free'}</p>
+                  <p className="text-white/80 text-[10px] sm:text-xs font-medium truncate">{t('aichef.card.status')}</p>
+                  <p className="text-white text-lg sm:text-xl font-bold truncate">{user?.premium ? t('aichef.card.premium') : t('aichef.card.free')}</p>
                   <p className="text-white/60 text-[10px] sm:text-xs truncate">
-                    {user?.premium ? '✅ Sve funkcionalnosti' : '🔒 Ograničen'}
+                    {user?.premium ? t('aichef.card.all_features') : t('aichef.card.limited')}
                   </p>
                 </div>
               </div>
@@ -1215,10 +1224,10 @@ const AIChef = () => {
                   }}
                   className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-white/80 hover:text-white underline transition text-center"
                 >
-                  ⭐ Postani → PREMIUM
+                  {t('aichef.card.become_premium')}
                 </button>
               ) : (
-                <p className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-white/70 text-center leading-tight">Premium korisnik</p>
+                <p className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-white/70 text-center leading-tight">{t('aichef.card.premium_user')}</p>
               )}
             </div>
 
@@ -1226,7 +1235,6 @@ const AIChef = () => {
                 4. GLASOVNA - PREUSMJERI NA PREMIUM ZA FREE
                 ============================================================ */}
             {!user?.premium ? (
-              // 🔥 FREE - GLASOVNA (ZAKLJUČANA - preusmjerava na premium)
               <div 
                 className="bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-white/20 backdrop-blur-sm cursor-pointer hover:scale-[1.02] hover:shadow-xl transition-transform flex flex-col h-full min-h-[90px] sm:min-h-[130px]"
                 onClick={() => window.location.href = 'https://os-zdravlja.vercel.app/#/premium'}
@@ -1234,17 +1242,16 @@ const AIChef = () => {
                 <div className="flex items-start gap-2 sm:gap-3 flex-1">
                   <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg sm:rounded-xl text-2xl sm:text-3xl flex-shrink-0 mt-0.5">🎤</div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-white/80 text-[10px] sm:text-xs font-medium truncate">Glasovna</p>
-                    <p className="text-white text-lg sm:text-xl font-bold truncate">pretraga</p>
-                    <p className="text-white/60 text-[10px] sm:text-xs truncate">🔒 Zaključano</p>
+                    <p className="text-white/80 text-[10px] sm:text-xs font-medium truncate">{t('aichef.card.voice')}</p>
+                    <p className="text-white text-lg sm:text-xl font-bold truncate">{t('aichef.card.search')}</p>
+                    <p className="text-white/60 text-[10px] sm:text-xs truncate">{t('aichef.card.locked')}</p>
                   </div>
                 </div>
                 <p className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-white/70 text-center leading-tight">
-                  ⭐ Postani Premium za glasovnu pretragu
+                  {t('aichef.card.voice_premium_hint')}
                 </p>
               </div>
             ) : (
-              // 🔥 PREMIUM - GLASOVNA (OTKLJUČANA)
               <div 
                 className="bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-white/20 backdrop-blur-sm hover:scale-[1.02] transition-transform cursor-pointer hover:shadow-xl flex flex-col h-full min-h-[90px] sm:min-h-[130px]"
                 onClick={handleVoiceSearch}
@@ -1252,12 +1259,12 @@ const AIChef = () => {
                 <div className="flex items-start gap-2 sm:gap-3 flex-1">
                   <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg sm:rounded-xl text-2xl sm:text-3xl flex-shrink-0 mt-0.5">🎤</div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-white/80 text-[10px] sm:text-xs font-medium truncate">Glasovna</p>
-                    <p className="text-white text-lg sm:text-xl font-bold truncate">pretraga</p>
-                    <p className="text-white/60 text-[10px] sm:text-xs truncate">⭐ Premium</p>
+                    <p className="text-white/80 text-[10px] sm:text-xs font-medium truncate">{t('aichef.card.voice')}</p>
+                    <p className="text-white text-lg sm:text-xl font-bold truncate">{t('aichef.card.search')}</p>
+                    <p className="text-white/60 text-[10px] sm:text-xs truncate">{t('aichef.card.premium_badge')}</p>
                   </div>
                 </div>
-                <p className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-white/70 text-center leading-tight">⭐ Premium funkcija</p>
+                <p className="mt-1 sm:mt-2 text-[8px] sm:text-[10px] text-white/70 text-center leading-tight">{t('aichef.card.premium_feature')}</p>
               </div>
             )}
           </div>
@@ -1297,7 +1304,7 @@ const AIChef = () => {
               }`}
             >
               <span>✏️</span>
-              Otkucaj
+              {t('aichef.buttons.type')}
             </button>
           </div>
 
@@ -1355,7 +1362,7 @@ const AIChef = () => {
             ) : isVideoAdPlaying ? (
               <>
                 <span>🎬</span>
-                Gledajte reklamu...
+                {t('aichef.card.watching_ad')}
               </>
             ) : (
               <>
@@ -1488,7 +1495,7 @@ const AIChef = () => {
                       />
                       {recipe._ai_generated && (
                         <div className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[10px] sm:text-xs font-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full shadow-lg flex items-center gap-1">
-                          <span>✨</span> AI
+                          <span>✨</span> {t('aichef.badge.ai')}
                         </div>
                       )}
                     </div>
