@@ -315,7 +315,7 @@ const filterTranslations = {
         )}
         {activeFiltersCount() > 0 && (
           <span className="text-blue-600 dark:text-blue-400 text-xs bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">
-         {activeFiltersCount()} {t('recipes.filter_label')}
+        {activeFiltersCount()} {t('recipes.filters_active')}
           </span>
         )}
       </nav>
