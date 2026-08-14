@@ -612,7 +612,7 @@
     "untitled": "Ohne Titel",
     "click_for_details": "📖 Für Details zur Zubereitung öffnen Sie das Rezept",
     "alergeni": {
-      "restriction none": "Keine Einschränkungen",
+      "community restriction none": "Keine Einschränkungen",
       "bez_glutena": "Glutenfrei",
       "bez_laktoze": "Laktosefrei",
       "bez_secera": "Zuckerfrei",

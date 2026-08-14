@@ -612,7 +612,7 @@
     "untitled": "Bez naslova",
     "click_for_details": "📖 Za detaljalje pripreme otvorite recept",
     "alergeni": {
-      "restriction none": "Bez restrikcija",
+      "communityrestriction none": "Bez restrikcija",
       "bez_glutena": "Bez glutena",
       "bez_laktoze": "Bez laktoze",
       "bez_secera": "Bez šećera",
