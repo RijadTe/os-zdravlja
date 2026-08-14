@@ -653,9 +653,9 @@ const Community = () => {
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                 }`}
               >
-                ✅ Bez restrikcija
-              </button>
-              
+                     {t('community.restrictions.none')}
+                        </button>
+
               <div className="flex flex-wrap gap-2">
                 {alergeniOpcije.map(({ key, label }) => (
                   <button
