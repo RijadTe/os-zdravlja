@@ -314,85 +314,162 @@
       "secure": "🔒 Sichere Zahlung über Stripe. Jederzeit kündbar."
     }
   },
-  "aichef": {
-    "title": "🤖 AI Chef – Was haben Sie im Kühlschrank?",
-    "subtitle": "Geben Sie die Zutaten ein, die Sie zu Hause haben, oder nutzen Sie Premium für erweiterte Optionen.",
-    "placeholder": "Geben Sie Zutaten ein (z.B. Huhn, Zwiebel, Karotte)...",
-    "common_searches": "📌 Häufige Suchanfragen",
-    "no_results": "Keine Rezepte für die eingegebenen Zutaten.",
-    "try_again": "Versuchen Sie es mit anderen Zutaten.",
-    "back_home": "Zurück zur Startseite",
-    "premium_hint": "⭐ Werden Sie Premium für unbegrenzte Suchanfragen und erweiterte Optionen.",
-    "premium_link": "Premium werden →",
-    "buttons": {
-      "take_photo": "Foto machen",
-      "limit_used_tomorrow": "🚫 Limit verbraucht - morgen!",
-      "watch_video_unlock": "🔒 Video ansehen für 1 Foto",
-      "watch_video_action": "Video ansehen → 1 Foto",
-      "type": "Eingeben",
-      "voice": "Sprache",
-      "search": "🔍 Rezepte suchen",
-      "searching": "Suche...",
-      "remove_image": "Bild entfernen"
-    },
-    "status": {
-      "processing": "⏳ KI verarbeitet Ihre Anfrage...",
-      "searching": "🔍 Suche Rezepte...",
-      "sending": "📤 Sende Anfrage...",
-      "analyzing": "⏳ KI analysiert Zutaten...",
-      "done": "✅ Fertig!",
-      "waiting": "⏱️ Warten: {seconds} Sekunden"
-    },
-    "status_labels": {
-      "photos": "Fotos",
-      "video": "Video",
-      "remaining": "übrig",
-      "limit_used": "Limit verbraucht",
-      "watch_video": "Video für Foto ansehen!"
-    },
-    "results": {
-      "title": "📋 Suchergebnisse",
-      "found": "✅ {count} Rezepte gefunden!"
-    },
-    "filters": {
-      "all_types": "Alle Arten",
-      "all_time": "Alle Zeiten",
-      "all_difficulty": "Alle Schwierigkeiten",
-      "reset": "Zurücksetzen"
-    },
-    "unlock": {
-      "watch_for_photo": "🎬 Video ansehen für 1 Foto!",
-      "current_photos": "Aktuell: {used}/{max} Fotos",
-      "remaining_videos": "Verbleibende Videoanzeigen: {count}",
-      "unlocked_photo": "+1 Foto!",
-      "now_have_photos": "Sie haben jetzt {count}/{max} verbleibende Fotos",
-      "use_remaining": "Nutzen Sie Ihre {count} verbleibenden Fotos!",
-      "all_photos_used": "✅ Sie haben alle {max} Fotos heute verwendet!",
-      "premium_photos": "⭐ Premium-Nutzer haben {max} Fotos pro Tag (ohne Videoanzeigen)",
-      "video_limit_reached": "📺 Tägliches Limit für Videoanzeigen erreicht ({max}/{max})"
-    },
-    "messages": {
-      "no_photos_watch_video": "📸 Keine Fotos mehr! Video ansehen für 1 Foto.",
-      "daily_limit_reached": "⚠️ Sie haben das tägliche Limit von {max} Fotos erreicht. Versuchen Sie es morgen wieder!",
-      "premium_no_video": "⭐ Premium-Nutzer haben {max} Fotos pro Tag!",
-      "video_limit_reached": "⚠️ Sie haben das tägliche Limit von {max} Videoanzeigen erreicht. Versuchen Sie es morgen wieder!",
-      "already_have_photos": "✅ Sie haben bereits {count} verbleibende Fotos! Nutzen Sie sie.",
-      "already_used_all": "✅ Sie haben bereits alle {max} Fotos heute verwendet. Versuchen Sie es morgen wieder!",
-      "video_not_completed": "❌ Videoanzeige nicht abgeschlossen. Bitte versuchen Sie es erneut.",
-      "unlock_success": "✅ +1 Foto! Sie haben jetzt {remaining} verbleibende Fotos. {videoLeft} Videoanzeigen für heute übrig."
-    },
-    "errors": {
-      "login_required": "⚠️ Sie müssen angemeldet sein.",
-      "no_input": "⚠️ Geben Sie Zutaten ein oder laden Sie ein Bild hoch.",
-      "photo_premium": "📸 Fotos sind nur für Premium-Nutzer oder nach Freischaltung verfügbar.",
-      "search_failed": "❌ Fehler bei der Suche. Bitte versuchen Sie es erneut.",
-      "general": "❌ Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
-      "voice_premium": "🎤 Sprachsuche ist nur für Premium-Nutzer verfügbar.",
-      "voice_not_supported": "❌ Ihr Browser unterstützt keine Sprachsuche.",
-      "voice_error": "❌ Fehler bei der Sprachsuche. Bitte versuchen Sie es erneut.",
-      "error": "❌ Fehler"
-    }
+ "aichef": {
+  "seo_title": "AI Chef – OS Gesundheit",
+  "seo_description": "Durchsuchen Sie Rezepte nach Zutaten oder fotografieren Sie – AI Chef erkennt und schlägt perfekte Rezepte vor!",
+  "title": "🤖 AI Chef – Was haben Sie im Kühlschrank?",
+  "subtitle": "Geben Sie die Zutaten ein, die Sie zu Hause haben, oder nutzen Sie Premium für erweiterte Optionen.",
+  "placeholder": "Geben Sie Zutaten ein (z.B. Huhn, Zwiebel, Karotte)...",
+  "common_searches": "📌 Häufige Suchanfragen",
+  "no_results": "Keine Rezepte für die eingegebenen Zutaten.",
+  "try_again": "Versuchen Sie es mit anderen Zutaten.",
+  "back_home": "Zurück zur Startseite",
+  "premium_hint": "⭐ Werden Sie Premium für unbegrenzte Suchanfragen und erweiterte Optionen.",
+  "premium_link": "Premium werden →",
+  "buttons": {
+    "take_photo": "Foto machen",
+    "limit_used_tomorrow": "🚫 Limit verbraucht - morgen!",
+    "watch_video_unlock": "🔒 Video ansehen für 1 Foto",
+    "watch_video_action": "Video ansehen → 1 Foto",
+    "type": "Eingeben",
+    "voice": "Sprache",
+    "search": "🔍 Rezepte suchen",
+    "searching": "Suche...",
+    "remove_image": "Bild entfernen"
   },
+  "status": {
+    "processing": "⏳ KI verarbeitet Ihre Anfrage...",
+    "searching": "🔍 Suche Rezepte...",
+    "sending": "📤 Sende Anfrage...",
+    "analyzing": "⏳ KI analysiert Zutaten...",
+    "done": "✅ Fertig!",
+    "waiting": "⏱️ Warten: {seconds} Sekunden"
+  },
+  "status_labels": {
+    "photos": "Fotos",
+    "video": "Video",
+    "remaining": "übrig",
+    "limit_used": "Limit verbraucht",
+    "watch_video": "Video für Foto ansehen!"
+  },
+  "results": {
+    "title": "📋 Suchergebnisse",
+    "found": "✅ {count} Rezepte gefunden!",
+    "recipes": "Rezepte",
+    "from_cache": "💾 Ergebnisse aus dem Cache ({{seconds}}s)",
+    "from_database": "📚 Ergebnisse aus der Datenbank ({{seconds}}s)",
+    "from_ai": "🤖 Ergebnisse von KI generiert ({{seconds}}s)"
+  },
+  "filters": {
+    "all_types": "Alle Arten",
+    "all_time": "Alle Zeiten",
+    "all_difficulty": "Alle Schwierigkeiten",
+    "reset": "Zurücksetzen"
+  },
+  "unlock": {
+    "watch_for_photo": "🎬 Video ansehen für 1 Foto!",
+    "current_photos": "Aktuell: {used}/{max} Fotos",
+    "remaining_videos": "Verbleibende Videoanzeigen: {count}",
+    "unlocked_photo": "+1 Foto!",
+    "now_have_photos": "Sie haben jetzt {count}/{max} verbleibende Fotos",
+    "use_remaining": "Nutzen Sie Ihre {count} verbleibenden Fotos!",
+    "all_photos_used": "✅ Sie haben alle {max} Fotos heute verwendet!",
+    "premium_photos": "⭐ Premium-Nutzer haben {max} Fotos pro Tag (ohne Videoanzeigen)",
+    "video_limit_reached": "📺 Tägliches Limit für Videoanzeigen erreicht ({max}/{max})"
+  },
+  "messages": {
+    "simulated_ad": "🎬 Simulierte Video-Werbung...",
+    "simulated_ad_countdown": "🎬 Simulierte Werbung... {{seconds}}/3 Sekunden",
+    "loading_video_ad": "🎬 Lade Video-Werbung... Bitte warten.",
+    "ad_loading_continue": "⏳ Werbung wird geladen, wir fahren fort...",
+    "video_ad_finished": "✅ Video-Werbung beendet!",
+    "watching_ad": "🎬 Werbung ansehen... {{seconds}}/5 Sekunden",
+    "premium_access": "⭐ Premium-Nutzer haben 15 Fotos pro Tag!",
+    "ad_already_playing": "⏳ Werbung läuft bereits, bitte warten...",
+    "no_photos_watch_video": "📸 Keine Fotos mehr! Video ansehen für 1 Foto.",
+    "no_more_pictures": "📸 Keine Fotos mehr! Video ansehen für 1 Foto.",
+    "daily_limit_reached": "⚠️ Sie haben das tägliche Limit von {{max}} Fotos erreicht. Versuchen Sie es morgen wieder!",
+    "video_limit_reached": "⚠️ Sie haben das tägliche Limit von {{max}} Videoanzeigen erreicht. Versuchen Sie es morgen wieder!",
+    "already_have_photos": "✅ Sie haben bereits {{count}} verbleibende Fotos! Nutzen Sie sie.",
+    "already_used_all": "✅ Sie haben bereits alle {{max}} Fotos heute verwendet. Versuchen Sie es morgen wieder!",
+    "video_not_completed": "❌ Videoanzeige nicht abgeschlossen. Bitte versuchen Sie es erneut.",
+    "unlock_success": "✅ +1 Foto! Sie haben jetzt {{remaining}} verbleibende Fotos. {{videoLeft}} Videoanzeigen für heute übrig.",
+    "video_ad_not_finished": "❌ Video-Werbung nicht beendet. Bitte versuchen Sie es erneut.",
+    "video_ad_unlocked": "✅ +1 Foto! {{remaining}} Videoanzeigen für heute übrig.",
+    "video_ad_limit_reached": "⚠️ Sie haben das tägliche Limit von {{maxVideoAds}} Videoanzeigen erreicht. Versuchen Sie es morgen wieder!",
+    "daily_limit_remaining": "✅ Sie haben bereits {{remaining}} verbleibende Fotos! Nutzen Sie sie.",
+    "cache_hit": "💾 Ergebnisse aus dem Cache ({{elapsed}}s)",
+    "database_result": "📚 Ergebnisse aus der Datenbank ({{elapsed}}s)",
+    "ai_generated": "🤖 Ergebnisse von KI generiert ({{elapsed}}s)",
+    "ai_thinking": "⏳ KI denkt... bereits {{elapsed}} Sekunden",
+    "ai_generating_recipes": "🧠 KI generiert Rezepte... ({{elapsed}}s)",
+    "ai_processing": "⏳ KI arbeitet noch... ({{elapsed}}s)"
+  },
+  "errors": {
+    "login_required": "⚠️ Sie müssen angemeldet sein.",
+    "no_input": "⚠️ Geben Sie Zutaten ein oder laden Sie ein Bild hoch.",
+    "photo_premium": "📸 Fotos sind nur für Premium-Nutzer oder nach Freischaltung verfügbar.",
+    "search_failed": "❌ Fehler bei der Suche. Bitte versuchen Sie es erneut.",
+    "general": "❌ Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "voice_premium": "🎤 Sprachsuche ist nur für Premium-Nutzer verfügbar.",
+    "voice_not_supported": "❌ Ihr Browser unterstützt keine Sprachsuche.",
+    "voice_error": "❌ Fehler bei der Sprachsuche. Bitte versuchen Sie es erneut.",
+    "error": "❌ Fehler"
+  },
+  "card": {
+    "photo": "Foto",
+    "photos_count": "0/3",
+    "ready": "Bereit",
+    "photo_hint": "Foto machen oder hinzufügen",
+    "video": "Video",
+    "watch": "Ansehen",
+    "watch_video": "🎬 Video ansehen",
+    "unlocked": "✅ Freigeschaltet",
+    "has_photos": "✅ Du hast Fotos",
+    "limit_used": "⛔ Limit verbraucht",
+    "remaining": "Verbleibend",
+    "photos": "Fotos",
+    "premium_user": "⭐ Premium-Nutzer",
+    "status": "Status",
+    "premium": "Premium",
+    "free": "🔒 Kostenlos",
+    "free_badge": "🔓 KOSTENLOS",
+    "all_features": "✅ Alle Funktionen",
+    "limited": "🔒 Eingeschränkt",
+    "become_premium": "⭐ Werde → PREMIUM",
+    "voice": "Sprache",
+    "search": "Suche",
+    "locked": "🔒 Gesperrt",
+    "voice_premium_hint": "⭐ Werde Premium für Sprachsuche",
+    "premium_badge": "⭐ PREMIUM",
+    "premium_feature": "⭐ Premium-Funktion",
+    "watching_ad": "Werbung ansehen...",
+    "seconds": "Sekunden"
+  },
+  "status_messages": {
+    "communicating": "📡 Kommuniziere mit Server...",
+    "searching_db": "🔍 Durchsuche Rezeptdatenbank... ({{seconds}}s)",
+    "consulting_ai": "🤖 Konsultiere AI-Koch... ({{seconds}}s)",
+    "ai_thinking": "⏳ AI denkt... bereits {{seconds}} Sekunden",
+    "ai_generating": "🧠 AI generiert Rezepte... ({{seconds}}s)",
+    "ai_still_thinking": "🧠 AI denkt noch ({{seconds}}s), danke für Ihre Geduld!",
+    "ai_still_working": "⏳ AI arbeitet noch... ({{seconds}}s)",
+    "taking_longer": "⏳ Das dauert etwas länger ({{seconds}}s), AI bereitet perfekte Rezepte vor!"
+  },
+  "voice": {
+    "listening": "🎤 Höre zu... Sagen Sie Ihre Anfrage",
+    "recognized": "✅ Erkannt: \"{{text}}\"",
+    "text_recognized": "📝 Text erkannt, starte Suche...",
+    "not_recognized": "❌ Ich habe den Text nicht erkannt. Bitte versuchen Sie es erneut.",
+    "microphone_access": "❌ Erlauben Sie Mikrofonzugriff für die Sprachsuche.",
+    "no_speech": "❌ Ich habe keine Sprache gehört. Bitte versuchen Sie es erneut.",
+    "no_microphone": "❌ Kein Mikrofonzugriff. Überprüfen Sie Ihre Einstellungen.",
+    "error": "❌ Fehler bei der Sprachsuche. Bitte versuchen Sie es erneut."
+  },
+  "badge": {
+    "ai": "KI"
+  }
+},
   "foodplanner": {
     "title": "Ernährungstagebuch",
     "premium": {

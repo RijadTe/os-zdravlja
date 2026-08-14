@@ -315,84 +315,161 @@
     }
   },
   "aichef": {
-    "title": "🤖 AI Chef – What's in your fridge?",
-    "subtitle": "Type in the ingredients you have at home or use Premium for advanced options.",
-    "placeholder": "Enter ingredients (e.g. chicken, onion, carrot)...",
-    "common_searches": "📌 Common searches",
-    "no_results": "No recipes for the entered ingredients.",
-    "try_again": "Try with other ingredients.",
-    "back_home": "Back to home",
-    "premium_hint": "⭐ Become Premium for unlimited searches and advanced options.",
-    "premium_link": "Become Premium →",
-    "buttons": {
-      "take_photo": "Take a photo",
-      "limit_used_tomorrow": "🚫 Limit used - tomorrow!",
-      "watch_video_unlock": "🔒 Watch video for 1 photo",
-      "watch_video_action": "Watch video → 1 photo",
-      "type": "Type",
-      "voice": "Voice",
-      "search": "🔍 Search recipes",
-      "searching": "Searching...",
-      "remove_image": "Remove image"
-    },
-    "status": {
-      "processing": "⏳ AI processing your request...",
-      "searching": "🔍 Searching recipes...",
-      "sending": "📤 Sending request...",
-      "analyzing": "⏳ AI analyzing ingredients...",
-      "done": "✅ Done!",
-      "waiting": "⏱️ Waiting: {seconds} seconds"
-    },
-    "status_labels": {
-      "photos": "photos",
-      "video": "video",
-      "remaining": "remaining",
-      "limit_used": "Limit used",
-      "watch_video": "Watch video for photo!"
-    },
-    "results": {
-      "title": "📋 Search results",
-      "found": "✅ Found {count} recipes!"
-    },
-    "filters": {
-      "all_types": "All types",
-      "all_time": "All time",
-      "all_difficulty": "All difficulty",
-      "reset": "Reset"
-    },
-    "unlock": {
-      "watch_for_photo": "🎬 Watch video for 1 photo!",
-      "current_photos": "Current: {used}/{max} photos",
-      "remaining_videos": "Remaining video ads: {count}",
-      "unlocked_photo": "+1 photo!",
-      "now_have_photos": "Now you have {count}/{max} remaining photos",
-      "use_remaining": "Use your {count} remaining photos!",
-      "all_photos_used": "✅ You've used all {max} photos today!",
-      "premium_photos": "⭐ Premium users have {max} photos per day (no video ads)",
-      "video_limit_reached": "📺 Daily video ad limit reached ({max}/{max})"
-    },
-    "messages": {
-      "no_photos_watch_video": "📸 No photos left! Watch video for 1 photo.",
-      "daily_limit_reached": "⚠️ You've reached the daily limit of {max} photos. Try again tomorrow!",
-      "premium_no_video": "⭐ Premium users have {max} photos per day!",
-      "video_limit_reached": "⚠️ You've reached the daily limit of {max} video ads. Try again tomorrow!",
-      "already_have_photos": "✅ You already have {count} remaining photos! Use them.",
-      "already_used_all": "✅ You've already used all {max} photos today. Try again tomorrow!",
-      "video_not_completed": "❌ Video ad not completed. Please try again.",
-      "unlock_success": "✅ +1 photo! Now you have {remaining} remaining photos. {videoLeft} video ads left for today."
-    },
-    "errors": {
-      "login_required": "⚠️ You must be logged in.",
-      "no_input": "⚠️ Enter ingredients or upload an image.",
-      "photo_premium": "📸 Photo is only available for Premium users or after unlocking.",
-      "search_failed": "❌ Error searching. Please try again.",
-      "general": "❌ An error occurred. Please try again.",
-      "voice_premium": "🎤 Voice search is only available for Premium users.",
-      "voice_not_supported": "❌ Your browser does not support voice search.",
-      "voice_error": "❌ Error with voice search. Please try again.",
-      "error": "❌ Error"
-    }
+  "seo_title": "AI Chef – OS Health",
+  "seo_description": "Search recipes by ingredients or take a photo – AI Chef recognizes and suggests perfect recipes!",
+  "title": "🤖 AI Chef – What's in your fridge?",
+  "subtitle": "Type in the ingredients you have at home or use Premium for advanced options.",
+  "placeholder": "Enter ingredients (e.g. chicken, onion, carrot)...",
+  "common_searches": "📌 Common searches",
+  "no_results": "No recipes for the entered ingredients.",
+  "try_again": "Try with other ingredients.",
+  "back_home": "Back to home",
+  "premium_hint": "⭐ Become Premium for unlimited searches and advanced options.",
+  "premium_link": "Become Premium →",
+  "buttons": {
+    "take_photo": "Take a photo",
+    "limit_used_tomorrow": "🚫 Limit used - tomorrow!",
+    "watch_video_unlock": "🔒 Watch video for 1 photo",
+    "watch_video_action": "Watch video → 1 photo",
+    "type": "Type",
+    "voice": "Voice",
+    "search": "🔍 Search recipes",
+    "searching": "Searching...",
+    "remove_image": "Remove image"
   },
+  "status": {
+    "processing": "⏳ AI processing your request...",
+    "searching": "🔍 Searching recipes...",
+    "sending": "📤 Sending request...",
+    "analyzing": "⏳ AI analyzing ingredients...",
+    "done": "✅ Done!",
+    "waiting": "⏱️ Waiting: {seconds} seconds"
+  },
+  "status_labels": {
+    "photos": "photos",
+    "video": "video",
+    "remaining": "remaining",
+    "limit_used": "Limit used",
+    "watch_video": "Watch video for photo!"
+  },
+  "results": {
+    "title": "📋 Search results",
+    "found": "✅ Found {count} recipes!",
+    "recipes": "recipes",
+    "from_cache": "💾 Results from cache ({{seconds}}s)",
+    "from_database": "📚 Results from database ({{seconds}}s)",
+    "from_ai": "🤖 Results generated by AI ({{seconds}}s)"
+  },
+  "filters": {
+    "all_types": "All types",
+    "all_time": "All time",
+    "all_difficulty": "All difficulty",
+    "reset": "Reset"
+  },
+  "unlock": {
+    "watch_for_photo": "🎬 Watch video for 1 photo!",
+    "current_photos": "Current: {used}/{max} photos",
+    "remaining_videos": "Remaining video ads: {count}",
+    "unlocked_photo": "+1 photo!",
+    "now_have_photos": "Now you have {count}/{max} remaining photos",
+    "use_remaining": "Use your {count} remaining photos!",
+    "all_photos_used": "✅ You've used all {max} photos today!",
+    "premium_photos": "⭐ Premium users have {max} photos per day (no video ads)",
+    "video_limit_reached": "📺 Daily video ad limit reached ({max}/{max})"
+  },
+  "messages": {
+    "simulated_ad": "🎬 Simulated video ad...",
+    "simulated_ad_countdown": "🎬 Simulated ad... {{seconds}}/3 seconds",
+    "loading_video_ad": "🎬 Loading video ad... Please wait.",
+    "ad_loading_continue": "⏳ Ad is loading, continuing...",
+    "video_ad_finished": "✅ Video ad finished!",
+    "watching_ad": "🎬 Watch the ad... {{seconds}}/5 seconds",
+    "premium_access": "⭐ Premium users have 15 photos per day!",
+    "ad_already_playing": "⏳ Ad is already playing, please wait...",
+    "no_photos_watch_video": "📸 No photos left! Watch video for 1 photo.",
+    "no_more_pictures": "📸 No photos left! Watch video for 1 photo.",
+    "daily_limit_reached": "⚠️ You've reached the daily limit of {{max}} photos. Try again tomorrow!",
+    "video_limit_reached": "⚠️ You've reached the daily limit of {{max}} video ads. Try again tomorrow!",
+    "already_have_photos": "✅ You already have {{count}} remaining photos! Use them.",
+    "already_used_all": "✅ You've already used all {{max}} photos today. Try again tomorrow!",
+    "video_not_completed": "❌ Video ad not completed. Please try again.",
+    "unlock_success": "✅ +1 photo! Now you have {{remaining}} remaining photos. {{videoLeft}} video ads left for today.",
+    "video_ad_not_finished": "❌ Video ad not finished. Please try again.",
+    "video_ad_unlocked": "✅ +1 photo! {{remaining}} video ads left for today.",
+    "video_ad_limit_reached": "⚠️ You've reached the daily limit of {{maxVideoAds}} video ads. Try again tomorrow!",
+    "daily_limit_remaining": "✅ You already have {{remaining}} remaining photos! Use them.",
+    "cache_hit": "💾 Results from cache ({{elapsed}}s)",
+    "database_result": "📚 Results from database ({{elapsed}}s)",
+    "ai_generated": "🤖 Results generated by AI ({{elapsed}}s)",
+    "ai_thinking": "⏳ AI thinking... already {{elapsed}} seconds",
+    "ai_generating_recipes": "🧠 AI generating recipes... ({{elapsed}}s)",
+    "ai_processing": "⏳ AI is still working... ({{elapsed}}s)"
+  },
+  "errors": {
+    "login_required": "⚠️ You must be logged in.",
+    "no_input": "⚠️ Enter ingredients or upload an image.",
+    "photo_premium": "📸 Photo is only available for Premium users or after unlocking.",
+    "search_failed": "❌ Error searching. Please try again.",
+    "general": "❌ An error occurred. Please try again.",
+    "voice_premium": "🎤 Voice search is only available for Premium users.",
+    "voice_not_supported": "❌ Your browser does not support voice search.",
+    "voice_error": "❌ Error with voice search. Please try again.",
+    "error": "❌ Error"
+  },
+  "card": {
+    "photo": "Photo",
+    "photos_count": "0/3",
+    "ready": "Ready",
+    "photo_hint": "Take a photo or add a picture",
+    "video": "Video",
+    "watch": "Watch",
+    "watch_video": "🎬 Watch video",
+    "unlocked": "✅ Unlocked",
+    "has_photos": "✅ You have photos",
+    "limit_used": "⛔ Limit used",
+    "remaining": "Remaining",
+    "photos": "photos",
+    "premium_user": "⭐ Premium user",
+    "status": "Status",
+    "premium": "Premium",
+    "free": "🔒 Free",
+    "free_badge": "🔓 FREE",
+    "all_features": "✅ All features",
+    "limited": "🔒 Limited",
+    "become_premium": "⭐ Become → PREMIUM",
+    "voice": "Voice",
+    "search": "search",
+    "locked": "🔒 Locked",
+    "voice_premium_hint": "⭐ Become Premium for voice search",
+    "premium_badge": "⭐ PREMIUM",
+    "premium_feature": "⭐ Premium feature",
+    "watching_ad": "Watch the ad...",
+    "seconds": "seconds"
+  },
+  "status_messages": {
+    "communicating": "📡 Communicating with server...",
+    "searching_db": "🔍 Searching recipe database... ({{seconds}}s)",
+    "consulting_ai": "🤖 Consulting AI chef... ({{seconds}}s)",
+    "ai_thinking": "⏳ AI thinking... already {{seconds}} seconds",
+    "ai_generating": "🧠 AI generating recipes... ({{seconds}}s)",
+    "ai_still_thinking": "🧠 AI is still thinking ({{seconds}}s), thank you for your patience!",
+    "ai_still_working": "⏳ AI is still working... ({{seconds}}s)",
+    "taking_longer": "⏳ This is taking a bit longer ({{seconds}}s), AI is preparing perfect recipes!"
+  },
+  "voice": {
+    "listening": "🎤 Listening... Say your query",
+    "recognized": "✅ Recognized: \"{{text}}\"",
+    "text_recognized": "📝 Text recognized, starting search...",
+    "not_recognized": "❌ I didn't recognize the text. Please try again.",
+    "microphone_access": "❌ Allow microphone access for voice search.",
+    "no_speech": "❌ I didn't hear any speech. Please try again.",
+    "no_microphone": "❌ No microphone access. Check your settings.",
+    "error": "❌ Voice search error. Please try again."
+  },
+  "badge": {
+    "ai": "AI"
+  }
+},
   "foodplanner": {
     "title": "Food Diary",
     "premium": {
