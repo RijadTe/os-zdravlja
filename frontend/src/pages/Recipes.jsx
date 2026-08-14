@@ -325,10 +325,11 @@ const filterTranslations = {
       <h1 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-2">
         {categoryNames[filter] || filter || '📚 ' + t('recipes.all')}
       </h1>
-      <p className="text-gray-600 dark:text-gray-300 mb-6">
-        {filter 
-          ? t('recipes.category_recipes', { category: filter })
-          : t('recipes.all_recipes')}
+  <p className="text-gray-600 dark:text-gray-300 mb-6">
+  {filter 
+  
+    ? t('recipes.category_recipes', { category: filterTranslations[filter] || filter })
+    : t('recipes.all_recipes')}
         
         {/* 🔥 PRIKAŽI RESTRIKCIJE AKO POSTOJE */}
         {userRestrictions.length > 0 && !userRestrictions.some(r => 
