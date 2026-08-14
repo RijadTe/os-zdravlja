@@ -611,14 +611,16 @@
     "selected": "Odabrano",
     "untitled": "Bez naslova",
     "click_for_details": "📖 Za detaljalje pripreme otvorite recept",
-    "alergeni": {
-      "communityrestriction none": "Bez restrikcija",
-      "bez_glutena": "Bez glutena",
-      "bez_laktoze": "Bez laktoze",
-      "bez_secera": "Bez šećera",
-      "veganski": "Veganski",
-      "bez_orasastih": "Bez orašastih plodova"
-    },
+      "restrictions": {
+  "none": "Bez restrikcija"
+},
+"alergeni": {
+  "bez_glutena": "Bez glutena",
+  "bez_laktoze": "Bez laktoze",
+  "bez_secera": "Bez šećera",
+  "veganski": "Veganski",
+  "bez_orasastih": "Bez orašastih plodova"
+},
     "recipe_type": "Vrsta jela",
     "select_type": "Odaberi vrstu jela..."
   },

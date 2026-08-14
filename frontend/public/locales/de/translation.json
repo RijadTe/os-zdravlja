@@ -611,14 +611,15 @@
     "selected": "Ausgewählt",
     "untitled": "Ohne Titel",
     "click_for_details": "📖 Für Details zur Zubereitung öffnen Sie das Rezept",
-    "alergeni": {
-      "community restriction none": "Keine Einschränkungen",
-      "bez_glutena": "Glutenfrei",
-      "bez_laktoze": "Laktosefrei",
-      "bez_secera": "Zuckerfrei",
-      "veganski": "Vegan",
-      "bez_orasastih": "Nussfrei"
-    },
+     "restrictions": {
+    "none": "Keine Einschränkungen"
+  },
+  "alergeni": {
+    "bez_glutena": "Glutenfrei",
+    "bez_laktoze": "Laktosefrei",
+    "bez_secera": "Zuckerfrei",
+    "veganski": "Vegan",
+    "bez_orasastih": "Nussfrei",
     "recipe_type": "Art des Gerichts",
     "select_type": "Wählen Sie die Art des Gerichts..."
   },

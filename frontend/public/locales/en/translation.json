@@ -611,14 +611,15 @@
     "selected": "Selected",
     "untitled": "Untitled",
     "click_for_details": "📖 For preparation details open the recipe",
-    "alergeni": {
-      "community restriction none": "No restrictions",
-      "bez_glutena": "Gluten-free",
-      "bez_laktoze": "Lactose-free",
-      "bez_secera": "Sugar-free",
-      "veganski": "Vegan",
-      "bez_orasastih": "Nuts-free"
-    },
+  "restrictions": {
+    "none": "No restrictions"
+  },
+  "alergeni": {
+    "bez_glutena": "Gluten-free",
+    "bez_laktoze": "Lactose-free",
+    "bez_secera": "Sugar-free",
+    "veganski": "Vegan",
+    "bez_orasastih": "Nuts-free",
     "recipe_type": "Dish type",
     "select_type": "Select dish type..."
   },
