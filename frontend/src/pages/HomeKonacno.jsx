@@ -884,6 +884,7 @@ const activeFiltersCount = Object.values(filters).filter(v => {
   if (Array.isArray(v)) return v.length > 0;
   return v !== '';
 }).length;
+
   // ============================================================
   // 8. KONFIGURACIJA
   // ============================================================
