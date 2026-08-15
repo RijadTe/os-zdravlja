@@ -30,7 +30,7 @@ const Profile = () => {
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-// ============================================================
+ // ============================================================
   // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA
   // ============================================================
   const translateValue = useCallback((value, type) => {
@@ -94,6 +94,7 @@ const Profile = () => {
     
     return value;
   }, [t]);
+
   // ============================================================
   // 🔥 DOHVATI BEDŽEVE IZ BAZE (sa cachingom)
   // ============================================================
