@@ -129,7 +129,8 @@
   "no_recipes_found": "Keine Rezepte für diese Zutaten. Versuchen Sie, weitere Zutaten hinzuzufügen.",
   "search_error": "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
   "rate_limit": "Zu viele Anfragen. Bitte warten Sie einen Moment und versuchen Sie es erneut.",
-  "scan_success": "✅ {{count}} Zutaten zum Kühlschrank hinzugefügt!"
+  "scan_success": "✅ {{count}} Zutaten zum Kühlschrank hinzugefügt!",
+  "clear_confirm": "Sind Sie sicher, dass Sie den Kühlschrank leeren möchten?"
 },
     "foodplanner": {
       "title": "Kompletter Food Planner",

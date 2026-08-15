@@ -590,158 +590,189 @@ const HomeKonacno = () => {
     }
   }, [sleep, energy, stress, user, recepti, filters.restrikcije, t]);
 
-  // ============================================================
-  // 7. FRIŽIDER FUNKCIJE
-  // ============================================================
-  const saveFridgeToDatabase = useCallback(async (items) => {
+// ============================================================
+// 7. FRIŽIDER FUNKCIJE
+// ============================================================
+
+// 🔥 PRVO - UCITAVANJE FRIZIDERA IZ BAZE PRI REFRESHU
+useEffect(() => {
+  const loadFridge = async () => {
     const email = user?.email || localStorage.getItem('userEmail');
     if (!email) return;
 
     try {
-      await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fridge: items || [] })
-      });
-      console.log('✅ Frižider spremljen u bazu');
-    } catch (error) {
-      console.error('❌ Greška pri spremanju frižidera:', error);
-    }
-  }, [user]);
-
-  const addFridgeItem = useCallback(() => {
-    if (!newItem.trim()) return;
-
-    const isPremium = user?.premium || false;
-    const maxItems = isPremium ? Infinity : 5;
-    
-    if (fridgeItems.length >= maxItems) {
-      if (!isPremium) {
-        alert(`❌ Dostigli ste maksimalni broj namirnica (5) za FREE korisnike. Postanite Premium za neograničenu listu!`);
-      } else {
-        alert('❌ Dostigli ste maksimalni broj namirnica.');
-      }
-      return;
-    }
-
-    const newItemObj = { name: newItem.trim(), purchased: false };
-    const updatedItems = [...fridgeItems, newItemObj];
-    setFridgeItems(updatedItems);
-    setNewItem('');
-    saveFridgeToDatabase(updatedItems);
-  }, [newItem, fridgeItems, user, saveFridgeToDatabase]);
-
-  const togglePurchased = useCallback((index) => {
-    setFridgeItems(prev => {
-      const updated = [...prev];
-      if (typeof updated[index] === 'string') {
-        updated[index] = { name: updated[index], purchased: false };
-      }
-      updated[index] = {
-        ...updated[index],
-        purchased: !updated[index].purchased
-      };
-      saveFridgeToDatabase(updated);
-      return updated;
-    });
-  }, [saveFridgeToDatabase]);
-
-  const findRecipesFromFridge = useCallback(async () => {
-    const activeItems = fridgeItems
-      .filter(item => typeof item === 'object' ? !item.purchased : true)
-      .map(item => typeof item === 'object' ? item.name : item);
-    
-    if (activeItems.length === 0) {
-      alert('Dodajte barem jednu nekupljenu namirnicu!');
-      return;
-    }
-
-    try {
-      setFridgeLoading(true);
-      console.log('🔍 Tražim recepte za:', activeItems);
+      console.log('🧊 Učitavam frižider iz baze za:', email);
       
-      const response = await fetch(`${API_URL}/api/ai-chef`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sastojci: activeItems.join(', '),
-          email: user?.email || localStorage.getItem('userEmail')
-        })
-      });
-
-      if (response.status === 429) {
-        alert('Previše zahtjeva. Molimo sačekajte trenutak pa pokušajte ponovo.');
-        setFridgeLoading(false);
-        return;
-      }
-
+      const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
       const data = await response.json();
       
-      if (data.success && data.recepti) {
-        setRecepti(data.recepti);
-        console.log('✅ Pronađeno recepata:', data.recepti.length);
-        document.getElementById('recipes-section')?.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        alert('Nema recepata za ove namirnice. Pokušajte dodati još namirnica.');
+      if (data.success && data.data) {
+        if (data.data.fridge) {
+          const fridgeData = Array.isArray(data.data.fridge) ? data.data.fridge : [];
+          setFridgeItems(fridgeData);
+          console.log('✅ Frižider učitavan iz baze:', fridgeData);
+        } else {
+          setFridgeItems([]);
+        }
+        setProfil(data.data);
       }
     } catch (error) {
-      console.error('❌ Greška pri pretrazi:', error);
-      alert('Došlo je do greške. Pokušajte ponovo.');
-    } finally {
-      setFridgeLoading(false);
-    }
-  }, [fridgeItems, user]);
-
-  const handleNamirniceDodane = useCallback((namirnice) => {
-    const isPremium = user?.premium || false;
-    const maxItems = isPremium ? Infinity : 5;
-    
-    if (fridgeItems.length + namirnice.length > maxItems) {
-      if (!isPremium) {
-        alert(`❌ Ne možete dodati više od 5 namirnica. Trenutno imate ${fridgeItems.length} od 5. Postanite Premium za neograničenu listu!`);
-        return;
-      }
-    }
-
-    const newItems = namirnice.map(item => ({ name: item, purchased: false }));
-    const updatedItems = [...fridgeItems, ...newItems];
-    setFridgeItems(updatedItems);
-    setScanPoruka(`✅ Dodano ${namirnice.length} namirnica u frižider!`);
-    setTimeout(() => setScanPoruka(''), 4000);
-    saveFridgeToDatabase(updatedItems);
-  }, [fridgeItems, user, saveFridgeToDatabase]);
-
-  const removeFridgeItem = useCallback((index) => {
-    const updatedItems = fridgeItems.filter((_, i) => i !== index);
-    setFridgeItems(updatedItems);
-    saveFridgeToDatabase(updatedItems);
-  }, [fridgeItems, saveFridgeToDatabase]);
-
-  const clearFridge = useCallback(() => {
-    if (fridgeItems.length === 0) return;
-    if (window.confirm('Jeste li sigurni da želite očistiti frižider?')) {
+      console.error('❌ Greška pri učitavanju frižidera:', error);
       setFridgeItems([]);
-      saveFridgeToDatabase([]);
     }
-  }, [fridgeItems, saveFridgeToDatabase]);
+  };
 
-  const remainingFreeSlots = useMemo(() => {
-    if (user?.premium) return Infinity;
-    return Math.max(0, 5 - fridgeItems.length);
-  }, [user?.premium, fridgeItems.length]);
+  loadFridge();
+}, [user]);
 
-  const remainingToBuy = useMemo(() => {
-    return fridgeItems.filter(item => {
-      if (typeof item === 'object') return !item.purchased;
-      return true;
-    }).length;
-  }, [fridgeItems]);
+const saveFridgeToDatabase = useCallback(async (items) => {
+  const email = user?.email || localStorage.getItem('userEmail');
+  if (!email) return;
 
-  const activeFiltersCount = Object.values(filters).filter(v => {
-    if (Array.isArray(v)) return v.length > 0;
-    return v !== '';
+  try {
+    await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fridge: items || [] })
+    });
+    console.log('✅ Frižider spremljen u bazu');
+  } catch (error) {
+    console.error('❌ Greška pri spremanju frižidera:', error);
+  }
+}, [user]);
+
+const addFridgeItem = useCallback(() => {
+  if (!newItem.trim()) return;
+
+  const isPremium = user?.premium || false;
+  const maxItems = isPremium ? Infinity : 5;
+  
+  if (fridgeItems.length >= maxItems) {
+    if (!isPremium) {
+      alert(t('home.fridge.limit_reached'));
+    } else {
+      alert(t('home.fridge.limit_reached_premium'));
+    }
+    return;
+  }
+
+  const newItemObj = { name: newItem.trim(), purchased: false };
+  const updatedItems = [...fridgeItems, newItemObj];
+  setFridgeItems(updatedItems);
+  setNewItem('');
+  saveFridgeToDatabase(updatedItems);
+}, [newItem, fridgeItems, user, saveFridgeToDatabase, t]);
+
+const togglePurchased = useCallback((index) => {
+  setFridgeItems(prev => {
+    const updated = [...prev];
+    if (typeof updated[index] === 'string') {
+      updated[index] = { name: updated[index], purchased: false };
+    }
+    updated[index] = {
+      ...updated[index],
+      purchased: !updated[index].purchased
+    };
+    saveFridgeToDatabase(updated);
+    return updated;
+  });
+}, [saveFridgeToDatabase]);
+
+const findRecipesFromFridge = useCallback(async () => {
+  const activeItems = fridgeItems
+    .filter(item => typeof item === 'object' ? !item.purchased : true)
+    .map(item => typeof item === 'object' ? item.name : item);
+  
+  if (activeItems.length === 0) {
+    alert(t('home.fridge.no_items_for_search'));
+    return;
+  }
+
+  try {
+    setFridgeLoading(true);
+    console.log('🔍 Tražim recepte za:', activeItems);
+    
+    const response = await fetch(`${API_URL}/api/ai-chef`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sastojci: activeItems.join(', '),
+        email: user?.email || localStorage.getItem('userEmail')
+      })
+    });
+
+    if (response.status === 429) {
+      alert(t('home.fridge.rate_limit'));
+      setFridgeLoading(false);
+      return;
+    }
+
+    const data = await response.json();
+    
+    if (data.success && data.recepti) {
+      setRecepti(data.recepti);
+      console.log('✅ Pronađeno recepata:', data.recepti.length);
+      document.getElementById('recipes-section')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      alert(t('home.fridge.no_recipes_found'));
+    }
+  } catch (error) {
+    console.error('❌ Greška pri pretrazi:', error);
+    alert(t('home.fridge.search_error'));
+  } finally {
+    setFridgeLoading(false);
+  }
+}, [fridgeItems, user, t]);
+
+const handleNamirniceDodane = useCallback((namirnice) => {
+  const isPremium = user?.premium || false;
+  const maxItems = isPremium ? Infinity : 5;
+  
+  if (fridgeItems.length + namirnice.length > maxItems) {
+    if (!isPremium) {
+      alert(t('home.fridge.scan_limit_reached', { count: fridgeItems.length }));
+      return;
+    }
+  }
+
+  const newItems = namirnice.map(item => ({ name: item, purchased: false }));
+  const updatedItems = [...fridgeItems, ...newItems];
+  setFridgeItems(updatedItems);
+  setScanPoruka(t('home.fridge.scan_success', { count: namirnice.length }));
+  setTimeout(() => setScanPoruka(''), 4000);
+  saveFridgeToDatabase(updatedItems);
+}, [fridgeItems, user, saveFridgeToDatabase, t]);
+
+const removeFridgeItem = useCallback((index) => {
+  const updatedItems = fridgeItems.filter((_, i) => i !== index);
+  setFridgeItems(updatedItems);
+  saveFridgeToDatabase(updatedItems);
+}, [fridgeItems, saveFridgeToDatabase]);
+
+const clearFridge = useCallback(() => {
+  if (fridgeItems.length === 0) return;
+  if (window.confirm(t('home.fridge.clear_confirm'))) {
+    setFridgeItems([]);
+    saveFridgeToDatabase([]);
+  }
+}, [fridgeItems, saveFridgeToDatabase, t]);
+
+const remainingFreeSlots = useMemo(() => {
+  if (user?.premium) return Infinity;
+  return Math.max(0, 5 - fridgeItems.length);
+}, [user?.premium, fridgeItems.length]);
+
+const remainingToBuy = useMemo(() => {
+  return fridgeItems.filter(item => {
+    if (typeof item === 'object') return !item.purchased;
+    return true;
   }).length;
+}, [fridgeItems]);
 
+const activeFiltersCount = Object.values(filters).filter(v => {
+  if (Array.isArray(v)) return v.length > 0;
+  return v !== '';
+}).length;
   // ============================================================
   // 8. KONFIGURACIJA
   // ============================================================

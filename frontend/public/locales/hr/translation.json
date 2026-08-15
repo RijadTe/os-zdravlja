@@ -129,7 +129,8 @@
   "no_recipes_found": "Nema recepata za ove namirnice. Pokušajte dodati još namirnica.",
   "search_error": "Došlo je do greške. Pokušajte ponovo.",
   "rate_limit": "Previše zahtjeva. Molimo sačekajte trenutak pa pokušajte ponovo.",
-  "scan_success": "✅ Dodano {{count}} namirnica u frižider!"
+  "scan_success": "✅ Dodano {{count}} namirnica u frižider!",
+  "clear_confirm": "Jeste li sigurni da želite očistiti frižider?"
 },
     "foodplanner": {
       "title": "Potpuni Food Planner",

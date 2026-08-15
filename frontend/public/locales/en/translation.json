@@ -129,7 +129,8 @@
   "no_recipes_found": "No recipes for these ingredients. Try adding more ingredients.",
   "search_error": "An error occurred. Please try again.",
   "rate_limit": "Too many requests. Please wait a moment and try again.",
-  "scan_success": "✅ Added {{count}} items to the fridge!"
+  "scan_success": "✅ Added {{count}} items to the fridge!",
+  "clear_confirm": "Are you sure you want to clear the fridge?"
 },
     "foodplanner": {
       "title": "Complete Food Planner",
