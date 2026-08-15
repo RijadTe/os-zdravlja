@@ -1,9 +1,11 @@
 // frontend/src/App.jsx
+
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient';
 import './i18n';
+import logo from './assets/logo.png';
 
 // Komponente
 import HomeKonacno from './pages/HomeKonacno';
@@ -283,16 +285,7 @@ function App() {
       }
     });
 
-  // 🔥 DODAJ OVO OVDJE (ODMAH NAKON ZATVARANJA onAuthStateChange, A PRIJE return):
-    const splash = document.getElementById('splash-screen');
-    if (splash) {
-      splash.style.transition = 'opacity 0.5s ease';
-      splash.style.opacity = '0';
-      setTimeout(() => {
-        splash.style.display = 'none';
-      }, 500);
-    }
-
+    
     return () => {
       console.log('🧹 Čišćenje auth subscription-a');
       subscription.unsubscribe();
@@ -341,13 +334,14 @@ function App() {
   // ============================================================
   // 🖥️ RENDER
   // ============================================================
-  if (loading) {
+   if (loading) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">{t('common.loading')}</p>
-        </div>
+        <img 
+          src={logo} 
+          alt="OS Zdravlja" 
+          className="w-48 h-auto object-contain" 
+        />
       </div>
     );
   }
