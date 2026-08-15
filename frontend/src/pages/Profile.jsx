@@ -30,7 +30,7 @@ const Profile = () => {
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
- // ============================================================
+  // ============================================================
   // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA
   // ============================================================
   const translateValue = useCallback((value, type) => {
@@ -69,10 +69,15 @@ const Profile = () => {
         'Profesionalac': t('quiz.options.tezina.2')
       },
       kalorije: {
-        'Nisko (do 300 kcal)': t('quiz.options.kalorije.0'),
-        'Umjereno (300-500 kcal)': t('quiz.options.kalorije.1'),
-        'Srednje (500-700 kcal)': t('quiz.options.kalorije.2'),
-        'Visoko (900+ kcal)': t('quiz.options.kalorije.3')
+        // 🔥 SAMO OVAJ DIO JE POPRAVLJEN - dodane sve varijante
+        'Nisko': t('quiz.options.kalorije.0') || 'Nisko',
+        'Nisko (do 300 kcal)': t('quiz.options.kalorije.0') || 'Nisko',
+        'Umjereno': t('quiz.options.kalorije.1') || 'Umjereno',
+        'Umjereno (300-500 kcal)': t('quiz.options.kalorije.1') || 'Umjereno',
+        'Srednje': t('quiz.options.kalorije.2') || 'Srednje',
+        'Srednje (500-700 kcal)': t('quiz.options.kalorije.2') || 'Srednje',
+        'Visoko': t('quiz.options.kalorije.3') || 'Visoko',
+        'Visoko (900+ kcal)': t('quiz.options.kalorije.3') || 'Visoko'
       }
     };
 
@@ -571,7 +576,7 @@ const Profile = () => {
   const isQuizCompleted = profile.kviz_zavrsen || false;
   const cookedCount = profile.skuhano_recepata || 0;
 
-    return (
+  return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-8 px-4">
       <div className="max-w-5xl mx-auto">
         {/* ===== SEO ===== */}
