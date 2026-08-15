@@ -471,6 +471,28 @@ const Profile = () => {
     }
   }, [i18n.language, profile, fetchBadges, badgesVisible]);
 
+// ============================================================
+// 🔥 OSVJEŽI CACHE KADA SE PROFIL PROMIJENI
+// ============================================================
+useEffect(() => {
+  if (profile && profile.email) {
+    // Ažuriraj cache sa novim podacima
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    user.profile = profile;
+    user.vrsta = profile.vrsta || [];
+    user.izbjegava = profile.izbjegava || [];
+    user.preferencije = profile.preferencije || [];
+    user.vrijeme = profile.vrijeme || '';
+    user.tezina = profile.tezina || '';
+    user.kalorije = profile.kalorije || '';
+    user.kviz_zavrsen = profile.kviz_zavrsen || false;
+    user.premium = profile.premium || false;
+    localStorage.setItem('user', JSON.stringify(user));
+    sessionStorage.setItem('user_profile', JSON.stringify(profile));
+    console.log('✅ Cache profila ažuriran');
+  }
+}, [profile]);
+
   // ============================================================
   // 🗑️ IZBRIŠI SVE PODATKE
   // ============================================================
