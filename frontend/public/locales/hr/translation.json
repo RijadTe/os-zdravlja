@@ -997,7 +997,7 @@
     "kcal": "kcal",
     "restrictions": "restrikcija"
   },
-  "recipes": {
+ "recipes": {
   "category_recipes": "Recepti u kategoriji: {{category}}",
   "all": "Svi recepti",
   "all_recipes": "Svi recepti",
@@ -1020,6 +1020,10 @@
   "beginner": "Početnik",
   "intermediate": "Srednji",
   "professional": "Profesionalac",
+  "low_cal": "Nisko",
+  "moderate": "Umjereno",
+  "medium_cal": "Srednje",
+  "high_cal": "Visoko",
   "no_recipes": "Nema recepata",
   "no_recipes_desc": "Trenutno nema recepata u bazi. Pokušajte kasnije.",
   "no_results": "Nema recepata koji odgovaraju vašim kriterijumima.",
@@ -1038,6 +1042,8 @@
     "preferences_label": "PREFERENCIJE",
     "all_preferences": "Sve preferencije",
     "high_carbs": "🍞 Bogat ugljikohidratima",
+    "calories_label": "KALORIJE",
+    "all_calories": "Sve kalorije",
     "page": "Stranica",
     "previous": "⬅️ Prethodna",
     "next": "Sljedeća ➡️",
