@@ -69,15 +69,15 @@ const translateValue = useCallback((value, type) => {
       'Profesionalac': t('quiz.options.tezina.2')
     },
     kalorije: {
-      // 🔥 POPRAVLJENO - dodane obje verzije (kratka i duga)
-      'Nisko': t('quiz.options.kalorije.0'),
-      'Nisko (do 300 kcal)': t('quiz.options.kalorije.0'),
-      'Umjereno': t('quiz.options.kalorije.1'),
-      'Umjereno (300-500 kcal)': t('quiz.options.kalorije.1'),
-      'Srednje': t('quiz.options.kalorije.2'),
-      'Srednje (500-700 kcal)': t('quiz.options.kalorije.2'),
-      'Visoko': t('quiz.options.kalorije.3'),
-      'Visoko (900+ kcal)': t('quiz.options.kalorije.3')
+      // 🔥 DIREKTNO MAPIRANJE - BEZ t()!
+      'Nisko': 'Nisko',
+      'Nisko (do 300 kcal)': 'Nisko',
+      'Umjereno': 'Umjereno',
+      'Umjereno (300-500 kcal)': 'Umjereno',
+      'Srednje': 'Srednje',
+      'Srednje (500-700 kcal)': 'Srednje',
+      'Visoko': 'Visoko',
+      'Visoko (900+ kcal)': 'Visoko'
     }
   };
 
@@ -94,8 +94,14 @@ const translateValue = useCallback((value, type) => {
   }
   
   if (map[value] !== undefined) return map[value];
-  const trimmed = value.replace(/^Bez /, '');
+  
+  // 🔥 PROVJERI BEZ " (do 300 kcal)" DIJELA
+  const trimmed = value.replace(/ \(.*\)$/, '');
   if (map[trimmed] !== undefined) return map[trimmed];
+  
+  // 🔥 PROVJERI BEZ "Bez " PREFIKSA
+  const withoutBez = value.replace(/^Bez /, '');
+  if (map[withoutBez] !== undefined) return map[withoutBez];
   
   return value;
 }, [t]);
