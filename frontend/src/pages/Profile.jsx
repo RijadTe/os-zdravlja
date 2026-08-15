@@ -73,7 +73,7 @@ const Profile = () => {
         'Nisko': t('quiz.options.kalorije.0') || 'Nisko',
         'Nisko (do 300 kcal)': t('quiz.options.kalorije.0') || 'Nisko',
         'Umjereno': t('quiz.options.kalorije.1') || 'Umjereno',
-        'Umjereno (300-500 kcal)': t('quiz.options.kalorije.1) || 'Umjereno',
+        'Umjereno (300-500 kcal)': t('quiz.options.kalorije.1') || 'Umjereno',
         'Srednje': t('quiz.options.kalorije.2') || 'Srednje',
         'Srednje (500-700 kcal)': t('quiz.options.kalorije.2') || 'Srednje',
         'Visoko': t('quiz.options.kalorije.3') || 'Visoko',
