@@ -283,6 +283,16 @@ function App() {
       }
     });
 
+  // 🔥 DODAJ OVO OVDJE (ODMAH NAKON ZATVARANJA onAuthStateChange, A PRIJE return):
+    const splash = document.getElementById('splash-screen');
+    if (splash) {
+      splash.style.transition = 'opacity 0.5s ease';
+      splash.style.opacity = '0';
+      setTimeout(() => {
+        splash.style.display = 'none';
+      }, 500);
+    }
+
     return () => {
       console.log('🧹 Čišćenje auth subscription-a');
       subscription.unsubscribe();
