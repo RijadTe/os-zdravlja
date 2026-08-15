@@ -36,6 +36,24 @@ const Profile = () => {
 const translateValue = useCallback((value, type) => {
   if (!value) return t('profile.not_selected');
   
+  // 🔥 POMOĆNA FUNKCIJA ZA MAPIRANJE
+  const getMappedValue = (val, map) => {
+    if (!val) return val;
+    
+    // 1. DIREKTNO PROVJERI
+    if (map[val] !== undefined) return map[val];
+    
+    // 2. PROVJERI BEZ ZAGRADA (npr. "Nisko (do 300 kcal)" -> "Nisko")
+    const withoutParentheses = val.replace(/ \(.*\)$/, '');
+    if (map[withoutParentheses] !== undefined) return map[withoutParentheses];
+    
+    // 3. PROVJERI BEZ "Bez " PREFIKSA
+    const withoutBez = val.replace(/^Bez /, '');
+    if (map[withoutBez] !== undefined) return map[withoutBez];
+    
+    return val;
+  };
+
   const maps = {
     vrsta: {
       'Deserti': t('quiz.options.vrsta.0'),
@@ -69,7 +87,7 @@ const translateValue = useCallback((value, type) => {
       'Profesionalac': t('quiz.options.tezina.2')
     },
     kalorije: {
-      // 🔥 DIREKTNO MAPIRANJE - BEZ t()!
+      // 🔥 SVE MOGUĆE VARIJANTE - i kratke i duge
       'Nisko': 'Nisko',
       'Nisko (do 300 kcal)': 'Nisko',
       'Umjereno': 'Umjereno',
@@ -85,27 +103,11 @@ const translateValue = useCallback((value, type) => {
   if (!map) return value;
   
   if (Array.isArray(value)) {
-    return value.map(v => {
-      if (map[v] !== undefined) return map[v];
-      const trimmed = v.replace(/^Bez /, '');
-      if (map[trimmed] !== undefined) return map[trimmed];
-      return v;
-    }).join(', ');
+    return value.map(v => getMappedValue(v, map)).join(', ');
   }
   
-  if (map[value] !== undefined) return map[value];
-  
-  // 🔥 PROVJERI BEZ " (do 300 kcal)" DIJELA
-  const trimmed = value.replace(/ \(.*\)$/, '');
-  if (map[trimmed] !== undefined) return map[trimmed];
-  
-  // 🔥 PROVJERI BEZ "Bez " PREFIKSA
-  const withoutBez = value.replace(/^Bez /, '');
-  if (map[withoutBez] !== undefined) return map[withoutBez];
-  
-  return value;
+  return getMappedValue(value, map);
 }, [t]);
-
   // ============================================================
   // 🔥 DOHVATI BEDŽEVE IZ BAZE (sa cachingom)
   // ============================================================
