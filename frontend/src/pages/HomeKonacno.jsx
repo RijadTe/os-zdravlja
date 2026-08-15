@@ -1006,54 +1006,54 @@ const HomeKonacno = () => {
 
       {/* ===== MOJ FRIŽIDER ===== */}
       <section className="py-12 md:py-20 px-4 flex justify-center bg-white dark:bg-gray-900">
-        <div className="w-full max-w-3xl">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-gray-800 dark:text-white flex items-center justify-center gap-2 flex-wrap">
-            🛒 {t('home.fridge.title', { defaultValue: 'Moj frižider' })}
-            <span className="inline-block bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 px-3 py-1 rounded-full text-sm font-bold">⭐ PREMIUM</span>
-          </h2>
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 md:p-8 shadow-md border border-gray-200 dark:border-gray-700">
-            
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input 
-                type="text" 
-                value={newItem} 
-                onChange={(e) => setNewItem(e.target.value)} 
-                placeholder={t('home.fridge.placeholder', { defaultValue: 'Dodaj namirnicu...' })} 
-                className="flex-1 border rounded-lg px-4 py-3 text-base dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyPress={(e) => e.key === 'Enter' && addFridgeItem()} 
-              />
-              <button 
-                onClick={addFridgeItem} 
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition text-base w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!newItem.trim() || (!isPremium && fridgeItems.length >= 5)}
-              >
-                ➕ {t('home.fridge.add', { defaultValue: 'Dodaj' })}
-              </button>
-            </div>
+  <div className="w-full max-w-3xl">
+    <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-gray-800 dark:text-white flex items-center justify-center gap-2 flex-wrap">
+      🛒 {t('home.fridge.title', { defaultValue: 'Moj frižider' })}
+      <span className="inline-block bg-yellow-200 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200 px-3 py-1 rounded-full text-sm font-bold">⭐ PREMIUM</span>
+    </h2>
+    <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 md:p-8 shadow-md border border-gray-200 dark:border-gray-700">
+      
+      <div className="flex flex-col sm:flex-row gap-3">
+        <input 
+          type="text" 
+          value={newItem} 
+          onChange={(e) => setNewItem(e.target.value)} 
+          placeholder={t('home.fridge.placeholder', { defaultValue: 'Dodaj namirnicu...' })} 
+          className="flex-1 border rounded-lg px-4 py-3 text-base dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          onKeyPress={(e) => e.key === 'Enter' && addFridgeItem()} 
+        />
+        <button 
+          onClick={addFridgeItem} 
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition text-base w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={!newItem.trim() || (!isPremium && fridgeItems.length >= 5)}
+        >
+          ➕ {t('home.fridge.add', { defaultValue: 'Dodaj' })}
+        </button>
+      </div>
 
-            {!isPremium && (
-              <div className="mt-2 flex justify-between items-center">
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  📊 {fridgeItems.length} / 5 namirnica
-                </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  ⭐ Preostalo: {remainingFreeSlots} mjesta
-                </span>
-              </div>
-            )}
+      {!isPremium && (
+        <div className="mt-2 flex justify-between items-center">
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            📊 {fridgeItems.length} / 5 {t('home.fridge.ingredients')}
+          </span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            ⭐ {t('home.fridge.remaining')}: {remainingFreeSlots} {t('home.fridge.slots')}
+          </span>
+        </div>
+      )}
 
-            {fridgeItems.length > 0 && (
-              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    📋 Ukupno: {fridgeItems.length} namirnica
-                  </span>
-                  <span className="text-sm font-semibold text-yellow-600 dark:text-yellow-400">
-                    ⏳ Preostalo za kupovinu: {remainingToBuy}
-                  </span>
-                </div>
-              </div>
-            )}
+      {fridgeItems.length > 0 && (
+        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              📋 {t('home.fridge.total')}: {fridgeItems.length} {fridgeItems.length === 1 ? t('home.fridge.ingredient') : t('home.fridge.ingredients')}
+            </span>
+            <span className="text-sm font-semibold text-yellow-600 dark:text-yellow-400">
+              ⏳ {t('home.fridge.remaining_to_buy')}: {remainingToBuy}
+            </span>
+          </div>
+        </div>
+      )}
 
             <div className="mt-4 space-y-2">
               {fridgeItems.length === 0 ? (
@@ -1126,10 +1126,10 @@ const HomeKonacno = () => {
 
               {fridgeItems.length > 0 && (
                 <button 
-                  onClick={clearFridge}
-                  className="bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 px-4 py-3 rounded-full text-sm font-semibold transition"
-                >
-                  🗑️ Očisti
+            onClick={clearFridge}
+  className="bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 px-4 py-3 rounded-full text-sm font-semibold transition"
+>
+  🗑️ Očisti
                 </button>
               )}
             </div>
