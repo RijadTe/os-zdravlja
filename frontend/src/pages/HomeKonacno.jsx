@@ -630,7 +630,7 @@ useEffect(() => {
           };
           setProfil(fallbackProfil);
           
-          // 🔥 KONVERTIRAJ OBJEKTE U STRINGOVE
+          // 🔥 KONVERTIRAJ IZ BAZE - Ako su objekti, uzmi name
           let fridgeData = Array.isArray(fallbackProfil.namirnice) ? fallbackProfil.namirnice : [];
           fridgeData = fridgeData.map(item => {
             if (typeof item === 'object' && item !== null) {
@@ -639,25 +639,6 @@ useEffect(() => {
             return item;
           });
           setFridgeItems(fridgeData);
-          
-          // Filteri iz localStorage
-          const noviFilteri = {};
-          if (fallbackProfil.vrsta && fallbackProfil.vrsta.length > 0) {
-            const odabraneVrste = fallbackProfil.vrsta.filter(v => v !== 'Svejedno');
-            if (odabraneVrste.length > 0) noviFilteri.vrsta = odabraneVrste[0];
-          }
-          if (fallbackProfil.preferencije && fallbackProfil.preferencije.length > 0) {
-            const odabranePref = fallbackProfil.preferencije.filter(p => p !== 'Svejedno');
-            if (odabranePref.length > 0) noviFilteri.preferencije = odabranePref[0];
-          }
-          if (fallbackProfil.izbjegava && fallbackProfil.izbjegava.length > 0) {
-            const restrikcije = fallbackProfil.izbjegava.filter(r => r !== 'Bez restrikcija' && r !== 'No restrictions' && r !== 'Keine Einschränkungen');
-            if (restrikcije.length > 0) noviFilteri.restrikcije = restrikcije;
-          }
-          if (fallbackProfil.vrijeme) noviFilteri.vrijeme = fallbackProfil.vrijeme;
-          if (fallbackProfil.tezina) noviFilteri.tezina = fallbackProfil.tezina;
-          if (fallbackProfil.kalorije) noviFilteri.kalorije = fallbackProfil.kalorije;
-          setFilters(prev => ({ ...prev, ...noviFilteri }));
         }
         setProfilLoading(false);
         return;
@@ -670,9 +651,9 @@ useEffect(() => {
         setProfil(data.data);
         
         // 🔥 FRIŽIDER IZ BAZE - KONVERTIRAJ OBJEKTE U STRINGOVE
-        
         if (data.data.namirnice) {
           let fridgeData = Array.isArray(data.data.namirnice) ? data.data.namirnice : [];
+          // 🔥 Ako su u bazi objekti, uzmi samo name
           fridgeData = fridgeData.map(item => {
             if (typeof item === 'object' && item !== null) {
               return item.name || item;
@@ -685,7 +666,7 @@ useEffect(() => {
           setFridgeItems([]);
         }
         
-        // Filteri iz baze
+        // Filteri iz baze...
         const noviFilteri = {};
         if (data.data.vrsta && data.data.vrsta.length > 0) {
           const odabraneVrste = data.data.vrsta.filter(v => v !== 'Svejedno');
@@ -707,7 +688,7 @@ useEffect(() => {
         setFilters(prev => ({ ...prev, ...noviFilteri }));
         
       } else {
-        console.log('⚠️ Profil nije pronađen - prikazujem sve recepte');
+        console.log('⚠️ Profil nije pronađen');
         setFilters({
           vrsta: '',
           vrijeme: '',
@@ -754,25 +735,27 @@ useEffect(() => {
   dohvatiProfilIFrizider();
 }, [user]);
 
-// 🔥 SPREMANJE FRIZIDERA U BAZU - POPRAVLJENO!
+// 🔥🔥🔥 SPREMANJE U BAZU - SAMO STRINGOVI! 🔥🔥🔥
 const saveFridgeToDatabase = useCallback(async (items) => {
   const email = user?.email || localStorage.getItem('userEmail');
   if (!email) return;
 
-  // 🔥 SPREMAJ SAMO NAZIVE (stringove) U BAZU
+  // 🔥 KONVERTIRAJ SVE U STRINGOVE (samo nazive)
   const stringItems = items.map(item => {
     if (typeof item === 'object' && item !== null) {
-      return item.name;
+      return item.name;  // Uzmi samo naziv
     }
-    return item;
+    return item;  // Ako je string, ostavi
   });
+
+  console.log('📦 Šaljem u bazu (samo nazivi):', stringItems);
 
   try {
     await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
-        namirnice: stringItems  // 🔥 PROMIJENJENO: fridge → namirnice
+        namirnice: stringItems  // 🔥 Šaljemo samo nazive!
       })
     });
     console.log('✅ Frižider spremljen u bazu');
