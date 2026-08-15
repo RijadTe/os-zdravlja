@@ -875,31 +875,32 @@
   }
 },
   "register": {
-    "title": "Konto erstellen",
-    "subtitle": "Werden Sie Teil und entdecken Sie perfekte Rezepte!",
-    "email_label": "E-Mail",
-    "email_placeholder": "sie@email.com",
-    "name_label": "Name",
-    "name_placeholder": "Max Mustermann",
-    "password_label": "Passwort",
-    "password_placeholder": "•••••••• (min 6 Zeichen)",
-    "confirm_password_label": "Passwort bestätigen",
-    "confirm_password_placeholder": "••••••••",
-    "have_account": "Bereits ein Konto?",
-    "login_link": "Anmelden",
-    "success": "✅ Registrierung erfolgreich! Weiterleitung...",
-    "button": {
-      "register": "✅ Registrieren",
-      "loading": "⏳ Erstelle..."
-    },
-    "errors": {
-      "all_fields": "❌ Alle Felder sind erforderlich.",
-      "passwords_match": "❌ Passwörter stimmen nicht überein.",
-      "password_length": "❌ Das Passwort muss mindestens 6 Zeichen lang sein.",
-      "email_exists": "❌ Ein Benutzer mit dieser E-Mail existiert bereits. Bitte melden Sie sich an.",
-      "profile_create": "❌ Fehler beim Erstellen des Profils: ",
-      "general": "❌ Registrierungsfehler: "
-    }
+  "title": "Konto erstellen",
+  "subtitle": "Treten Sie bei und entdecken Sie perfekte Rezepte!",
+  "email_label": "E-Mail",
+  "email_placeholder": "sie@email.com",
+  "name_label": "Name",
+  "name_placeholder": "Max Mustermann",
+  "password_label": "Passwort",
+  "password_placeholder": "•••••••• (min 6 Zeichen)",
+  "confirm_password_label": "Passwort bestätigen",
+  "confirm_password_placeholder": "••••••••",
+  "have_account": "Bereits ein Konto?",
+  "login_link": "Anmelden",
+  "success": "✅ Registrierung erfolgreich! Weiterleitung...",
+  "button": {
+    "register": "✅ Registrieren",
+    "loading": "⏳ Erstelle..."
+  },
+  "errors": {
+    "all_fields": "❌ Alle Felder sind erforderlich.",
+    "passwords_match": "❌ Passwörter stimmen nicht überein.",
+    "password_length": "❌ Das Passwort muss mindestens 6 Zeichen lang sein.",
+    "email_exists": "❌ Ein Benutzer mit dieser E-Mail existiert bereits. Bitte melden Sie sich an.",
+    "profile_create": "❌ Fehler beim Erstellen des Profils: ",
+    "general": "❌ Registrierungsfehler: "
+  },
+  "language_hint": "Die ausgewählte Sprache kann nach der Registrierung nicht geändert werden."
   },
   "resetpassword": {
     "title": "Neues Passwort",

@@ -874,32 +874,33 @@
     }
   }
 },
-  "register": {
-    "title": "Kreiraj nalog",
-    "subtitle": "Pridružite se i otkrijte savršene recepte!",
-    "email_label": "Email",
-    "email_placeholder": "vas@email.com",
-    "name_label": "Ime",
-    "name_placeholder": "Marko Marković",
-    "password_label": "Lozinka",
-    "password_placeholder": "•••••••• (min 6 karaktera)",
-    "confirm_password_label": "Potvrdi lozinku",
-    "confirm_password_placeholder": "••••••••",
-    "have_account": "Već imaš nalog?",
-    "login_link": "Prijavi se",
-    "success": "✅ Registracija uspješna! Preusmjeravam...",
-    "button": {
-      "register": "✅ Registruj se",
-      "loading": "⏳ Kreiranje..."
-    },
-    "errors": {
-      "all_fields": "❌ Sva polja su obavezna.",
-      "passwords_match": "❌ Lozinke se ne podudaraju.",
-      "password_length": "❌ Lozinka mora imati najmanje 6 karaktera.",
-      "email_exists": "❌ Korisnik sa ovim emailom već postoji. Molimo prijavite se.",
-      "profile_create": "❌ Greška pri kreiranju profila: ",
-      "general": "❌ Greška pri registraciji: "
-    }
+ "register": {
+  "title": "Kreiraj nalog",
+  "subtitle": "Pridružite se i otkrijte savršene recepte!",
+  "email_label": "Email",
+  "email_placeholder": "vas@email.com",
+  "name_label": "Ime",
+  "name_placeholder": "Marko Marković",
+  "password_label": "Lozinka",
+  "password_placeholder": "•••••••• (min 6 karaktera)",
+  "confirm_password_label": "Potvrdi lozinku",
+  "confirm_password_placeholder": "••••••••",
+  "have_account": "Već imaš nalog?",
+  "login_link": "Prijavi se",
+  "success": "✅ Registracija uspješna! Preusmjeravam...",
+  "button": {
+    "register": "✅ Registruj se",
+    "loading": "⏳ Kreiranje..."
+  },
+  "errors": {
+    "all_fields": "❌ Sva polja su obavezna.",
+    "passwords_match": "❌ Lozinke se ne podudaraju.",
+    "password_length": "❌ Lozinka mora imati najmanje 6 karaktera.",
+    "email_exists": "❌ Korisnik sa ovim emailom već postoji. Molimo prijavite se.",
+    "profile_create": "❌ Greška pri kreiranju profila: ",
+    "general": "❌ Greška pri registraciji: "
+  },
+  "language_hint": "Odabrani jezik se ne može promijeniti nakon registracije."
   },
   "resetpassword": {
     "title": "Nova lozinka",
