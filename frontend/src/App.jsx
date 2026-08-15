@@ -283,6 +283,17 @@ function App() {
       }
     });
 
+    // 🔥 OVO SAKRIVA HTML LOGO KAD SE APLIKACIJA UČITA --- NOVI DODATAK
+    const splash = document.querySelector('body > div:first-child');
+    if (splash) {
+      splash.style.transition = 'opacity 0.5s ease';
+      splash.style.opacity = '0';
+      setTimeout(() => {
+        splash.style.display = 'none';
+      }, 500);
+    }
+
+
     return () => {
       console.log('🧹 Čišćenje auth subscription-a');
       subscription.unsubscribe();
