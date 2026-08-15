@@ -363,85 +363,83 @@ const fetchProfile = useCallback(async (email) => {
     }
   }, [user, t]);
 
-  // ============================================================
-  // 🔐 AUTH (optimizirano)
-  // ============================================================
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        // 🔥 PRVO IZ sessionStorage (najbrže)
-        const sessionUser = sessionStorage.getItem('user_session');
-        if (sessionUser) {
-          try {
-            const parsed = JSON.parse(sessionUser);
-            if (parsed?.email && parsed?.profile) {
-              setUser(parsed);
-              setProfile(parsed.profile);
-              setLoading(false);
-              // U pozadini osvježi
-              refreshProfileInBackground(parsed.email);
-              return;
-            }
-          } catch (e) {}
-        }
+ // ============================================================
+// 🔐 AUTH (optimizirano)
+// ============================================================
+useEffect(() => {
+  const checkUser = async () => {
+    try {
+      // 🔥 PRVO IZ sessionStorage (najbrže)
+      const sessionUser = sessionStorage.getItem('user_session');
+      if (sessionUser) {
+        try {
+          const parsed = JSON.parse(sessionUser);
+          if (parsed?.email && parsed?.profile) {
+            setUser(parsed);
+            setProfile(parsed.profile);
+            setLoading(false);
+            // 🔥 UKLONJEN refreshProfileInBackground
+            return;
+          }
+        } catch (e) {}
+      }
+      
+      // 🔥 ONDA IZ localStorage
+      const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (cachedUser?.email && cachedUser?.profile) {
+        setUser(cachedUser);
+        setProfile(cachedUser.profile);
+        setLoading(false);
+        // Spremi u sessionStorage za brži pristup
+        sessionStorage.setItem('user_session', JSON.stringify(cachedUser));
+        // 🔥 UKLONJEN refreshProfileInBackground
+        return;
+      }
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        const email = session.user.email;
         
-        // 🔥 ONDA IZ localStorage
-        const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
-        if (cachedUser?.email && cachedUser?.profile) {
-          setUser(cachedUser);
-          setProfile(cachedUser.profile);
-          setLoading(false);
-          // Spremi u sessionStorage za brži pristup
-          sessionStorage.setItem('user_session', JSON.stringify(cachedUser));
-          refreshProfileInBackground(cachedUser.email);
-          return;
-        }
+        const supabaseUser = {
+          id: session.user.id,
+          email: session.user.email,
+          ime: session.user.user_metadata?.ime || '',
+          premium: false,
+          profile: null,
+          preferred_language: 'hr'
+        };
         
-        const { data: { session } } = await supabase.auth.getSession();
+        setUser(supabaseUser);
+        localStorage.setItem('user', JSON.stringify(supabaseUser));
+        localStorage.setItem('userEmail', session.user.email);
+        sessionStorage.setItem('user_session', JSON.stringify(supabaseUser));
         
-        if (session?.user) {
-          const email = session.user.email;
-          
-          const supabaseUser = {
-            id: session.user.id,
-            email: session.user.email,
-            ime: session.user.user_metadata?.ime || '',
-            premium: false,
-            profile: null,
-            preferred_language: 'hr'
-          };
-          
-          setUser(supabaseUser);
-          localStorage.setItem('user', JSON.stringify(supabaseUser));
-          localStorage.setItem('userEmail', session.user.email);
-          sessionStorage.setItem('user_session', JSON.stringify(supabaseUser));
-          
-          await fetchProfile(email);
-          return;
-        }
-        
-        const userData = JSON.parse(localStorage.getItem('user') || '{}');
-        if (!userData?.email) {
-          navigate('/login');
-          return;
-        }
-        
-        setUser(userData);
-        const email = localStorage.getItem('userEmail') || userData?.email;
-        if (email) {
-          await fetchProfile(email);
-        } else {
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('❌ Greška pri provjeri korisnika:', error);
+        await fetchProfile(email);
+        return;
+      }
+      
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      if (!userData?.email) {
+        navigate('/login');
+        return;
+      }
+      
+      setUser(userData);
+      const email = localStorage.getItem('userEmail') || userData?.email;
+      if (email) {
+        await fetchProfile(email);
+      } else {
         setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('❌ Greška pri provjeri korisnika:', error);
+      setLoading(false);
+    }
+  };
 
-    checkUser();
-  }, [navigate, fetchProfile, refreshProfileInBackground]);
-
+  checkUser();
+}, [navigate, fetchProfile]);
   // ============================================================
   // 🔥 LAZY LOAD BADGES
   // ============================================================
