@@ -325,28 +325,31 @@ const filterTranslations = {
       <h1 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-2">
         {categoryNames[filter] || filter || '📚 ' + t('recipes.all')}
       </h1>
-  <p className="text-gray-600 dark:text-gray-300 mb-6">
+<p className="text-gray-600 dark:text-gray-300 mb-2">
   {filter 
-  
     ? t('recipes.category_recipes', { category: filterTranslations[filter] || filter })
     : t('recipes.all_recipes')}
-        
-        {/* 🔥 PRIKAŽI RESTRIKCIJE AKO POSTOJE */}
-        {userRestrictions.length > 0 && !userRestrictions.some(r => 
-          r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
-        ) && (
-          <span className="ml-2 text-sm bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-3 py-1 rounded-full">
-            🚫 {t('recipes.excluding')}: {userRestrictions.join(', ')}
-          </span>
-        )}
-        
-        {/* 🔥 PRIKAŽI BROJ STRANICA */}
-        {pagination.pages > 1 && (
-          <span className="ml-2 text-sm bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full">
-            📄 {pagination.page} / {pagination.pages}
-          </span>
-        )}
-      </p>
+</p>
+
+{/* 🔥 RESTRIKCIJE - U NOVOM REDU */}
+{userRestrictions.length > 0 && !userRestrictions.some(r => 
+  r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
+) && (
+  <div className="mb-3">
+    <span className="inline-block text-sm bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-3 py-1.5 rounded-full">
+      🚫 {t('recipes.excluding')}: {userRestrictions.join(', ')}
+    </span>
+  </div>
+)}
+
+{/* 🔥 PRIKAŽI BROJ STRANICA */}
+{pagination.pages > 1 && (
+  <div className="mb-4">
+    <span className="text-sm bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full">
+      📄 {pagination.page} / {pagination.pages}
+    </span>
+  </div>
+)}
 
       {/* ============================================================
           🔥🔥🔥 FILTERI - UVJEK VIDLJIVI (ČAK I KADA NEMA RECEPATA)
