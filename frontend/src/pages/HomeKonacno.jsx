@@ -640,7 +640,24 @@ useEffect(() => {
           });
           setFridgeItems(fridgeData);
           
-          // ... filteri ...
+          // Filteri iz localStorage
+          const noviFilteri = {};
+          if (fallbackProfil.vrsta && fallbackProfil.vrsta.length > 0) {
+            const odabraneVrste = fallbackProfil.vrsta.filter(v => v !== 'Svejedno');
+            if (odabraneVrste.length > 0) noviFilteri.vrsta = odabraneVrste[0];
+          }
+          if (fallbackProfil.preferencije && fallbackProfil.preferencije.length > 0) {
+            const odabranePref = fallbackProfil.preferencije.filter(p => p !== 'Svejedno');
+            if (odabranePref.length > 0) noviFilteri.preferencije = odabranePref[0];
+          }
+          if (fallbackProfil.izbjegava && fallbackProfil.izbjegava.length > 0) {
+            const restrikcije = fallbackProfil.izbjegava.filter(r => r !== 'Bez restrikcija' && r !== 'No restrictions' && r !== 'Keine Einschränkungen');
+            if (restrikcije.length > 0) noviFilteri.restrikcije = restrikcije;
+          }
+          if (fallbackProfil.vrijeme) noviFilteri.vrijeme = fallbackProfil.vrijeme;
+          if (fallbackProfil.tezina) noviFilteri.tezina = fallbackProfil.tezina;
+          if (fallbackProfil.kalorije) noviFilteri.kalorije = fallbackProfil.kalorije;
+          setFilters(prev => ({ ...prev, ...noviFilteri }));
         }
         setProfilLoading(false);
         return;
@@ -653,9 +670,9 @@ useEffect(() => {
         setProfil(data.data);
         
         // 🔥 FRIŽIDER IZ BAZE - KONVERTIRAJ OBJEKTE U STRINGOVE
+        
         if (data.data.namirnice) {
           let fridgeData = Array.isArray(data.data.namirnice) ? data.data.namirnice : [];
-          // 🔥 OVDJE JE KLJUČNA PROMJENA!
           fridgeData = fridgeData.map(item => {
             if (typeof item === 'object' && item !== null) {
               return item.name || item;
@@ -668,11 +685,67 @@ useEffect(() => {
           setFridgeItems([]);
         }
         
-        // ... filteri ...
+        // Filteri iz baze
+        const noviFilteri = {};
+        if (data.data.vrsta && data.data.vrsta.length > 0) {
+          const odabraneVrste = data.data.vrsta.filter(v => v !== 'Svejedno');
+          if (odabraneVrste.length > 0) noviFilteri.vrsta = odabraneVrste[0];
+        }
+        if (data.data.preferencije && data.data.preferencije.length > 0) {
+          const odabranePref = data.data.preferencije.filter(p => p !== 'Svejedno');
+          if (odabranePref.length > 0) noviFilteri.preferencije = odabranePref[0];
+        }
+        if (data.data.izbjegava && data.data.izbjegava.length > 0) {
+          const restrikcije = data.data.izbjegava.filter(r => 
+            r !== 'Bez restrikcija' && r !== 'No restrictions' && r !== 'Keine Einschränkungen'
+          );
+          if (restrikcije.length > 0) noviFilteri.restrikcije = restrikcije;
+        }
+        if (data.data.vrijeme) noviFilteri.vrijeme = data.data.vrijeme;
+        if (data.data.tezina) noviFilteri.tezina = data.data.tezina;
+        if (data.data.kalorije) noviFilteri.kalorije = data.data.kalorije;
+        setFilters(prev => ({ ...prev, ...noviFilteri }));
+        
+      } else {
+        console.log('⚠️ Profil nije pronađen - prikazujem sve recepte');
+        setFilters({
+          vrsta: '',
+          vrijeme: '',
+          tezina: '',
+          preferencije: '',
+          restrikcije: [],
+          kalorije: ''
+        });
       }
     } catch (error) {
       console.error('❌ Greška pri dohvatu profila:', error);
-      // ... fallback ...
+      const storedUser = JSON.parse(localStorage.getItem('user'));
+      if (storedUser) {
+        const fallbackProfil = {
+          ime: storedUser.ime || 'Korisnik',
+          email: storedUser.email || email,
+          premium: storedUser.premium || false,
+          kviz_zavrsen: storedUser.kviz_zavrsen || false,
+          vrsta: storedUser.vrsta || [],
+          izbjegava: storedUser.izbjegava || [],
+          preferencije: storedUser.preferencije || [],
+          vrijeme: storedUser.vrijeme || '',
+          tezina: storedUser.tezina || '',
+          kalorije: storedUser.kalorije || '',
+          namirnice: storedUser.namirnice || []
+        };
+        setProfil(fallbackProfil);
+        if (fallbackProfil.namirnice) {
+          let fridgeData = Array.isArray(fallbackProfil.namirnice) ? fallbackProfil.namirnice : [];
+          fridgeData = fridgeData.map(item => {
+            if (typeof item === 'object' && item !== null) {
+              return item.name || item;
+            }
+            return item;
+          });
+          setFridgeItems(fridgeData);
+        }
+      }
     } finally {
       setProfilLoading(false);
     }
@@ -681,6 +754,7 @@ useEffect(() => {
   dohvatiProfilIFrizider();
 }, [user]);
 
+// 🔥 SPREMANJE FRIZIDERA U BAZU - POPRAVLJENO!
 const saveFridgeToDatabase = useCallback(async (items) => {
   const email = user?.email || localStorage.getItem('userEmail');
   if (!email) return;
@@ -697,7 +771,9 @@ const saveFridgeToDatabase = useCallback(async (items) => {
     await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ namirnice: stringItems })
+      body: JSON.stringify({ 
+        namirnice: stringItems  // 🔥 PROMIJENJENO: fridge → namirnice
+      })
     });
     console.log('✅ Frižider spremljen u bazu');
   } catch (error) {
