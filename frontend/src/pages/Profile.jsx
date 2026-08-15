@@ -69,10 +69,15 @@ const Profile = () => {
         'Profesionalac': t('quiz.options.tezina.2')
       },
       kalorije: {
-        'Nisko (do 300 kcal)': t('quiz.options.kalorije.0'),
-        'Umjereno (300-500 kcal)': t('quiz.options.kalorije.1'),
-        'Srednje (500-700 kcal)': t('quiz.options.kalorije.2'),
-        'Visoko (900+ kcal)': t('quiz.options.kalorije.3')
+        // 🔥 POPRAVLJENO - dodane sve varijante
+        'Nisko': t('quiz.options.kalorije.0') || 'Nisko',
+        'Nisko (do 300 kcal)': t('quiz.options.kalorije.0') || 'Nisko',
+        'Umjereno': t('quiz.options.kalorije.1') || 'Umjereno',
+        'Umjereno (300-500 kcal)': t('quiz.options.kalorije.1) || 'Umjereno',
+        'Srednje': t('quiz.options.kalorije.2') || 'Srednje',
+        'Srednje (500-700 kcal)': t('quiz.options.kalorije.2') || 'Srednje',
+        'Visoko': t('quiz.options.kalorije.3') || 'Visoko',
+        'Visoko (900+ kcal)': t('quiz.options.kalorije.3') || 'Visoko'
       }
     };
 
@@ -180,12 +185,19 @@ const Profile = () => {
         const data = await profileRes.json();
         if (data.success && data.data) {
           setProfile(data.data);
-          // Ažuriraj localStorage i sessionStorage
-          const user = JSON.parse(localStorage.getItem('user') || '{}');
-          user.profile = data.data;
-          user.premium = data.data.premium || false;
-          localStorage.setItem('user', JSON.stringify(user));
+          // 🔥 Ažuriraj SAMO sessionStorage (ne localStorage!)
           sessionStorage.setItem('user_profile', JSON.stringify(data.data));
+          
+          // 🔥 Ažuriraj i user_session
+          const sessionUser = sessionStorage.getItem('user_session');
+          if (sessionUser) {
+            try {
+              const parsed = JSON.parse(sessionUser);
+              parsed.profile = data.data;
+              parsed.premium = data.data.premium || false;
+              sessionStorage.setItem('user_session', JSON.stringify(parsed));
+            } catch (e) {}
+          }
         }
       }
       
@@ -209,10 +221,10 @@ const Profile = () => {
   }, [isRefreshing]);
 
   // ============================================================
-  // 📊 DOHVATI PROFIL - INSTANT IZ CACHE-A
+  // 📊 DOHVATI PROFIL - SAMO IZ SESSION STORAGE
   // ============================================================
   const getCachedProfile = useCallback((email) => {
-    // 🔥 1. PRVO sessionStorage (najbrže)
+    // 🔥 SAMO sessionStorage (brže i bez konflikta)
     const sessionProfile = sessionStorage.getItem('user_profile');
     if (sessionProfile) {
       try {
@@ -223,36 +235,95 @@ const Profile = () => {
       } catch (e) {}
     }
     
-    // 🔥 2. ONDA localStorage
-    const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
-    if (cachedUser?.profile && cachedUser?.email === email) {
-      return cachedUser.profile;
-    }
-    
+    // 🔥 VIŠE NE KORISTIMO localStorage za profil!
     return null;
   }, []);
 
   // ============================================================
-// 📊 DOHVATI PROFIL (BEZ POZADINSKOG OSVJEŽAVANJA)
-// ============================================================
-const fetchProfile = useCallback(async (email) => {
-  if (!email) return;
-  
-  // 🔥 PRVO PROVJERI CACHE
-  const cachedProfile = getCachedProfile(email);
-  if (cachedProfile) {
-    setProfile(cachedProfile);
-    setLoading(false);
-    // 🔥 NE POZIVAMO refreshProfileInBackground - cache se ažurira kroz useEffect
-    return;
-  }
-  
-  // Ako nema cache-a, moramo čekati API
-  try {
-    setLoading(true);
-    const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
+  // 📊 DOHVATI PROFIL (SAMO sessionStorage)
+  // ============================================================
+  const fetchProfile = useCallback(async (email) => {
+    if (!email) return;
     
-    if (response.status === 429) {
+    // 🔥 PRVO PROVJERI sessionStorage
+    const sessionProfile = sessionStorage.getItem('user_profile');
+    if (sessionProfile) {
+      try {
+        const parsed = JSON.parse(sessionProfile);
+        if (parsed.email === email) {
+          setProfile(parsed);
+          setLoading(false);
+          // 🔥 U POZADINI OSVJEŽI (uvijek, ali bez čekanja)
+          refreshProfileInBackground(email);
+          return;
+        }
+      } catch (e) {}
+    }
+    
+    // Ako nema session cache-a, čekamo API
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
+      
+      if (response.status === 429) {
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        if (storedUser) {
+          const fallbackProfile = {
+            ime: storedUser.ime || 'Korisnik',
+            email: storedUser.email || email,
+            premium: storedUser.premium || false,
+            kviz_zavrsen: storedUser.kviz_zavrsen || false,
+            vrsta: storedUser.vrsta || [],
+            izbjegava: storedUser.izbjegava || [],
+            preferencije: storedUser.preferencije || [],
+            vrijeme: storedUser.vrijeme || '',
+            tezina: storedUser.tezina || '',
+            kalorije: storedUser.kalorije || '',
+            skuhano_recepata: storedUser.skuhano_recepata || 0,
+            preferred_language: storedUser.preferred_language || 'hr'
+          };
+          setProfile(fallbackProfile);
+          sessionStorage.setItem('user_profile', JSON.stringify(fallbackProfile));
+        }
+        setLoading(false);
+        return;
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setProfile(data.data);
+        // 🔥 SPREMI SAMO U SESSION STORAGE
+        sessionStorage.setItem('user_profile', JSON.stringify(data.data));
+        
+        // 🔥 AŽURIRAJ I USER U SESSION STORAGE
+        const sessionUser = sessionStorage.getItem('user_session');
+        if (sessionUser) {
+          try {
+            const parsed = JSON.parse(sessionUser);
+            parsed.profile = data.data;
+            parsed.premium = data.data.premium || false;
+            sessionStorage.setItem('user_session', JSON.stringify(parsed));
+          } catch (e) {}
+        }
+        
+        // Badges iz cache-a
+        const cacheKey = `badges_${email}`;
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            if (Date.now() - (parsed._timestamp || 0) < 300000) {
+              setBadges(parsed.badges || []);
+              setBadgesLoading(false);
+            }
+          } catch (e) {}
+        }
+      } else {
+        await createProfile(email);
+      }
+    } catch (error) {
+      console.error('❌ Greška pri dohvatu profila:', error);
       const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
       if (storedUser) {
         const fallbackProfile = {
@@ -271,65 +342,13 @@ const fetchProfile = useCallback(async (email) => {
         };
         setProfile(fallbackProfile);
         sessionStorage.setItem('user_profile', JSON.stringify(fallbackProfile));
+      } else {
+        await createProfile(email);
       }
+    } finally {
       setLoading(false);
-      return;
     }
-    
-    const data = await response.json();
-    
-    if (data.success && data.data) {
-      setProfile(data.data);
-      // Spremi u cache
-      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      storedUser.premium = data.data.premium || false;
-      storedUser.profile = data.data;
-      storedUser.preferred_language = data.data.preferred_language || 'hr';
-      localStorage.setItem('user', JSON.stringify(storedUser));
-      sessionStorage.setItem('user_profile', JSON.stringify(data.data));
-      
-      // Badges iz cache-a
-      const cacheKey = `badges_${email}`;
-      const cached = localStorage.getItem(cacheKey);
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          if (Date.now() - (parsed._timestamp || 0) < 300000) {
-            setBadges(parsed.badges || []);
-            setBadgesLoading(false);
-          }
-        } catch (e) {}
-      }
-    } else {
-      await createProfile(email);
-    }
-  } catch (error) {
-    console.error('❌ Greška pri dohvatu profila:', error);
-    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-    if (storedUser) {
-      const fallbackProfile = {
-        ime: storedUser.ime || 'Korisnik',
-        email: storedUser.email || email,
-        premium: storedUser.premium || false,
-        kviz_zavrsen: storedUser.kviz_zavrsen || false,
-        vrsta: storedUser.vrsta || [],
-        izbjegava: storedUser.izbjegava || [],
-        preferencije: storedUser.preferencije || [],
-        vrijeme: storedUser.vrijeme || '',
-        tezina: storedUser.tezina || '',
-        kalorije: storedUser.kalorije || '',
-        skuhano_recepata: storedUser.skuhano_recepata || 0,
-        preferred_language: storedUser.preferred_language || 'hr'
-      };
-      setProfile(fallbackProfile);
-      sessionStorage.setItem('user_profile', JSON.stringify(fallbackProfile));
-    } else {
-      await createProfile(email);
-    }
-  } finally {
-    setLoading(false);
-  }
-}, [getCachedProfile]);
+  }, [refreshProfileInBackground]);
 
   // ============================================================
   // 🆕 KREIRAJ PROFIL
@@ -363,83 +382,97 @@ const fetchProfile = useCallback(async (email) => {
     }
   }, [user, t]);
 
- // ============================================================
-// 🔐 AUTH (optimizirano)
-// ============================================================
-useEffect(() => {
-  const checkUser = async () => {
-    try {
-      // 🔥 PRVO IZ sessionStorage (najbrže)
-      const sessionUser = sessionStorage.getItem('user_session');
-      if (sessionUser) {
-        try {
-          const parsed = JSON.parse(sessionUser);
-          if (parsed?.email && parsed?.profile) {
-            setUser(parsed);
-            setProfile(parsed.profile);
-            setLoading(false);
-            // 🔥 UKLONJEN refreshProfileInBackground
-            return;
+  // ============================================================
+  // 🔐 AUTH (optimizirano)
+  // ============================================================
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        // 🔥 PRVO IZ sessionStorage (najbrže)
+        const sessionUser = sessionStorage.getItem('user_session');
+        if (sessionUser) {
+          try {
+            const parsed = JSON.parse(sessionUser);
+            if (parsed?.email && parsed?.profile) {
+              setUser(parsed);
+              setProfile(parsed.profile);
+              setLoading(false);
+              // U pozadini osvježi
+              refreshProfileInBackground(parsed.email);
+              return;
+            }
+          } catch (e) {}
+        }
+        
+        // 🔥 ONDA IZ localStorage - SAMO za user podatke
+        const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        if (cachedUser?.email) {
+          setUser(cachedUser);
+          setLoading(false);
+          sessionStorage.setItem('user_session', JSON.stringify(cachedUser));
+          
+          // 🔥 Pokušaj dohvatiti profil iz sessionStorage
+          const sessionProfile = sessionStorage.getItem('user_profile');
+          if (sessionProfile) {
+            try {
+              const parsed = JSON.parse(sessionProfile);
+              if (parsed.email === cachedUser.email) {
+                setProfile(parsed);
+                return;
+              }
+            } catch (e) {}
           }
-        } catch (e) {}
-      }
-      
-      // 🔥 ONDA IZ localStorage
-      const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      if (cachedUser?.email && cachedUser?.profile) {
-        setUser(cachedUser);
-        setProfile(cachedUser.profile);
-        setLoading(false);
-        // Spremi u sessionStorage za brži pristup
-        sessionStorage.setItem('user_session', JSON.stringify(cachedUser));
-        // 🔥 UKLONJEN refreshProfileInBackground
-        return;
-      }
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        const email = session.user.email;
+          
+          // Ako nema profila u sessionStorage, dohvati iz baze
+          await fetchProfile(cachedUser.email);
+          return;
+        }
         
-        const supabaseUser = {
-          id: session.user.id,
-          email: session.user.email,
-          ime: session.user.user_metadata?.ime || '',
-          premium: false,
-          profile: null,
-          preferred_language: 'hr'
-        };
+        const { data: { session } } = await supabase.auth.getSession();
         
-        setUser(supabaseUser);
-        localStorage.setItem('user', JSON.stringify(supabaseUser));
-        localStorage.setItem('userEmail', session.user.email);
-        sessionStorage.setItem('user_session', JSON.stringify(supabaseUser));
+        if (session?.user) {
+          const email = session.user.email;
+          
+          const supabaseUser = {
+            id: session.user.id,
+            email: session.user.email,
+            ime: session.user.user_metadata?.ime || '',
+            premium: false,
+            profile: null,
+            preferred_language: 'hr'
+          };
+          
+          setUser(supabaseUser);
+          localStorage.setItem('user', JSON.stringify(supabaseUser));
+          localStorage.setItem('userEmail', session.user.email);
+          sessionStorage.setItem('user_session', JSON.stringify(supabaseUser));
+          
+          await fetchProfile(email);
+          return;
+        }
         
-        await fetchProfile(email);
-        return;
-      }
-      
-      const userData = JSON.parse(localStorage.getItem('user') || '{}');
-      if (!userData?.email) {
-        navigate('/login');
-        return;
-      }
-      
-      setUser(userData);
-      const email = localStorage.getItem('userEmail') || userData?.email;
-      if (email) {
-        await fetchProfile(email);
-      } else {
+        const userData = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!userData?.email) {
+          navigate('/login');
+          return;
+        }
+        
+        setUser(userData);
+        const email = localStorage.getItem('userEmail') || userData?.email;
+        if (email) {
+          await fetchProfile(email);
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('❌ Greška pri provjeri korisnika:', error);
         setLoading(false);
       }
-    } catch (error) {
-      console.error('❌ Greška pri provjeri korisnika:', error);
-      setLoading(false);
-    }
-  };
+    };
 
-  checkUser();
-}, [navigate, fetchProfile]);
+    checkUser();
+  }, [navigate, fetchProfile, refreshProfileInBackground]);
+
   // ============================================================
   // 🔥 LAZY LOAD BADGES
   // ============================================================
@@ -468,27 +501,35 @@ useEffect(() => {
     }
   }, [i18n.language, profile, fetchBadges, badgesVisible]);
 
-// ============================================================
-// 🔥 OSVJEŽI CACHE KADA SE PROFIL PROMIJENI
-// ============================================================
-useEffect(() => {
-  if (profile && profile.email) {
-    // Ažuriraj cache sa novim podacima
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    user.profile = profile;
-    user.vrsta = profile.vrsta || [];
-    user.izbjegava = profile.izbjegava || [];
-    user.preferencije = profile.preferencije || [];
-    user.vrijeme = profile.vrijeme || '';
-    user.tezina = profile.tezina || '';
-    user.kalorije = profile.kalorije || '';
-    user.kviz_zavrsen = profile.kviz_zavrsen || false;
-    user.premium = profile.premium || false;
-    localStorage.setItem('user', JSON.stringify(user));
-    sessionStorage.setItem('user_profile', JSON.stringify(profile));
-    console.log('✅ Cache profila ažuriran');
-  }
-}, [profile]);
+  // ============================================================
+  // 🔥 OSVJEŽI CACHE KADA SE PROFIL PROMIJENI
+  // ============================================================
+  useEffect(() => {
+    if (profile && profile.email) {
+      // Ažuriraj sessionStorage sa novim podacima
+      sessionStorage.setItem('user_profile', JSON.stringify(profile));
+      
+      // Ažuriraj i user_session
+      const sessionUser = sessionStorage.getItem('user_session');
+      if (sessionUser) {
+        try {
+          const parsed = JSON.parse(sessionUser);
+          parsed.profile = profile;
+          parsed.premium = profile.premium || false;
+          parsed.vrsta = profile.vrsta || [];
+          parsed.izbjegava = profile.izbjegava || [];
+          parsed.preferencije = profile.preferencije || [];
+          parsed.vrijeme = profile.vrijeme || '';
+          parsed.tezina = profile.tezina || '';
+          parsed.kalorije = profile.kalorije || '';
+          parsed.kviz_zavrsen = profile.kviz_zavrsen || false;
+          sessionStorage.setItem('user_session', JSON.stringify(parsed));
+        } catch (e) {}
+      }
+      
+      console.log('✅ Cache profila ažuriran (sessionStorage)');
+    }
+  }, [profile]);
 
   // ============================================================
   // 🗑️ IZBRIŠI SVE PODATKE
@@ -590,7 +631,7 @@ useEffect(() => {
   const isQuizCompleted = profile.kviz_zavrsen || false;
   const cookedCount = profile.skuhano_recepata || 0;
 
-    return (
+  return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-8 px-4">
       <div className="max-w-5xl mx-auto">
         {/* ===== SEO ===== */}
