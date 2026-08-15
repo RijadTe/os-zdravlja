@@ -1,5 +1,4 @@
 // frontend/src/App.jsx
-
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -284,7 +283,6 @@ function App() {
       }
     });
 
-
     return () => {
       console.log('🧹 Čišćenje auth subscription-a');
       subscription.unsubscribe();
@@ -330,7 +328,7 @@ function App() {
     }
   };
 
-   // ============================================================
+  // ============================================================
   // 🖥️ RENDER
   // ============================================================
   if (loading) {
