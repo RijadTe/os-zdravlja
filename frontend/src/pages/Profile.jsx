@@ -31,79 +31,69 @@ const Profile = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
 // ============================================================
-// 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA
-// ============================================================
-const translateValue = useCallback((value, type) => {
-  if (!value) return t('profile.not_selected');
-  
-  const maps = {
-    vrsta: {
-      'Deserti': t('quiz.options.vrsta.0'),
-      'Slano': t('quiz.options.vrsta.1'),
-      'Dijetalni recepti': t('quiz.options.vrsta.2'),
-      'Napitki': t('quiz.options.vrsta.3'),
-      'Svejedno': t('quiz.options.vrsta.4')
-    },
-    restrikcije: {
-      'Bez restrikcija': t('quiz.options.restrikcije.0'),
-      'Bez glutena': t('quiz.options.restrikcije.1'),
-      'Bez laktoze': t('quiz.options.restrikcije.2'),
-      'Bez šećera': t('quiz.options.restrikcije.3'),
-      'Veganski': t('quiz.options.restrikcije.4'),
-      'Bez orašastih plodova': t('quiz.options.restrikcije.5')
-    },
-    preferencije: {
-      'Visokoproteinski': t('quiz.options.preferencije.0'),
-      'Bogat vlaknima': t('quiz.options.preferencije.1'),
-      'Bogat ugljikohidratima': t('quiz.options.preferencije.2'),
-      'Svejedno': t('quiz.options.preferencije.3')
-    },
-    vrijeme: {
-      'Kratko (15-30 min)': t('quiz.options.vrijeme.0'),
-      'Srednje (30-45 min)': t('quiz.options.vrijeme.1'),
-      'Duže (45-60+ min)': t('quiz.options.vrijeme.2')
-    },
-    tezina: {
-      'Početnik': t('quiz.options.tezina.0'),
-      'Srednji': t('quiz.options.tezina.1'),
-      'Profesionalac': t('quiz.options.tezina.2')
-    },
-    kalorije: {
-      // 🔥 SAMO OVAJ DIO MIJENJAJ - DODAJ SVE VARIJANTE
-      'Nisko': 'Nisko',
-      'Nisko (do 300 kcal)': 'Nisko',
-      'Umjereno': 'Umjereno',
-      'Umjereno (300-500 kcal)': 'Umjereno',
-      'Srednje': 'Srednje',
-      'Srednje (500-700 kcal)': 'Srednje',
-      'Visoko': 'Visoko',
-      'Visoko (900+ kcal)': 'Visoko'
-    }
-  };
+  // 🌍 MAPIRANJE ZA PREVOD PREFERENCIJA
+  // ============================================================
+  const translateValue = useCallback((value, type) => {
+    if (!value) return t('profile.not_selected');
+    
+    const maps = {
+      vrsta: {
+        'Deserti': t('quiz.options.vrsta.0'),
+        'Slano': t('quiz.options.vrsta.1'),
+        'Dijetalni recepti': t('quiz.options.vrsta.2'),
+        'Napitki': t('quiz.options.vrsta.3'),
+        'Svejedno': t('quiz.options.vrsta.4')
+      },
+      restrikcije: {
+        'Bez restrikcija': t('quiz.options.restrikcije.0'),
+        'Bez glutena': t('quiz.options.restrikcije.1'),
+        'Bez laktoze': t('quiz.options.restrikcije.2'),
+        'Bez šećera': t('quiz.options.restrikcije.3'),
+        'Veganski': t('quiz.options.restrikcije.4'),
+        'Bez orašastih plodova': t('quiz.options.restrikcije.5')
+      },
+      preferencije: {
+        'Visokoproteinski': t('quiz.options.preferencije.0'),
+        'Bogat vlaknima': t('quiz.options.preferencije.1'),
+        'Bogat ugljikohidratima': t('quiz.options.preferencije.2'),
+        'Svejedno': t('quiz.options.preferencije.3')
+      },
+      vrijeme: {
+        'Kratko (15-30 min)': t('quiz.options.vrijeme.0'),
+        'Srednje (30-45 min)': t('quiz.options.vrijeme.1'),
+        'Duže (45-60+ min)': t('quiz.options.vrijeme.2')
+      },
+      tezina: {
+        'Početnik': t('quiz.options.tezina.0'),
+        'Srednji': t('quiz.options.tezina.1'),
+        'Profesionalac': t('quiz.options.tezina.2')
+      },
+      kalorije: {
+        'Nisko (do 300 kcal)': t('quiz.options.kalorije.0'),
+        'Umjereno (300-500 kcal)': t('quiz.options.kalorije.1'),
+        'Srednje (500-700 kcal)': t('quiz.options.kalorije.2'),
+        'Visoko (900+ kcal)': t('quiz.options.kalorije.3')
+      }
+    };
 
-  const map = maps[type];
-  if (!map) return value;
-  
-  if (Array.isArray(value)) {
-    return value.map(v => {
-      if (map[v] !== undefined) return map[v];
-      const trimmed = v.replace(/^Bez /, '');
-      if (map[trimmed] !== undefined) return map[trimmed];
-      return v;
-    }).join(', ');
-  }
-  
-  if (map[value] !== undefined) return map[value];
-  
-  // 🔥 DODAJ I OVAJ DIO ZA KALORIJE
-  const trimmed = value.replace(/ \(.*\)$/, '');
-  if (map[trimmed] !== undefined) return map[trimmed];
-  
-  const withoutBez = value.replace(/^Bez /, '');
-  if (map[withoutBez] !== undefined) return map[withoutBez];
-  
-  return value;
-}, [t]);
+    const map = maps[type];
+    if (!map) return value;
+    
+    if (Array.isArray(value)) {
+      return value.map(v => {
+        if (map[v] !== undefined) return map[v];
+        const trimmed = v.replace(/^Bez /, '');
+        if (map[trimmed] !== undefined) return map[trimmed];
+        return v;
+      }).join(', ');
+    }
+    
+    if (map[value] !== undefined) return map[value];
+    const trimmed = value.replace(/^Bez /, '');
+    if (map[trimmed] !== undefined) return map[trimmed];
+    
+    return value;
+  }, [t]);
   // ============================================================
   // 🔥 DOHVATI BEDŽEVE IZ BAZE (sa cachingom)
   // ============================================================
