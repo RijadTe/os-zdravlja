@@ -233,79 +233,26 @@ const Profile = () => {
   }, []);
 
   // ============================================================
-  // 📊 DOHVATI PROFIL (optimizirano)
-  // ============================================================
-  const fetchProfile = useCallback(async (email) => {
-    if (!email) return;
+// 📊 DOHVATI PROFIL (BEZ POZADINSKOG OSVJEŽAVANJA)
+// ============================================================
+const fetchProfile = useCallback(async (email) => {
+  if (!email) return;
+  
+  // 🔥 PRVO PROVJERI CACHE
+  const cachedProfile = getCachedProfile(email);
+  if (cachedProfile) {
+    setProfile(cachedProfile);
+    setLoading(false);
+    // 🔥 NE POZIVAMO refreshProfileInBackground - cache se ažurira kroz useEffect
+    return;
+  }
+  
+  // Ako nema cache-a, moramo čekati API
+  try {
+    setLoading(true);
+    const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
     
-    // 🔥 PRVO PRIKAŽI IZ CACHE-A (trenutno!)
-    const cachedProfile = getCachedProfile(email);
-    if (cachedProfile) {
-      setProfile(cachedProfile);
-      setLoading(false);
-      
-      // 🔥 U POZADINI OSVJEŽI (uvijek, ali bez čekanja)
-      refreshProfileInBackground(email);
-      return;
-    }
-    
-    // Ako nema cache-a, moramo čekati API
-    try {
-      const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
-      
-      if (response.status === 429) {
-        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-        if (storedUser) {
-          const fallbackProfile = {
-            ime: storedUser.ime || 'Korisnik',
-            email: storedUser.email || email,
-            premium: storedUser.premium || false,
-            kviz_zavrsen: storedUser.kviz_zavrsen || false,
-            vrsta: storedUser.vrsta || [],
-            izbjegava: storedUser.izbjegava || [],
-            preferencije: storedUser.preferencije || [],
-            vrijeme: storedUser.vrijeme || '',
-            tezina: storedUser.tezina || '',
-            kalorije: storedUser.kalorije || '',
-            skuhano_recepata: storedUser.skuhano_recepata || 0,
-            preferred_language: storedUser.preferred_language || 'hr'
-          };
-          setProfile(fallbackProfile);
-          sessionStorage.setItem('user_profile', JSON.stringify(fallbackProfile));
-        }
-        setLoading(false);
-        return;
-      }
-      
-      const data = await response.json();
-      
-      if (data.success && data.data) {
-        setProfile(data.data);
-        // Spremi u sve cache-ove
-        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-        storedUser.premium = data.data.premium || false;
-        storedUser.profile = data.data;
-        storedUser.preferred_language = data.data.preferred_language || 'hr';
-        localStorage.setItem('user', JSON.stringify(storedUser));
-        sessionStorage.setItem('user_profile', JSON.stringify(data.data));
-        
-        // Badges iz cache-a
-        const cacheKey = `badges_${email}`;
-        const cached = localStorage.getItem(cacheKey);
-        if (cached) {
-          try {
-            const parsed = JSON.parse(cached);
-            if (Date.now() - (parsed._timestamp || 0) < 300000) {
-              setBadges(parsed.badges || []);
-              setBadgesLoading(false);
-            }
-          } catch (e) {}
-        }
-      } else {
-        await createProfile(email);
-      }
-    } catch (error) {
-      console.error('❌ Greška pri dohvatu profila:', error);
+    if (response.status === 429) {
       const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
       if (storedUser) {
         const fallbackProfile = {
@@ -324,13 +271,65 @@ const Profile = () => {
         };
         setProfile(fallbackProfile);
         sessionStorage.setItem('user_profile', JSON.stringify(fallbackProfile));
-      } else {
-        await createProfile(email);
       }
-    } finally {
       setLoading(false);
+      return;
     }
-  }, [getCachedProfile, refreshProfileInBackground]);
+    
+    const data = await response.json();
+    
+    if (data.success && data.data) {
+      setProfile(data.data);
+      // Spremi u cache
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      storedUser.premium = data.data.premium || false;
+      storedUser.profile = data.data;
+      storedUser.preferred_language = data.data.preferred_language || 'hr';
+      localStorage.setItem('user', JSON.stringify(storedUser));
+      sessionStorage.setItem('user_profile', JSON.stringify(data.data));
+      
+      // Badges iz cache-a
+      const cacheKey = `badges_${email}`;
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (Date.now() - (parsed._timestamp || 0) < 300000) {
+            setBadges(parsed.badges || []);
+            setBadgesLoading(false);
+          }
+        } catch (e) {}
+      }
+    } else {
+      await createProfile(email);
+    }
+  } catch (error) {
+    console.error('❌ Greška pri dohvatu profila:', error);
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (storedUser) {
+      const fallbackProfile = {
+        ime: storedUser.ime || 'Korisnik',
+        email: storedUser.email || email,
+        premium: storedUser.premium || false,
+        kviz_zavrsen: storedUser.kviz_zavrsen || false,
+        vrsta: storedUser.vrsta || [],
+        izbjegava: storedUser.izbjegava || [],
+        preferencije: storedUser.preferencije || [],
+        vrijeme: storedUser.vrijeme || '',
+        tezina: storedUser.tezina || '',
+        kalorije: storedUser.kalorije || '',
+        skuhano_recepata: storedUser.skuhano_recepata || 0,
+        preferred_language: storedUser.preferred_language || 'hr'
+      };
+      setProfile(fallbackProfile);
+      sessionStorage.setItem('user_profile', JSON.stringify(fallbackProfile));
+    } else {
+      await createProfile(email);
+    }
+  } finally {
+    setLoading(false);
+  }
+}, [getCachedProfile]);
 
   // ============================================================
   // 🆕 KREIRAJ PROFIL
