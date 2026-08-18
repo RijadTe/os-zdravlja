@@ -255,14 +255,22 @@ const Register = () => {
       <div className="w-full max-w-md">
         <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6 sm:p-8 md:p-10 transition-all duration-300">
           
-          {/* Logo & Header */}
+          {/* Logo & Header - SA PULSIRAJUĆIM LOGOM */}
           <div className="text-center mb-6">
             <div className="flex justify-center mb-3">
-              <img 
-                src="https://i.postimg.cc/WbdznKdk/Green-Simple-Healthy-Food-Logo-20260817-003421-0000.png" 
-                alt="OS Zdravlja Logo"
-                className="w-20 h-20 sm:w-24 sm:h-24 object-contain"
-              />
+              <div className="relative">
+                {/* Pulsirajući prstenovi */}
+                <div className="absolute -inset-2 rounded-full border-2 border-emerald-400/30 animate-ping"></div>
+                <div className="absolute -inset-4 rounded-full border-2 border-emerald-400/20 animate-ping" style={{ animationDelay: '0.5s' }}></div>
+                <div className="absolute -inset-6 rounded-full border border-emerald-400/10 animate-ping" style={{ animationDelay: '1s' }}></div>
+                
+                {/* Logo sa pulsirajućim efektom */}
+                <img 
+                  src="https://i.postimg.cc/WbdznKdk/Green-Simple-Healthy-Food-Logo-20260817-003421-0000.png" 
+                  alt="OS Zdravlja Logo"
+                  className="w-20 h-20 sm:w-24 sm:h-24 object-contain relative z-10 animate-pulse-slow"
+                />
+              </div>
             </div>
             
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
@@ -369,7 +377,6 @@ const Register = () => {
                 </button>
               </div>
               
-              {/* 🔥 ISPRAVLJEN PASSWORD STRENGTH */}
               <div className="mt-1 flex items-center gap-2">
                 <div className="flex-1 h-1.5 rounded-full bg-gray-200 dark:bg-gray-600 overflow-hidden">
                   <div 
@@ -464,19 +471,13 @@ const Register = () => {
           </form>
 
           {/* Linkovi */}
-          <div className="mt-6 text-center space-y-2">
+          <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               🌿 {t('register.have_account')}{' '}
               <Link to="/login" className="font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:underline transition-colors">
                 {t('register.login_link')}
               </Link>
             </p>
-            <Link to="/" className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-              </svg>
-              🌿 Vrati se na početnu
-            </Link>
           </div>
 
         </div>
