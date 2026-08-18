@@ -169,14 +169,22 @@ const Login = () => {
       <div className="w-full max-w-md">
         <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6 sm:p-8 md:p-10 transition-all duration-300">
           
-          {/* Logo & Header - BEZ IZBORA JEZIKA */}
+          {/* Logo & Header - SA PULSIRAJUĆIM LOGOM, BEZ IZBORA JEZIKA */}
           <div className="text-center mb-6">
             <div className="flex justify-center mb-3">
-              <img 
-                src="https://i.postimg.cc/WbdznKdk/Green-Simple-Healthy-Food-Logo-20260817-003421-0000.png" 
-                alt="OS Zdravlja Logo"
-                className="w-20 h-20 sm:w-24 sm:h-24 object-contain"
-              />
+              <div className="relative">
+                {/* Pulsirajući prstenovi */}
+                <div className="absolute -inset-2 rounded-full border-2 border-emerald-400/30 animate-ping"></div>
+                <div className="absolute -inset-4 rounded-full border-2 border-emerald-400/20 animate-ping" style={{ animationDelay: '0.5s' }}></div>
+                <div className="absolute -inset-6 rounded-full border border-emerald-400/10 animate-ping" style={{ animationDelay: '1s' }}></div>
+                
+                {/* Logo sa pulsirajućim efektom */}
+                <img 
+                  src="https://i.postimg.cc/WbdznKdk/Green-Simple-Healthy-Food-Logo-20260817-003421-0000.png" 
+                  alt="OS Zdravlja Logo"
+                  className="w-20 h-20 sm:w-24 sm:h-24 object-contain relative z-10 animate-pulse-slow"
+                />
+              </div>
             </div>
             
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
