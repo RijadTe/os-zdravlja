@@ -322,10 +322,13 @@ const Register = () => {
           
           {/* Logo & Header */}
           <div className="text-center mb-6">
+            {/* 🔥 TVOJ ORIGINALNI LOGO */}
             <div className="flex justify-center mb-3">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                <span className="text-4xl sm:text-5xl">🌿</span>
-              </div>
+              <img 
+                src="https://i.postimg.cc/WbdznKdk/Green-Simple-Healthy-Food-Logo-20260817-003421-0000.png" 
+                alt="OS Zdravlja Logo"
+                className="w-20 h-20 sm:w-24 sm:h-24 object-contain drop-shadow-lg"
+              />
             </div>
             
             <h2 className="text-2xl sm:text-3xl font-bold text-emerald-800 dark:text-white">
@@ -553,7 +556,7 @@ const Register = () => {
             </button>
           </form>
 
-          {/* Links */}
+          {/* Samo linkovi - BEZ FOOTERA */}
           <div className="mt-6 text-center space-y-2">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               🌿 {t('register.have_account')}{' '}
@@ -569,23 +572,6 @@ const Register = () => {
             </Link>
           </div>
 
-          {/* Footer */}
-          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 text-center space-y-2">
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              🥑 Hrana je lijek • Zdravo tijelo • Sretan um
-            </p>
-            <p className="text-[10px] text-gray-400 dark:text-gray-500">
-              © 2026 OS Zdravlja – Operativni sistem za tvoje zdravlje
-            </p>
-            <div className="flex justify-center gap-4 text-[10px] text-gray-400 dark:text-gray-500">
-              <Link to="/privacy" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                Pravila privatnosti
-              </Link>
-              <Link to="/terms" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                Uvjeti korištenja
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>
