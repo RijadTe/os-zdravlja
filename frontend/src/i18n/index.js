@@ -3,12 +3,13 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-// 🔥 UČITAVANJE IZ PUBLIC FOLDER-a
+// 🔥 UČITAVANJE IZ PUBLIC FOLDER-a - SVIH 6 JEZIKA
 const loadTranslations = async () => {
   try {
     console.log('🔄 Učitavam prevode iz public/locales/...');
     
-    const [hr, en, de] = await Promise.all([
+    // 🔥 DODAJ FR, IT, ES
+    const [hr, en, de, fr, it, es] = await Promise.all([
       fetch('/locales/hr/translation.json').then(res => {
         if (!res.ok) throw new Error('HR translation not found');
         return res.json();
@@ -20,6 +21,19 @@ const loadTranslations = async () => {
       fetch('/locales/de/translation.json').then(res => {
         if (!res.ok) throw new Error('DE translation not found');
         return res.json();
+      }),
+      // 🔥 DODATO
+      fetch('/locales/fr/translation.json').then(res => {
+        if (!res.ok) throw new Error('FR translation not found');
+        return res.json();
+      }),
+      fetch('/locales/it/translation.json').then(res => {
+        if (!res.ok) throw new Error('IT translation not found');
+        return res.json();
+      }),
+      fetch('/locales/es/translation.json').then(res => {
+        if (!res.ok) throw new Error('ES translation not found');
+        return res.json();
       })
     ]);
 
@@ -27,6 +41,9 @@ const loadTranslations = async () => {
       hr: { translation: hr },
       en: { translation: en },
       de: { translation: de },
+      fr: { translation: fr },
+      it: { translation: it },
+      es: { translation: es },
     };
 
     await i18n
@@ -35,6 +52,7 @@ const loadTranslations = async () => {
       .init({
         resources,
         fallbackLng: 'hr',
+        debug: true, // 🔥 UKLJUČI DEBUG ZA TESTIRANJE
         interpolation: {
           escapeValue: false,
         },
@@ -46,15 +64,19 @@ const loadTranslations = async () => {
 
     console.log('✅ i18n inicijaliziran!');
     console.log('📊 Dostupni jezici:', Object.keys(resources));
+    console.log('🌍 Trenutni jezik:', i18n.language);
     return i18n;
   } catch (error) {
     console.error('❌ Greška pri učitavanju prevoda:', error);
     
-    // 🔥 FALLBACK - ako ne može da učita, koristi prazne prevode
+    // 🔥 FALLBACK - SVIH 6 JEZIKA
     const resources = {
       hr: { translation: {} },
       en: { translation: {} },
       de: { translation: {} },
+      fr: { translation: {} },
+      it: { translation: {} },
+      es: { translation: {} },
     };
     
     await i18n
@@ -63,6 +85,7 @@ const loadTranslations = async () => {
       .init({
         resources,
         fallbackLng: 'hr',
+        debug: true,
         interpolation: {
           escapeValue: false,
         },
