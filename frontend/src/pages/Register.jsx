@@ -24,14 +24,12 @@ const Register = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
-    // Provjera da li je korisnik već prijavljen
     const user = localStorage.getItem('user');
     if (user) {
       setIsAlreadyLoggedIn(true);
       navigate('/');
     }
     
-    // Praćenje dark mode promjena
     const checkDarkMode = () => {
       const dark = document.documentElement.classList.contains('dark') || 
                    document.body.classList.contains('dark');
@@ -370,14 +368,27 @@ const Register = () => {
                   </svg>
                 </button>
               </div>
+              
+              {/* 🔥 ISPRAVLJEN PASSWORD STRENGTH */}
               <div className="mt-1 flex items-center gap-2">
                 <div className="flex-1 h-1.5 rounded-full bg-gray-200 dark:bg-gray-600 overflow-hidden">
-                  <div className={`h-full rounded-full transition-all duration-500 ${getPasswordStrength(formData.lozinka) >= 1 ? 'bg-red-400 w-1/4' : 'w-0'}`}></div>
-                  <div className={`h-full rounded-full transition-all duration-500 ${getPasswordStrength(formData.lozinka) >= 2 ? 'bg-yellow-400 w-2/4' : 'w-0'}`}></div>
-                  <div className={`h-full rounded-full transition-all duration-500 ${getPasswordStrength(formData.lozinka) >= 3 ? 'bg-green-400 w-3/4' : 'w-0'}`}></div>
-                  <div className={`h-full rounded-full transition-all duration-500 ${getPasswordStrength(formData.lozinka) >= 4 ? 'bg-emerald-400 w-full' : 'w-0'}`}></div>
+                  <div 
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      getPasswordStrength(formData.lozinka) === 0 ? 'w-0' :
+                      getPasswordStrength(formData.lozinka) === 1 ? 'w-1/4 bg-red-400' :
+                      getPasswordStrength(formData.lozinka) === 2 ? 'w-2/4 bg-yellow-400' :
+                      getPasswordStrength(formData.lozinka) === 3 ? 'w-3/4 bg-green-400' :
+                      getPasswordStrength(formData.lozinka) === 4 ? 'w-full bg-emerald-400' : 'w-0'
+                    }`}
+                  />
                 </div>
-                <span className="text-xs text-gray-500 dark:text-gray-400 min-w-[45px] text-right">
+                <span className={`text-xs min-w-[45px] text-right ${
+                  getPasswordStrength(formData.lozinka) === 0 ? 'text-gray-400' :
+                  getPasswordStrength(formData.lozinka) === 1 ? 'text-red-400' :
+                  getPasswordStrength(formData.lozinka) === 2 ? 'text-yellow-400' :
+                  getPasswordStrength(formData.lozinka) === 3 ? 'text-green-400' :
+                  getPasswordStrength(formData.lozinka) === 4 ? 'text-emerald-400' : 'text-gray-400'
+                }`}>
                   {getPasswordStrengthText(formData.lozinka)}
                 </span>
               </div>
