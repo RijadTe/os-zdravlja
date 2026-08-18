@@ -23,6 +23,16 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+  // 🔥 SAMO 6 JEZIKA
+  const languages = [
+    { code: 'hr', name: 'Hrvatski', flag: '🇭🇷' },
+    { code: 'en', name: 'English', flag: '🇬🇧' },
+    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+    { code: 'fr', name: 'Français', flag: '🇫🇷' },
+    { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+    { code: 'es', name: 'Español', flag: '🇪🇸' },
+  ];
+
   useEffect(() => {
     const user = localStorage.getItem('user');
     if (user) {
@@ -255,7 +265,7 @@ const Register = () => {
       <div className="w-full max-w-md">
         <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6 sm:p-8 md:p-10 transition-all duration-300">
           
-          {/* Logo & Header - SA PULSIRAJUĆIM LOGOM */}
+          {/* Logo & Header - SA PULSIRAJUĆIM LOGOM I ZASTAVAMA */}
           <div className="text-center mb-6">
             <div className="flex justify-center mb-3">
               <div className="relative">
@@ -277,16 +287,19 @@ const Register = () => {
               OS Zdravlja
             </h2>
             
+            {/* 🔥 IZBOR JEZIKA SA ZASTAVAMA - SAMO 6 JEZIKA */}
             <div className="flex items-center justify-center gap-2 mt-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400">🌐</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">🌍</span>
               <select 
                 value={i18n.language}
                 onChange={(e) => i18n.changeLanguage(e.target.value)}
-                className="text-sm bg-transparent border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-pointer"
+                className="text-sm bg-transparent border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-pointer min-w-[140px]"
               >
-                <option value="hr">Hrvatski</option>
-                <option value="en">English</option>
-                <option value="de">Deutsch</option>
+                {languages.map((lang) => (
+                  <option key={lang.code} value={lang.code} className="py-1">
+                    {lang.flag} {lang.name}
+                  </option>
+                ))}
               </select>
             </div>
             
