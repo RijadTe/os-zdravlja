@@ -112,7 +112,8 @@ const Login = () => {
 
       console.log('✅ Profil postoji u bazi, nastavljam sa prijavom');
 
-      const selectedLanguage = profile?.preferred_language || i18n.language || 'hr';
+      // 🔥 KORISTI JEZIK IZ PROFILA ILI DEFAULT
+      const selectedLanguage = profile?.preferred_language || 'hr';
       localStorage.setItem('preferredLanguage', selectedLanguage);
 
       const expiresAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
@@ -168,7 +169,7 @@ const Login = () => {
       <div className="w-full max-w-md">
         <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6 sm:p-8 md:p-10 transition-all duration-300">
           
-          {/* Logo & Header */}
+          {/* Logo & Header - BEZ IZBORA JEZIKA */}
           <div className="text-center mb-6">
             <div className="flex justify-center mb-3">
               <img 
@@ -181,19 +182,6 @@ const Login = () => {
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
               OS Zdravlja
             </h2>
-            
-            <div className="flex items-center justify-center gap-2 mt-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400">🌐</span>
-              <select 
-                value={i18n.language}
-                onChange={(e) => i18n.changeLanguage(e.target.value)}
-                className="text-sm bg-transparent border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-pointer"
-              >
-                <option value="hr">Hrvatski</option>
-                <option value="en">English</option>
-                <option value="de">Deutsch</option>
-              </select>
-            </div>
             
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               🔐 {t('login.subtitle') || 'Prijavite se i nastavite sa zdravim receptima!'}
@@ -302,20 +290,14 @@ const Login = () => {
             </button>
           </form>
 
-          {/* Linkovi */}
-          <div className="mt-6 text-center space-y-2">
+          {/* Linkovi - BEZ "Vrati se na početnu" */}
+          <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               🌿 {t('login.no_account')}{' '}
               <Link to="/register" className="font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:underline transition-colors">
                 {t('login.register_link')}
               </Link>
             </p>
-            <Link to="/" className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-              </svg>
-              🌿 Vrati se na početnu
-            </Link>
           </div>
 
         </div>
