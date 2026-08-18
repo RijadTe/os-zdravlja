@@ -40,7 +40,6 @@ const Register = () => {
     
     checkDarkMode();
     
-    // Observer za promjene na document elementu
     const observer = new MutationObserver(checkDarkMode);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
@@ -316,31 +315,30 @@ const Register = () => {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 dark:from-emerald-950 dark:via-teal-900 dark:to-emerald-950 transition-colors duration-300">
+    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       <div className="w-full max-w-md">
-        <div className="bg-white/80 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-2xl p-6 sm:p-8 md:p-10 border border-emerald-200/30 dark:border-emerald-400/10 transition-all duration-300">
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-6 sm:p-8 md:p-10 transition-all duration-300">
           
           {/* Logo & Header */}
           <div className="text-center mb-6">
-            {/* 🔥 TVOJ ORIGINALNI LOGO */}
             <div className="flex justify-center mb-3">
               <img 
                 src="https://i.postimg.cc/WbdznKdk/Green-Simple-Healthy-Food-Logo-20260817-003421-0000.png" 
                 alt="OS Zdravlja Logo"
-                className="w-20 h-20 sm:w-24 sm:h-24 object-contain drop-shadow-lg"
+                className="w-20 h-20 sm:w-24 sm:h-24 object-contain"
               />
             </div>
             
-            <h2 className="text-2xl sm:text-3xl font-bold text-emerald-800 dark:text-white">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
               OS Zdravlja
             </h2>
             
             <div className="flex items-center justify-center gap-2 mt-2">
-              <span className="text-sm text-emerald-600 dark:text-emerald-300/60">🌐</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">🌐</span>
               <select 
                 value={i18n.language}
                 onChange={(e) => i18n.changeLanguage(e.target.value)}
-                className="text-sm bg-transparent border border-emerald-300/50 dark:border-emerald-400/20 rounded-lg px-3 py-1 text-emerald-700 dark:text-emerald-200/80 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 cursor-pointer"
+                className="text-sm bg-transparent border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-pointer"
               >
                 <option value="hr">Hrvatski</option>
                 <option value="en">English</option>
@@ -348,11 +346,11 @@ const Register = () => {
               </select>
             </div>
             
-            <p className="mt-2 text-sm text-emerald-600 dark:text-emerald-300/70">
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               🌿 {t('register.subtitle') || 'Pridružite se i otkrijte savršene recepte!'}
             </p>
             
-            <p className="text-[10px] mt-1 text-emerald-500/60 dark:text-emerald-300/40">
+            <p className="text-[10px] mt-1 text-gray-400 dark:text-gray-500">
               ⚠️ {t('register.language_hint') || 'Odabrani jezik se ne može promijeniti nakon registracije.'}
             </p>
           </div>
@@ -401,10 +399,10 @@ const Register = () => {
           {/* Divider */}
           <div className="relative my-5">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+              <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+              <span className="px-4 bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500">
                 🌱 {t('register.or_email') || 'ili registrujte se sa emailom'}
               </span>
             </div>
@@ -421,7 +419,7 @@ const Register = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent transition-all duration-300"
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent transition-all duration-300"
                 placeholder={t('register.email_placeholder') || 'vas@email.com'}
                 required
               />
@@ -436,7 +434,7 @@ const Register = () => {
                 name="ime"
                 value={formData.ime}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent transition-all duration-300"
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent transition-all duration-300"
                 placeholder={t('register.name_placeholder') || 'Marko Marković'}
                 required
               />
@@ -452,7 +450,7 @@ const Register = () => {
                   name="lozinka"
                   value={formData.lozinka}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent transition-all duration-300"
                   placeholder="••••••"
                   minLength="6"
                   required
@@ -497,7 +495,7 @@ const Register = () => {
                   name="lozinkaPotvrda"
                   value={formData.lozinkaPotvrda}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 pr-12 rounded-xl border bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-transparent transition-all duration-300 ${
+                  className={`w-full px-4 py-3 pr-12 rounded-xl border bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent transition-all duration-300 ${
                     formData.lozinkaPotvrda && formData.lozinkaPotvrda === formData.lozinka 
                       ? 'border-emerald-400 dark:border-emerald-400' 
                       : formData.lozinkaPotvrda && formData.lozinkaPotvrda !== formData.lozinka 
@@ -534,7 +532,7 @@ const Register = () => {
 
             <button
               type="submit"
-              className="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/25 transition-all duration-300 flex items-center justify-center gap-2 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/25 transition-all duration-300 flex items-center justify-center gap-2 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               disabled={loading || (formData.lozinkaPotvrda && formData.lozinkaPotvrda !== formData.lozinka)}
             >
               {!loading ? (
@@ -556,7 +554,7 @@ const Register = () => {
             </button>
           </form>
 
-          {/* Samo linkovi - BEZ FOOTERA */}
+          {/* Linkovi */}
           <div className="mt-6 text-center space-y-2">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               🌿 {t('register.have_account')}{' '}
