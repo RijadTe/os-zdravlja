@@ -307,9 +307,15 @@ const Register = () => {
               🌿 {t('register.subtitle') || 'Pridružite se i otkrijte savršene recepte!'}
             </p>
             
-            <p className="text-[10px] mt-1 text-gray-400 dark:text-gray-500">
-              ⚠️ {t('register.language_hint') || 'Odabrani jezik se ne može promijeniti nakon registracije.'}
-            </p>
+            {/* 🔥 VEĆE UPOZORENJE - ISTAKNUTO */}
+            <div className="mt-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700/50 rounded-xl">
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-lg sm:text-xl">⚠️</span>
+                <p className="text-sm sm:text-base font-semibold text-amber-700 dark:text-amber-400">
+                  {t('register.language_hint') || 'Odabrani jezik se ne može promijeniti nakon registracije.'}
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Error/Success Messages */}
