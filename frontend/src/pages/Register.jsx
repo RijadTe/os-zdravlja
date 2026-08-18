@@ -51,68 +51,6 @@ const Register = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // 🔥 GOOGLE REGISTRACIJA
-  const handleGoogleRegister = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      
-      const { data, error: signInError } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        },
-      });
-
-      if (signInError) {
-        console.error('❌ Google greška:', signInError);
-        setError('Greška pri Google registraciji: ' + signInError.message);
-        setLoading(false);
-        return;
-      }
-
-      console.log('✅ Google OAuth započet:', data);
-      
-    } catch (error) {
-      console.error('❌ Greška:', error);
-      setError('Došlo je do greške. Pokušajte ponovo.');
-      setLoading(false);
-    }
-  };
-
-  // 🔥 APPLE REGISTRACIJA
-  const handleAppleRegister = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      
-      const { data, error: signInError } = await supabase.auth.signInWithOAuth({
-        provider: 'apple',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-
-      if (signInError) {
-        console.error('❌ Apple greška:', signInError);
-        setError('Greška pri Apple registraciji: ' + signInError.message);
-        setLoading(false);
-        return;
-      }
-
-      console.log('✅ Apple OAuth započet:', data);
-      
-    } catch (error) {
-      console.error('❌ Greška:', error);
-      setError('Došlo je do greške. Pokušajte ponovo.');
-      setLoading(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -367,46 +305,6 @@ const Register = () => {
               {success}
             </div>
           )}
-
-          {/* Social Buttons */}
-          <div className="grid grid-cols-2 gap-3 mb-5">
-            <button 
-              onClick={handleGoogleRegister}
-              disabled={loading}
-              className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-300 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="#EA4335" d="M5.3 10.7L2.6 8.5c-.4-.3-.6-.8-.4-1.3L4.7 2.6c.2-.4.6-.6 1-.6h12.6c.4 0 .8.2 1 .6l2.5 4.6c.2.5 0 1-.4 1.3l-2.7 2.2-6.2 5.1c-.3.3-.8.3-1.1 0l-6.2-5.1z"/>
-                <path fill="#FBBC04" d="M12 14.3L5.3 10.7 12 7.1l6.7 3.6L12 14.3z"/>
-                <path fill="#34A853" d="M12 14.3v6.9c0 .6-.5 1.1-1.1 1.1-.2 0-.5-.1-.7-.2L5.3 17.3c-.4-.3-.6-.8-.4-1.3l.4-3.6 6.7 1.9z"/>
-                <path fill="#4285F4" d="M21.4 8.5l-2.7 2.2L12 14.3l6.7 1.9.4 3.6c.2.5 0 1-.4 1.3l-4.9 3.5c-.2.1-.4.2-.7.2-.6 0-1.1-.5-1.1-1.1v-6.9l-6.7-3.6-2.7-2.2c-.4-.3-.6-.8-.4-1.3L4.7 2.6c.2-.4.6-.6 1-.6h12.6c.4 0 .8.2 1 .6l2.5 4.6c.2.5 0 1-.4 1.3z"/>
-              </svg>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Google</span>
-            </button>
-            
-            <button 
-              onClick={handleAppleRegister}
-              disabled={loading}
-              className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-300 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M18.7 12.4c-.1-2.2 1.8-3.2 1.9-3.3-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.7.8-3.4.8-.7 0-1.8-.8-3-.8-1.6 0-3 .9-3.8 2.3-1.6 2.8-.4 6.9 1.2 9.2.8 1.1 1.7 2.3 2.9 2.3 1.2 0 1.5-.8 3-.8s1.9.8 3.1.8 2.1-1.1 2.9-2.3c.9-1.1 1.3-2.3 1.3-2.3-.1-.1-2.5-.9-2.5-3.7zM15.4 3.8c.7-.8 1.1-1.9 1-3-.9 0-2.1.6-2.8 1.4-.6.7-1.2 1.8-1 2.9 1.1.1 2.2-.5 2.8-1.3z"/>
-              </svg>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Apple</span>
-            </button>
-          </div>
-
-          {/* Divider */}
-          <div className="relative my-5">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500">
-                🌱 {t('register.or_email') || 'ili registrujte se sa emailom'}
-              </span>
-            </div>
-          </div>
 
           {/* Register Form */}
           <form className="space-y-4" onSubmit={handleSubmit}>
