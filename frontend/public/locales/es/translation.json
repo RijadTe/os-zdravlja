@@ -1,0 +1,1091 @@
+{
+  "scanreceipt": {
+    "select_file": "Seleccionar imagen del ticket",
+    "scanning": "Escaneando...",
+    "scan": "Escanea",
+    "info": "Toma una foto del ticket del supermercado y añadiremos automáticamente los ingredientes a la nevera."
+  },
+  "app": {
+    "title": "OS Zdravlja – El sistema operativo para tu salud",
+    "subtitle": "Descubre recetas adaptadas a tus necesidades, dietas y gustos."
+  },
+  "nav": {
+    "home": "Inicio",
+    "community": "Comunidad",
+    "profile": "Perfil",
+    "login": "Iniciar sesión",
+    "quiz": "Cuestionario",
+    "premium": "Premium",
+    "recipes": "Recetas"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Se ha producido un error. Inténtalo de nuevo.",
+    "success": "¡Éxito!",
+    "close": "Cerrar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "search": "Buscar...",
+    "back": "Atrás",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "retry": "Reintentar"
+  },
+  "labels": {
+    "vrijeme": {
+      "kratko": "Corto",
+      "srednje": "Medio",
+      "dugo": "Largo"
+    },
+    "tezina": {
+      "lagani": "Fácil",
+      "srednji": "Intermedio",
+      "teski": "Difícil"
+    },
+    "kalorije": {
+      "nisko": "Bajo",
+      "srednje": "Medio",
+      "visoko": "Alto"
+    },
+    "kategorija": {
+      "dijeta": "Dietético",
+      "deserti": "Postres",
+      "slano": "Platos salados",
+      "napici": "Bebidas"
+    }
+  },
+  "home": {
+    "hero": {
+      "title": "OS Zdravlja",
+      "subtitle": "El sistema operativo para tu salud",
+      "description": "Descubre recetas adaptadas a tus necesidades, dietas y gustos.",
+      "start_quiz": "Comenzar cuestionario",
+      "ai_chef": "Búsqueda AI Chef"
+    },
+    "alert_required": "Responde a todas las preguntas.",
+    "no_profile": {
+      "title": "¡Personaliza tu experiencia!",
+      "description": "Completa nuestro breve cuestionario y te mostraremos recetas perfectas para ti.",
+      "button": "Comenzar cuestionario"
+    },
+    "profile": {
+      "title": "Tu perfil",
+      "completed": "Cuestionario completado",
+      "name": "Nombre",
+      "eat": "Quieres comer",
+      "prefers": "Prefieres",
+      "avoids": "Evitas",
+      "not_set": "No establecido",
+      "not_selected": "No seleccionado"
+    },
+    "categories": {
+      "title": "ELIGE UNA CATEGORÍA",
+      "diet": "DIETÉTICO",
+      "desserts": "POSTRES",
+      "savory": "PLATOS SALADOS",
+      "quiz": "CUESTIONARIO",
+      "ai_chef": "AI CHEF",
+      "drinks": "BEBIDAS"
+    },
+    "lifestyle": {
+      "title": "Lifestyle Coach",
+      "sleep": "Sueño",
+      "excellent": "Excelente",
+      "good": "Bueno",
+      "bad": "Malo",
+      "energy": "Energía",
+      "full": "Lleno/a",
+      "moderate": "Moderado",
+      "tired": "Cansado/a",
+      "stress": "Estrés",
+      "low": "Bajo",
+      "high": "Alto",
+      "get_advice": "Obtén recomendaciones",
+      "recommended": "Recetas recomendadas para ti:"
+    },
+    "fridge": {
+      "title": "Mi nevera",
+      "placeholder": "Añadir ingrediente...",
+      "add": "Añadir",
+      "find_recipes": "Encontrar recetas",
+      "empty": "La nevera está vacía.",
+      "empty_hint": "Añade los ingredientes que necesitas comprar.",
+      "premium": "⭐ PREMIUM",
+      "delete": "Eliminar",
+      "total": "Total",
+      "ingredient": "ingrediente",
+      "ingredients": "ingredientes",
+      "remaining": "Restante",
+      "slots": "espacios",
+      "remaining_to_buy": "Restante por comprar",
+      "clear": "Vaciar",
+      "searching": "Buscando...",
+      "limit_reached": "❌ Has alcanzado el número máximo de ingredientes (5) para usuarios FREE. ¡Hazte Premium para una lista ilimitada!",
+      "limit_reached_premium": "❌ Has alcanzado el número máximo de ingredientes.",
+      "scan_limit_reached": "❌ No puedes añadir más de 5 ingredientes. Actualmente tienes {{count}} de 5. ¡Hazte Premium para una lista ilimitada!",
+      "no_items_for_search": "¡Añade al menos un ingrediente no comprado!",
+      "no_recipes_found": "No hay recetas para estos ingredientes. Intenta añadir más ingredientes.",
+      "search_error": "Se ha producido un error. Inténtalo de nuevo.",
+      "rate_limit": "Demasiadas peticiones. Espera y vuelve a intentarlo.",
+      "scan_success": "✅ ¡{{count}} ingredientes añadidos a la nevera!",
+      "clear_confirm": "¿Estás seguro de que quieres vaciar la nevera?"
+    },
+    "foodplanner": {
+      "title": "Planificador alimentario completo",
+      "description": "Sigue tus comidas, analiza tu alimentación y planifica la semana con la ayuda de la IA.",
+      "emoji": "Registro emocional",
+      "emoji_desc": "Elige un emoji antes/después",
+      "ai": "Recomendaciones IA",
+      "ai_desc": "Basado en tu estado de ánimo",
+      "chart": "Gráfico",
+      "chart_desc": "Visualización semanal",
+      "watch": "Smartwatch",
+      "watch_desc": "Apple Health, Google Fit",
+      "pdf": "Informe PDF",
+      "pdf_desc": "Semanal/Mensual",
+      "plan": "Plan de comidas",
+      "plan_desc": "Plan IA basado en el estado de ánimo",
+      "connected": "Conectado con Lifestyle Coach",
+      "connected_desc": "Las recomendaciones se añaden automáticamente al Diario",
+      "open": "Abrir Diario alimentario"
+    },
+    "healthychef": {
+      "title": "HealthyChef",
+      "description": "Recetas personalizadas para tus necesidades de salud.",
+      "hormonal": "HORMONAL",
+      "thyroid": "TIROIDES",
+      "anemia": "ANEMIA",
+      "bones": "HUESOS",
+      "menopause": "MENOPAUSIA",
+      "pcos": "SOP",
+      "open": "Abrir HealthyChef"
+    },
+    "recipes": {
+      "title": "Recetas recomendadas",
+      "filters_active": "filtros activos",
+      "loading": "Cargando recetas...",
+      "no_results": "No hay recetas que coincidan con los filtros.",
+      "reset_filters": "Restablecer filtros"
+    },
+    "filters": {
+      "all_types": "Todos los tipos",
+      "all_time": "Todo el tiempo",
+      "all_difficulty": "Todos los niveles",
+      "preferences": "Todas las preferencias",
+      "high_protein": "Alto en proteínas",
+      "high_fiber": "Rico en fibra",
+      "high_carbs": "Rico en carbohidratos",
+      "reset": "Restablecer",
+      "savory": "Salado",
+      "desserts": "Postres",
+      "diet": "Dietético",
+      "drinks": "Bebidas",
+      "short": "Corto",
+      "medium": "Medio",
+      "long": "Largo",
+      "beginner": "Principiante",
+      "intermediate": "Intermedio",
+      "professional": "Profesional"
+    },
+    "premium": {
+      "title": "Contenido Premium",
+      "description": "¡Desbloquea el Planificador alimentario completo y todas las funciones Premium!",
+      "button": "Hazte Premium",
+      "unlocked": "Desbloqueado",
+      "unlock_all": "Hazte Premium y desbloquea todo",
+      "all_unlocked": "¡Todas las funciones están disponibles!",
+      "all_locked": "Todas las funciones están bloqueadas. Hazte Premium para usarlas."
+    },
+    "advice_tired_stressed": "😴 Noto que estás cansado/a y estresado/a. Te recomiendo comidas ligeras y nutritivas que te darán energía sin sobrecargarte.",
+    "advice_bad_sleep_low_energy": "😴 Mal sueño y baja energía. Te recomiendo comidas ricas en proteínas y vitaminas para una recuperación rápida.",
+    "advice_bad_sleep_good_stress": "😴 Tu sueño no es óptimo, pero estás relajado/a. Te recomiendo cenas ligeras que no sobrecarguen la digestión.",
+    "advice_good_energy_low_stress": "⚡ ¡Excelente! Tienes buena energía y bajo estrés. ¡Es hora de experimentar con nuevas recetas!",
+    "advice_good_energy_high_stress": "⚡ Tienes energía, pero estás estresado/a. Te recomiendo comidas que calmen y relajen.",
+    "advice_low_energy_low_stress": "😴 Baja energía, pero estás relajado/a. Te recomiendo comidas para aumentar tu energía.",
+    "advice_all_good": "😊 ¡Excelente condición! Continúa con tu alimentación habitual y disfruta de comidas variadas.",
+    "advice_explore_recipes": "😊 Según tu estado de ánimo, te recomendamos explorar nuestra base de recetas y encontrar algo que te guste!",
+    "advice_error": "❌ Se ha producido un error. Inténtalo de nuevo."
+  },
+  "quiz": {
+    "title": "👋 CONOZCÁMONOS",
+    "subtitle": "Responde 6 preguntas y adaptaremos las recetas a tus necesidades!",
+    "edit_title": "✏️ Editar filtros",
+    "edit_subtitle": "Personaliza tus preferencias y disfruta de recetas perfectas!",
+    "step_label": "Pasos",
+    "step": "Paso {current} de {total}",
+    "selected": "Seleccionado: {count}/{max}",
+    "select_placeholder": "Elige...",
+    "logged_in_as": "👋 Conectado como",
+    "questions": {
+      "vrsta": "🍽️ ¿Qué quieres comer hoy? * (máx 3)",
+      "preferencije": "💪 ¿Qué PREFIERES? (máx 2)",
+      "restrikcije": "🚫 ¿Qué EVITAS? (máx 3)",
+      "vrijeme": "⏱️ ¿Cuánto tiempo tienes para preparar? *",
+      "tezina": "👨‍🍳 ¿Cuál es tu nivel en cocina? *",
+      "kalorije": "🔥 ¿Qué calorías prefieres? *"
+    },
+    "options": {
+      "vrsta": ["Postres", "Salado", "Recetas dietéticas", "Bebidas", "Da igual"],
+      "restrikcije": ["Sin restricciones", "Sin gluten", "Sin lactosa", "Sin azúcar", "Vegano", "Sin frutos secos"],
+      "preferencije": ["Alto en proteínas", "Rico en fibra", "Rico en carbohidratos", "Da igual"],
+      "vrijeme": ["Corto (15-30 min)", "Medio (30-45 min)", "Largo (45-60+ min)"],
+      "tezina": ["Principiante", "Intermedio", "Profesional"],
+      "kalorije": ["Bajo (hasta 300 kcal)", "Moderado (300-500 kcal)", "Medio (500-700 kcal)", "Alto (900+ kcal)"]
+    },
+    "buttons": {
+      "back": "Atrás",
+      "next": "Siguiente →",
+      "submit": "✅ Comencemos",
+      "save": "✅ Guardar cambios"
+    },
+    "toast": {
+      "already_completed": "ℹ️ Ya has completado el cuestionario. Puedes modificar tus preferencias en cualquier momento.",
+      "login_required": "🔒 Inicia sesión para acceder al cuestionario.",
+      "max_selected": "Puedes seleccionar un máximo de {max} opciones.",
+      "fill_all_fields": "Completa todos los campos.",
+      "not_logged_in": "❌ No has iniciado sesión. Inicia sesión.",
+      "success": "✅ ¡Cuestionario completado! Los filtros se han guardado.",
+      "error": "❌ Error al enviar el cuestionario: {message}"
+    }
+  },
+  "premium": {
+    "title": "⭐ Premium",
+    "subtitle": "¡Desbloquea todas las funciones y mejora tu experiencia culinaria!",
+    "alert": {
+      "login_required": "Inicia sesión primero.",
+      "session_error": "Error al crear la sesión",
+      "payment_error": "❌ Error al iniciar el pago"
+    },
+    "free": {
+      "title": "🆓 Gratis",
+      "price": "€0",
+      "features": {
+        "search": "Búsqueda de recetas (texto)",
+        "recipes": "Recetas básicas (100.000+)",
+        "categories": "Categorías (6)",
+        "quiz": "Cuestionario (personalización)"
+      },
+      "missing": {
+        "ingredient_recognition": "Reconocimiento de ingredientes",
+        "healthychef": "HealthyChef",
+        "food_diary": "Diario alimentario",
+        "voice_cooking": "Cocina por voz",
+        "scan_receipt": "Escanear ticket",
+        "community": "Comunidad"
+      }
+    },
+    "premium": {
+      "title": "⭐ Premium",
+      "price": "€4.99",
+      "period": "/ mes",
+      "total_features": "¡16+ funciones Premium!"
+    },
+    "button": {
+      "loading": "⏳ Procesando...",
+      "default": "💳 Hazte Premium"
+    },
+    "details": {
+      "title": "🎁 ¿Qué obtienes con Premium?",
+      "subtitle": "¡Desbloquea 16+ funciones avanzadas que facilitarán tu cocina diaria!"
+    },
+    "features": {
+      "ingredient_recognition": "Reconocimiento de ingredientes",
+      "ingredient_recognition_desc": "Fotografía los ingredientes y el sistema reconoce lo que tienes en la nevera. ¡Sin escribir!",
+      "voice_search": "Búsqueda por voz",
+      "voice_search_desc": "En lugar de escribir, simplemente di los ingredientes que tienes en casa.",
+      "healthychef": "HealthyChef (3 niveles)",
+      "healthychef_desc": "6 categorías, 29 subcategorías – recetas para el ciclo hormonal, tiroides, anemia, menopausia, SOP y huesos.",
+      "food_diary": "Diario alimentario + Analítica",
+      "food_diary_desc": "Registra tus comidas, sigue calorías, proteínas, carbohidratos y grasas durante la semana con gráficos.",
+      "meal_plan": "Plan de comidas personalizado",
+      "meal_plan_desc": "Genera un plan de comidas semanal basado en tu estado de ánimo y preferencias.",
+      "virtual_fridge": "Nevera virtual",
+      "virtual_fridge_desc": "Añade los ingredientes que tienes y el sistema te recomienda recetas basadas en ellos.",
+      "lifestyle_coach": "Lifestyle Coach",
+      "lifestyle_coach_desc": "Responde preguntas sobre sueño, energía y estrés – recibe recomendaciones personalizadas.",
+      "sommelier": "Sommelier – combinaciones perfectas",
+      "sommelier_desc": "Para cada receta recibe recomendaciones de especias, bebida, acompañamiento y hora ideal.",
+      "scan_receipt": "Escanear ticket",
+      "scan_receipt_desc": "Fotografía el ticket del supermercado – el sistema reconoce los ingredientes y los añade a la nevera.",
+      "voice_cooking": "Cocina por voz",
+      "voice_cooking_desc": "Escucha las instrucciones paso a paso mientras cocinas – ¡tus manos están libres!",
+      "community": "Comunidad – Publicaciones",
+      "community_desc": "Comparte tus recetas, da like a las de otros y forma parte de la comunidad.",
+      "badges": "Insignias y desafíos",
+      "badges_desc": "Gana insignias por tus logros (primera receta, 10 recetas...) y sigue tu progreso.",
+      "shopping_list": "Lista de la compra",
+      "shopping_list_desc": "Genera una lista de ingredientes basada en tu plan de comidas y envíala por email o PDF.",
+      "pdf_report": "Informe PDF",
+      "pdf_report_desc": "Genera un informe semanal o mensual sobre tu alimentación con todos los detalles.",
+      "smartwatch": "Integración con smartwatch",
+      "smartwatch_desc": "Conéctate con Apple Health o Google Fit y sigue tu progreso en tiempo real.",
+      "no_ads": "Sin anuncios",
+      "no_ads_desc": "Disfruta de una experiencia limpia sin anuncios intrusivos."
+    },
+    "cta": {
+      "title": "🌟 ¿Listo para la experiencia Premium?",
+      "subtitle": "¡Únete a miles de usuarios satisfechos que disfrutan de todas las funciones Premium!",
+      "button": "⭐ ¡Hazte Premium hoy!",
+      "secure": "🔒 Pago seguro a través de Stripe. Cancela en cualquier momento."
+    }
+  },
+  "aichef": {
+    "seo_title": "AI Chef – OS Zdravlja",
+    "seo_description": "Busca recetas por ingredientes o fotografía los alimentos – AI Chef los reconoce y propone recetas perfectas!",
+    "title": "🤖 AI Chef – ¿Qué tienes en la nevera?",
+    "subtitle": "Introduce los ingredientes que tienes en casa o usa Premium para opciones avanzadas.",
+    "placeholder": "Introduce ingredientes (ej. pollo, cebolla, zanahoria)...",
+    "common_searches": "📌 Búsquedas frecuentes",
+    "no_results": "No hay recetas para los ingredientes introducidos.",
+    "try_again": "Prueba con otros ingredientes.",
+    "back_home": "Volver al inicio",
+    "premium_hint": "⭐ Hazte Premium para búsquedas ilimitadas y opciones avanzadas.",
+    "premium_link": "Hazte Premium →",
+    "buttons": {
+      "take_photo": "Tomar foto",
+      "limit_used_tomorrow": "🚫 Límite alcanzado - ¡mañana!",
+      "watch_video_unlock": "🔒 Mira el video para 1 foto",
+      "watch_video_action": "Mirar video → 1 foto",
+      "type": "Escribir",
+      "voice": "Voz",
+      "search": "🔍 Buscar recetas",
+      "searching": "Buscando...",
+      "remove_image": "Eliminar imagen"
+    },
+    "status": {
+      "processing": "⏳ La IA procesa tu solicitud...",
+      "searching": "🔍 Buscando recetas...",
+      "sending": "📤 Enviando solicitud...",
+      "analyzing": "⏳ La IA analiza los ingredientes...",
+      "done": "✅ ¡Hecho!",
+      "waiting": "⏱️ Espera: {seconds} segundos"
+    },
+    "status_labels": {
+      "photos": "fotos",
+      "video": "video",
+      "remaining": "restante",
+      "limit_used": "Límite alcanzado",
+      "watch_video": "¡Mira un video para una foto!"
+    },
+    "results": {
+      "title": "📋 Resultados de la búsqueda",
+      "found": "✅ ¡{count} recetas encontradas!",
+      "recipes": "recetas",
+      "from_cache": "💾 Resultados del caché ({{seconds}}s)",
+      "from_database": "📚 Resultados de la base de datos ({{seconds}}s)",
+      "from_ai": "🤖 Resultados generados por IA ({{seconds}}s)"
+    },
+    "filters": {
+      "all_types": "Todos los tipos",
+      "all_time": "Todo el tiempo",
+      "all_difficulty": "Todos los niveles",
+      "reset": "Restablecer"
+    },
+    "unlock": {
+      "watch_for_photo": "🎬 ¡Mira un video para 1 foto!",
+      "current_photos": "Actualmente: {used}/{max} fotos",
+      "remaining_videos": "Videos restantes: {count}",
+      "unlocked_photo": "¡+1 foto!",
+      "now_have_photos": "Ahora tienes {count}/{max} fotos restantes",
+      "use_remaining": "¡Usa tus {count} fotos restantes!",
+      "all_photos_used": "✅ ¡Has usado todas tus {max} fotos hoy!",
+      "premium_photos": "⭐ Los usuarios Premium tienen {max} fotos al día (sin videos)",
+      "video_limit_reached": "📺 Límite diario de videos alcanzado ({max}/{max})"
+    },
+    "messages": {
+      "simulated_ad": "🎬 Anuncio de video simulado...",
+      "simulated_ad_countdown": "🎬 Anuncio simulado... {{seconds}}/3 segundos",
+      "loading_video_ad": "🎬 Cargando anuncio de video... Espera.",
+      "ad_loading_continue": "⏳ Cargando anuncio, continuamos...",
+      "video_ad_finished": "✅ ¡Anuncio de video finalizado!",
+      "watching_ad": "🎬 Mira el anuncio... {{seconds}}/5 segundos",
+      "premium_access": "⭐ ¡Los usuarios Premium tienen 15 fotos al día!",
+      "ad_already_playing": "⏳ Ya hay un anuncio en curso, espera...",
+      "no_photos_watch_video": "📸 ¡Sin fotos! Mira un video para 1 foto.",
+      "no_more_pictures": "📸 ¡Sin fotos! Mira un video para 1 foto.",
+      "daily_limit_reached": "⚠️ Has alcanzado el límite diario de {{max}} fotos. ¡Intenta mañana!",
+      "video_limit_reached": "⚠️ Has alcanzado el límite diario de {{max}} videos. ¡Intenta mañana!",
+      "already_have_photos": "✅ ¡Ya tienes {{count}} fotos restantes! Úsalas.",
+      "already_used_all": "✅ Ya has usado todas tus {{max}} fotos hoy. ¡Intenta mañana!",
+      "video_not_completed": "❌ El anuncio de video no se ha completado. Intenta de nuevo.",
+      "unlock_success": "✅ ¡+1 foto! Ahora tienes {{remaining}} fotos restantes. Quedan {{videoLeft}} videos para hoy.",
+      "video_ad_not_finished": "❌ El anuncio de video no se ha completado. Intenta de nuevo.",
+      "video_ad_unlocked": "✅ ¡+1 foto! Quedan {{remaining}} videos para hoy.",
+      "video_ad_limit_reached": "⚠️ Has alcanzado el límite diario de {{maxVideoAds}} videos. ¡Intenta mañana!",
+      "daily_limit_remaining": "✅ ¡Ya tienes {{remaining}} fotos restantes! Úsalas.",
+      "cache_hit": "💾 Resultados del caché ({{elapsed}}s)",
+      "database_result": "📚 Resultados de la base de datos ({{elapsed}}s)",
+      "ai_generated": "🤖 Resultados generados por IA ({{elapsed}}s)",
+      "ai_thinking": "⏳ La IA está pensando... ya {{elapsed}} segundos",
+      "ai_generating_recipes": "🧠 La IA genera recetas... ({{elapsed}}s)",
+      "ai_processing": "⏳ La IA sigue trabajando... ({{elapsed}}s)"
+    },
+    "errors": {
+      "login_required": "⚠️ Debes iniciar sesión.",
+      "no_input": "⚠️ Introduce ingredientes o sube una imagen.",
+      "photo_premium": "📸 La foto está disponible solo para usuarios Premium o después de desbloquear.",
+      "search_failed": "❌ Error al buscar. Intenta de nuevo.",
+      "general": "❌ Se ha producido un error. Intenta de nuevo.",
+      "voice_premium": "🎤 La búsqueda por voz está disponible solo para usuarios Premium.",
+      "voice_not_supported": "❌ Tu navegador no soporta la búsqueda por voz.",
+      "voice_error": "❌ Error al buscar por voz. Intenta de nuevo.",
+      "error": "❌ Error"
+    },
+    "card": {
+      "photo": "Foto",
+      "photos_count": "0/3",
+      "ready": "Lista",
+      "photo_hint": "Toma o añade una foto",
+      "video": "Video",
+      "watch": "Mirar",
+      "watch_video": "🎬 Mirar video",
+      "unlocked": "✅ Desbloqueado",
+      "has_photos": "✅ Tienes fotos",
+      "limit_used": "⛔ Límite alcanzado",
+      "remaining": "Restante",
+      "photos": "fotos",
+      "premium_user": "⭐ Usuario Premium",
+      "status": "Estado",
+      "premium": "Premium",
+      "free": "🔒 Gratis",
+      "free_badge": "🔓 GRATIS",
+      "all_features": "✅ Todas las funciones",
+      "limited": "🔒 Limitado",
+      "become_premium": "⭐ Hazte → PREMIUM",
+      "voice": "Voz",
+      "search": "búsqueda",
+      "locked": "🔒 Bloqueado",
+      "voice_premium_hint": "⭐ Hazte Premium para búsqueda por voz",
+      "premium_badge": "⭐ PREMIUM",
+      "premium_feature": "⭐ Función Premium",
+      "watching_ad": "Mira el anuncio...",
+      "seconds": "segundos"
+    },
+    "status_messages": {
+      "communicating": "📡 Comunicando con el servidor...",
+      "searching_db": "🔍 Buscando en la base de datos... ({{seconds}}s)",
+      "consulting_ai": "🤖 Consultando a la IA... ({{seconds}}s)",
+      "ai_thinking": "⏳ La IA está pensando... ya {{seconds}} segundos",
+      "ai_generating": "🧠 La IA genera recetas... ({{seconds}}s)",
+      "ai_still_thinking": "🧠 La IA sigue pensando ({{seconds}}s), ¡gracias por tu paciencia!",
+      "ai_still_working": "⏳ La IA sigue trabajando... ({{seconds}}s)",
+      "taking_longer": "⏳ Esto está tomando un poco más de tiempo ({{seconds}}s), ¡la IA está preparando recetas perfectas!"
+    },
+    "voice": {
+      "listening": "🎤 Escucho... Di tu consulta",
+      "recognized": "✅ Reconocido: \"{{text}}\"",
+      "text_recognized": "📝 Texto reconocido, iniciando búsqueda...",
+      "not_recognized": "❌ No he reconocido el texto. Intenta de nuevo.",
+      "microphone_access": "❌ Permite el acceso al micrófono para la búsqueda por voz.",
+      "no_speech": "❌ No he oído nada. Intenta de nuevo.",
+      "no_microphone": "❌ Sin acceso al micrófono. Verifica tu configuración.",
+      "error": "❌ Error al buscar por voz. Intenta de nuevo."
+    },
+    "badge": {
+      "ai": "IA"
+    }
+  },
+  "foodplanner": {
+    "title": "Diario alimentario",
+    "premium": {
+      "title": "Diario alimentario",
+      "description": "Esta sección está disponible solo para usuarios Premium.",
+      "button": "Hazte Premium"
+    },
+    "tabs": {
+      "diary": "Diario",
+      "analytics": "Analítica",
+      "plan": "Plan de comidas"
+    },
+    "diary": {
+      "today": "Hoy,",
+      "goal": "Objetivo diario:",
+      "consumed": "Consumido:",
+      "protein": "Proteínas",
+      "carbs": "Carbohidratos",
+      "fat": "Grasas",
+      "add_meal": "Añadir comida",
+      "meal_name": "Nombre del plato...",
+      "breakfast": "Desayuno",
+      "lunch": "Almuerzo",
+      "dinner": "Cena",
+      "snack": "Merienda",
+      "mood_before": "😊 Estado de ánimo ANTES de la comida",
+      "mood_after": "😊 Estado de ánimo DESPUÉS de la comida",
+      "note_placeholder": "📝 Nota (ej. 'Tenía hambre', 'Aburrimiento')",
+      "calories": "Calorías",
+      "protein_g": "Proteínas (g)",
+      "carbs_g": "Carbohidratos (g)",
+      "fat_g": "Grasas (g)",
+      "add_button": "➕ Añadir comida",
+      "sending": "⏳ Enviando...",
+      "loading": "⏳ Cargando comidas...",
+      "no_meals": "No hay comidas registradas hoy.",
+      "add_first": "¡Añade tu primera comida!",
+      "delete": "Eliminar comida"
+    },
+    "analytics": {
+      "title": "📈 Analítica",
+      "no_data": "No hay suficientes datos para el análisis.",
+      "add_meals": "Registra algunas comidas para ver las estadísticas.",
+      "weekly_chart": "📊 Ingesta calórica semanal",
+      "macro_chart": "🥧 Macronutrientes",
+      "generating": "Generando...",
+      "generate_pdf": "Generar informe PDF"
+    },
+    "plan": {
+      "title": "📅 Plan de comidas",
+      "generate": "Generar plan semanal",
+      "generating": "Generando...",
+      "days": {
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mié",
+        "thu": "Jue",
+        "fri": "Vie",
+        "sat": "Sáb",
+        "sun": "Dom"
+      },
+      "hint": "💡 El plan se genera en función de los ingredientes de tu nevera"
+    },
+    "chart": {
+      "week_labels": ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"],
+      "calories": "Calorías",
+      "goal": "Objetivo (2200 kcal)",
+      "protein": "Proteínas",
+      "carbs": "Carbohidratos",
+      "fat": "Grasas"
+    },
+    "moods": {
+      "happy": "Feliz",
+      "neutral": "Neutral",
+      "sad": "Triste",
+      "angry": "Enojado",
+      "tired": "Cansado",
+      "excited": "Emocionado",
+      "relaxed": "Relajado",
+      "thoughtful": "Pensativo"
+    },
+    "alerts": {
+      "fill_fields": "⚠️ Introduce un nombre y calorías.",
+      "login_required": "⚠️ Debes iniciar sesión.",
+      "add_error": "❌ Error al añadir la comida. Intenta de nuevo.",
+      "delete_confirm": "¿Estás seguro de que quieres eliminar esta comida?",
+      "delete_error": "❌ Error al eliminar la comida.",
+      "plan_error": "❌ Error al generar el plan. Intenta de nuevo.",
+      "no_meals": "⚠️ No hay comidas para el informe. Añade algunas comidas primero.",
+      "pdf_error": "❌ Error al generar el PDF."
+    }
+  },
+  "community": {
+    "title": "Comunidad",
+    "loading": "Cargando publicaciones...",
+    "share_recipe": "Comparte tu receta",
+    "recipe_name": "Nombre de la receta *",
+    "description": "Descripción...",
+    "ingredients": "Ingredientes (separados por comas)",
+    "post_button": "Publicar",
+    "unknown_user": "Usuario desconocido",
+    "alerts": {
+      "login_required": "¡Debes iniciar sesión para publicar!"
+    },
+    "filters": {
+      "title": "Filtros",
+      "reset": "Restablecer",
+      "all_types": "🍽️ Todos los tipos",
+      "savory": "Salado",
+      "desserts": "Postres",
+      "diet": "Dietético",
+      "drinks": "Bebidas",
+      "all_time": "⏱️ Todo el tiempo",
+      "short": "⚡ Corto",
+      "medium": "⏳ Medio",
+      "long": "🐢 Largo",
+      "all_difficulty": "🏋️ Todos los niveles",
+      "beginner": "👶 Principiante",
+      "intermediate": "👨‍🍳 Intermedio",
+      "professional": "👨‍🍳⭐ Profesional",
+      "all_calories": "🔥 Todas las calorías",
+      "low_cal": "🔥 Hasta 300 kcal",
+      "medium_cal": "🔥 300-500 kcal",
+      "high_cal": "🔥 500-700 kcal",
+      "very_high_cal": "🔥 900+ kcal",
+      "active": "activo"
+    },
+    "no_results": "No hay publicaciones que coincidan con tus filtros.",
+    "no_posts": "No hay publicaciones en la comunidad.",
+    "be_first": "¡Sé el primero en compartir una receta! 🍽️",
+    "showing": "Mostrando {{count}} de {{total}} publicaciones",
+    "page": "página {{current}}/{{total}}",
+    "select_time": "Elegir tiempo...",
+    "select_difficulty": "Elegir dificultad...",
+    "prep_time": "⏱️ Tiempo de preparación",
+    "difficulty": "👨‍🍳 Dificultad",
+    "allergens": "🚫 Restricciones / Alérgenos",
+    "select_all_that_apply": "marca todo lo que corresponda",
+    "selected": "Seleccionado",
+    "untitled": "Sin título",
+    "click_for_details": "📖 Para los detalles de preparación, abre la receta",
+    "restrictions": {
+      "none": "Sin restricciones"
+    },
+    "alergeni": {
+      "bez_glutena": "Sin gluten",
+      "bez_laktoze": "Sin lactosa",
+      "bez_secera": "Sin azúcar",
+      "veganski": "Vegano",
+      "bez_orasastih": "Sin frutos secos"
+    },
+    "recipe_type": "Tipo de plato",
+    "select_type": "Elegir tipo de plato..."
+  },
+  "forgotpassword": {
+    "title": "¿Has olvidado tu contraseña?",
+    "subtitle": "Introduce tu email y te enviaremos un enlace para restablecer tu contraseña.",
+    "email_label": "Email",
+    "email_placeholder": "tu@email.com",
+    "remembered": "¿Has recordado tu contraseña?",
+    "login_link": "Inicia sesión",
+    "back_home": "Volver al inicio",
+    "check_spam": "Revisa también la carpeta de spam si no ves el email.",
+    "button": {
+      "send": "📧 Enviar enlace",
+      "sending": "⏳ Enviando...",
+      "sent": "✅ Enviado"
+    },
+    "success": {
+      "message": "✅ El enlace para restablecer la contraseña ha sido enviado a tu email."
+    },
+    "errors": {
+      "email_required": "⚠️ Introduce tu email.",
+      "invalid_email": "⚠️ Introduce una dirección de email válida.",
+      "general": "❌ Error al enviar el enlace. Intenta de nuevo."
+    }
+  },
+  "healthychef": {
+    "title": "HealthyChef",
+    "loading": "Cargando...",
+    "breadcrumb": {
+      "home": "Inicio"
+    },
+    "premium": {
+      "description": "Esta sección está disponible solo para usuarios Premium.",
+      "button": "Hazte Premium"
+    },
+    "categories": {
+      "subtitle": "Elige una categoría para recetas personalizadas.",
+      "empty": "No hay categorías disponibles.",
+      "items": {
+        "hormonal_cycle": "Ciclo hormonal",
+        "thyroid": "Tiroides & Hashimoto",
+        "anemia": "Anemia",
+        "bones": "Huesos y articulaciones",
+        "menopause": "Menopausia",
+        "pcos": "SOP & Resistencia a la insulina"
+      }
+    },
+    "phases": {
+      "back_to_categories": "Volver a categorías",
+      "category": "Categoría",
+      "subtitle": "Elige la fase para la que deseas recetas.",
+      "loading": "Cargando fases...",
+      "empty": "No hay fases disponibles para esta categoría.",
+      "items": {
+        "hormonal_cycle": {
+          "menstrual": "Fase menstrual",
+          "follicular": "Fase folicular",
+          "ovulation": "Ovulación",
+          "early_luteal": "Fase lútea temprana",
+          "pms": "SPM"
+        },
+        "menopause": {
+          "perimenopause": "Perimenopausia",
+          "menopause": "Menopausia",
+          "postmenopause": "Postmenopausia"
+        },
+        "pcos": {
+          "mild_ir": "IR leve / Fase temprana",
+          "moderate_ir": "IR moderada / Caos hormonal",
+          "severe_ir": "IR severa / Prediabetes"
+        }
+      }
+    },
+    "recipes": {
+      "back_to_phases": "Volver a fases",
+      "title": "Recetas",
+      "subtitle": "Recetas adaptadas a tus preferencias y necesidades de salud.",
+      "filters_active": "filtros activos",
+      "loading": "Cargando recetas...",
+      "no_results": "No hay recetas para esta fase con los filtros actuales.",
+      "reset_filters": "Restablecer filtros"
+    },
+    "filters": {
+      "all_types": "Todos los tipos",
+      "all_time": "Todo el tiempo",
+      "all_difficulty": "Todos los niveles",
+      "desserts": "Postres",
+      "savory": "Salado",
+      "diet": "Dietético",
+      "drinks": "Bebidas",
+      "short": "Corto",
+      "medium": "Medio",
+      "long": "Largo",
+      "beginner": "Principiante",
+      "intermediate": "Intermedio",
+      "professional": "Profesional",
+      "reset": "Restablecer filtros"
+    }
+  },
+  "login": {
+    "title": "Iniciar sesión",
+    "subtitle": "¡Bienvenido de nuevo! Inicia sesión para continuar.",
+    "email_label": "Email",
+    "email_placeholder": "tu@email.com",
+    "password_label": "Contraseña",
+    "password_placeholder": "••••••••",
+    "remember_me": "Recordarme",
+    "forgot_password": "¿Has olvidado tu contraseña?",
+    "no_account": "¿No tienes cuenta?",
+    "register_link": "Regístrate",
+    "back_home": "Volver al inicio",
+    "success": "✅ ¡Sesión iniciada! Redirigiendo...",
+    "button": {
+      "login": "🔑 Iniciar sesión",
+      "loading": "⏳ Iniciando sesión..."
+    },
+    "errors": {
+      "required": "❌ El email y la contraseña son obligatorios.",
+      "invalid": "❌ Email o contraseña incorrectos.",
+      "general": "❌ Se ha producido un error. Intenta de nuevo."
+    }
+  },
+  "premiumcancel": {
+    "title": "Pago cancelado",
+    "subtitle": "No te has convertido en usuario Premium.",
+    "message": "Si tienes alguna pregunta, no dudes en contactarnos.",
+    "button": "Reintentar"
+  },
+  "premiumsuccess": {
+    "loading": "Verificando tu pago...",
+    "success": {
+      "title": "¡Felicidades!",
+      "subtitle": "¡Te has convertido en usuario Premium!",
+      "message": "Ahora tienes acceso a todas las funciones Premium.",
+      "activated": "El estado Premium está activado",
+      "home_button": "Volver al inicio",
+      "profile_button": "Ir al perfil"
+    },
+    "error": {
+      "title": "Se ha producido un error",
+      "message": "Si has realizado el pago, contacta con el soporte.",
+      "retry_button": "Reintentar",
+      "home_button": "Volver al inicio"
+    },
+    "errors": {
+      "no_session": "❌ No hay ID de sesión. Contacta con el soporte.",
+      "not_confirmed": "❌ El pago no está confirmado. Intenta de nuevo.",
+      "verification": "❌ Error al verificar. Intenta de nuevo."
+    }
+  },
+  "privacypolicy": {
+    "title": "Política de privacidad",
+    "intro": "se toma muy en serio tu privacidad.",
+    "collect_info": "Recopilamos solo los datos que nos proporcionas voluntariamente:",
+    "data": {
+      "email": "Dirección de email",
+      "name": "Nombre",
+      "preferences": "Preferencias alimentarias",
+      "nutrition": "Datos nutricionales (registro de comidas)"
+    },
+    "sharing": {
+      "title": "Tus datos NUNCA se comparten con terceros."
+    },
+    "delete_info": "Puedes solicitar la eliminación de todos tus datos en cualquier momento a través de tu perfil.",
+    "last_updated": "Última actualización: 31.07.2026.",
+    "back_home": "Volver al inicio"
+  },
+  "profile": {
+    "seo_title": "Perfil – OS Zdravlja",
+    "seo_description": "Tu perfil – consulta tus preferencias, insignias y progreso en OS Zdravlja.",
+    "loading": "Cargando perfil...",
+    "default_name": "Usuario",
+    "not_found": "Perfil no encontrado.",
+    "take_quiz": "Hacer el cuestionario",
+    "premium": "Premium",
+    "become_premium": "Hazte Premium",
+    "progress": "Progreso",
+    "recipes_cooked": "recetas cocinadas",
+    "quiz": "Cuestionario",
+    "completed": "Completado",
+    "not_completed": "No completado",
+    "preferences": "Mis preferencias",
+    "preferences_types": "Tipo",
+    "restrictions": "Restricciones",
+    "none": "Ninguna",
+    "not_selected": "No seleccionado",
+    "time": "Tiempo",
+    "skill": "Habilidad",
+    "calories": "Calorías",
+    "edit_filters": "Editar filtros",
+    "delete_data": "Eliminar todos los datos",
+    "deleting": "Eliminando...",
+    "logout": "Cerrar sesión",
+    "delete_confirm": "¿Estás seguro? ¡Esta acción es irreversible!",
+    "delete_error": "Error al eliminar los datos.",
+    "language": "Idioma",
+    "no_badges": "Todavía no hay insignias ganadas.",
+    "badges_hint": "¡Publica recetas y colecciona likes para ganar insignias!",
+    "other_filters": "Otros filtros",
+    "stats": {
+      "recipes_cooked": "Recetas cocinadas",
+      "badges_earned": "Insignias ganadas",
+      "quiz_completed": "Completado",
+      "quiz_not_completed": "No completado",
+      "status": "Estado",
+      "status_premium": "Premium",
+      "status_free": "Gratis"
+    },
+    "badges": {
+      "title": "Insignias ganadas",
+      "first_recipe": "Primera receta",
+      "three_days": "3 días consecutivos",
+      "ten_recipes": "10 recetas",
+      "earned": "Ganada 🎉",
+      "locked": "Bloqueada",
+      "available": "Insignias disponibles:",
+      "scroll_hint": "Desplázate para ver las insignias...",
+      "available_list": {
+        "first_recipe": "Primera receta",
+        "three_recipes": "3 recetas",
+        "ten_recipes": "10 recetas",
+        "twenty_recipes": "20 recetas",
+        "ten_likes": "10 likes",
+        "fifty_likes": "50 likes"
+      },
+      "descriptions": {
+        "first_recipe": "¡Has publicado tu primera receta en la comunidad!",
+        "three_recipes": "¡Has publicado 3 recetas en la comunidad!",
+        "ten_recipes": "¡Has publicado 10 recetas en la comunidad!",
+        "twenty_recipes": "¡Has publicado 20 recetas en la comunidad!",
+        "popular_recipe": "¡Tu receta ha recibido 10 likes!",
+        "super_popular": "¡Tu receta ha recibido 50 likes!"
+      }
+    }
+  },
+  "register": {
+    "title": "Crear cuenta",
+    "subtitle": "¡Únete a nosotros y descubre recetas perfectas!",
+    "email_label": "Email",
+    "email_placeholder": "tu@email.com",
+    "name_label": "Nombre",
+    "name_placeholder": "María García",
+    "password_label": "Contraseña",
+    "password_placeholder": "•••••••• (min 6 caracteres)",
+    "confirm_password_label": "Confirmar contraseña",
+    "confirm_password_placeholder": "••••••••",
+    "have_account": "¿Ya tienes cuenta?",
+    "login_link": "Inicia sesión",
+    "success": "✅ ¡Registro exitoso! Redirigiendo...",
+    "button": {
+      "register": "✅ Registrarse",
+      "loading": "⏳ Creando..."
+    },
+    "errors": {
+      "all_fields": "❌ Todos los campos son obligatorios.",
+      "passwords_match": "❌ Las contraseñas no coinciden.",
+      "password_length": "❌ La contraseña debe tener al menos 6 caracteres.",
+      "email_exists": "❌ Ya existe un usuario con este email. Inicia sesión.",
+      "profile_create": "❌ Error al crear el perfil: ",
+      "general": "❌ Error al registrarse: "
+    },
+    "language_hint": "El idioma seleccionado no se puede modificar después del registro."
+  },
+  "resetpassword": {
+    "title": "Nueva contraseña",
+    "subtitle": "Introduce una nueva contraseña para tu cuenta.",
+    "new_password_label": "Nueva contraseña",
+    "new_password_placeholder": "•••••••• (min 6 caracteres)",
+    "confirm_password_label": "Confirmar contraseña",
+    "confirm_password_placeholder": "••••••••",
+    "remembered": "¿Has recordado tu contraseña?",
+    "login_link": "Inicia sesión",
+    "back_home": "Volver al inicio",
+    "password_hint": "Mínimo 6 caracteres",
+    "button": {
+      "reset": "🔐 Cambiar contraseña",
+      "loading": "⏳ Cambiando..."
+    },
+    "success": {
+      "message": "✅ ¡La contraseña se ha cambiado con éxito!"
+    },
+    "errors": {
+      "fields_required": "⚠️ Introduce y confirma la contraseña.",
+      "passwords_match": "❌ Las contraseñas no coinciden.",
+      "password_length": "❌ La contraseña debe tener al menos 6 caracteres.",
+      "general": "❌ Error al restablecer la contraseña."
+    }
+  },
+  "termsofservice": {
+    "title": "Términos de servicio",
+    "disclaimer": {
+      "title": "⚠️ AVISO SANITARIO",
+      "text": "OS Zdravlja proporciona contenidos informativos y educativos sobre nutrición y salud.",
+      "strong": "NO SUSTITUYE UN CONSEJO MÉDICO."
+    },
+    "consult": {
+      "text": "Antes de cualquier cambio en tu alimentación o estilo de vida,",
+      "strong": "consulta a tu médico o nutricionista."
+    },
+    "last_updated": "Última actualización: 31.07.2026.",
+    "back_home": "Volver al inicio"
+  },
+  "recipe": {
+    "step": "Paso",
+    "of": "de",
+    "finished": "✅ ¡La receta ha sido leída!",
+    "no_steps": "⚠️ No hay instrucciones para esta receta.",
+    "voice_cooking": "Cocina por voz",
+    "start_reading": "Comenzar lectura",
+    "pause": "Pausa",
+    "resume": "Continuar",
+    "stop": "Detener",
+    "reading": "Leyendo...",
+    "paused": "En pausa",
+    "not_supported": "Tu navegador no soporta la lectura por voz.",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "ingredients": "Ingredientes",
+    "instructions": "Instrucciones",
+    "nutrition": "Valores nutricionales",
+    "calories": "Calorías",
+    "protein": "Proteínas",
+    "carbs": "Carbohidratos",
+    "fat": "Grasas",
+    "fiber": "Fibra",
+    "sodium": "Sodio",
+    "servings": "Personas",
+    "original": "Original",
+    "for": "para",
+    "person": "persona",
+    "people": "personas",
+    "adjusted": "Adaptado para",
+    "tip": "Consejo",
+    "tip_text": "Puedes adaptar esta receta a tus preferencias. Sustituye los ingredientes a tu gusto.",
+    "sommelier": "Sommelier – combinaciones perfectas",
+    "spices": "Especias",
+    "drink": "Bebida",
+    "side": "Acompañamiento",
+    "time": "Momento de la comida",
+    "ask_again": "Preguntar de nuevo",
+    "ask_sommelier": "Preguntar al Sommelier",
+    "sommelier_desc": "La IA recomienda especias, bebidas y acompañamientos basados en los ingredientes.",
+    "voice_premium": "🎤 La cocina por voz está disponible solo para usuarios Premium.",
+    "share": "Compartir",
+    "start_timer": "Iniciar temporizador",
+    "print": "Imprimir",
+    "email": "Email",
+    "similar": "Recetas similares",
+    "cached": "Respuesta del caché",
+    "fallback": "Usada respuesta de respaldo (sin IA)",
+    "not_found": "Receta no encontrada",
+    "not_found_desc": "La receta buscada no existe o ha sido eliminada.",
+    "time_up": "⏰ ¡El tiempo se ha acabado!",
+    "recipe": "Receta",
+    "copied": "📋 ¡La receta se ha copiado al portapapeles!",
+    "all_recipes": "Todas las recetas",
+    "kcal": "kcal",
+    "restrictions": "restricción"
+  },
+  "recipes": {
+    "category_recipes": "Recetas en la categoría: {{category}}",
+    "all": "Todas las recetas",
+    "all_recipes": "Todas las recetas",
+    "all_time": "Todo el tiempo",
+    "all_levels": "Todos los niveles",
+    "preferences": "Preferencias",
+    "high_protein": "Alto en proteínas",
+    "high_fiber": "Rico en fibra",
+    "high_carb": "Rico en carbohidratos",
+    "reset": "Restablecer",
+    "showing": "Mostrando",
+    "of": "de",
+    "recipes": "recetas",
+    "filters_active": "filtros activos",
+    "search": "🔍 Buscar recetas...",
+    "excluding": "Evita",
+    "short": "Corto",
+    "medium": "Medio",
+    "long": "Largo",
+    "beginner": "Principiante",
+    "intermediate": "Intermedio",
+    "professional": "Profesional",
+    "low_cal": "Bajo",
+    "moderate": "Moderado",
+    "medium_cal": "Medio",
+    "high_cal": "Alto",
+    "no_recipes": "Sin recetas",
+    "no_recipes_desc": "Actualmente no hay recetas en la base de datos. Inténtalo más tarde.",
+    "no_results": "No hay recetas que coincidan con tus criterios.",
+    "reset_filters": "Restablecer filtros",
+    "categories": {
+      "diet": "Dietético",
+      "desserts": "Postres",
+      "savory": "Platos salados",
+      "drinks": "Bebidas"
+    },
+    "filters": {
+      "search_label": "BÚSQUEDA",
+      "time_label": "TIEMPO",
+      "difficulty_label": "DIFICULTAD",
+      "all_difficulty": "Todos los niveles",
+      "preferences_label": "PREFERENCIAS",
+      "all_preferences": "Todas las preferencias",
+      "high_carbs": "🍞 Rico en carbohidratos",
+      "calories_label": "CALORÍAS",
+      "all_calories": "Todas las calorías",
+      "page": "Página",
+      "previous": "⬅️ Anterior",
+      "next": "Siguiente ➡️",
+      "first": "⏮",
+      "last": "⏭",
+      "page_of": "Página {current} de {total}"
+    },
+    "badges": {
+      "type": "🍽️",
+      "time": "⏱️",
+      "difficulty": "🏋️",
+      "preference": "💪",
+      "calories": "🔥",
+      "search": "🔍"
+    }
+  },
+  "notification": {
+    "title": "Notificaciones",
+    "notifications": "notificaciones",
+    "no_notifications": "Todo en calma",
+    "come_back_later": "Vuelve más tarde",
+    "mark_all": "Marcar todo",
+    "mark_read": "Marcar como leído",
+    "open": "Abrir",
+    "just_now": "Justo ahora",
+    "min": "min",
+    "h": "h"
+  },
+  "tajni_recept": {
+    "title": "Receta secreta del día",
+    "secret_recipe": "Receta secreta",
+    "recipe_of_the_day": "Receta secreta del día",
+    "disappears": "¡Solo hoy – desaparece mañana!",
+    "no_recipe": "No hay receta secreta hoy.",
+    "click_hint": "¡Haz clic para descubrir la receta antes de que desaparezca!",
+    "share_button": "Compartir receta",
+    "send_to_friend": "Enviar a un amigo",
+    "shared_success": "✅ ¡Receta compartida con éxito!",
+    "copied": "✅ ¡La receta se ha copiado al portapapeles! ¡Compártela con tus amigos!",
+    "share_error": "❌ Error al compartir. Intenta de nuevo.",
+    "whatsapp_message": "Descubre la receta secreta del día:",
+    "error": "❌ La receta secreta no está disponible actualmente."
+  }
+}

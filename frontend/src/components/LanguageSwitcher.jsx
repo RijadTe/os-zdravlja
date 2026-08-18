@@ -7,10 +7,14 @@ const LanguageSwitcher = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  // 🔥 SVIH 6 JEZIKA (HR, EN, DE, FR, IT, ES)
   const languages = [
     { code: 'hr', label: 'Hrvatski', flag: '🇭🇷', native: 'Hrvatski' },
     { code: 'en', label: 'English', flag: '🇬🇧', native: 'English' },
     { code: 'de', label: 'Deutsch', flag: '🇩🇪', native: 'Deutsch' },
+    { code: 'fr', label: 'Français', flag: '🇫🇷', native: 'Français' },
+    { code: 'it', label: 'Italiano', flag: '🇮🇹', native: 'Italiano' },
+    { code: 'es', label: 'Español', flag: '🇪🇸', native: 'Español' },
   ];
 
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
@@ -53,7 +57,7 @@ const LanguageSwitcher = () => {
         </svg>
       </button>
 
-      {/* DROPDOWN LISTA */}
+      {/* DROPDOWN LISTA - SVIH 6 JEZIKA */}
       {isOpen && (
         <div className="absolute right-0 mt-1 sm:mt-2 w-40 sm:w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50 animate-fadeIn">
           {languages.map((lang) => (
@@ -62,7 +66,7 @@ const LanguageSwitcher = () => {
               onClick={() => changeLanguage(lang.code)}
               className={`w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm transition duration-150 ${
                 i18n.language === lang.code
-                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                  ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
                   : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
               }`}
             >
@@ -70,7 +74,7 @@ const LanguageSwitcher = () => {
               <span className="flex-1 text-left font-medium">{lang.native}</span>
               <span className="hidden sm:inline text-xs text-gray-400 dark:text-gray-500">{lang.label}</span>
               {i18n.language === lang.code && (
-                <svg className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               )}
