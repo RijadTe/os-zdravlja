@@ -11,35 +11,43 @@ const loadTranslations = async () => {
     // 🔥 DODAJ FR, IT, ES, SL (SLOVENIAN)
     const [hr, en, de, fr, it, es, sl] = await Promise.all([
       fetch('/locales/hr/translation.json').then(res => {
-        if (!res.ok) throw new Error('HR translation not found');
+        if (!res.ok) throw new Error(`HR translation not found (${res.status})`);
         return res.json();
       }),
       fetch('/locales/en/translation.json').then(res => {
-        if (!res.ok) throw new Error('EN translation not found');
+        if (!res.ok) throw new Error(`EN translation not found (${res.status})`);
         return res.json();
       }),
       fetch('/locales/de/translation.json').then(res => {
-        if (!res.ok) throw new Error('DE translation not found');
+        if (!res.ok) throw new Error(`DE translation not found (${res.status})`);
         return res.json();
       }),
       fetch('/locales/fr/translation.json').then(res => {
-        if (!res.ok) throw new Error('FR translation not found');
+        if (!res.ok) throw new Error(`FR translation not found (${res.status})`);
         return res.json();
       }),
       fetch('/locales/it/translation.json').then(res => {
-        if (!res.ok) throw new Error('IT translation not found');
+        if (!res.ok) throw new Error(`IT translation not found (${res.status})`);
         return res.json();
       }),
       fetch('/locales/es/translation.json').then(res => {
-        if (!res.ok) throw new Error('ES translation not found');
+        if (!res.ok) throw new Error(`ES translation not found (${res.status})`);
         return res.json();
       }),
-      // 🔥 DODATO - SLOVENIAN
       fetch('/locales/sl/translation.json').then(res => {
-        if (!res.ok) throw new Error('SL translation not found');
+        if (!res.ok) throw new Error(`SL translation not found (${res.status})`);
         return res.json();
       })
     ]);
+
+    // 🔥 PROVJERA: Logiraj prvi ključ svakog jezika da vidimo da li su učitani
+    console.log('📊 HR prevod - prvi ključ:', Object.keys(hr)[0]);
+    console.log('📊 EN prevod - prvi ključ:', Object.keys(en)[0]);
+    console.log('📊 DE prevod - prvi ključ:', Object.keys(de)[0]);
+    console.log('📊 FR prevod - prvi ključ:', Object.keys(fr)[0]);
+    console.log('📊 IT prevod - prvi ključ:', Object.keys(it)[0]);
+    console.log('📊 ES prevod - prvi ključ:', Object.keys(es)[0]);
+    console.log('📊 SL prevod - prvi ključ:', Object.keys(sl)[0]);
 
     const resources = {
       hr: { translation: hr },
@@ -48,7 +56,7 @@ const loadTranslations = async () => {
       fr: { translation: fr },
       it: { translation: it },
       es: { translation: es },
-      sl: { translation: sl }, // 🔥 DODATO
+      sl: { translation: sl },
     };
 
     await i18n
@@ -57,7 +65,7 @@ const loadTranslations = async () => {
       .init({
         resources,
         fallbackLng: 'hr',
-        debug: true, // 🔥 UKLJUČI DEBUG ZA TESTIRANJE
+        debug: true,
         interpolation: {
           escapeValue: false,
         },
@@ -70,6 +78,10 @@ const loadTranslations = async () => {
     console.log('✅ i18n inicijaliziran!');
     console.log('📊 Dostupni jezici:', Object.keys(resources));
     console.log('🌍 Trenutni jezik:', i18n.language);
+    
+    // 🔥 PROVJERA: Da li prevod radi?
+    console.log('🔍 Test prevoda (common.loading):', i18n.t('common.loading'));
+    
     return i18n;
   } catch (error) {
     console.error('❌ Greška pri učitavanju prevoda:', error);
@@ -82,7 +94,7 @@ const loadTranslations = async () => {
       fr: { translation: {} },
       it: { translation: {} },
       es: { translation: {} },
-      sl: { translation: {} }, // 🔥 DODATO
+      sl: { translation: {} },
     };
     
     await i18n
