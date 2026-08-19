@@ -1093,52 +1093,80 @@
     "error": "❌ Tajni recept trenutno nije dostupan."
   },
   "ai_chat": {
-  "title": "AI Chat",
-  "welcome": "Dobrodošli! Postavite pitanje o ishrani, receptima ili zdravlju.",
-  "welcome_sub": "Postavite pitanje o ishrani, receptima ili zdravlju",
-  "placeholder": "Napišite poruku...",
-  "send": "Pošalji",
-  "login_required": "❌ Niste prijavljeni!",
-  "premium_hint": "⭐ Ova funkcionalnost je dostupna samo Premium korisnicima",
-  "premium_only": "⭐ Ova funkcionalnost je dostupna samo Premium korisnicima!",
-  "premium_only_short": "Ova funkcionalnost je dostupna samo Premium korisnicima",
-  "premium_link": "Postanite Premium",
-  "premium_link_short": "Postanite Premium",
-  "premium_user": "⭐ Premium korisnik",
-  "premium_feature": "🔒 Premium funkcionalnost",
-  "remaining": "Preostalo: {{count}}/{{total}}",
-  "remaining_info": "💡 Preostalo vam je {{count}} od {{total}} poruka danas",
-  "limit_reached": "⚠️ Dostigli ste limit od {{limit}} poruka dnevno.",
-  "limit_reached_message": "⏳ Dostigli ste dnevni limit od {{limit}} poruka. Pokušajte ponovo sutra!",
-  "disclaimer_title": "ZDRAVSTVENI DISCLAIMER",
-  "disclaimer_text": "AI Chat pruža informativne i edukativne sadržaje o ishrani i zdravlju.",
-  "disclaimer_strong": "NIJE ZAMJENA ZA MEDICINSKI SAVJET.",
-  "disclaimer_consult": " Prije bilo kakvih promjena u ishrani ili načinu života, posavjetujte se sa svojim ljekarom ili nutricionistom.",
-  "disclaimer_footer": "AI Chat pruža informativne i edukativne sadržaje o ishrani i zdravlju.",
-  "disclaimer_footer_strong": "NIJE ZAMJENA ZA MEDICINSKI SAVJET.",
-  "disclaimer_footer_consult": " Prije bilo kakvih promjena u ishrani, posavjetujte se sa svojim ljekarom."
-},
+    "title": "AI Chat",
+    "welcome": "Dobrodošli! Postavite pitanje o ishrani, receptima ili zdravlju.",
+    "welcome_sub": "Postavite pitanje o ishrani, receptima ili zdravlju",
+    "placeholder": "Napišite poruku...",
+    "send": "Pošalji",
+    "login_required": "❌ Niste prijavljeni!",
+    "premium_hint": "⭐ Ova funkcionalnost je dostupna samo Premium korisnicima",
+    "premium_only": "⭐ Ova funkcionalnost je dostupna samo Premium korisnicima!",
+    "premium_only_short": "Ova funkcionalnost je dostupna samo Premium korisnicima",
+    "premium_link": "Postanite Premium",
+    "premium_link_short": "Postanite Premium",
+    "premium_user": "⭐ Premium korisnik",
+    "premium_feature": "🔒 Premium funkcionalnost",
+    "remaining": "Preostalo: {{count}}/{{total}}",
+    "remaining_info": "💡 Preostalo vam je {{count}} od {{total}} poruka danas",
+    "limit_reached": "⚠️ Dostigli ste limit od {{limit}} poruka dnevno.",
+    "limit_reached_message": "⏳ Dostigli ste dnevni limit od {{limit}} poruka. Pokušajte ponovo sutra!",
+    "disclaimer_title": "ZDRAVSTVENI DISCLAIMER",
+    "disclaimer_text": "AI Chat pruža informativne i edukativne sadržaje o ishrani i zdravlju.",
+    "disclaimer_strong": "NIJE ZAMJENA ZA MEDICINSKI SAVJET.",
+    "disclaimer_consult": " Prije bilo kakvih promjena u ishrani ili načinu života, posavjetujte se sa svojim ljekarom ili nutricionistom.",
+    "disclaimer_footer": "AI Chat pruža informativne i edukativne sadržaje o ishrani i zdravlju.",
+    "disclaimer_footer_strong": "NIJE ZAMJENA ZA MEDICINSKI SAVJET.",
+    "disclaimer_footer_consult": " Prije bilo kakvih promjena u ishrani, posavjetujte se sa svojim ljekarom."
+  },
   "goals": {
     "title": "Moji ciljevi",
+    "subtitle": "Postavite i pratite svoje ciljeve",
     "weight": "Ciljna težina (kg)",
+    "weight_placeholder": "npr. 75 kg",
     "body_fat": "Ciljni % masti",
+    "body_fat_placeholder": "npr. 15%",
     "water": "Ciljni unos vode (ml)",
-    "steps": "Ciljni broj koraka"
+    "water_placeholder": "npr. 2000 ml",
+    "steps": "Ciljni broj koraka",
+    "steps_placeholder": "npr. 10000 koraka",
+    "saving": "Čuvanje...",
+    "success": "✅ Ciljevi uspješno sačuvani!",
+    "errors": {
+      "login_required": "❌ Niste prijavljeni!",
+      "save_failed": "❌ Greška pri čuvanju ciljeva!"
+    }
   },
   "water": {
     "title": "Praćenje vode",
+    "subtitle": "Pratite dnevni unos vode",
     "goal": "Cilj",
+    "current": "Trenutno",
+    "progress": "Napredak",
+    "entries": "Unosa danas",
     "completed": "završeno",
-    "reset": "Resetuj unos"
+    "reset": "Resetuj unos",
+    "reset_confirm": "Jeste li sigurni da želite resetovati unos vode za danas?",
+    "errors": {
+      "login_required": "❌ Niste prijavljeni!",
+      "add_failed": "❌ Greška pri dodavanju vode!",
+      "reset_failed": "❌ Greška pri resetovanju!"
+    }
   },
   "micro_nutrients": {
     "title": "Mikronutrijenti",
+    "subtitle": "Unesite dnevni unos mikronutrijenata",
     "vitamin_a": "Vitamin A (μg)",
     "vitamin_c": "Vitamin C (mg)",
     "vitamin_d": "Vitamin D (μg)",
     "iron": "Željezo (mg)",
     "magnesium": "Magnezij (mg)",
     "calcium": "Kalcij (mg)",
-    "zinc": "Cink (mg)"
+    "zinc": "Cink (mg)",
+    "saving": "Čuvanje...",
+    "success": "✅ Mikronutrijenti uspješno sačuvani!",
+    "errors": {
+      "login_required": "❌ Niste prijavljeni!",
+      "save_failed": "❌ Greška pri čuvanju!"
+    }
   }
 }

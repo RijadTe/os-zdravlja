@@ -42,7 +42,7 @@ const Goals = () => {
 
   const handleSave = async () => {
     if (!email) {
-      alert('❌ Niste prijavljeni!');
+      alert(t('goals.errors.login_required') || '❌ Niste prijavljeni!');
       return;
     }
 
@@ -57,13 +57,13 @@ const Goals = () => {
       const data = await response.json();
       
       if (data.success) {
-        alert('✅ Ciljevi uspješno sačuvani!');
+        alert(t('goals.success') || '✅ Ciljevi uspješno sačuvani!');
       } else {
-        alert('❌ Greška pri čuvanju ciljeva!');
+        alert(t('goals.errors.save_failed') || '❌ Greška pri čuvanju ciljeva!');
       }
     } catch (error) {
       console.error('❌ Greška:', error);
-      alert('❌ Greška pri čuvanju ciljeva!');
+      alert(t('goals.errors.save_failed') || '❌ Greška pri čuvanju ciljeva!');
     } finally {
       setLoading(false);
     }
@@ -80,7 +80,7 @@ const Goals = () => {
             {t('goals.title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Postavite i pratite svoje ciljeve
+            {t('goals.subtitle') || 'Postavite i pratite svoje ciljeve'}
           </p>
         </div>
       </div>
@@ -95,7 +95,7 @@ const Goals = () => {
               type="number"
               value={goals.weight}
               onChange={(e) => setGoals({...goals, weight: e.target.value})}
-              placeholder="npr. 75 kg"
+              placeholder={t('goals.weight_placeholder') || 'npr. 75 kg'}
               className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               min="0"
               step="0.1"
@@ -110,7 +110,7 @@ const Goals = () => {
               type="number"
               value={goals.bodyFat}
               onChange={(e) => setGoals({...goals, bodyFat: e.target.value})}
-              placeholder="npr. 15%"
+              placeholder={t('goals.body_fat_placeholder') || 'npr. 15%'}
               className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               min="0"
               step="0.1"
@@ -125,7 +125,7 @@ const Goals = () => {
               type="number"
               value={goals.water}
               onChange={(e) => setGoals({...goals, water: e.target.value})}
-              placeholder="npr. 2000 ml"
+              placeholder={t('goals.water_placeholder') || 'npr. 2000 ml'}
               className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               min="0"
               step="0.1"
@@ -140,7 +140,7 @@ const Goals = () => {
               type="number"
               value={goals.steps}
               onChange={(e) => setGoals({...goals, steps: e.target.value})}
-              placeholder="npr. 10000 koraka"
+              placeholder={t('goals.steps_placeholder') || 'npr. 10000 koraka'}
               className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               min="0"
               step="0.1"
@@ -159,7 +159,7 @@ const Goals = () => {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
               </svg>
-              Čuvanje...
+              {t('goals.saving') || 'Čuvanje...'}
             </>
           ) : (
             <>

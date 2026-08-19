@@ -3,11 +3,11 @@
     "select_file": "Izberite sliko računa",
     "scanning": "Skeniram...",
     "scan": "Skeniraj",
-    "info": "Slikajte račun iz trgovine in samodejno bomo dodali sestavine v hladilnik."
+    "info": "Slikajte račun iz trgovine in samodejno bomo dodali živila v hladilnik."
   },
   "app": {
-    "title": "OS Zdravlja – Operacijski sistem za tvoje zdravje",
-    "subtitle": "Odkrivajte recepte, prilagojene vašim potrebam, dietam in okusu."
+    "title": "OS Zdravja – Operacijski sistem za vaše zdravje",
+    "subtitle": "Odkrijte recepte, prilagojene vašim potrebam, dietam in okusu."
   },
   "nav": {
     "home": "Domov",
@@ -23,7 +23,7 @@
     "ai_chat": "AI Klepet"
   },
   "common": {
-    "loading": "Nalagam...",
+    "loading": "Nalaganje...",
     "error": "Prišlo je do napake. Poskusite znova.",
     "success": "Uspešno!",
     "close": "Zapri",
@@ -39,7 +39,7 @@
   },
   "labels": {
     "vrijeme": {
-      "kratko": "Hitro",
+      "kratko": "Kratko",
       "srednje": "Srednje",
       "dugo": "Dolgo"
     },
@@ -54,7 +54,7 @@
       "visoko": "Visoko"
     },
     "kategorija": {
-      "dijeta": "Dieta",
+      "dijeta": "Dietno",
       "deserti": "Sladice",
       "slano": "Slano",
       "napici": "Pijače"
@@ -62,35 +62,35 @@
   },
   "home": {
     "hero": {
-      "title": "OS Zdravlja",
-      "subtitle": "Operacijski sistem za tvoje zdravje",
-      "description": "Odkrivajte recepte, prilagojene vašim potrebam, dietam in okusu.",
+      "title": "OS Zdravja",
+      "subtitle": "Operacijski sistem za vaše zdravje",
+      "description": "Odkrijte recepte, prilagojene vašim potrebam, dietam in okusu.",
       "start_quiz": "Začni kviz",
-      "ai_chef": "AI Chef iskanje"
+      "ai_chef": "Iskanje AI Kuhar"
     },
     "alert_required": "Odgovorite na vsa vprašanja.",
     "no_profile": {
       "title": "Personalizirajte svojo izkušnjo!",
-      "description": "Izpolnite kratek kviz in prikazali vam bomo recepte, ki so popolni za vas.",
+      "description": "Izpolnite kratek kviz in prikazali vam bomo recepte, ki so kot nalašč za vas.",
       "button": "Začni kviz"
     },
     "profile": {
-      "title": "Tvoj profil",
+      "title": "Vaš profil",
       "completed": "Kviz zaključen",
       "name": "Ime",
       "eat": "Želiš jesti",
-      "prefers": "Prednost",
+      "prefers": "Preferiraš",
       "avoids": "Izogibaš se",
       "not_set": "Ni nastavljeno",
       "not_selected": "Ni izbrano"
     },
     "categories": {
       "title": "IZBERI KATEGORIJO",
-      "diet": "DIETA",
+      "diet": "DIETNO",
       "desserts": "SLADICE",
       "savory": "SLANO",
       "quiz": "KVIZ",
-      "ai_chef": "AI CHEF",
+      "ai_chef": "AI KUHAR",
       "drinks": "PIJAČE"
     },
     "lifestyle": {
@@ -106,7 +106,7 @@
       "stress": "Stres",
       "low": "Nizek",
       "high": "Visok",
-      "get_advice": "Dobij priporočila",
+      "get_advice": "Pridobi priporočila",
       "recommended": "Priporočeni recepti za vas:"
     },
     "fridge": {
@@ -137,23 +137,23 @@
       "clear_confirm": "Ali ste prepričani, da želite počistiti hladilnik?"
     },
     "foodplanner": {
-      "title": "Popolni Food Planner",
-      "description": "Sledite svojim obrokom, analizirajte prehrano in načrtujte teden z AI asistentom.",
+      "title": "Popolni načrtovalec obrokov",
+      "description": "Spremljajte obroke, analizirajte prehrano in načrtujte teden z AI asistentom.",
       "emoji": "Čustveni vnos",
-      "emoji_desc": "Izberi emoji pred/po",
+      "emoji_desc": "Izberite emoji pred/po",
       "ai": "AI priporočila",
-      "ai_desc": "Glede na razpoloženje",
+      "ai_desc": "Na podlagi razpoloženja",
       "chart": "Grafikon",
-      "chart_desc": "Tedenska vizualizacija",
-      "watch": "Smartwatch",
+      "chart_desc": "Vizualni pregled skozi teden",
+      "watch": "Pametna ura",
       "watch_desc": "Apple Health, Google Fit",
       "pdf": "PDF poročilo",
       "pdf_desc": "Tedensko/Mesečno",
       "plan": "Načrt obrokov",
       "plan_desc": "AI načrt po razpoloženju",
       "connected": "Povezano z Lifestyle Coach",
-      "connected_desc": "Priporočila se samodejno dodajo v Dnevnik",
-      "open": "Odpri Dnevnik prehrane"
+      "connected_desc": "Priporočila se samodejno dodajajo v Dnevnik",
+      "open": "Odpri dnevnik prehrane"
     },
     "healthychef": {
       "title": "HealthyChef",
@@ -168,15 +168,15 @@
     },
     "recipes": {
       "title": "Priporočeni recepti",
-      "filters_active": "aktivni filtri",
-      "loading": "Nalagam recepte...",
-      "no_results": "Ni receptov, ki bi ustrezali filtrom.",
+      "filters_active": "aktivnih filtrov",
+      "loading": "Nalaganje receptov...",
+      "no_results": "Ni receptov, ki ustrezajo filtrom.",
       "reset_filters": "Ponastavi filtre"
     },
     "filters": {
       "all_types": "Vse vrste",
       "all_time": "Ves čas",
-      "all_difficulty": "Vse zahtevnosti",
+      "all_difficulty": "Vsa zahtevnost",
       "preferences": "Vse preference",
       "high_protein": "Visoko beljakovinsko",
       "high_fiber": "Bogato z vlakninami",
@@ -184,9 +184,9 @@
       "reset": "Ponastavi",
       "savory": "Slano",
       "desserts": "Sladice",
-      "diet": "Dieta",
+      "diet": "Dietno",
       "drinks": "Pijače",
-      "short": "Hitro",
+      "short": "Kratko",
       "medium": "Srednje",
       "long": "Dolgo",
       "beginner": "Začetnik",
@@ -195,46 +195,46 @@
     },
     "premium": {
       "title": "Premium vsebina",
-      "description": "Odklenite Popolni Food Planner in vse Premium funkcionalnosti!",
-      "button": "Postani Premium",
+      "description": "Odklenite Popolni načrtovalec obrokov in vse Premium funkcije!",
+      "button": "Postanite Premium",
       "unlocked": "Odklenjeno",
       "unlock_all": "Postanite Premium in odklenite vse",
-      "all_unlocked": "Vse funkcionalnosti so na voljo!",
-      "all_locked": "Vse funkcionalnosti so zaklenjene. Postanite Premium, da jih uporabljate."
+      "all_unlocked": "Vse funkcije so na voljo!",
+      "all_locked": "Vse funkcije so zaklenjene. Postanite Premium, da jih uporabljate."
     },
     "advice_tired_stressed": "😴 Opazim, da ste utrujeni in pod stresom. Priporočam lahke, hranljive obroke, ki vam bodo dali energijo brez obremenjevanja.",
-    "advice_bad_sleep_low_energy": "😴 Slabo spanje in nizka energija. Priporočam obroke, bogate z beljakovinami, za hitro okrevanje.",
-    "advice_bad_sleep_good_stress": "😴 Spanje ni najboljše, vendar ste sproščeni. Priporočam lahke večerje.",
+    "advice_bad_sleep_low_energy": "😴 Slabo spanje in nizka energija. Priporočam obroke, bogate z beljakovinami in vitamini za hitro okrevanje.",
+    "advice_bad_sleep_good_stress": "😴 Vaše spanje ni najboljše, vendar ste sproščeni. Priporočam lahke večerje, ki ne obremenjujejo prebave.",
     "advice_good_energy_low_stress": "⚡ Odlično! Imate dobro energijo in nizek stres. Čas je za eksperimentiranje z novimi recepti!",
-    "advice_good_energy_high_stress": "⚡ Imate energijo, vendar ste pod stresom. Priporočam pomirjujoče obroke.",
+    "advice_good_energy_high_stress": "⚡ Imate energijo, vendar ste pod stresom. Priporočam obroke, ki pomirjajo in sproščajo.",
     "advice_low_energy_low_stress": "😴 Nizka energija, vendar ste sproščeni. Priporočam obroke za dvig energije.",
     "advice_all_good": "😊 Odlično stanje! Nadaljujte s svojo običajno prehrano in uživajte v raznolikih obrokih.",
-    "advice_explore_recipes": "😊 Glede na vaše razpoloženje priporočamo, da raziščete našo bazo receptov.",
+    "advice_explore_recipes": "😊 Na podlagi vašega razpoloženja priporočamo, da raziščete našo bazo receptov in najdete nekaj, kar vam ustreza!",
     "advice_error": "❌ Prišlo je do napake. Poskusite znova."
   },
   "quiz": {
     "title": "👋 SPOZNAJMO SE",
     "subtitle": "Odgovorite na 6 vprašanj in prilagodili bomo recepte vašim potrebam!",
-    "edit_title": "✏️ Uredi filtre",
+    "edit_title": "✏️ Urejanje filtrov",
     "edit_subtitle": "Prilagodite svoje preference in uživajte v popolnih receptih!",
     "step_label": "Koraki",
     "step": "Korak {current} od {total}",
     "selected": "Izbrano: {count}/{max}",
     "select_placeholder": "Izberite...",
-    "logged_in_as": "👋 Prijavljeni ste kot",
+    "logged_in_as": "👋 Prijavljeni kot",
     "questions": {
       "vrsta": "🍽️ Kaj želite jesti danes? * (max 3)",
-      "preferencije": "💪 Kaj PREDNOST? (max 2)",
+      "preferencije": "💪 Kaj PREFERIRATE? (max 2)",
       "restrikcije": "🚫 Čemu se IZOGIBATE? (max 3)",
       "vrijeme": "⏱️ Koliko časa imate za pripravo? *",
-      "tezina": "👨‍🍳 Kako ste vešti v kuhinji? *",
+      "tezina": "👨‍🍳 Kako ste vešči v kuhinji? *",
       "kalorije": "🔥 Katere kalorije preferirate? *"
     },
     "options": {
-      "vrsta": ["Sladice", "Slano", "Dietni recepti", "Pijače", "Karkoli"],
+      "vrsta": ["Sladice", "Slano", "Dietni recepti", "Pijače", "Vseeno"],
       "restrikcije": ["Brez omejitev", "Brez glutena", "Brez laktoze", "Brez sladkorja", "Vegansko", "Brez oreščkov"],
-      "preferencije": ["Visoko beljakovinsko", "Bogato z vlakninami", "Bogato z ogljikovimi hidrati", "Karkoli"],
-      "vrijeme": ["Hitro (15-30 min)", "Srednje (30-45 min)", "Dolgo (45-60+ min)"],
+      "preferencije": ["Visoko beljakovinsko", "Bogato z vlakninami", "Bogato z ogljikovimi hidrati", "Vseeno"],
+      "vrijeme": ["Kratko (15-30 min)", "Srednje (30-45 min)", "Daljše (45-60+ min)"],
       "tezina": ["Začetnik", "Srednje", "Profesionalec"],
       "kalorije": ["Nizko (do 300 kcal)", "Zmerno (300-500 kcal)", "Srednje (500-700 kcal)", "Visoko (900+ kcal)"]
     },
@@ -246,24 +246,24 @@
     },
     "toast": {
       "already_completed": "ℹ️ Kviz ste že opravili. Lahko ponovno spremenite svoje preference.",
-      "login_required": "🔒 Prijavite se za dostop do kviza.",
+      "login_required": "🔒 Za dostop do kviza se prijavite.",
       "max_selected": "Izberete lahko največ {max} možnosti.",
       "fill_all_fields": "Izpolnite vsa polja.",
-      "not_logged_in": "❌ Niste prijavljeni. Prijavite se.",
-      "success": "✅ Kviz zaključen! Filtri so shranjeni.",
+      "not_logged_in": "❌ Niste prijavljeni. Prosimo, prijavite se.",
+      "success": "✅ Kviz zaključen! Filtri shranjeni.",
       "error": "❌ Napaka pri pošiljanju kviza: {message}"
     }
   },
   "premium": {
     "title": "⭐ Premium",
-    "subtitle": "Odklenite vse funkcionalnosti in izboljšajte svojo kulinarično izkušnjo!",
+    "subtitle": "Odklenite vse funkcije in izboljšajte svojo kulinarično izkušnjo!",
     "alert": {
       "login_required": "Najprej se prijavite.",
       "session_error": "Napaka pri ustvarjanju seje",
       "payment_error": "❌ Napaka pri zagonu plačila"
     },
     "free": {
-      "title": "🆓 Brezplačno",
+      "title": "🆓 Free",
       "price": "€0",
       "features": {
         "search": "Iskanje receptov (besedilo)",
@@ -276,7 +276,7 @@
         "healthychef": "HealthyChef",
         "food_diary": "Dnevnik prehrane",
         "voice_cooking": "Glasovno kuhanje",
-        "scan_receipt": "Skeniraj račun",
+        "scan_receipt": "Skeniranje računa",
         "community": "Skupnost"
       }
     },
@@ -284,76 +284,76 @@
       "title": "⭐ Premium",
       "price": "€4.99",
       "period": "/ mesec",
-      "total_features": "16+ Premium funkcionalnosti!"
+      "total_features": "16+ Premium funkcij!"
     },
     "button": {
       "loading": "⏳ Obdelava...",
-      "default": "💳 Postani Premium"
+      "default": "💳 Postanite Premium"
     },
     "details": {
       "title": "🎁 Kaj dobite s Premium?",
-      "subtitle": "Odklenite 16+ naprednih funkcionalnosti, ki olajšajo vsakodnevno kuhanje!"
+      "subtitle": "Odklenite 16+ naprednih funkcij, ki vam bodo olajšale vsakodnevno kuhanje!"
     },
     "features": {
       "ingredient_recognition": "Prepoznavanje sestavin",
       "ingredient_recognition_desc": "Slikajte sestavine in sistem prepozna, kaj imate v hladilniku. Brez tipkanja!",
       "voice_search": "Glasovno iskanje",
-      "voice_search_desc": "Namesto tipkanja samo izgovorite sestavine, ki jih imate doma.",
+      "voice_search_desc": "Namesto tipkanja preprosto izgovorite sestavine, ki jih imate doma.",
       "healthychef": "HealthyChef (3 nivoji)",
-      "healthychef_desc": "6 kategorij, 29 podkategorij – recepti za hormonski cikel, ščitnico, anemijo, menopavzo, PCOS in kosti.",
+      "healthychef_desc": "6 kategorij, 29 podkategorij – recepti za hormonski ciklus, ščitnico, anemijo, menopavzo, PCOS in kosti.",
       "food_diary": "Dnevnik prehrane + Analitika",
-      "food_diary_desc": "Beležite obroke, spremljajte kalorije, beljakovine, ogljikove hidrate in maščobe čez teden z grafikoni.",
+      "food_diary_desc": "Vnašajte obroke, spremljajte kalorije, beljakovine, ogljikove hidrate in maščobe skozi teden z grafom.",
       "meal_plan": "Personaliziran načrt obrokov",
-      "meal_plan_desc": "Generirajte tedenske načrte obrokov glede na vaše razpoloženje in preference.",
+      "meal_plan_desc": "Generirajte tedenski načrt obrokov na podlagi vašega razpoloženja in preferenc.",
       "virtual_fridge": "Virtualni hladilnik",
-      "virtual_fridge_desc": "Dodajte sestavine, ki jih imate, in sistem priporoča recepte na njihovi podlagi.",
+      "virtual_fridge_desc": "Dodajte sestavine, ki jih imate, in sistem vam priporoča recepte na njihovi podlagi.",
       "lifestyle_coach": "Lifestyle Coach",
-      "lifestyle_coach_desc": "Odgovorite na vprašanja o spanju, energiji in stresu – dobite personalizirana prehranska priporočila.",
+      "lifestyle_coach_desc": "Odgovorite na vprašanja o spanju, energiji in stresu – prejmite personalizirana prehranska priporočila.",
       "sommelier": "Sommelier – Popolne kombinacije",
-      "sommelier_desc": "Za vsak recept dobite priporočila za začimbe, pijače, prilogo in idealen čas obroka.",
-      "scan_receipt": "Skeniraj račun",
-      "scan_receipt_desc": "Slikajte račun iz trgovine – sistem prepozna artikle in jih doda v hladilnik.",
+      "sommelier_desc": "Za vsak recept prejmete priporočila za začimbe, pijačo, prilogo in idealen čas za obrok.",
+      "scan_receipt": "Skeniranje računa",
+      "scan_receipt_desc": "Slikajte račun iz trgovine – sistem prepozna živila in jih doda v hladilnik.",
       "voice_cooking": "Glasovno kuhanje",
-      "voice_cooking_desc": "Poslušajte navodila korak za korakom med kuhanjem – roke so proste!",
+      "voice_cooking_desc": "Poslušajte navodila korak za korakom med kuhanjem – proste roke!",
       "community": "Skupnost – Objave",
       "community_desc": "Delite svoje recepte, všečkajte tuje in bodite del skupnosti.",
       "badges": "Značke in izzivi",
-      "badges_desc": "Zaslužite značke za dosežke (prvi recept, 10 receptov...) in spremljajte napredek.",
-      "shopping_list": "Seznam za nakup",
-      "shopping_list_desc": "Generirajte seznam za nakup na podlagi načrta obrokov in ga pošljite po e-pošti ali PDF.",
+      "badges_desc": "Pridobite značke za dosežke (prvi recept, 10 receptov...) in spremljajte napredek.",
+      "shopping_list": "Nakupovalni seznam",
+      "shopping_list_desc": "Generirajte nakupovalni seznam na podlagi načrta obrokov in ga pošljite po e-pošti ali PDF.",
       "pdf_report": "PDF poročilo",
-      "pdf_report_desc": "Generirajte tedenska ali mesečna poročila o vaši prehrani z vsemi podrobnostmi.",
-      "smartwatch": "Povezava s smartwatch",
+      "pdf_report_desc": "Generirajte tedensko ali mesečno prehransko poročilo z vsemi podrobnostmi.",
+      "smartwatch": "Integracija s pametno uro",
       "smartwatch_desc": "Povežite se z Apple Health ali Google Fit in spremljajte napredek v realnem času.",
       "no_ads": "Brez oglasov",
       "no_ads_desc": "Uživajte v čisti izkušnji brez motečih oglasov."
     },
     "cta": {
       "title": "🌟 Ste pripravljeni na Premium izkušnjo?",
-      "subtitle": "Pridružite se tisočem zadovoljnih uporabnikov, ki uživajo v vseh Premium funkcionalnostih!",
+      "subtitle": "Pridružite se tisočem zadovoljnih uporabnikov, ki uživajo v vseh Premium funkcijah!",
       "button": "⭐ Postanite Premium še danes!",
-      "secure": "🔒 Varno plačilo prek Stripe. Prekličite kadar koli."
+      "secure": "🔒 Varno plačilo preko Stripe. Prekličite kadar koli."
     }
   },
   "aichef": {
-    "seo_title": "AI Chef – OS Zdravlja",
-    "seo_description": "Iščite recepte po sestavinah ali slikajte – AI Chef prepozna in predlaga popolne recepte!",
-    "title": "🤖 AI Chef – Kaj je v vašem hladilniku?",
-    "subtitle": "Vnesite sestavine, ki jih imate doma, ali uporabite Premium za napredne možnosti.",
+    "seo_title": "AI Kuhar – OS Zdravja",
+    "seo_description": "Iščite recepte po sestavinah ali slikajte – AI Kuhar prepozna in predlaga popolne recepte!",
+    "title": "🤖 AI Kuhar – Kaj imate v hladilniku?",
+    "subtitle": "Vtipkajte sestavine, ki jih imate doma, ali uporabite Premium za napredne možnosti.",
     "placeholder": "Vnesite sestavine (npr. piščanec, čebula, korenje)...",
     "common_searches": "📌 Pogosta iskanja",
     "no_results": "Ni receptov za vnesene sestavine.",
     "try_again": "Poskusite z drugimi sestavinami.",
-    "back_home": "Nazaj na domov",
+    "back_home": "Nazaj na domačo stran",
     "premium_hint": "⭐ Postanite Premium za neomejena iskanja in napredne možnosti.",
-    "premium_link": "Postani Premium →",
+    "premium_link": "Postanite Premium →",
     "buttons": {
       "take_photo": "Slikaj",
       "limit_used_tomorrow": "🚫 Limit porabljen - jutri!",
-      "watch_video_unlock": "🔒 Ogled videoposnetka za 1 skeniranje",
-      "watch_video_action": "Oglejte si video → 1 skeniranje",
-      "type": "Vnesi",
-      "voice": "Glas",
+      "watch_video_unlock": "🔒 Oglejte si video za 1 slikanje",
+      "watch_video_action": "Oglejte si video → 1 slikanje",
+      "type": "Vtipkaj",
+      "voice": "Glasovno",
       "search": "🔍 Išči recepte",
       "searching": "Iščem...",
       "remove_image": "Odstrani sliko"
@@ -367,11 +367,11 @@
       "waiting": "⏱️ Čakanje: {seconds} sekund"
     },
     "status_labels": {
-      "photos": "skeniranj",
+      "photos": "slikanj",
       "video": "video",
       "remaining": "preostalo",
       "limit_used": "Limit porabljen",
-      "watch_video": "Oglejte si video za skeniranje!"
+      "watch_video": "Oglejte si video za slikanje!"
     },
     "results": {
       "title": "📋 Rezultati iskanja",
@@ -379,57 +379,57 @@
       "recipes": "receptov",
       "from_cache": "💾 Rezultati iz predpomnilnika ({{seconds}}s)",
       "from_database": "📚 Rezultati iz baze ({{seconds}}s)",
-      "from_ai": "🤖 Rezultati, ki jih je ustvaril AI ({{seconds}}s)"
+      "from_ai": "🤖 Rezultati generirani s strani AI ({{seconds}}s)"
     },
     "filters": {
       "all_types": "Vse vrste",
       "all_time": "Ves čas",
-      "all_difficulty": "Vse zahtevnosti",
+      "all_difficulty": "Vsa zahtevnost",
       "reset": "Ponastavi"
     },
     "unlock": {
-      "watch_for_photo": "🎬 Oglejte si video za 1 skeniranje!",
-      "current_photos": "Trenutno: {used}/{max} skeniranj",
-      "remaining_videos": "Preostalo video oglasov: {count}",
-      "unlocked_photo": "+1 skeniranje!",
-      "now_have_photos": "Zdaj imate {count}/{max} preostalih skeniranj",
-      "use_remaining": "Izkoristite svojih {count} preostalih skeniranj!",
-      "all_photos_used": "✅ Danes ste porabili vseh {max} skeniranj!",
-      "premium_photos": "⭐ Premium uporabniki imajo {max} skeniranj na dan (brez video oglasov)",
-      "video_limit_reached": "📺 Dnevni limit video oglasov porabljen ({max}/{max})"
+      "watch_for_photo": "🎬 Oglejte si video za 1 slikanje!",
+      "current_photos": "Trenutno: {used}/{max} slikanj",
+      "remaining_videos": "Preostalih video oglasov: {count}",
+      "unlocked_photo": "+1 slikanje!",
+      "now_have_photos": "Zdaj imate {count}/{max} preostalih slikanj",
+      "use_remaining": "Izkoristite svojih {count} preostalih slikanj!",
+      "all_photos_used": "✅ Danes ste porabili vseh {max} slikanj!",
+      "premium_photos": "⭐ Premium uporabniki imajo {max} slikanj na dan (brez video oglasov)",
+      "video_limit_reached": "📺 Dnevna omejitev video oglasov dosežena ({max}/{max})"
     },
     "messages": {
       "simulated_ad": "🎬 Simuliran video oglas...",
       "simulated_ad_countdown": "🎬 Simuliran oglas... {{seconds}}/3 sekunde",
-      "loading_video_ad": "🎬 Nalagam video oglas... Prosim počakajte.",
-      "ad_loading_continue": "⏳ Nalaganje oglasa, nadaljujemo...",
+      "loading_video_ad": "🎬 Nalaganje video oglasa... Počakajte.",
+      "ad_loading_continue": "⏳ Oglas se nalaga, nadaljujemo...",
       "video_ad_finished": "✅ Video oglas končan!",
       "watching_ad": "🎬 Ogled oglasa... {{seconds}}/5 sekund",
-      "premium_access": "⭐ Premium uporabniki imajo 15 skeniranj na dan!",
-      "ad_already_playing": "⏳ Oglas že poteka, prosimo počakajte...",
-      "no_photos_watch_video": "📸 Ni skeniranj! Oglejte si video za 1 skeniranje.",
-      "no_more_pictures": "📸 Ni skeniranj! Oglejte si video za 1 skeniranje.",
-      "daily_limit_reached": "⚠️ Dosegli ste dnevni limit {{max}} fotografij. Poskusite jutri!",
-      "video_limit_reached": "⚠️ Dosegli ste dnevni limit {{max}} video oglasov. Poskusite jutri!",
-      "already_have_photos": "✅ Že imate {{count}} preostalih skeniranj! Izkoristite jih.",
-      "already_used_all": "✅ Danes ste že porabili vseh {{max}} skeniranj. Poskusite jutri!",
+      "premium_access": "⭐ Premium uporabniki imajo 15 slikanj na dan!",
+      "ad_already_playing": "⏳ Oglas že poteka, počakajte...",
+      "no_photos_watch_video": "📸 Ni slikanj! Oglejte si video za 1 slikanje.",
+      "no_more_pictures": "📸 Ni slikanj! Oglejte si video za 1 slikanje.",
+      "daily_limit_reached": "⚠️ Dosegli ste dnevno omejitev {{max}} slikanj. Poskusite jutri!",
+      "video_limit_reached": "⚠️ Dosegli ste dnevno omejitev {{max}} video oglasov. Poskusite jutri!",
+      "already_have_photos": "✅ Že imate {{count}} preostalih slikanj! Izkoristite jih.",
+      "already_used_all": "✅ Danes ste že porabili vseh {{max}} slikanj. Poskusite jutri!",
       "video_not_completed": "❌ Video oglas ni dokončan. Poskusite znova.",
-      "unlock_success": "✅ +1 skeniranje! Zdaj imate {{remaining}} preostalih skeniranj. {{videoLeft}} video oglasov še danes.",
+      "unlock_success": "✅ +1 slikanje! Zdaj imate {{remaining}} preostalih slikanj. {{videoLeft}} video oglasov ostaja za danes.",
       "video_ad_not_finished": "❌ Video oglas ni končan. Poskusite znova.",
-      "video_ad_unlocked": "✅ +1 skeniranje! {{remaining}} video oglasov še danes.",
-      "video_ad_limit_reached": "⚠️ Dosegli ste dnevni limit {{maxVideoAds}} video oglasov. Poskusite jutri!",
-      "daily_limit_remaining": "✅ Že imate {{remaining}} preostalih skeniranj! Izkoristite jih.",
+      "video_ad_unlocked": "✅ +1 slikanje! {{remaining}} video oglasov ostaja za danes.",
+      "video_ad_limit_reached": "⚠️ Dosegli ste dnevno omejitev {{maxVideoAds}} video oglasov. Poskusite jutri!",
+      "daily_limit_remaining": "✅ Že imate {{remaining}} preostalih slikanj! Izkoristite jih.",
       "cache_hit": "💾 Rezultati iz predpomnilnika ({{elapsed}}s)",
       "database_result": "📚 Rezultati iz baze ({{elapsed}}s)",
-      "ai_generated": "🤖 Rezultati, ki jih je ustvaril AI ({{elapsed}}s)",
-      "ai_thinking": "⏳ AI razmišlja... {{elapsed}} sekund",
-      "ai_generating_recipes": "🧠 AI ustvarja recepte... ({{elapsed}}s)",
+      "ai_generated": "🤖 Rezultati generirani s strani AI ({{elapsed}}s)",
+      "ai_thinking": "⏳ AI razmišlja... že {{elapsed}} sekund",
+      "ai_generating_recipes": "🧠 AI generira recepte... ({{elapsed}}s)",
       "ai_processing": "⏳ AI še vedno dela... ({{elapsed}}s)"
     },
     "errors": {
       "login_required": "⚠️ Morate biti prijavljeni.",
       "no_input": "⚠️ Vnesite sestavine ali naložite sliko.",
-      "photo_premium": "📸 Fotografija je na voljo samo za Premium uporabnike ali po odklepanju.",
+      "photo_premium": "📸 Slikanje je na voljo samo za Premium uporabnike ali po odklepu.",
       "search_failed": "❌ Iskanje ni uspelo. Poskusite znova.",
       "general": "❌ Prišlo je do napake. Poskusite znova.",
       "voice_premium": "🎤 Glasovno iskanje je na voljo samo za Premium uporabnike.",
@@ -438,7 +438,7 @@
       "error": "❌ Napaka"
     },
     "card": {
-      "photo": "Fotografija",
+      "photo": "Slika",
       "photos_count": "0/3",
       "ready": "Pripravljeno",
       "photo_hint": "Slikajte ali naložite fotografijo",
@@ -446,42 +446,42 @@
       "watch": "Ogled",
       "watch_video": "🎬 Oglejte si video",
       "unlocked": "✅ Odklenjeno",
-      "has_photos": "✅ Imate skeniranja",
+      "has_photos": "✅ Imate slikanja",
       "limit_used": "⛔ Limit porabljen",
       "remaining": "Preostalo",
-      "photos": "skeniranj",
+      "photos": "slikanj",
       "premium_user": "⭐ Premium uporabnik",
-      "status": "Status",
+      "status": "Stanje",
       "premium": "Premium",
-      "free": "🔒 Brezplačno",
-      "free_badge": "🔓 BREZPLAČNO",
-      "all_features": "✅ Vse funkcionalnosti",
+      "free": "🔒 Free",
+      "free_badge": "🔓 FREE",
+      "all_features": "✅ Vse funkcije",
       "limited": "🔒 Omejeno",
       "become_premium": "⭐ Postanite → PREMIUM",
-      "voice": "Glas",
+      "voice": "Glasovno",
       "search": "iskanje",
       "locked": "🔒 Zaklenjeno",
       "voice_premium_hint": "⭐ Postanite Premium za glasovno iskanje",
       "premium_badge": "⭐ PREMIUM",
-      "premium_feature": "⭐ Premium funkcionalnost",
+      "premium_feature": "⭐ Premium funkcija",
       "watching_ad": "Ogled oglasa...",
       "seconds": "sekund"
     },
     "status_messages": {
       "communicating": "📡 Komuniciram s strežnikom...",
       "searching_db": "🔍 Iščem po bazi receptov... ({{seconds}}s)",
-      "consulting_ai": "🤖 Posvetovanje z AI kuharjem... ({{seconds}}s)",
-      "ai_thinking": "⏳ AI razmišlja... {{seconds}} sekund",
-      "ai_generating": "🧠 AI ustvarja recepte... ({{seconds}}s)",
-      "ai_still_thinking": "🧠 AI še vedno razmišlja ({{seconds}}s), hvala za potrpežljivost!",
+      "consulting_ai": "🤖 Posvetujem se z AI kuharjem... ({{seconds}}s)",
+      "ai_thinking": "⏳ AI razmišlja... že {{seconds}} sekund",
+      "ai_generating": "🧠 AI generira recepte... ({{seconds}}s)",
+      "ai_still_thinking": "🧠 AI še vedno razmišlja ({{seconds}}s), hvala za potrpljenje!",
       "ai_still_working": "⏳ AI še vedno dela... ({{seconds}}s)",
       "taking_longer": "⏳ To traja malo dlje ({{seconds}}s), AI pripravlja popolne recepte!"
     },
     "voice": {
-      "listening": "🎤 Poslušam... Izgovorite svoje vprašanje",
+      "listening": "🎤 Poslušam... Govorite svoje vprašanje",
       "recognized": "✅ Prepoznano: \"{{text}}\"",
       "text_recognized": "📝 Besedilo prepoznano, začenjam iskanje...",
-      "not_recognized": "❌ Tega nisem prepoznal. Poskusite znova.",
+      "not_recognized": "❌ Nisem prepoznal besedila. Poskusite znova.",
       "microphone_access": "❌ Dovolite dostop do mikrofona za glasovno iskanje.",
       "no_speech": "❌ Nisem slišal govora. Poskusite znova.",
       "no_microphone": "❌ Ni dostopa do mikrofona. Preverite nastavitve.",
@@ -495,8 +495,8 @@
     "title": "Dnevnik prehrane",
     "premium": {
       "title": "Dnevnik prehrane",
-      "description": "Ta del je na voljo samo za Premium uporabnike.",
-      "button": "Postani Premium"
+      "description": "Ta razdelek je na voljo samo za Premium uporabnike.",
+      "button": "Postanite Premium"
     },
     "tabs": {
       "diary": "Dnevnik",
@@ -518,14 +518,14 @@
       "snack": "Prigrizek",
       "mood_before": "😊 Razpoloženje PRED obrokom",
       "mood_after": "😊 Razpoloženje PO obroku",
-      "note_placeholder": "📝 Opomba (npr. 'Bil sem lačen', 'Dolgčas')",
+      "note_placeholder": "📝 Opomba (npr. 'Bil sem lačen', 'Dolgočasje')",
       "calories": "Kalorije",
       "protein_g": "Beljakovine (g)",
       "carbs_g": "Ogljikovi hidrati (g)",
       "fat_g": "Maščobe (g)",
       "add_button": "➕ Dodaj obrok",
       "sending": "⏳ Pošiljanje...",
-      "loading": "⏳ Nalagam obroke...",
+      "loading": "⏳ Nalaganje obrokov...",
       "no_meals": "Za danes še ni vnesenih obrokov.",
       "add_first": "Dodajte svoj prvi obrok!",
       "delete": "Izbriši obrok"
@@ -533,16 +533,16 @@
     "analytics": {
       "title": "📈 Analitika",
       "no_data": "Ni dovolj podatkov za analitiko.",
-      "add_meals": "Vnesite nekaj obrokov za ogled statistike.",
+      "add_meals": "Vnesite nekaj obrokov, da vidite statistiko.",
       "weekly_chart": "📊 Tedenski vnos kalorij",
       "macro_chart": "🥧 Makrohranila",
-      "generating": "Ustvarjam...",
-      "generate_pdf": "Ustvari PDF poročilo"
+      "generating": "Generiram...",
+      "generate_pdf": "Generiraj PDF poročilo"
     },
     "plan": {
       "title": "📅 Načrt obrokov",
-      "generate": "Ustvari tedenski načrt",
-      "generating": "Ustvarjam...",
+      "generate": "Generiraj tedenski načrt",
+      "generating": "Generiram...",
       "days": {
         "mon": "Pon",
         "tue": "Tor",
@@ -552,7 +552,7 @@
         "sat": "Sob",
         "sun": "Ned"
       },
-      "hint": "💡 Načrt se ustvari na podlagi sestavin v vašem hladilniku"
+      "hint": "💡 Načrt se generira na podlagi sestavin v vašem hladilniku"
     },
     "chart": {
       "week_labels": ["Pon", "Tor", "Sre", "Čet", "Pet", "Sob", "Ned"],
@@ -578,18 +578,18 @@
       "add_error": "❌ Napaka pri dodajanju obroka. Poskusite znova.",
       "delete_confirm": "Ali ste prepričani, da želite izbrisati ta obrok?",
       "delete_error": "❌ Napaka pri brisanju obroka.",
-      "plan_error": "❌ Napaka pri ustvarjanju načrta. Poskusite znova.",
+      "plan_error": "❌ Napaka pri generiranju načrta. Poskusite znova.",
       "no_meals": "⚠️ Ni obrokov za poročilo. Najprej dodajte nekaj obrokov.",
-      "pdf_error": "❌ Napaka pri ustvarjanju PDF."
+      "pdf_error": "❌ Napaka pri generiranju PDF."
     }
   },
   "community": {
     "title": "Skupnost",
-    "loading": "Nalagam objave...",
-    "share_recipe": "Deli svoj recept",
+    "loading": "Nalaganje objav...",
+    "share_recipe": "Delite svoj recept",
     "recipe_name": "Ime recepta *",
     "description": "Opis...",
-    "ingredients": "Sestavine (ločene z vejico)",
+    "ingredients": "Sestavine (ločene z vejicami)",
     "post_button": "Objavi",
     "unknown_user": "Neznani uporabnik",
     "alerts": {
@@ -601,13 +601,13 @@
       "all_types": "🍽️ Vse vrste",
       "savory": "Slano",
       "desserts": "Sladice",
-      "diet": "Dieta",
+      "diet": "Dietno",
       "drinks": "Pijače",
       "all_time": "⏱️ Ves čas",
-      "short": "⚡ Hitro",
+      "short": "⚡ Kratko",
       "medium": "⏳ Srednje",
       "long": "🐢 Dolgo",
-      "all_difficulty": "🏋️ Vse zahtevnosti",
+      "all_difficulty": "🏋️ Vsa zahtevnost",
       "beginner": "👶 Začetnik",
       "intermediate": "👨‍🍳 Srednje",
       "professional": "👨‍🍳⭐ Profesionalec",
@@ -616,19 +616,19 @@
       "medium_cal": "🔥 300-500 kcal",
       "high_cal": "🔥 500-700 kcal",
       "very_high_cal": "🔥 900+ kcal",
-      "active": "aktiven"
+      "active": "aktivno"
     },
-    "no_results": "Ni objav, ki bi ustrezale vašim filtrom.",
-    "no_posts": "Ni objav v skupnosti.",
+    "no_results": "Ni objav, ki ustrezajo vašim filtrom.",
+    "no_posts": "V skupnosti ni objav.",
     "be_first": "Bodite prvi, ki bo delil recept! 🍽️",
-    "showing": "Prikazano {{count}} od {{total}} objav",
+    "showing": "Prikazanih {{count}} od {{total}} objav",
     "page": "stran {{current}}/{{total}}",
     "select_time": "Izberite čas...",
     "select_difficulty": "Izberite zahtevnost...",
     "prep_time": "⏱️ Čas priprave",
     "difficulty": "👨‍🍳 Zahtevnost",
     "allergens": "🚫 Omejitve / Alergeni",
-    "select_all_that_apply": "izberite vse, ki veljajo",
+    "select_all_that_apply": "označite vse, kar velja",
     "selected": "Izbrano",
     "untitled": "Brez naslova",
     "click_for_details": "📖 Za podrobnosti priprave odprite recept",
@@ -652,8 +652,8 @@
     "email_placeholder": "vi@email.com",
     "remembered": "Ste se spomnili gesla?",
     "login_link": "Prijava",
-    "back_home": "Nazaj na domov",
-    "check_spam": "Preverite mapo z vsiljeno pošto, če ne vidite e-pošte.",
+    "back_home": "Nazaj na domačo stran",
+    "check_spam": "Preverite tudi mapo z neželeno pošto, če ne vidite e-pošte.",
     "button": {
       "send": "📧 Pošlji povezavo",
       "sending": "⏳ Pošiljanje...",
@@ -670,32 +670,32 @@
   },
   "healthychef": {
     "title": "HealthyChef",
-    "loading": "Nalagam...",
+    "loading": "Nalaganje...",
     "breadcrumb": {
       "home": "Domov"
     },
     "premium": {
-      "description": "Ta del je na voljo samo za Premium uporabnike.",
-      "button": "Postani Premium"
+      "description": "Ta razdelek je na voljo samo za Premium uporabnike.",
+      "button": "Postanite Premium"
     },
     "categories": {
       "subtitle": "Izberite kategorijo za personalizirane recepte.",
       "empty": "Ni na voljo kategorij.",
       "items": {
-        "hormonal_cycle": "Hormonski cikel",
-        "thyroid": "Ščitnica in Hashimoto",
+        "hormonal_cycle": "Hormonski ciklus",
+        "thyroid": "Ščitnica & Hashimoto",
         "anemia": "Anemija",
         "bones": "Kosti in sklepi",
         "menopause": "Menopavza",
-        "pcos": "PCOS in inzulinska rezistenca"
+        "pcos": "PCOS & Inzulinska rezistenca"
       }
     },
     "phases": {
       "back_to_categories": "Nazaj na kategorije",
       "category": "Kategorija",
       "subtitle": "Izberite fazo, za katero želite recepte.",
-      "loading": "Nalagam faze...",
-      "empty": "Ni na voljo faz za to kategorijo.",
+      "loading": "Nalaganje faz...",
+      "empty": "Za to kategorijo ni na voljo faz.",
       "items": {
         "hormonal_cycle": {
           "menstrual": "Menstrualna faza",
@@ -720,20 +720,20 @@
       "back_to_phases": "Nazaj na faze",
       "title": "Recepti",
       "subtitle": "Recepti, prilagojeni vašim preferencam in zdravstvenim potrebam.",
-      "filters_active": "aktivni filtri",
-      "loading": "Nalagam recepte...",
+      "filters_active": "aktivnih filtrov",
+      "loading": "Nalaganje receptov...",
       "no_results": "Ni receptov za to fazo s trenutnimi filtri.",
       "reset_filters": "Ponastavi filtre"
     },
     "filters": {
       "all_types": "Vse vrste",
       "all_time": "Ves čas",
-      "all_difficulty": "Vse zahtevnosti",
+      "all_difficulty": "Vsa zahtevnost",
       "desserts": "Sladice",
       "savory": "Slano",
-      "diet": "Dieta",
+      "diet": "Dietno",
       "drinks": "Pijače",
-      "short": "Hitro",
+      "short": "Kratko",
       "medium": "Srednje",
       "long": "Dolgo",
       "beginner": "Začetnik",
@@ -753,10 +753,10 @@
     "forgot_password": "Ste pozabili geslo?",
     "no_account": "Nimate računa?",
     "register_link": "Registracija",
-    "back_home": "Nazaj na domov",
+    "back_home": "Nazaj na domačo stran",
     "success": "✅ Prijava uspešna! Preusmerjam...",
     "button": {
-      "login": "🔑 Prijavi se",
+      "login": "🔑 Prijava",
       "loading": "⏳ Prijava..."
     },
     "errors": {
@@ -776,16 +776,16 @@
     "success": {
       "title": "Čestitamo!",
       "subtitle": "Postali ste Premium uporabnik!",
-      "message": "Zdaj imate dostop do vseh Premium funkcionalnosti.",
+      "message": "Zdaj imate dostop do vseh Premium funkcij.",
       "activated": "Premium status aktiviran",
-      "home_button": "Nazaj na domov",
+      "home_button": "Nazaj na domačo stran",
       "profile_button": "Pojdi na profil"
     },
     "error": {
       "title": "Prišlo je do napake",
       "message": "Če ste izvedli plačilo, kontaktirajte podporo.",
       "retry_button": "Poskusi znova",
-      "home_button": "Nazaj na domov"
+      "home_button": "Nazaj na domačo stran"
     },
     "errors": {
       "no_session": "❌ Ni ID-ja seje. Kontaktirajte podporo.",
@@ -794,31 +794,31 @@
     }
   },
   "privacypolicy": {
-    "title": "Pravilnik o zasebnosti",
-    "intro": "resno jemlje vašo zasebnost.",
+    "title": "Politika zasebnosti",
+    "intro": "jemanje vaše zasebnosti resno.",
     "collect_info": "Zbiramo samo podatke, ki nam jih prostovoljno posredujete:",
     "data": {
       "email": "E-poštni naslov",
       "name": "Ime",
       "preferences": "Prehranske preference",
-      "nutrition": "Prehranski podatki (dnevniki obrokov)"
+      "nutrition": "Prehranski podatki (vnos obrokov)"
     },
     "sharing": {
-      "title": "Vaši podatki NIKOLI niso deljeni s tretjimi osebami."
+      "title": "Vaši podatki se NIKOLI ne delijo s tretjimi osebami."
     },
     "delete_info": "Kadarkoli lahko zahtevate izbris vseh podatkov prek svojega profila.",
     "last_updated": "Zadnja posodobitev: 31.07.2026.",
-    "back_home": "Nazaj na domov"
+    "back_home": "Nazaj na domačo stran"
   },
   "profile": {
-    "seo_title": "Profil – OS Zdravlja",
-    "seo_description": "Vaš profil – pregled preferenc, osvojenih značk in napredka na OS Zdravlja.",
-    "loading": "Nalagam profil...",
+    "seo_title": "Profil – OS Zdravja",
+    "seo_description": "Vaš profil – pregledajte svoje preference, pridobljene značke in napredek na OS Zdravja.",
+    "loading": "Nalaganje profila...",
     "default_name": "Uporabnik",
     "not_found": "Profil ni najden.",
     "take_quiz": "Opravi kviz",
     "premium": "Premium",
-    "become_premium": "Postani Premium",
+    "become_premium": "Postanite Premium",
     "progress": "Napredek",
     "recipes_cooked": "skuhanih receptov",
     "quiz": "Kviz",
@@ -827,10 +827,10 @@
     "preferences": "Moje preference",
     "preferences_types": "Vrsta",
     "restrictions": "Omejitve",
-    "none": "Ni",
+    "none": "Nič",
     "not_selected": "Ni izbrano",
     "time": "Čas",
-    "skill": "Veščina",
+    "skill": "Spretnost",
     "calories": "Kalorije",
     "edit_filters": "Uredi filtre",
     "delete_data": "Izbriši vse podatke",
@@ -839,30 +839,30 @@
     "delete_confirm": "Ali ste prepričani? To dejanje je nepovratno!",
     "delete_error": "Napaka pri brisanju podatkov.",
     "language": "Jezik",
-    "no_badges": "Še ni osvojenih značk.",
-    "badges_hint": "Objavljajte recepte in zbirajte všečke za osvojitev značk!",
+    "no_badges": "Še ni pridobljenih značk.",
+    "badges_hint": "Objavljajte recepte in zbirajte všečke, da pridobite značke!",
     "other_filters": "Drugi filtri",
     "stats": {
       "recipes_cooked": "Skuhanih receptov",
-      "badges_earned": "Osvojenih značk",
+      "badges_earned": "Pridobljenih značk",
       "quiz_completed": "Zaključen",
       "quiz_not_completed": "Ni zaključen",
-      "status": "Status",
+      "status": "Stanje",
       "status_premium": "Premium",
-      "status_free": "Brezplačno"
+      "status_free": "Free"
     },
     "badges": {
-      "title": "Osvojene značke",
+      "title": "Pridobljene značke",
       "first_recipe": "Prvi recept",
       "three_days": "3 dni zapored",
       "ten_recipes": "10 receptov",
-      "earned": "Osvojeno 🎉",
+      "earned": "Pridobljeno 🎉",
       "locked": "Zaklenjeno",
       "available": "Razpoložljive značke:",
       "scroll_hint": "Pomaknite se za značke...",
       "available_list": {
         "first_recipe": "Prvi recept",
-        "three_recipes": "3 recepte",
+        "three_recipes": "3 recepti",
         "ten_recipes": "10 receptov",
         "twenty_recipes": "20 receptov",
         "ten_likes": "10 všečkov",
@@ -886,7 +886,7 @@
     "name_label": "Ime",
     "name_placeholder": "Janez Novak",
     "password_label": "Geslo",
-    "password_placeholder": "•••••••• (najmanj 6 znakov)",
+    "password_placeholder": "•••••••• (min 6 znakov)",
     "confirm_password_label": "Potrdi geslo",
     "confirm_password_placeholder": "••••••••",
     "have_account": "Že imate račun?",
@@ -908,15 +908,15 @@
   },
   "resetpassword": {
     "title": "Novo geslo",
-    "subtitle": "Vnesite svoje novo geslo.",
+    "subtitle": "Vnesite novo geslo za svoj račun.",
     "new_password_label": "Novo geslo",
-    "new_password_placeholder": "•••••••• (najmanj 6 znakov)",
+    "new_password_placeholder": "•••••••• (min 6 znakov)",
     "confirm_password_label": "Potrdi geslo",
     "confirm_password_placeholder": "••••••••",
     "remembered": "Ste se spomnili gesla?",
     "login_link": "Prijava",
-    "back_home": "Nazaj na domov",
-    "password_hint": "Vsaj 6 znakov",
+    "back_home": "Nazaj na domačo stran",
+    "password_hint": "Najmanj 6 znakov",
     "button": {
       "reset": "🔐 Spremeni geslo",
       "loading": "⏳ Spreminjanje..."
@@ -934,21 +934,21 @@
   "termsofservice": {
     "title": "Pogoji uporabe",
     "disclaimer": {
-      "title": "⚠️ ZDRAVSTVENI ODMIK",
-      "text": "OS Zdravlja zagotavlja informativne in izobraževalne vsebine o prehrani in zdravju.",
+      "title": "⚠️ ZDRAVSTVENO OPOZORILO",
+      "text": "OS Zdravja nudi informativne in izobraževalne vsebine o prehrani in zdravju.",
       "strong": "NI NADOMESTILO ZA ZDRAVNIŠKI NASVET."
     },
     "consult": {
-      "text": "Pred kakršnimi koli spremembami v prehrani ali življenjskem slogu",
+      "text": "Pred kakršnimi koli spremembami prehrane ali življenjskega sloga,",
       "strong": "se posvetujte s svojim zdravnikom ali nutricionistom."
     },
     "last_updated": "Zadnja posodobitev: 31.07.2026.",
-    "back_home": "Nazaj na domov"
+    "back_home": "Nazaj na domačo stran"
   },
   "recipe": {
     "step": "Korak",
     "of": "od",
-    "finished": "✅ Recept zaključen!",
+    "finished": "✅ Recept prebran!",
     "no_steps": "⚠️ Ni navodil za ta recept.",
     "voice_cooking": "Glasovno kuhanje",
     "start_reading": "Začni branje",
@@ -970,7 +970,7 @@
     "fiber": "Vlaknine",
     "sodium": "Natrij",
     "servings": "Porcije",
-    "original": "Original",
+    "original": "Originalno",
     "for": "za",
     "person": "osebo",
     "people": "oseb",
@@ -984,42 +984,42 @@
     "time": "Čas obroka",
     "ask_again": "Vprašaj znova",
     "ask_sommelier": "Vprašaj Sommelierja",
-    "sommelier_desc": "AI priporoča začimbe, pijače in priloge glede na sestavine.",
+    "sommelier_desc": "AI priporoča začimbe, pijačo in prilogo na podlagi sestavin.",
     "voice_premium": "🎤 Glasovno kuhanje je na voljo samo za Premium uporabnike.",
     "share": "Deli",
-    "start_timer": "Zaženi timer",
+    "start_timer": "Zaženi časovnik",
     "print": "Natisni",
     "email": "E-pošta",
     "similar": "Podobni recepti",
     "cached": "Odgovor iz predpomnilnika",
     "fallback": "Uporabljen nadomestni odgovor (brez AI)",
     "not_found": "Recept ni najden",
-    "not_found_desc": "Iskani recept ne obstaja ali je bil odstranjen.",
+    "not_found_desc": "Zahtevani recept ne obstaja ali je bil odstranjen.",
     "time_up": "⏰ Čas je potekel!",
     "recipe": "Recept",
     "copied": "📋 Recept kopiran v odložišče!",
     "all_recipes": "Vsi recepti",
     "kcal": "kcal",
-    "restrictions": "omejitve"
+    "restrictions": "omejitev"
   },
   "recipes": {
     "category_recipes": "Recepti v kategoriji: {{category}}",
     "all": "Vsi recepti",
     "all_recipes": "Vsi recepti",
     "all_time": "Ves čas",
-    "all_levels": "Vse ravni",
+    "all_levels": "Vsa zahtevnost",
     "preferences": "Preference",
     "high_protein": "Visoko beljakovinsko",
     "high_fiber": "Bogato z vlakninami",
     "high_carb": "Bogato z ogljikovimi hidrati",
     "reset": "Ponastavi",
-    "showing": "Prikazano",
+    "showing": "Prikazanih",
     "of": "od",
     "recipes": "receptov",
-    "filters_active": "aktivni filtri",
+    "filters_active": "aktivnih filtrov",
     "search": "🔍 Išči recepte...",
     "excluding": "Izogiba se",
-    "short": "Hitro",
+    "short": "Kratko",
     "medium": "Srednje",
     "long": "Dolgo",
     "beginner": "Začetnik",
@@ -1030,11 +1030,11 @@
     "medium_cal": "Srednje",
     "high_cal": "Visoko",
     "no_recipes": "Ni receptov",
-    "no_recipes_desc": "Trenutno ni receptov v bazi. Poskusite pozneje.",
-    "no_results": "Ni receptov, ki bi ustrezali vašim kriterijem.",
+    "no_recipes_desc": "Trenutno v bazi ni receptov. Poskusite kasneje.",
+    "no_results": "Ni receptov, ki ustrezajo vašim kriterijem.",
     "reset_filters": "Ponastavi filtre",
     "categories": {
-      "diet": "Dieta",
+      "diet": "Dietno",
       "desserts": "Sladice",
       "savory": "Slano",
       "drinks": "Pijače"
@@ -1043,7 +1043,7 @@
       "search_label": "ISKANJE",
       "time_label": "ČAS",
       "difficulty_label": "ZAHTEVNOST",
-      "all_difficulty": "Vse zahtevnosti",
+      "all_difficulty": "Vsa zahtevnost",
       "preferences_label": "PREFERENCE",
       "all_preferences": "Vse preference",
       "high_carbs": "🍞 Bogato z ogljikovimi hidrati",
@@ -1069,7 +1069,7 @@
     "title": "Obvestila",
     "notifications": "obvestil",
     "no_notifications": "Vse mirno",
-    "come_back_later": "Vrnite se pozneje",
+    "come_back_later": "Vrnite se kasneje",
     "mark_all": "Označi vse",
     "mark_read": "Označi kot prebrano",
     "open": "Odpri",
@@ -1099,46 +1099,74 @@
     "placeholder": "Napišite sporočilo...",
     "send": "Pošlji",
     "login_required": "❌ Niste prijavljeni!",
-    "premium_hint": "⭐ Ta funkcionalnost je na voljo samo Premium uporabnikom",
-    "premium_only": "⭐ Ta funkcionalnost je na voljo samo Premium uporabnikom!",
-    "premium_only_short": "Ta funkcionalnost je na voljo samo Premium uporabnikom",
+    "premium_hint": "⭐ Ta funkcija je na voljo samo za Premium uporabnike",
+    "premium_only": "⭐ Ta funkcija je na voljo samo za Premium uporabnike!",
+    "premium_only_short": "Ta funkcija je na voljo samo za Premium uporabnike",
     "premium_link": "Postanite Premium",
     "premium_link_short": "Postanite Premium",
     "premium_user": "⭐ Premium uporabnik",
-    "premium_feature": "🔒 Premium funkcionalnost",
+    "premium_feature": "🔒 Premium funkcija",
     "remaining": "Preostalo: {{count}}/{{total}}",
     "remaining_info": "💡 Preostalo vam je {{count}} od {{total}} sporočil danes",
-    "limit_reached": "⚠️ Dosegli ste limit {{limit}} sporočil na dan.",
-    "limit_reached_message": "⏳ Dosegli ste dnevni limit {{limit}} sporočil. Poskusite jutri!",
-    "disclaimer_title": "ZDRAVSTVENI ODMIK",
-    "disclaimer_text": "AI Klepet zagotavlja informativne in izobraževalne vsebine o prehrani in zdravju.",
+    "limit_reached": "⚠️ Dosegli ste omejitev {{limit}} sporočil na dan.",
+    "limit_reached_message": "⏳ Dosegli ste dnevno omejitev {{limit}} sporočil. Poskusite jutri!",
+    "disclaimer_title": "ZDRAVSTVENO OPOZORILO",
+    "disclaimer_text": "AI Klepet nudi informativne in izobraževalne vsebine o prehrani in zdravju.",
     "disclaimer_strong": "NI NADOMESTILO ZA ZDRAVNIŠKI NASVET.",
-    "disclaimer_consult": " Pred kakršnimi koli spremembami v prehrani ali življenjskem slogu se posvetujte s svojim zdravnikom ali nutricionistom.",
-    "disclaimer_footer": "AI Klepet zagotavlja informativne in izobraževalne vsebine o prehrani in zdravju.",
+    "disclaimer_consult": " Pred kakršnimi koli spremembami prehrane ali življenjskega sloga se posvetujte s svojim zdravnikom ali nutricionistom.",
+    "disclaimer_footer": "AI Klepet nudi informativne in izobraževalne vsebine o prehrani in zdravju.",
     "disclaimer_footer_strong": "NI NADOMESTILO ZA ZDRAVNIŠKI NASVET.",
-    "disclaimer_footer_consult": " Pred kakršnimi koli spremembami v prehrani se posvetujte s svojim zdravnikom."
+    "disclaimer_footer_consult": " Pred kakršnimi koli spremembami prehrane se posvetujte s svojim zdravnikom."
   },
   "goals": {
     "title": "Moji cilji",
+    "subtitle": "Postavite in spremljajte svoje cilje",
     "weight": "Ciljna teža (kg)",
-    "body_fat": "Ciljni % maščobe",
+    "weight_placeholder": "npr. 75 kg",
+    "body_fat": "Ciljni % telesne maščobe",
+    "body_fat_placeholder": "npr. 15%",
     "water": "Ciljni vnos vode (ml)",
-    "steps": "Ciljno število korakov"
+    "water_placeholder": "npr. 2000 ml",
+    "steps": "Ciljno število korakov",
+    "steps_placeholder": "npr. 10000 korakov",
+    "saving": "Shranjevanje...",
+    "success": "✅ Cilji uspešno shranjeni!",
+    "errors": {
+      "login_required": "❌ Niste prijavljeni!",
+      "save_failed": "❌ Napaka pri shranjevanju ciljev!"
+    }
   },
   "water": {
-    "title": "Sledenje vode",
+    "title": "Spremljanje vode",
+    "subtitle": "Spremljajte dnevni vnos vode",
     "goal": "Cilj",
+    "current": "Trenutno",
+    "progress": "Napredek",
+    "entries": "Vnosov danes",
     "completed": "zaključeno",
-    "reset": "Ponastavi vnos"
+    "reset": "Ponastavi vnos",
+    "reset_confirm": "Ali ste prepričani, da želite ponastaviti današnji vnos vode?",
+    "errors": {
+      "login_required": "❌ Niste prijavljeni!",
+      "add_failed": "❌ Napaka pri dodajanju vode!",
+      "reset_failed": "❌ Napaka pri ponastavitvi!"
+    }
   },
   "micro_nutrients": {
     "title": "Mikrohranila",
+    "subtitle": "Vnesite dnevni vnos mikrohranil",
     "vitamin_a": "Vitamin A (μg)",
     "vitamin_c": "Vitamin C (mg)",
     "vitamin_d": "Vitamin D (μg)",
     "iron": "Železo (mg)",
     "magnesium": "Magnezij (mg)",
     "calcium": "Kalcij (mg)",
-    "zinc": "Cink (mg)"
+    "zinc": "Cink (mg)",
+    "saving": "Shranjevanje...",
+    "success": "✅ Mikrohranila uspešno shranjena!",
+    "errors": {
+      "login_required": "❌ Niste prijavljeni!",
+      "save_failed": "❌ Napaka pri shranjevanju!"
+    }
   }
 }

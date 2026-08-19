@@ -44,7 +44,7 @@ const WaterTracker = () => {
 
   const addWater = async (amount) => {
     if (!email) {
-      alert('❌ Niste prijavljeni!');
+      alert(t('water.errors.login_required') || '❌ Niste prijavljeni!');
       return;
     }
 
@@ -66,11 +66,11 @@ const WaterTracker = () => {
         setWater(prev => prev + amount);
         setTodayWater(prev => [...prev, { kolicina_ml: amount }]);
       } else {
-        alert('❌ Greška pri dodavanju vode!');
+        alert(t('water.errors.add_failed') || '❌ Greška pri dodavanju vode!');
       }
     } catch (error) {
       console.error('❌ Greška:', error);
-      alert('❌ Greška pri dodavanju vode!');
+      alert(t('water.errors.add_failed') || '❌ Greška pri dodavanju vode!');
     } finally {
       setLoading(false);
     }
@@ -78,7 +78,7 @@ const WaterTracker = () => {
 
   const resetWater = async () => {
     if (!email) return;
-    if (!window.confirm('Jeste li sigurni da želite resetovati unos vode za danas?')) return;
+    if (!window.confirm(t('water.reset_confirm') || 'Jeste li sigurni da želite resetovati unos vode za danas?')) return;
 
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -92,7 +92,7 @@ const WaterTracker = () => {
       setTodayWater([]);
     } catch (error) {
       console.error('❌ Greška:', error);
-      alert('❌ Greška pri resetovanju!');
+      alert(t('water.errors.reset_failed') || '❌ Greška pri resetovanju!');
     }
   };
 
@@ -109,7 +109,7 @@ const WaterTracker = () => {
             {t('water.title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Pratite dnevni unos vode
+            {t('water.subtitle') || 'Pratite dnevni unos vode'}
           </p>
         </div>
       </div>
@@ -119,26 +119,26 @@ const WaterTracker = () => {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-center border border-blue-200 dark:border-blue-700">
             <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{water}ml</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Trenutno</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('water.current') || 'Trenutno'}</p>
           </div>
           <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 text-center border border-green-200 dark:border-green-700">
             <p className="text-2xl font-bold text-green-600 dark:text-green-400">{goal}ml</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Cilj</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('water.goal') || 'Cilj'}</p>
           </div>
           <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4 text-center border border-yellow-200 dark:border-yellow-700">
             <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{Math.round(progress)}%</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Napredak</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('water.progress') || 'Napredak'}</p>
           </div>
           <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4 text-center border border-purple-200 dark:border-purple-700">
             <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{todayWater.length}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Unosa danas</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('water.entries') || 'Unosa danas'}</p>
           </div>
         </div>
 
         {/* Progress Bar */}
         <div className="mb-6">
           <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mb-1">
-            <span>Napredak</span>
+            <span>{t('water.progress') || 'Napredak'}</span>
             <span>{Math.round(progress)}%</span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">

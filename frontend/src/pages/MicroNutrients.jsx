@@ -57,7 +57,7 @@ const MicroNutrients = () => {
 
   const handleSave = async () => {
     if (!email) {
-      alert('❌ Niste prijavljeni!');
+      alert(t('micro_nutrients.errors.login_required') || '❌ Niste prijavljeni!');
       return;
     }
 
@@ -82,13 +82,13 @@ const MicroNutrients = () => {
       const data = await response.json();
       
       if (data.success) {
-        alert('✅ Mikronutrijenti uspješno sačuvani!');
+        alert(t('micro_nutrients.success') || '✅ Mikronutrijenti uspješno sačuvani!');
       } else {
-        alert('❌ Greška pri čuvanju!');
+        alert(t('micro_nutrients.errors.save_failed') || '❌ Greška pri čuvanju!');
       }
     } catch (error) {
       console.error('❌ Greška:', error);
-      alert('❌ Greška pri čuvanju!');
+      alert(t('micro_nutrients.errors.save_failed') || '❌ Greška pri čuvanju!');
     } finally {
       setLoading(false);
     }
@@ -105,7 +105,7 @@ const MicroNutrients = () => {
             {t('micro_nutrients.title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Unesite dnevni unos mikronutrijenata
+            {t('micro_nutrients.subtitle') || 'Unesite dnevni unos mikronutrijenata'}
           </p>
         </div>
       </div>
@@ -223,7 +223,7 @@ const MicroNutrients = () => {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
               </svg>
-              Čuvanje...
+              {t('micro_nutrients.saving') || 'Čuvanje...'}
             </>
           ) : (
             <>
