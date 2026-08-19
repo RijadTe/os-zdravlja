@@ -1416,16 +1416,18 @@ const activeFiltersCount = Object.values(filters).filter(v => {
         </div>
       </section>
 
-      {/* ===== PREPORUČENI RECEPTI ===== */}
-      <section id="recipes-section" className="py-12 md:py-20 px-4 max-w-7xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-6 md:mb-8 text-gray-800 dark:text-white">
-          🍽️ {t('home.recipes.title', { defaultValue: 'Preporučeni recepti' })}
-          {activeFiltersCount > 0 && (
-            <span className="ml-2 text-sm bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full">
-              {activeFiltersCount} {t('home.recipes.filters_active', { defaultValue: 'filtera aktivno' })}
-            </span>
-          )}
-        </h2>
+{/* ===== PREPORUČENI RECEPTI ===== */}
+<section id="recipes-section" className="py-12 md:py-20 px-4 max-w-7xl mx-auto">
+  <div className="text-center mb-6 md:mb-8">
+    <h2 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white">
+      🍽️ {t('home.recipes.title', { defaultValue: 'Preporučeni recepti' })}
+    </h2>
+    {activeFiltersCount > 0 && (
+      <p className="text-sm text-blue-600 dark:text-blue-400 mt-1 font-medium">
+        🔍 {activeFiltersCount} {t('home.recipes.filters_active', { defaultValue: 'filtera aktivno' })}
+      </p>
+    )}
+  </div>
 
         <div className="flex flex-wrap justify-center gap-3 mb-6 md:mb-8">
           <select 
