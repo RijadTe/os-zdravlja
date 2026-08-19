@@ -96,6 +96,24 @@ const AIChat = () => {
 
   return (
     <div className="max-w-4xl mx-auto py-6 px-4">
+      {/* 🔥 DISCLAIMER - NA VRHU STRANICE */}
+      <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl">
+        <div className="flex items-start gap-3">
+          <span className="text-xl flex-shrink-0 mt-0.5">⚠️</span>
+          <div>
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+              ZDRAVSTVENI DISCLAIMER
+            </p>
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              AI Chat pruža informativne i edukativne sadržaje o ishrani i zdravlju. 
+              <span className="font-bold"> NIJE ZAMJENA ZA MEDICINSKI SAVJET.</span>
+              Prije bilo kakvih promjena u ishrani ili načinu života, 
+              posavjetujte se sa svojim ljekarom ili nutricionistom.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
         <div>
@@ -220,6 +238,15 @@ const AIChat = () => {
             )}
           </div>
         </div>
+      </div>
+
+      {/* 🔥 DISCLAIMER - NA DNU STRANICE (DODATNA SIGURNOST) */}
+      <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl">
+        <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center">
+          ⚠️ AI Chat pruža informativne i edukativne sadržaje o ishrani i zdravlju. 
+          <span className="font-bold"> NIJE ZAMJENA ZA MEDICINSKI SAVJET.</span>
+          Prije bilo kakvih promjena u ishrani, posavjetujte se sa svojim ljekarom.
+        </p>
       </div>
     </div>
   );
