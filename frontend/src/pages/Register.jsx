@@ -23,7 +23,7 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // 🔥 SAMO 6 JEZIKA
+  // 🔥 SVIH 7 JEZIKA (HR, EN, DE, FR, IT, ES, SL)
   const languages = [
     { code: 'hr', name: 'Hrvatski', flag: '🇭🇷' },
     { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -31,6 +31,7 @@ const Register = () => {
     { code: 'fr', name: 'Français', flag: '🇫🇷' },
     { code: 'it', name: 'Italiano', flag: '🇮🇹' },
     { code: 'es', name: 'Español', flag: '🇪🇸' },
+    { code: 'sl', name: 'Slovenščina', flag: '🇸🇮' }, // 🔥 DODATO
   ];
 
   useEffect(() => {
@@ -282,7 +283,7 @@ const Register = () => {
               OS Zdravlja
             </h2>
             
-            {/* 🔥 IZBOR JEZIKA SA ZASTAVAMA - SAMO 6 JEZIKA */}
+            {/* 🔥 IZBOR JEZIKA SA ZASTAVAMA - SVIH 7 JEZIKA */}
             <div className="flex items-center justify-center gap-2 mt-2">
               <span className="text-sm text-gray-500 dark:text-gray-400">🌍</span>
               <select 
