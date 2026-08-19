@@ -5516,75 +5516,142 @@ app.post('/api/goals', async (req, res) => {
 // 📊 MICRO NUTRIENTS ENDPOINTS
 // ============================================================
 
-// SAČUVAJ MIKRONUTRIJENTE
+// SAČUVAJ MIKRONUTRIJENTE (POST)
 app.post('/api/micro-nutrients', async (req, res) => {
   try {
     const { email, date, vitaminA, vitaminC, vitaminD, iron, magnesium, calcium, zinc } = req.body;
 
+    console.log('\n📊 === ČUVANJE MIKRONUTRIJENATA ===');
+    console.log('📧 Email:', email);
+    console.log('📅 Datum:', date);
+    console.log('📦 Vitamin A:', vitaminA);
+    console.log('📦 Vitamin C:', vitaminC);
+    console.log('📦 Vitamin D:', vitaminD);
+    console.log('📦 Željezo:', iron);
+    console.log('📦 Magnezij:', magnesium);
+    console.log('📦 Kalcij:', calcium);
+    console.log('📦 Cink:', zinc);
+
     if (!email || !date) {
-      return res.status(400).json({ error: 'Email i datum su obavezni.' });
+      console.log('❌ Email ili datum nedostaju');
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email i datum su obavezni.' 
+      });
     }
 
+    // Provjeri da li korisnik postoji
+    const { data: user, error: userError } = await supabase
+      .from('profili')
+      .select('email')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (userError || !user) {
+      console.error('❌ Korisnik nije pronađen:', email);
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Korisnik nije pronađen.' 
+      });
+    }
+
+    console.log('✅ Korisnik pronađen');
+
     // Provjeri da li već postoji unos za danas
-    const { data: existing } = await supabase
+    const { data: existing, error: existingError } = await supabase
       .from('mikronutrijenti')
       .select('id')
       .eq('korisnik_email', email)
       .eq('datum', date)
       .maybeSingle();
 
+    if (existingError) {
+      console.error('❌ Greška pri provjeri:', existingError);
+    }
+
     let result;
 
     if (existing) {
-      // Ažuriraj postojeći
+      console.log('📝 Ažuriram postojeći unos (ID:', existing.id, ')');
+      
       const { data, error } = await supabase
         .from('mikronutrijenti')
         .update({
-          vitamin_a: vitaminA || 0,
-          vitamin_c: vitaminC || 0,
-          vitamin_d: vitaminD || 0,
-          zelezo: iron || 0,
-          magnezij: magnesium || 0,
-          kalcij: calcium || 0,
-          cink: zinc || 0
+          vitamin_a: parseFloat(vitaminA) || 0,
+          vitamin_c: parseFloat(vitaminC) || 0,
+          vitamin_d: parseFloat(vitaminD) || 0,
+          zelezo: parseFloat(iron) || 0,
+          magnezij: parseFloat(magnesium) || 0,
+          kalcij: parseFloat(calcium) || 0,
+          cink: parseFloat(zinc) || 0,
+          updated_at: new Date().toISOString()
         })
         .eq('id', existing.id)
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Greška pri ažuriranju:', error);
+        return res.status(500).json({ 
+          success: false, 
+          error: error.message 
+        });
+      }
       result = data;
+      console.log('✅ Mikronutrijenti ažurirani');
     } else {
-      // Kreiraj novi
+      console.log('🆕 Kreiram novi unos');
+      
       const { data, error } = await supabase
         .from('mikronutrijenti')
         .insert([{
           korisnik_email: email,
           datum: date,
-          vitamin_a: vitaminA || 0,
-          vitamin_c: vitaminC || 0,
-          vitamin_d: vitaminD || 0,
-          zelezo: iron || 0,
-          magnezij: magnesium || 0,
-          kalcij: calcium || 0,
-          cink: zinc || 0
+          vitamin_a: parseFloat(vitaminA) || 0,
+          vitamin_c: parseFloat(vitaminC) || 0,
+          vitamin_d: parseFloat(vitaminD) || 0,
+          zelezo: parseFloat(iron) || 0,
+          magnezij: parseFloat(magnesium) || 0,
+          kalcij: parseFloat(calcium) || 0,
+          cink: parseFloat(zinc) || 0
         }])
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Greška pri kreiranju:', error);
+        return res.status(500).json({ 
+          success: false, 
+          error: error.message 
+        });
+      }
       result = data;
+      console.log('✅ Mikronutrijenti kreirani');
     }
 
-    res.json({ success: true, data: result });
+    console.log('📤 Vraćam odgovor:', result);
+    res.json({ success: true, data: result?.[0] || null });
   } catch (error) {
     console.error('❌ Greška:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
   }
 });
 
-// DOHVATI MIKRONUTRIJENTE ZA KORISNIKA
+// DOHVATI MIKRONUTRIJENTE ZA KORISNIKA (GET)
 app.get('/api/micro-nutrients/:email', async (req, res) => {
   try {
     const { email } = req.params;
+
+    console.log('\n📊 === DOHVATANJE MIKRONUTRIJENATA ===');
+    console.log('📧 Email:', email);
+
+    if (!email) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email je obavezan.' 
+      });
+    }
 
     const { data, error } = await supabase
       .from('mikronutrijenti')
@@ -5594,13 +5661,66 @@ app.get('/api/micro-nutrients/:email', async (req, res) => {
 
     if (error) {
       console.error('❌ Supabase greška:', error);
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ 
+        success: false, 
+        error: error.message 
+      });
     }
 
+    console.log(`✅ Dohvaćeno ${data?.length || 0} unosa`);
     res.json({ success: true, data: data || [] });
   } catch (error) {
     console.error('❌ Greška:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// DOHVATI DANAŠNJE MIKRONUTRIJENTE (GET)
+app.get('/api/micro-nutrients/today/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const today = new Date().toISOString().split('T')[0];
+
+    console.log('\n📊 === DOHVATANJE DANAŠNJIH MIKRONUTRIJENATA ===');
+    console.log('📧 Email:', email);
+    console.log('📅 Datum:', today);
+
+    if (!email) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email je obavezan.' 
+      });
+    }
+
+    const { data, error } = await supabase
+      .from('mikronutrijenti')
+      .select('*')
+      .eq('korisnik_email', email)
+      .eq('datum', today)
+      .maybeSingle();
+
+    if (error) {
+      console.error('❌ Supabase greška:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: error.message 
+      });
+    }
+
+    console.log('✅ Dohvaćeno:', data || 'Nema unosa');
+    res.json({ 
+      success: true, 
+      data: data || null
+    });
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
   }
 });
 
