@@ -19,7 +19,6 @@ const MicroNutrients = () => {
 
   const email = localStorage.getItem('userEmail');
 
-  // 🔥 DOHVATI DANAŠNJE MIKRONUTRIJENTE IZ BAZE
   useEffect(() => {
     const fetchNutrients = async () => {
       if (!email) return;
@@ -56,7 +55,6 @@ const MicroNutrients = () => {
     setNutrients(prev => ({ ...prev, [key]: parseFloat(value) || 0 }));
   };
 
-  // 🔥 SAČUVAJ MIKRONUTRIJENTE U BAZU
   const handleSave = async () => {
     if (!email) {
       alert('❌ Niste prijavljeni!');
@@ -97,86 +95,119 @@ const MicroNutrients = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-6">📊 {t('micro_nutrients.title')}</h1>
+    <div className="max-w-4xl mx-auto py-6 px-4">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl shadow-lg shadow-emerald-500/20">
+          <span className="text-3xl">📊</span>
+        </div>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
+            {t('micro_nutrients.title')}
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Unesite dnevni unos mikronutrijenata
+          </p>
+        </div>
+      </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-white">
-              🥕 Vitamin A (μg)
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <span className="text-xl">🥕</span> {t('micro_nutrients.vitamin_a')}
             </label>
             <input
               type="number"
               value={nutrients.vitaminA}
               onChange={(e) => handleChange('vitaminA', e.target.value)}
-              className="w-full border rounded-xl px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              placeholder="0"
+              min="0"
+              step="0.1"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-white">
-              🍊 Vitamin C (mg)
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <span className="text-xl">🍊</span> {t('micro_nutrients.vitamin_c')}
             </label>
             <input
               type="number"
               value={nutrients.vitaminC}
               onChange={(e) => handleChange('vitaminC', e.target.value)}
-              className="w-full border rounded-xl px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              placeholder="0"
+              min="0"
+              step="0.1"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-white">
-              ☀️ Vitamin D (μg)
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <span className="text-xl">☀️</span> {t('micro_nutrients.vitamin_d')}
             </label>
             <input
               type="number"
               value={nutrients.vitaminD}
               onChange={(e) => handleChange('vitaminD', e.target.value)}
-              className="w-full border rounded-xl px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              placeholder="0"
+              min="0"
+              step="0.1"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-white">
-              🥩 Željezo (mg)
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <span className="text-xl">🥩</span> {t('micro_nutrients.iron')}
             </label>
             <input
               type="number"
               value={nutrients.iron}
               onChange={(e) => handleChange('iron', e.target.value)}
-              className="w-full border rounded-xl px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              placeholder="0"
+              min="0"
+              step="0.1"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-white">
-              🥜 Magnezij (mg)
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <span className="text-xl">🥜</span> {t('micro_nutrients.magnesium')}
             </label>
             <input
               type="number"
               value={nutrients.magnesium}
               onChange={(e) => handleChange('magnesium', e.target.value)}
-              className="w-full border rounded-xl px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              placeholder="0"
+              min="0"
+              step="0.1"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-white">
-              🥛 Kalcij (mg)
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <span className="text-xl">🥛</span> {t('micro_nutrients.calcium')}
             </label>
             <input
               type="number"
               value={nutrients.calcium}
               onChange={(e) => handleChange('calcium', e.target.value)}
-              className="w-full border rounded-xl px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              placeholder="0"
+              min="0"
+              step="0.1"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 dark:text-white">
-              🥩 Cink (mg)
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <span className="text-xl">🦪</span> {t('micro_nutrients.zinc')}
             </label>
             <input
               type="number"
               value={nutrients.zinc}
               onChange={(e) => handleChange('zinc', e.target.value)}
-              className="w-full border rounded-xl px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              placeholder="0"
+              min="0"
+              step="0.1"
             />
           </div>
         </div>
@@ -184,9 +215,22 @@ const MicroNutrients = () => {
         <button
           onClick={handleSave}
           disabled={loading}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl transition font-semibold disabled:opacity-50"
+          className="w-full mt-6 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-3.5 rounded-xl font-semibold transition disabled:opacity-50 shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
         >
-          {loading ? '⏳ Čuvanje...' : '💾 ' + t('common.save')}
+          {loading ? (
+            <>
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+              </svg>
+              Čuvanje...
+            </>
+          ) : (
+            <>
+              <span>💾</span>
+              {t('common.save')}
+            </>
+          )}
         </button>
       </div>
     </div>

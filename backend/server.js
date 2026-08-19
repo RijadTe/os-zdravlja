@@ -5696,6 +5696,9 @@ app.post('/api/ai-chat', async (req, res) => {
       return res.status(400).json({ error: 'Poruka i email su obavezni.' });
     }
 
+    // 🔥 MAKSIMALAN BROJ PORUKA ZA PREMIUM KORISNIKE
+    const MAX_DAILY_MESSAGES = 10;
+
     // Provjeri korisnika
     const { data: user, error: userError } = await supabase
       .from('profili')
@@ -5712,13 +5715,24 @@ app.post('/api/ai-chat', async (req, res) => {
       return res.status(404).json({ error: 'Korisnik nije pronađen.' });
     }
 
-    // Provjeri limit za FREE korisnike
+    // 🔥 1. PROVJERA: SAMO PREMIUM KORISNICI
+    if (!user.premium) {
+      return res.status(403).json({ 
+        error: 'Ova funkcionalnost je dostupna samo Premium korisnicima. Postanite Premium za korištenje AI Chata.' 
+      });
+    }
+
+    // 🔥 2. PROVJERA: LIMIT OD 10 PORUKA DNEVNO
     const today = new Date().toISOString().split('T')[0];
     let count = user.ai_chat_date === today ? user.ai_chat_count : 0;
 
-    if (!user.premium && count >= 5) {
+console.log(`🤖 AI Chat zahtjev od: ${email}`);
+console.log(`📊 Trenutni broj poruka: ${count}/${MAX_DAILY_MESSAGES}`);
+
+
+    if (count >= MAX_DAILY_MESSAGES) {
       return res.status(429).json({ 
-        error: 'Dostigli ste limit od 5 poruka dnevno. Postanite Premium za neograničeno.' 
+        error: `Dostigli ste limit od ${MAX_DAILY_MESSAGES} poruka dnevno. Pokušajte ponovo sutra.` 
       });
     }
 

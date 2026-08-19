@@ -13,7 +13,6 @@ const WaterTracker = () => {
 
   const email = localStorage.getItem('userEmail');
 
-  // 🔥 DOHVATI DANAŠNJI UNOS VODE IZ BAZE
   useEffect(() => {
     const fetchWater = async () => {
       if (!email) return;
@@ -29,7 +28,6 @@ const WaterTracker = () => {
           setWater(total);
           setTodayWater(todayEntries);
           
-          // Dohvati cilj iz profila
           const profileRes = await fetch(`${API_URL}/api/profil/${email}`);
           const profileData = await profileRes.json();
           if (profileData.success && profileData.data?.cilj_voda) {
@@ -44,7 +42,6 @@ const WaterTracker = () => {
     fetchWater();
   }, [email]);
 
-  // 🔥 DODAJ VODU U BAZU
   const addWater = async (amount) => {
     if (!email) {
       alert('❌ Niste prijavljeni!');
@@ -79,7 +76,6 @@ const WaterTracker = () => {
     }
   };
 
-  // 🔥 RESET VODE
   const resetWater = async () => {
     if (!email) return;
     if (!window.confirm('Jeste li sigurni da želite resetovati unos vode za danas?')) return;
@@ -89,10 +85,7 @@ const WaterTracker = () => {
       await fetch(`${API_URL}/api/water/reset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email,
-          date: today
-        })
+        body: JSON.stringify({ email: email, date: today })
       });
 
       setWater(0);
@@ -106,70 +99,95 @@ const WaterTracker = () => {
   const progress = Math.min((water / goal) * 100, 100);
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-6">💧 {t('water.title')}</h1>
-
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
-        <div className="text-center mb-6">
-          <div className="text-6xl mb-2">💧</div>
-          <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-            {water} ml
-          </p>
+    <div className="max-w-4xl mx-auto py-6 px-4">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl shadow-lg shadow-blue-500/20">
+          <span className="text-3xl">💧</span>
+        </div>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
+            {t('water.title')}
+          </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t('water.goal')}: {goal} ml
-          </p>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-            {todayWater.length} unosa danas
+            Pratite dnevni unos vode
           </p>
         </div>
+      </div>
 
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mb-4">
-          <div 
-            className="bg-gradient-to-r from-blue-400 to-emerald-400 h-4 rounded-full transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-6">
+        {/* Stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-center border border-blue-200 dark:border-blue-700">
+            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{water}ml</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Trenutno</p>
+          </div>
+          <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 text-center border border-green-200 dark:border-green-700">
+            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{goal}ml</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Cilj</p>
+          </div>
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4 text-center border border-yellow-200 dark:border-yellow-700">
+            <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{Math.round(progress)}%</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Napredak</p>
+          </div>
+          <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4 text-center border border-purple-200 dark:border-purple-700">
+            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{todayWater.length}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Unosa danas</p>
+          </div>
         </div>
 
-        <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">
-          {Math.round(progress)}% {t('water.completed')}
-        </p>
+        {/* Progress Bar */}
+        <div className="mb-6">
+          <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mb-1">
+            <span>Napredak</span>
+            <span>{Math.round(progress)}%</span>
+          </div>
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
+            <div 
+              className="bg-gradient-to-r from-blue-400 to-emerald-400 h-4 rounded-full transition-all duration-700"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
 
-        <div className="grid grid-cols-4 gap-3">
-          <button 
-            onClick={() => addWater(100)} 
+        {/* Quick Add Buttons */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+          <button
+            onClick={() => addWater(100)}
             disabled={loading}
-            className="bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 p-3 rounded-xl transition disabled:opacity-50"
+            className="bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 p-3 rounded-xl transition border border-blue-200 dark:border-blue-700 disabled:opacity-50 font-medium"
           >
             100ml
           </button>
-          <button 
-            onClick={() => addWater(200)} 
+          <button
+            onClick={() => addWater(200)}
             disabled={loading}
-            className="bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 p-3 rounded-xl transition disabled:opacity-50"
+            className="bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 p-3 rounded-xl transition border border-blue-200 dark:border-blue-700 disabled:opacity-50 font-medium"
           >
             200ml
           </button>
-          <button 
-            onClick={() => addWater(500)} 
+          <button
+            onClick={() => addWater(500)}
             disabled={loading}
-            className="bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 p-3 rounded-xl transition disabled:opacity-50"
+            className="bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 p-3 rounded-xl transition border border-blue-200 dark:border-blue-700 disabled:opacity-50 font-medium"
           >
             500ml
           </button>
-          <button 
-            onClick={() => addWater(1000)} 
+          <button
+            onClick={() => addWater(1000)}
             disabled={loading}
-            className="bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 p-3 rounded-xl transition disabled:opacity-50"
+            className="bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 p-3 rounded-xl transition border border-blue-200 dark:border-blue-700 disabled:opacity-50 font-medium"
           >
             1L
           </button>
         </div>
 
-        <button 
+        {/* Reset Button */}
+        <button
           onClick={resetWater}
-          className="w-full mt-4 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 p-2 rounded-xl transition text-sm"
+          className="w-full bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 p-3 rounded-xl transition border border-red-200 dark:border-red-700 text-sm font-medium flex items-center justify-center gap-2"
         >
-          🔄 {t('water.reset')}
+          <span>🔄</span>
+          {t('water.reset')}
         </button>
       </div>
     </div>
