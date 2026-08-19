@@ -3,13 +3,13 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-// 🔥 UČITAVANJE IZ PUBLIC FOLDER-a - SVIH 6 JEZIKA
+// 🔥 UČITAVANJE IZ PUBLIC FOLDER-a - SVIH 7 JEZIKA
 const loadTranslations = async () => {
   try {
     console.log('🔄 Učitavam prevode iz public/locales/...');
     
-    // 🔥 DODAJ FR, IT, ES
-    const [hr, en, de, fr, it, es] = await Promise.all([
+    // 🔥 DODAJ FR, IT, ES, SL (SLOVENIAN)
+    const [hr, en, de, fr, it, es, sl] = await Promise.all([
       fetch('/locales/hr/translation.json').then(res => {
         if (!res.ok) throw new Error('HR translation not found');
         return res.json();
@@ -22,7 +22,6 @@ const loadTranslations = async () => {
         if (!res.ok) throw new Error('DE translation not found');
         return res.json();
       }),
-      // 🔥 DODATO
       fetch('/locales/fr/translation.json').then(res => {
         if (!res.ok) throw new Error('FR translation not found');
         return res.json();
@@ -34,6 +33,11 @@ const loadTranslations = async () => {
       fetch('/locales/es/translation.json').then(res => {
         if (!res.ok) throw new Error('ES translation not found');
         return res.json();
+      }),
+      // 🔥 DODATO - SLOVENIAN
+      fetch('/locales/sl/translation.json').then(res => {
+        if (!res.ok) throw new Error('SL translation not found');
+        return res.json();
       })
     ]);
 
@@ -44,6 +48,7 @@ const loadTranslations = async () => {
       fr: { translation: fr },
       it: { translation: it },
       es: { translation: es },
+      sl: { translation: sl }, // 🔥 DODATO
     };
 
     await i18n
@@ -69,7 +74,7 @@ const loadTranslations = async () => {
   } catch (error) {
     console.error('❌ Greška pri učitavanju prevoda:', error);
     
-    // 🔥 FALLBACK - SVIH 6 JEZIKA
+    // 🔥 FALLBACK - SVIH 7 JEZIKA
     const resources = {
       hr: { translation: {} },
       en: { translation: {} },
@@ -77,6 +82,7 @@ const loadTranslations = async () => {
       fr: { translation: {} },
       it: { translation: {} },
       es: { translation: {} },
+      sl: { translation: {} }, // 🔥 DODATO
     };
     
     await i18n

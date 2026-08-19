@@ -7,7 +7,7 @@ const LanguageSwitcher = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // 🔥 SVIH 6 JEZIKA (HR, EN, DE, FR, IT, ES)
+  // 🔥 SVIH 7 JEZIKA (HR, EN, DE, FR, IT, ES, SL)
   const languages = [
     { code: 'hr', label: 'Hrvatski', flag: '🇭🇷', native: 'Hrvatski' },
     { code: 'en', label: 'English', flag: '🇬🇧', native: 'English' },
@@ -15,6 +15,7 @@ const LanguageSwitcher = () => {
     { code: 'fr', label: 'Français', flag: '🇫🇷', native: 'Français' },
     { code: 'it', label: 'Italiano', flag: '🇮🇹', native: 'Italiano' },
     { code: 'es', label: 'Español', flag: '🇪🇸', native: 'Español' },
+    { code: 'sl', label: 'Slovenščina', flag: '🇸🇮', native: 'Slovenščina' }, // 🔥 DODATO
   ];
 
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
@@ -57,7 +58,7 @@ const LanguageSwitcher = () => {
         </svg>
       </button>
 
-      {/* DROPDOWN LISTA - SVIH 6 JEZIKA */}
+      {/* DROPDOWN LISTA - SVIH 7 JEZIKA */}
       {isOpen && (
         <div className="absolute right-0 mt-1 sm:mt-2 w-40 sm:w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50 animate-fadeIn">
           {languages.map((lang) => (
