@@ -28,6 +28,13 @@ import Footer from './components/Footer';
 import NotificationBell from './components/NotificationBell';
 import LanguageSwitcher from './components/LanguageSwitcher';
 
+// 🔥🔥🔥 NOVE KOMPONENTE (DODATO) 🔥🔥🔥
+import BottomNav from './components/BottomNav';
+import AIChat from './pages/AIChat';
+import Goals from './pages/Goals';
+import WaterTracker from './pages/WaterTracker';
+import MicroNutrients from './pages/MicroNutrients';
+
 function App() {
   const { t, i18n } = useTranslation();
   const location = useLocation();
@@ -363,8 +370,12 @@ function App() {
   // 🔥 DA LI JE NA REGISTER STRANICI (SAMO REGISTER)
   const isRegisterPage = location.pathname === '/register';
 
+  // 🔥🔥🔥 SAKRIVANJE BOTTOM NAV NA ODREDJENIM STRANICAMA (DODATO) 🔥🔥🔥
+  const hideBottomNavPaths = ['/login', '/register', '/premium-success', '/premium-cancel'];
+  const shouldHideBottomNav = hideBottomNavPaths.includes(location.pathname);
+
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white dark:bg-gray-900 pb-16">
       {/* ===== HEADER ===== */}
       <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
@@ -436,6 +447,7 @@ function App() {
       {/* ===== GLAVNI SADRŽAJ ===== */}
       <div className="container mx-auto max-w-7xl px-3 sm:px-4 md:px-6 py-4 md:py-6">
         <Routes>
+          {/* ===== POSTOJEĆE RUTE (NIŠTA NIJE OBRISANO) ===== */}
           <Route path="/" element={<HomeKonacno />} />
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/ai-chef" element={<AIChef />} />
@@ -456,9 +468,18 @@ function App() {
           <Route path="/community" element={<Community />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
+
+          {/* ===== 🔥🔥🔥 NOVE RUTE (DODATO) 🔥🔥🔥 ===== */}
+          <Route path="/ai-chat" element={<AIChat />} />
+          <Route path="/goals" element={<Goals />} />
+          <Route path="/water" element={<WaterTracker />} />
+          <Route path="/micro-nutrients" element={<MicroNutrients />} />
         </Routes>
         <Footer />
       </div>
+
+      {/* ===== 🔥🔥🔥 BOTTOM NAVIGACIJA (DODATO) 🔥🔥🔥 ===== */}
+      {!shouldHideBottomNav && <BottomNav />}
     </div>
   );
 }

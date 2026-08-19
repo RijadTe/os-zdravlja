@@ -5477,6 +5477,344 @@ app.use('/*path', (req, res) => {
 });
 
 // ============================================================
+// 💧 WATER TRACKER ENDPOINTS (DODATI NA KRAJ server.js)
+// ============================================================
+
+// DODAJ VODU
+app.post('/api/water', async (req, res) => {
+  try {
+    const { email, amount, date } = req.body;
+    
+    if (!email || !amount || !date) {
+      return res.status(400).json({ error: 'Email, količina i datum su obavezni.' });
+    }
+
+    const { data, error } = await supabase
+      .from('voda')
+      .insert([{ 
+        korisnik_email: email, 
+        datum: date, 
+        kolicina_ml: amount 
+      }])
+      .select();
+
+    if (error) {
+      console.error('❌ Supabase greška:', error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json({ success: true, data: data });
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DOHVATI VODU ZA KORISNIKA
+app.get('/api/water/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    const { data, error } = await supabase
+      .from('voda')
+      .select('*')
+      .eq('korisnik_email', email)
+      .order('datum', { ascending: false });
+
+    if (error) {
+      console.error('❌ Supabase greška:', error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json({ success: true, data: data || [] });
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// RESET VODE (OBRIŠI SVE ZA DANAS)
+app.post('/api/water/reset', async (req, res) => {
+  try {
+    const { email, date } = req.body;
+
+    const { error } = await supabase
+      .from('voda')
+      .delete()
+      .eq('korisnik_email', email)
+      .eq('datum', date);
+
+    if (error) {
+      console.error('❌ Supabase greška:', error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// 🎯 GOALS ENDPOINTS
+// ============================================================
+
+app.post('/api/goals', async (req, res) => {
+  try {
+    const { email, weight, bodyFat, water, steps } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email je obavezan.' });
+    }
+
+    const { data, error } = await supabase
+      .from('profili')
+      .update({ 
+        cilj_tezina: weight || null,
+        cilj_masti: bodyFat || null,
+        cilj_voda: water || null,
+        cilj_koraci: steps || null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('email', email)
+      .select();
+
+    if (error) {
+      console.error('❌ Supabase greška:', error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json({ success: true, data: data });
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// 📊 MICRO NUTRIENTS ENDPOINTS
+// ============================================================
+
+// SAČUVAJ MIKRONUTRIJENTE
+app.post('/api/micro-nutrients', async (req, res) => {
+  try {
+    const { email, date, vitaminA, vitaminC, vitaminD, iron, magnesium, calcium, zinc } = req.body;
+
+    if (!email || !date) {
+      return res.status(400).json({ error: 'Email i datum su obavezni.' });
+    }
+
+    // Provjeri da li već postoji unos za danas
+    const { data: existing } = await supabase
+      .from('mikronutrijenti')
+      .select('id')
+      .eq('korisnik_email', email)
+      .eq('datum', date)
+      .maybeSingle();
+
+    let result;
+
+    if (existing) {
+      // Ažuriraj postojeći
+      const { data, error } = await supabase
+        .from('mikronutrijenti')
+        .update({
+          vitamin_a: vitaminA || 0,
+          vitamin_c: vitaminC || 0,
+          vitamin_d: vitaminD || 0,
+          zelezo: iron || 0,
+          magnezij: magnesium || 0,
+          kalcij: calcium || 0,
+          cink: zinc || 0
+        })
+        .eq('id', existing.id)
+        .select();
+
+      if (error) throw error;
+      result = data;
+    } else {
+      // Kreiraj novi
+      const { data, error } = await supabase
+        .from('mikronutrijenti')
+        .insert([{
+          korisnik_email: email,
+          datum: date,
+          vitamin_a: vitaminA || 0,
+          vitamin_c: vitaminC || 0,
+          vitamin_d: vitaminD || 0,
+          zelezo: iron || 0,
+          magnezij: magnesium || 0,
+          kalcij: calcium || 0,
+          cink: zinc || 0
+        }])
+        .select();
+
+      if (error) throw error;
+      result = data;
+    }
+
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DOHVATI MIKRONUTRIJENTE ZA KORISNIKA
+app.get('/api/micro-nutrients/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    const { data, error } = await supabase
+      .from('mikronutrijenti')
+      .select('*')
+      .eq('korisnik_email', email)
+      .order('datum', { ascending: false });
+
+    if (error) {
+      console.error('❌ Supabase greška:', error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json({ success: true, data: data || [] });
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// 🤖 AI CHAT ENDPOINT
+// ============================================================
+
+app.post('/api/ai-chat', async (req, res) => {
+  try {
+    const { message, email } = req.body;
+
+    if (!message || !email) {
+      return res.status(400).json({ error: 'Poruka i email su obavezni.' });
+    }
+
+    // Provjeri korisnika
+    const { data: user, error: userError } = await supabase
+      .from('profili')
+      .select('premium, ai_chat_count, ai_chat_date, ime')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (userError) {
+      console.error('❌ Supabase greška:', userError);
+      return res.status(500).json({ error: userError.message });
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: 'Korisnik nije pronađen.' });
+    }
+
+    // Provjeri limit za FREE korisnike
+    const today = new Date().toISOString().split('T')[0];
+    let count = user.ai_chat_date === today ? user.ai_chat_count : 0;
+
+    if (!user.premium && count >= 5) {
+      return res.status(429).json({ 
+        error: 'Dostigli ste limit od 5 poruka dnevno. Postanite Premium za neograničeno.' 
+      });
+    }
+
+    // Pozovi OpenAI
+    if (!openai) {
+      return res.status(503).json({ error: 'AI usluga trenutno nije dostupna.' });
+    }
+
+    const systemPrompt = `
+      Ti si AI asistent za ishranu i zdravlje aplikacije OS Zdravlja.
+      Korisnik se zove ${user.ime || 'Korisnik'}.
+      
+      Pravila:
+      1. Odgovaraj kratko i korisno (max 200 tokena)
+      2. Ako ne znaš, reci da ne znaš
+      3. Ne daj medicinske savjete - uvijek preporuči ljekara
+      4. Budi prijateljski i motivirajući
+      5. Odgovaraj na jeziku na kojem je pitanje postavljeno
+      
+      Tema: Ishrana, recepti, zdrave navike, wellness
+    `;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: message }
+      ],
+      max_tokens: 300,
+      temperature: 0.7,
+    });
+
+    const answer = response.choices[0].message.content;
+
+    // Spremi u bazu (history)
+    await supabase
+      .from('ai_chat_history')
+      .insert([{ 
+        korisnik_email: email, 
+        poruka: message, 
+        odgovor: answer 
+      }]);
+
+    // Ažuriraj broj poruka
+    const newCount = count + 1;
+    await supabase
+      .from('profili')
+      .update({ 
+        ai_chat_count: newCount,
+        ai_chat_date: today
+      })
+      .eq('email', email);
+
+    res.json({ response: answer });
+
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================================
+// 💧 DOHVATI DANAŠNJI UNOS VODE (POMOĆNI ENDPOINT)
+// ============================================================
+
+app.get('/api/water/today/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const today = new Date().toISOString().split('T')[0];
+
+    const { data, error } = await supabase
+      .from('voda')
+      .select('*')
+      .eq('korisnik_email', email)
+      .eq('datum', today);
+
+    if (error) {
+      console.error('❌ Supabase greška:', error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    const total = data?.reduce((sum, item) => sum + item.kolicina_ml, 0) || 0;
+
+    res.json({ 
+      success: true, 
+      data: data || [],
+      total: total
+    });
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+// ============================================================
 // POKRENI SERVER
 // ============================================================
 app.listen(PORT, () => {
