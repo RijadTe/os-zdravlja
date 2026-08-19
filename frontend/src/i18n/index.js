@@ -8,7 +8,6 @@ const loadTranslations = async () => {
   try {
     console.log('🔄 Učitavam prevode iz public/locales/...');
     
-    // 🔥 DODAJ FR, IT, ES
     const [hr, en, de, fr, it, es] = await Promise.all([
       fetch('/locales/hr/translation.json').then(res => {
         if (!res.ok) throw new Error('HR translation not found');
@@ -22,7 +21,6 @@ const loadTranslations = async () => {
         if (!res.ok) throw new Error('DE translation not found');
         return res.json();
       }),
-      // 🔥 DODATO
       fetch('/locales/fr/translation.json').then(res => {
         if (!res.ok) throw new Error('FR translation not found');
         return res.json();
@@ -34,7 +32,11 @@ const loadTranslations = async () => {
       fetch('/locales/es/translation.json').then(res => {
         if (!res.ok) throw new Error('ES translation not found');
         return res.json();
-      })
+      }),
+      fetch('/locales/sl/translation.json').then(res => {
+        if (!res.ok) throw new Error('SL translation not found');
+        return res.json();
+      }),
     ]);
 
     const resources = {
@@ -44,6 +46,7 @@ const loadTranslations = async () => {
       fr: { translation: fr },
       it: { translation: it },
       es: { translation: es },
+      sl: { translation: sl },
     };
 
     await i18n
@@ -77,6 +80,7 @@ const loadTranslations = async () => {
       fr: { translation: {} },
       it: { translation: {} },
       es: { translation: {} },
+      sl: { translation: {} },
     };
     
     await i18n
