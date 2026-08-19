@@ -1,13 +1,5 @@
 // frontend/src/pages/Quiz.jsx
 
-{
-      <SEO 
-        title="Kviz"
-        description="Popunite kratki kviz i mi ćemo vam prikazati recepte koji su savršeni za vas. Personalizirajte svoje iskustvo!"
-        url="https://os-zdravlja.vercel.app/quiz"
-      />
-};
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -18,68 +10,111 @@ import SEO from '../components/SEO';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
-// 🔥 IKONE
+// 🔥 IKONE - POTPUNO MAPIRANJE ZA SVE JEZIKE
 // ============================================================
 const getIconForOption = (option) => {
+  if (!option) return '📌';
+  
   const iconMap = {
-    // VRSTA
-    'Deserti': '🍰', 'Slano': '🍕', 'Dijetalni recepti': '🥗', 'Napitki': '🥤', 'Svejedno': '😋',
-    'Desserts': '🍰', 'Savory': '🍕', 'Diet recipes': '🥗', 'Drinks': '🥤', 'Anything': '😋',
-    'Nachspeisen': '🍰', 'Herzhaft': '🍕', 'Diät Rezepte': '🥗', 'Getränke': '🥤', 'Alles': '😋',
-    
-    // RESTRIKCIJE
+    // ============ HRVATSKI ============
+    'Deserti': '🍰', 'Slano': '🍕', 'Dijetalni recepti': '🥗', 'Napitci': '🥤', 'Svejedno': '😋',
     'Bez restrikcija': '✅', 'Bez glutena': '🌾', 'Bez laktoze': '🥛', 'Bez šećera': '🍬', 'Veganski': '🌱', 'Bez orašastih plodova': '🥜',
-    'No restrictions': '✅', 'Gluten-free': '🌾', 'Lactose-free': '🥛', 'Sugar-free': '🍬', 'Vegan': '🌱', 'Nuts-free': '🥜',
-    'Keine Einschränkungen': '✅', 'Glutenfrei': '🌾', 'Laktosefrei': '🥛', 'Zuckerfrei': '🍬', 'Vegan': '🌱', 'Nussfrei': '🥜',
-    
-    // PREFERENCIJE
     'Visokoproteinski': '💪', 'Bogat vlaknima': '🌾', 'Bogat ugljikohidratima': '🍞',
-    'High protein': '💪', 'High fiber': '🌾', 'High carb': '🍞',
-    'Hoher Protein': '💪', 'Hohe Ballaststoffe': '🌾', 'Hohe Kohlenhydrate': '🍞',
-    
-    // VRIJEME
     'Kratko (15-30 min)': '⚡', 'Srednje (30-45 min)': '⏳', 'Duže (45-60+ min)': '🐢',
-    'Short (15-30 min)': '⚡', 'Medium (30-45 min)': '⏳', 'Long (45-60+ min)': '🐢',
-    'Kurz (15-30 min)': '⚡', 'Mittel (30-45 min)': '⏳', 'Lang (45-60+ min)': '🐢',
-    
-    // TEŽINA
     'Početnik': '👶', 'Srednji': '👨‍🍳', 'Profesionalac': '👨‍🍳⭐',
-    'Beginner': '👶', 'Intermediate': '👨‍🍳', 'Professional': '👨‍🍳⭐',
-    'Anfänger': '👶', 'Fortgeschritten': '👨‍🍳', 'Profi': '👨‍🍳⭐',
-    
-    // KALORIJE
     'Nisko (do 300 kcal)': '⬇️', 'Umjereno (300-500 kcal)': '➡️', 'Srednje (500-700 kcal)': '⬆️', 'Visoko (900+ kcal)': '🔥',
+    
+    // ============ ENGLESKI ============
+    'Desserts': '🍰', 'Savory': '🍕', 'Diet recipes': '🥗', 'Drinks': '🥤', 'Anything': '😋',
+    'No restrictions': '✅', 'Gluten-free': '🌾', 'Lactose-free': '🥛', 'Sugar-free': '🍬', 'Vegan': '🌱', 'Nut-free': '🥜',
+    'High-protein': '💪', 'High-fiber': '🌾', 'High-carb': '🍞',
+    'Short (15-30 min)': '⚡', 'Medium (30-45 min)': '⏳', 'Longer (45-60+ min)': '🐢',
+    'Beginner': '👶', 'Intermediate': '👨‍🍳', 'Professional': '👨‍🍳⭐',
     'Low (up to 300 kcal)': '⬇️', 'Moderate (300-500 kcal)': '➡️', 'Medium (500-700 kcal)': '⬆️', 'High (900+ kcal)': '🔥',
+    
+    // ============ NJEMAČKI ============
+    'Desserts': '🍰', 'Herzhaft': '🍕', 'Diät-Rezepte': '🥗', 'Getränke': '🥤', 'Alles': '😋',
+    'Keine Einschränkungen': '✅', 'Glutenfrei': '🌾', 'Laktosefrei': '🥛', 'Zuckerfrei': '🍬', 'Vegan': '🌱', 'Nussfrei': '🥜',
+    'Proteinreich': '💪', 'Ballaststoffreich': '🌾', 'Kohlenhydratreich': '🍞',
+    'Kurz (15-30 Min.)': '⚡', 'Mittel (30-45 Min.)': '⏳', 'Länger (45-60+ Min.)': '🐢',
+    'Anfänger': '👶', 'Mittel': '👨‍🍳', 'Profi': '👨‍🍳⭐',
     'Niedrig (bis 300 kcal)': '⬇️', 'Mäßig (300-500 kcal)': '➡️', 'Mittel (500-700 kcal)': '⬆️', 'Hoch (900+ kcal)': '🔥',
+    
+    // ============ FRANCUSKI ============
+    'Desserts': '🍰', 'Salé': '🍕', 'Recettes diététiques': '🥗', 'Boissons': '🥤', 'Tout': '😋',
+    'Aucune restriction': '✅', 'Sans gluten': '🌾', 'Sans lactose': '🥛', 'Sans sucre': '🍬', 'Vegan': '🌱', 'Sans noix': '🥜',
+    'Riche en protéines': '💪', 'Riche en fibres': '🌾', 'Riche en glucides': '🍞',
+    'Court (15-30 min)': '⚡', 'Moyen (30-45 min)': '⏳', 'Long (45-60+ min)': '🐢',
+    'Débutant': '👶', 'Intermédiaire': '👨‍🍳', 'Professionnel': '👨‍🍳⭐',
+    'Faible (jusqu\'à 300 kcal)': '⬇️', 'Modéré (300-500 kcal)': '➡️', 'Moyen (500-700 kcal)': '⬆️', 'Élevé (900+ kcal)': '🔥',
+    
+    // ============ TALIJANSKI ============
+    'Dessert': '🍰', 'Salato': '🍕', 'Ricette dietetiche': '🥗', 'Bevande': '🥤', 'Tutto': '😋',
+    'Nessuna restrizione': '✅', 'Senza glutine': '🌾', 'Senza lattosio': '🥛', 'Senza zucchero': '🍬', 'Vegano': '🌱', 'Senza frutta secca': '🥜',
+    'Ricco di proteine': '💪', 'Ricco di fibre': '🌾', 'Ricco di carboidrati': '🍞',
+    'Breve (15-30 min)': '⚡', 'Medio (30-45 min)': '⏳', 'Lungo (45-60+ min)': '🐢',
+    'Principiante': '👶', 'Intermedio': '👨‍🍳', 'Professionista': '👨‍🍳⭐',
+    'Basso (fino a 300 kcal)': '⬇️', 'Moderato (300-500 kcal)': '➡️', 'Medio (500-700 kcal)': '⬆️', 'Alto (900+ kcal)': '🔥',
+    
+    // ============ ŠPANJOLSKI ============
+    'Postres': '🍰', 'Salado': '🍕', 'Recetas dietéticas': '🥗', 'Bebidas': '🥤', 'Todo': '😋',
+    'Sin restricciones': '✅', 'Sin gluten': '🌾', 'Sin lactosa': '🥛', 'Sin azúcar': '🍬', 'Vegano': '🌱', 'Sin frutos secos': '🥜',
+    'Alto en proteínas': '💪', 'Alto en fibra': '🌾', 'Alto en carbohidratos': '🍞',
+    'Corto (15-30 min)': '⚡', 'Medio (30-45 min)': '⏳', 'Largo (45-60+ min)': '🐢',
+    'Principiante': '👶', 'Intermedio': '👨‍🍳', 'Profesional': '👨‍🍳⭐',
+    'Bajo (hasta 300 kcal)': '⬇️', 'Moderado (300-500 kcal)': '➡️', 'Medio (500-700 kcal)': '⬆️', 'Alto (900+ kcal)': '🔥',
+    
+    // ============ SLOVENSKI ============
+    'Sladice': '🍰', 'Slano': '🍕', 'Dietni recepti': '🥗', 'Pijače': '🥤', 'Vseeno': '😋',
+    'Brez omejitev': '✅', 'Brez glutena': '🌾', 'Brez laktoze': '🥛', 'Brez sladkorja': '🍬', 'Vegansko': '🌱', 'Brez oreščkov': '🥜',
+    'Visoko beljakovinsko': '💪', 'Bogato z vlakninami': '🌾', 'Bogato z ogljikovimi hidrati': '🍞',
+    'Kratko (15-30 min)': '⚡', 'Srednje (30-45 min)': '⏳', 'Daljše (45-60+ min)': '🐢',
+    'Začetnik': '👶', 'Srednje': '👨‍🍳', 'Profesionalec': '👨‍🍳⭐',
+    'Nizko (do 300 kcal)': '⬇️', 'Zmerno (300-500 kcal)': '➡️', 'Srednje (500-700 kcal)': '⬆️', 'Visoko (900+ kcal)': '🔥',
   };
 
+  // Prvo provjeri direktno mapiranje
   if (iconMap[option]) return iconMap[option];
 
+  // Ako nema direktnog mapiranja, probaj po ključnim riječima
   const lower = option.toLowerCase();
-  if (lower.includes('dessert') || lower.includes('nachspeisen')) return '🍰';
-  if (lower.includes('savory') || lower.includes('herzhaft') || lower.includes('slano')) return '🍕';
-  if (lower.includes('diet') || lower.includes('diät') || lower.includes('dijetalni')) return '🥗';
-  if (lower.includes('drink') || lower.includes('getränk') || lower.includes('napitak')) return '🥤';
-  if (lower.includes('anything') || lower.includes('alles') || lower.includes('svejedno')) return '😋';
-  if (lower.includes('no restriction') || lower.includes('keine einschränkungen') || lower.includes('bez restrikcija')) return '✅';
-  if (lower.includes('gluten free') || lower.includes('glutenfrei') || lower.includes('bez glutena')) return '🌾';
-  if (lower.includes('lactose free') || lower.includes('laktosefrei') || lower.includes('bez laktoze')) return '🥛';
-  if (lower.includes('sugar free') || lower.includes('zuckerfrei') || lower.includes('bez šećera')) return '🍬';
+  
+  // VRSTA
+  if (lower.includes('dessert') || lower.includes('sladice') || lower.includes('postres') || lower.includes('deserti')) return '🍰';
+  if (lower.includes('savory') || lower.includes('herzhaft') || lower.includes('salé') || lower.includes('salato') || lower.includes('salado') || lower.includes('slano')) return '🍕';
+  if (lower.includes('diet') || lower.includes('diät') || lower.includes('dijetalni') || lower.includes('diététique') || lower.includes('dietetiche') || lower.includes('dietéticas') || lower.includes('dietni')) return '🥗';
+  if (lower.includes('drink') || lower.includes('getränk') || lower.includes('napitak') || lower.includes('boisson') || lower.includes('bevande') || lower.includes('bebidas') || lower.includes('pijače')) return '🥤';
+  if (lower.includes('anything') || lower.includes('alles') || lower.includes('svejedno') || lower.includes('tout') || lower.includes('tutto') || lower.includes('todo') || lower.includes('vseeno')) return '😋';
+  
+  // RESTRIKCIJE
+  if (lower.includes('no restriction') || lower.includes('keine einschränkungen') || lower.includes('bez restrikcija') || lower.includes('aucune restriction') || lower.includes('nessuna restrizione') || lower.includes('sin restricciones') || lower.includes('brez omejitev')) return '✅';
+  if (lower.includes('gluten free') || lower.includes('glutenfrei') || lower.includes('bez glutena') || lower.includes('sans gluten') || lower.includes('senza glutine') || lower.includes('sin gluten') || lower.includes('brez glutena')) return '🌾';
+  if (lower.includes('lactose free') || lower.includes('laktosefrei') || lower.includes('bez laktoze') || lower.includes('sans lactose') || lower.includes('senza lattosio') || lower.includes('sin lactosa') || lower.includes('brez laktoze')) return '🥛';
+  if (lower.includes('sugar free') || lower.includes('zuckerfrei') || lower.includes('bez šećera') || lower.includes('sans sucre') || lower.includes('senza zucchero') || lower.includes('sin azúcar') || lower.includes('brez sladkorja')) return '🍬';
   if (lower.includes('vegan')) return '🌱';
-  if (lower.includes('nuts') || lower.includes('nüsse') || lower.includes('nussfrei') || lower.includes('orašasti')) return '🥜';
-  if (lower.includes('protein') || lower.includes('visokoprotein')) return '💪';
-  if (lower.includes('fiber') || lower.includes('ballaststoff') || lower.includes('vlaknima')) return '🌾';
-  if (lower.includes('carbs') || lower.includes('kohlenhydrat') || lower.includes('ugljikohidrat')) return '🍞';
-  if (lower.includes('quick') || lower.includes('kurz') || lower.includes('kratko')) return '⚡';
-  if (lower.includes('medium') || lower.includes('mittel')) return '⏳';
-  if (lower.includes('long') || lower.includes('lang') || lower.includes('duže')) return '🐢';
-  if (lower.includes('beginner') || lower.includes('anfänger') || lower.includes('početnik')) return '👶';
-  if (lower.includes('intermediate') || lower.includes('fortgeschritten') || lower.includes('srednji')) return '👨‍🍳';
-  if (lower.includes('professional') || lower.includes('profi') || lower.includes('profesionalac')) return '👨‍🍳⭐';
-  if (lower.includes('low') || lower.includes('niedrig') || lower.includes('nisko')) return '⬇️';
-  if (lower.includes('moderate') || lower.includes('mäßig') || lower.includes('umjereno')) return '➡️';
-  if (lower.includes('high') || lower.includes('hoch') || lower.includes('visoko')) return '🔥';
+  if (lower.includes('nuts') || lower.includes('nüsse') || lower.includes('nussfrei') || lower.includes('orašasti') || lower.includes('noix') || lower.includes('frutta secca') || lower.includes('frutos secos') || lower.includes('oreščkov')) return '🥜';
+  
+  // PREFERENCIJE
+  if (lower.includes('protein') || lower.includes('visokoprotein') || lower.includes('proteinreich') || lower.includes('protéines') || lower.includes('proteine') || lower.includes('proteínas') || lower.includes('beljakovinsko')) return '💪';
+  if (lower.includes('fiber') || lower.includes('ballaststoff') || lower.includes('vlaknima') || lower.includes('fibres') || lower.includes('fibre') || lower.includes('fibra') || lower.includes('vlakninami')) return '🌾';
+  if (lower.includes('carbs') || lower.includes('kohlenhydrat') || lower.includes('ugljikohidrat') || lower.includes('glucides') || lower.includes('carboidrati') || lower.includes('carbohidratos') || lower.includes('ogljikovimi')) return '🍞';
+  
+  // VRIJEME
+  if (lower.includes('short') || lower.includes('kurz') || lower.includes('kratko') || lower.includes('court') || lower.includes('breve') || lower.includes('corto')) return '⚡';
+  if (lower.includes('medium') || lower.includes('mittel') || lower.includes('srednje') || lower.includes('moyen') || lower.includes('medio')) return '⏳';
+  if (lower.includes('long') || lower.includes('lang') || lower.includes('duže') || lower.includes('daljše')) return '🐢';
+  
+  // TEŽINA
+  if (lower.includes('beginner') || lower.includes('anfänger') || lower.includes('početnik') || lower.includes('débutant') || lower.includes('principiante') || lower.includes('začetnik')) return '👶';
+  if (lower.includes('intermediate') || lower.includes('fortgeschritten') || lower.includes('srednji') || lower.includes('intermédiaire') || lower.includes('intermedio')) return '👨‍🍳';
+  if (lower.includes('professional') || lower.includes('profi') || lower.includes('profesionalac') || lower.includes('professionnel') || lower.includes('professionista') || lower.includes('profesional') || lower.includes('profesionalec')) return '👨‍🍳⭐';
+  
+  // KALORIJE
+  if (lower.includes('low') || lower.includes('niedrig') || lower.includes('nisko') || lower.includes('faible') || lower.includes('basso') || lower.includes('bajo') || lower.includes('nizko')) return '⬇️';
+  if (lower.includes('moderate') || lower.includes('mäßig') || lower.includes('umjereno') || lower.includes('modéré') || lower.includes('moderato') || lower.includes('moderado') || lower.includes('zmerno')) return '➡️';
+  if (lower.includes('high') || lower.includes('hoch') || lower.includes('visoko') || lower.includes('élevé') || lower.includes('alto')) return '🔥';
 
+  // Default
   return '📌';
 };
 
@@ -174,7 +209,7 @@ const Quiz = () => {
       id: 'vrsta',
       label: t('quiz.questions.vrsta'),
       type: 'checkbox',
-      options: t('quiz.options.vrsta', { returnObjects: true }) || ['Deserti', 'Slano', 'Dijetalni recepti', 'Napitki', 'Svejedno'],
+      options: t('quiz.options.vrsta', { returnObjects: true }) || ['Deserti', 'Slano', 'Dijetalni recepti', 'Napitci', 'Svejedno'],
       maxSelect: 3
     },
     {
@@ -233,7 +268,8 @@ const Quiz = () => {
       if (!val) return false;
       const lower = val.toLowerCase().trim();
       return lower === 'svejedno' || lower === 'anything' || lower === 'alles' || 
-             lower === 'any' || lower === 'all';
+             lower === 'any' || lower === 'all' || lower === 'tout' || 
+             lower === 'tutto' || lower === 'todo' || lower === 'vseeno';
     };
     
     const isNoRestriction = (val) => {
@@ -241,7 +277,9 @@ const Quiz = () => {
       const lower = val.toLowerCase().trim();
       return lower === 'bez restrikcija' || lower === 'no restrictions' || 
              lower === 'keine einschränkungen' || lower === 'no restriction' ||
-             lower === 'none';
+             lower === 'none' || lower === 'aucune restriction' || 
+             lower === 'nessuna restrizione' || lower === 'sin restricciones' || 
+             lower === 'brez omejitev';
     };
     
     // ============================================================
@@ -348,7 +386,8 @@ const Quiz = () => {
       if (!val) return false;
       const lower = val.toLowerCase().trim();
       return lower === 'svejedno' || lower === 'anything' || lower === 'alles' || 
-             lower === 'any' || lower === 'all';
+             lower === 'any' || lower === 'all' || lower === 'tout' || 
+             lower === 'tutto' || lower === 'todo' || lower === 'vseeno';
     };
     
     const isNoRestriction = (val) => {
@@ -356,7 +395,9 @@ const Quiz = () => {
       const lower = val.toLowerCase().trim();
       return lower === 'bez restrikcija' || lower === 'no restrictions' || 
              lower === 'keine einschränkungen' || lower === 'no restriction' ||
-             lower === 'none';
+             lower === 'none' || lower === 'aucune restriction' || 
+             lower === 'nessuna restrizione' || lower === 'sin restricciones' || 
+             lower === 'brez omejitev';
     };
     
     let restrikcijeZaSlanje = formData.restrikcije;
@@ -529,82 +570,90 @@ const Quiz = () => {
   // 🖥️ GLAVNI RENDER
   // ============================================================
   return (
-    <div className="flex justify-center items-start min-h-screen bg-white dark:bg-gray-900 p-3 sm:p-4">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+    <>
+      <SEO 
+        title="Kviz"
+        description="Popunite kratki kviz i mi ćemo vam prikazati recepte koji su savršeni za vas. Personalizirajte svoje iskustvo!"
+        url="https://os-zdravlja.vercel.app/quiz"
+      />
       
-      <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 mt-4 sm:mt-6">
-        <div className="mb-4 sm:mb-6">
-          <div className="flex justify-between text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1">
-            <span>{t('quiz.step_label')}</span>
-            <span>{Math.round(progress)}%</span>
-          </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div 
-              className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-
-        <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 dark:text-white mb-1">
-          {user?.kviz_zavrsen ? t('quiz.edit_title') : t('quiz.title')}
-        </h1>
-        <p className="text-sm sm:text-base text-center text-gray-500 dark:text-gray-300 mb-4 sm:mb-6">
-          {user?.kviz_zavrsen ? t('quiz.edit_subtitle') : t('quiz.subtitle')}
-        </p>
-
-        {user && (
-          <div className="mb-4 text-center text-sm text-gray-600 dark:text-gray-400">
-            {t('quiz.logged_in_as')} <span className="font-semibold text-blue-600 dark:text-blue-400">{user.email}</span>
-          </div>
-        )}
-
-        <form 
-          onSubmit={handleSubmit}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-            }
-          }}
-        >
+      <div className="flex justify-center items-start min-h-screen bg-white dark:bg-gray-900 p-3 sm:p-4">
+        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+        
+        <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 mt-4 sm:mt-6">
           <div className="mb-4 sm:mb-6">
-            <label className="block font-semibold text-gray-700 dark:text-gray-200 mb-2 text-sm sm:text-base">
-              {questions[currentStep].label}
-            </label>
-            {renderQuestion()}
+            <div className="flex justify-between text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1">
+              <span>{t('quiz.step_label')}</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div 
+                className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${progress}%` }}
+              />
+            </div>
           </div>
 
-          <div className="flex justify-between gap-3 mt-4">
-            <button
-              type="button"
-              onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
-              disabled={currentStep === 0}
-              className="px-4 sm:px-6 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 disabled:opacity-50 hover:bg-gray-300 dark:hover:bg-gray-500 transition text-sm sm:text-base"
-            >
-              {t('quiz.buttons.back')}
-            </button>
-            
-            {currentStep === questions.length - 1 ? (
+          <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 dark:text-white mb-1">
+            {user?.kviz_zavrsen ? t('quiz.edit_title') : t('quiz.title')}
+          </h1>
+          <p className="text-sm sm:text-base text-center text-gray-500 dark:text-gray-300 mb-4 sm:mb-6">
+            {user?.kviz_zavrsen ? t('quiz.edit_subtitle') : t('quiz.subtitle')}
+          </p>
+
+          {user && (
+            <div className="mb-4 text-center text-sm text-gray-600 dark:text-gray-400">
+              {t('quiz.logged_in_as')} <span className="font-semibold text-blue-600 dark:text-blue-400">{user.email}</span>
+            </div>
+          )}
+
+          <form 
+            onSubmit={handleSubmit}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+              }
+            }}
+          >
+            <div className="mb-4 sm:mb-6">
+              <label className="block font-semibold text-gray-700 dark:text-gray-200 mb-2 text-sm sm:text-base">
+                {questions[currentStep].label}
+              </label>
+              {renderQuestion()}
+            </div>
+
+            <div className="flex justify-between gap-3 mt-4">
               <button
                 type="button"
-                onClick={handleSubmit}
-                className="px-4 sm:px-6 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition shadow-md hover:shadow-lg text-sm sm:text-base"
+                onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
+                disabled={currentStep === 0}
+                className="px-4 sm:px-6 py-2 rounded-xl bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 disabled:opacity-50 hover:bg-gray-300 dark:hover:bg-gray-500 transition text-sm sm:text-base"
               >
-                {user?.kviz_zavrsen ? t('quiz.buttons.save') : t('quiz.buttons.submit')}
+                {t('quiz.buttons.back')}
               </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setCurrentStep(prev => Math.min(questions.length - 1, prev + 1))}
-                className="px-4 sm:px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition shadow-md hover:shadow-lg text-sm sm:text-base"
-              >
-                {t('quiz.buttons.next')}
-              </button>
-            )}
-          </div>
-        </form>
+              
+              {currentStep === questions.length - 1 ? (
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  className="px-4 sm:px-6 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition shadow-md hover:shadow-lg text-sm sm:text-base"
+                >
+                  {user?.kviz_zavrsen ? t('quiz.buttons.save') : t('quiz.buttons.submit')}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(prev => Math.min(questions.length - 1, prev + 1))}
+                  className="px-4 sm:px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition shadow-md hover:shadow-lg text-sm sm:text-base"
+                >
+                  {t('quiz.buttons.next')}
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
