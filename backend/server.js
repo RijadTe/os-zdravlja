@@ -5715,13 +5715,63 @@ console.log(`📊 Trenutni broj poruka: ${count}/${MAX_DAILY_MESSAGES}`);
 });
 
 // ============================================================
-// 💧 DOHVATI DANAŠNJI UNOS VODE (POMOĆNI ENDPOINT)
+// 💧 WATER TRACKER ENDPOINTS - POTPUNO POPRAVLJENI
 // ============================================================
 
+// DOHVATI SVE UNOSE VODE ZA KORISNIKA (GET)
+app.get('/api/water/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    
+    console.log('💧 Dohvatam vodu za:', email);
+
+    if (!email) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email je obavezan.' 
+      });
+    }
+
+    const { data, error } = await supabase
+      .from('voda')
+      .select('*')
+      .eq('korisnik_email', email)
+      .order('datum', { ascending: false });
+
+    if (error) {
+      console.error('❌ Supabase greška:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: error.message 
+      });
+    }
+
+    console.log(`✅ Dohvaćeno ${data?.length || 0} unosa vode`);
+    res.json({ success: true, data: data || [] });
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// DOHVATI DANAŠNJI UNOS VODE (GET)
 app.get('/api/water/today/:email', async (req, res) => {
   try {
     const { email } = req.params;
     const today = new Date().toISOString().split('T')[0];
+
+    console.log('💧 Dohvatam današnji unos vode za:', email);
+    console.log('📅 Datum:', today);
+
+    if (!email) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email je obavezan.' 
+      });
+    }
 
     const { data, error } = await supabase
       .from('voda')
@@ -5731,11 +5781,15 @@ app.get('/api/water/today/:email', async (req, res) => {
 
     if (error) {
       console.error('❌ Supabase greška:', error);
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ 
+        success: false, 
+        error: error.message 
+      });
     }
 
     const total = data?.reduce((sum, item) => sum + item.kolicina_ml, 0) || 0;
 
+    console.log(`✅ Danas uneseno: ${total}ml (${data?.length || 0} unosa)`);
     res.json({ 
       success: true, 
       data: data || [],
@@ -5743,13 +5797,12 @@ app.get('/api/water/today/:email', async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Greška:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
   }
 });
-
-// ============================================================
-// 💧 WATER TRACKER ENDPOINTS
-// ============================================================
 
 // DODAJ VODU (POST)
 app.post('/api/water', async (req, res) => {
@@ -5764,6 +5817,28 @@ app.post('/api/water', async (req, res) => {
       return res.status(400).json({ 
         success: false, 
         error: 'Email, količina i datum su obavezni.' 
+      });
+    }
+
+    if (amount < 50 || amount > 5000) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Količina mora biti između 50 i 5000 ml.' 
+      });
+    }
+
+    // Provjeri da li korisnik postoji
+    const { data: user, error: userError } = await supabase
+      .from('profili')
+      .select('email')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (userError || !user) {
+      console.error('❌ Korisnik nije pronađen:', email);
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Korisnik nije pronađen.' 
       });
     }
 
@@ -5785,7 +5860,7 @@ app.post('/api/water', async (req, res) => {
     }
 
     console.log('✅ Voda dodana:', data);
-    res.json({ success: true, data: data });
+    res.json({ success: true, data: data[0] });
   } catch (error) {
     console.error('❌ Greška:', error);
     res.status(500).json({ 
@@ -5795,44 +5870,20 @@ app.post('/api/water', async (req, res) => {
   }
 });
 
-// DOHVATI VODU ZA KORISNIKA (GET)
-app.get('/api/water/:email', async (req, res) => {
-  try {
-    const { email } = req.params;
-    
-    console.log('💧 Dohvatam vodu za:', email);
-
-    const { data, error } = await supabase
-      .from('voda')
-      .select('*')
-      .eq('korisnik_email', email)
-      .order('datum', { ascending: false });
-
-    if (error) {
-      console.error('❌ Supabase greška:', error);
-      return res.status(500).json({ 
-        success: false, 
-        error: error.message 
-      });
-    }
-
-    res.json({ success: true, data: data || [] });
-  } catch (error) {
-    console.error('❌ Greška:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
-
-// RESET VODE (POST)
+// RESET VODE (POST) - BRIŠE SVE UNOSE ZA DANAŠNJI DAN
 app.post('/api/water/reset', async (req, res) => {
   try {
     const { email, date } = req.body;
 
     console.log('🔄 Resetujem vodu za:', email);
     console.log('📅 Datum:', date);
+
+    if (!email || !date) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email i datum su obavezni.' 
+      });
+    }
 
     const { error } = await supabase
       .from('voda')
@@ -5848,7 +5899,8 @@ app.post('/api/water/reset', async (req, res) => {
       });
     }
 
-    res.json({ success: true });
+    console.log('✅ Voda resetovana za:', email);
+    res.json({ success: true, message: 'Svi unosi vode za danas su obrisani.' });
   } catch (error) {
     console.error('❌ Greška:', error);
     res.status(500).json({ 
@@ -5858,36 +5910,118 @@ app.post('/api/water/reset', async (req, res) => {
   }
 });
 
-// DOHVATI DANAŠNJI UNOS VODE (GET)
-app.get('/api/water/today/:email', async (req, res) => {
+// DOHVATI CILJ VODE ZA KORISNIKA (GET)
+app.get('/api/water/goal/:email', async (req, res) => {
   try {
     const { email } = req.params;
-    const today = new Date().toISOString().split('T')[0];
+
+    console.log('🎯 Dohvatam cilj vode za:', email);
+
+    if (!email) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email je obavezan.' 
+      });
+    }
 
     const { data, error } = await supabase
-      .from('voda')
-      .select('*')
-      .eq('korisnik_email', email)
-      .eq('datum', today);
+      .from('profili')
+      .select('cilj_voda')
+      .eq('email', email)
+      .maybeSingle();
 
     if (error) {
       console.error('❌ Supabase greška:', error);
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ 
+        success: false, 
+        error: error.message 
+      });
     }
 
-    const total = data?.reduce((sum, item) => sum + item.kolicina_ml, 0) || 0;
-
+    const cilj = data?.cilj_voda || 2000;
+    console.log(`✅ Cilj vode za ${email}: ${cilj}ml`);
     res.json({ 
       success: true, 
-      data: data || [],
-      total: total
+      cilj_voda: cilj
     });
   } catch (error) {
     console.error('❌ Greška:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
   }
 });
 
+// AŽURIRAJ CILJ VODE (PUT)
+app.put('/api/water/goal/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const { cilj_voda } = req.body;
+
+    console.log('🎯 Ažuriram cilj vode za:', email);
+    console.log('📊 Novi cilj:', cilj_voda, 'ml');
+
+    if (!email || !cilj_voda) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email i cilj su obavezni.' 
+      });
+    }
+
+    if (cilj_voda < 500 || cilj_voda > 10000) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Cilj mora biti između 500 i 10000 ml.' 
+      });
+    }
+
+    // Provjeri da li korisnik postoji
+    const { data: user, error: userError } = await supabase
+      .from('profili')
+      .select('email')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (userError || !user) {
+      console.error('❌ Korisnik nije pronađen:', email);
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Korisnik nije pronađen.' 
+      });
+    }
+
+    const { data, error } = await supabase
+      .from('profili')
+      .update({ 
+        cilj_voda: cilj_voda,
+        updated_at: new Date().toISOString()
+      })
+      .eq('email', email)
+      .select();
+
+    if (error) {
+      console.error('❌ Supabase greška:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: error.message 
+      });
+    }
+
+    console.log('✅ Cilj ažuriran:', data);
+    res.json({ 
+      success: true, 
+      data: data?.[0] || null,
+      message: `Cilj postavljen na ${cilj_voda}ml` 
+    });
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
 
 // ============================================================
 // POKRENI SERVER
