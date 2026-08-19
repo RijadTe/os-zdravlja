@@ -46,17 +46,17 @@ const AIChat = () => {
   const sendMessage = async () => {
     if (!input.trim()) return;
     if (!email) {
-      alert('❌ Niste prijavljeni!');
+      alert(t('ai_chat.login_required'));
       return;
     }
 
     if (!isPremium) {
-      alert('⭐ Ova funkcionalnost je dostupna samo Premium korisnicima!');
+      alert(t('ai_chat.premium_only'));
       return;
     }
 
     if (chatCount >= MAX_DAILY_MESSAGES) {
-      alert(`⚠️ Dostigli ste limit od ${MAX_DAILY_MESSAGES} poruka dnevno.`);
+      alert(t('ai_chat.limit_reached', { limit: MAX_DAILY_MESSAGES }));
       return;
     }
 
@@ -86,7 +86,7 @@ const AIChat = () => {
       
     } catch (error) {
       console.error('❌ Greška:', error);
-      alert('❌ Došlo je do greške. Pokušajte ponovo.');
+      alert(t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -102,13 +102,12 @@ const AIChat = () => {
           <span className="text-xl flex-shrink-0 mt-0.5">⚠️</span>
           <div>
             <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-              ZDRAVSTVENI DISCLAIMER
+              {t('ai_chat.disclaimer_title')}
             </p>
             <p className="text-xs text-amber-700 dark:text-amber-400">
-              AI Chat pruža informativne i edukativne sadržaje o ishrani i zdravlju. 
-              <span className="font-bold"> NIJE ZAMJENA ZA MEDICINSKI SAVJET.</span>
-              Prije bilo kakvih promjena u ishrani ili načinu života, 
-              posavjetujte se sa svojim ljekarom ili nutricionistom.
+              {t('ai_chat.disclaimer_text')}
+              <span className="font-bold"> {t('ai_chat.disclaimer_strong')}</span>
+              {t('ai_chat.disclaimer_consult')}
             </p>
           </div>
         </div>
@@ -121,13 +120,13 @@ const AIChat = () => {
             🤖 {t('ai_chat.title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {isPremium ? '⭐ Premium korisnik' : '🔒 Premium funkcionalnost'}
+            {isPremium ? t('ai_chat.premium_user') : t('ai_chat.premium_feature')}
           </p>
         </div>
         {isPremium && (
           <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-full border border-blue-200 dark:border-blue-700">
             <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-              📨 Preostalo: {remainingMessages}/{MAX_DAILY_MESSAGES}
+              📨 {t('ai_chat.remaining', { count: remainingMessages, total: MAX_DAILY_MESSAGES })}
             </span>
           </div>
         )}
@@ -145,20 +144,20 @@ const AIChat = () => {
                   {t('ai_chat.welcome')}
                 </h3>
                 <p className="text-sm text-gray-400 dark:text-gray-500 mt-1 max-w-md">
-                  Postavite pitanje o ishrani, receptima ili zdravlju
+                  {t('ai_chat.welcome_sub')}
                 </p>
                 {!isPremium ? (
                   <div className="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border border-yellow-200 dark:border-yellow-700 rounded-xl max-w-sm">
                     <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                      ⭐ Ova funkcionalnost je dostupna samo Premium korisnicima
+                      {t('ai_chat.premium_hint')}
                     </p>
                     <a href="/premium" className="inline-block mt-2 text-sm font-semibold text-yellow-600 dark:text-yellow-400 hover:underline">
-                      Postanite Premium →
+                      {t('ai_chat.premium_link')} →
                     </a>
                   </div>
                 ) : (
                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
-                    💡 Preostalo vam je {remainingMessages} od {MAX_DAILY_MESSAGES} poruka danas
+                    {t('ai_chat.remaining_info', { count: remainingMessages, total: MAX_DAILY_MESSAGES })}
                   </p>
                 )}
               </div>
@@ -215,13 +214,13 @@ const AIChat = () => {
                     className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-6 py-2.5 rounded-xl transition disabled:opacity-50 font-medium flex items-center gap-2"
                   >
                     <span>📤</span>
-                    <span className="hidden sm:inline">Pošalji</span>
+                    <span className="hidden sm:inline">{t('ai_chat.send')}</span>
                   </button>
                 </div>
                 {remainingMessages === 0 && messages.length > 0 && (
                   <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl text-center">
                     <p className="text-sm text-amber-700 dark:text-amber-300">
-                      ⏳ Dostigli ste dnevni limit od {MAX_DAILY_MESSAGES} poruka. Pokušajte ponovo sutra!
+                      {t('ai_chat.limit_reached_message', { limit: MAX_DAILY_MESSAGES })}
                     </p>
                   </div>
                 )}
@@ -229,10 +228,10 @@ const AIChat = () => {
             ) : (
               <div className="text-center py-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  🔒 Ova funkcionalnost je dostupna samo Premium korisnicima
+                  🔒 {t('ai_chat.premium_only_short')}
                 </p>
                 <a href="/premium" className="inline-block mt-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">
-                  ⭐ Postanite Premium
+                  ⭐ {t('ai_chat.premium_link_short')}
                 </a>
               </div>
             )}
@@ -240,12 +239,12 @@ const AIChat = () => {
         </div>
       </div>
 
-      {/* 🔥 DISCLAIMER - NA DNU STRANICE (DODATNA SIGURNOST) */}
+      {/* 🔥 DISCLAIMER - NA DNU STRANICE */}
       <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl">
         <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center">
-          ⚠️ AI Chat pruža informativne i edukativne sadržaje o ishrani i zdravlju. 
-          <span className="font-bold"> NIJE ZAMJENA ZA MEDICINSKI SAVJET.</span>
-          Prije bilo kakvih promjena u ishrani, posavjetujte se sa svojim ljekarom.
+          ⚠️ {t('ai_chat.disclaimer_footer')}
+          <span className="font-bold"> {t('ai_chat.disclaimer_footer_strong')}</span>
+          {t('ai_chat.disclaimer_footer_consult')}
         </p>
       </div>
     </div>
