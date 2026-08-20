@@ -89,34 +89,6 @@ cloudinary.config({
 console.log('✅ Cloudinary povezan!');
 
 // ============================================================
-// 🔥 MIDDLEWARE - HELMET
-// ============================================================
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      connectSrc: [
-        "'self'",
-        "https://api.openai.com",
-        "https://*.supabase.co",
-        "https://os-zdravlja.vercel.app",
-        "https://os-zdravlja-backend.onrender.com"
-      ],
-      fontSrc: ["'self'", "data:"],
-      objectSrc: ["'none'"],
-      upgradeInsecureRequests: []
-    }
-  },
-  crossOriginEmbedderPolicy: false,
-  crossOriginResourcePolicy: { policy: "cross-origin" }
-}));
-
-console.log('✅ Helmet sigurnosni headeri aktivirani');
-
-// ============================================================
 // 🔥 MIDDLEWARE - CORS (DINAMIČKI)
 // ============================================================
 const allowedOrigins = [
@@ -152,6 +124,35 @@ app.use(cors({
 }));
 
 console.log('✅ CORS konfiguriran sa dinamičkom provjerom');
+
+// ============================================================
+// 🔥 MIDDLEWARE - HELMET
+// ============================================================
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      connectSrc: [
+        "'self'",
+        "https://api.openai.com",
+        "https://*.supabase.co",
+        "https://os-zdravlja.vercel.app",
+        "https://os-zdravlja-backend.onrender.com"
+      ],
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: []
+    }
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+console.log('✅ Helmet sigurnosni headeri aktivirani');
+
 
 // ============================================================
 // 🔥 RATE LIMIT - PRILAGOĐEN TVOJIM POTREBAMA
