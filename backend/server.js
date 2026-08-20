@@ -5811,7 +5811,7 @@ app.post('/api/ai-chat', async (req, res) => {
             content: message
           }
         ],
-        model: "llama3-70b-8192",  // 🔥 NAJBOLJI BESPLATNI MODEL!
+        model: "llama-3.1-70b-versatile",  // 🔥 NAJBOLJI BESPLATNI MODEL!
         temperature: 0.7,
         max_tokens: 300,
       });
@@ -5825,7 +5825,7 @@ app.post('/api/ai-chat', async (req, res) => {
           korisnik_email: email, 
           poruka: message, 
           odgovor: answer,
-          model: 'llama3-70b-8192',
+          model: 'llama-3.1-70b-versatile',
           created_at: new Date().toISOString()
         }]);
 
