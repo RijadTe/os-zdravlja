@@ -14,20 +14,22 @@ const NotificationBell = () => {
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('user'));
+    // 🔥 SAMO EMAIL - NIKAD ID!
     const email = localStorage.getItem('userEmail');
-    const userId = userData?.id;
     
-    if (userData) {
-      setUser(userData);
-    } else if (email) {
+    if (email) {
       setUser({ email: email });
-    }
-    
-    if (userId || email) {
-      const idToUse = userId || email;
-      fetchNotifikacije(idToUse);
-      generatePreporuke(idToUse);
+      fetchNotifikacije(email);
+      generatePreporuke(email);
+    } else {
+      // Ako nema emaila, pokušaj iz user objekta
+      const userData = JSON.parse(localStorage.getItem('user'));
+      const userEmail = userData?.email;
+      if (userEmail) {
+        setUser({ email: userEmail });
+        fetchNotifikacije(userEmail);
+        generatePreporuke(userEmail);
+      }
     }
   }, []);
 
@@ -43,15 +45,15 @@ const NotificationBell = () => {
   }, []);
 
   // ============================================================
-  // 🔥 DOHVATI NOTIFIKACIJE - SA SIGURNOSNIM PROVJERAMA ZA 404 I 429!
+  // 🔥 DOHVATI NOTIFIKACIJE - SAMO SA EMAILOM!
   // ============================================================
-  const fetchNotifikacije = async (korisnikId) => {
+  const fetchNotifikacije = async (email) => {
+    if (!email) return;
+    
     try {
       setLoading(true);
-      const param = korisnikId.includes('@') ? korisnikId : korisnikId;
-      const res = await fetch(`${API_URL}/api/notifikacije/${param}`);
+      const res = await fetch(`${API_URL}/api/notifikacije/${encodeURIComponent(email)}`);
       
-      // 🔥 PROVJERI DA LI JE 404 (NOT FOUND)
       if (res.status === 404) {
         console.warn('⚠️ Notifikacije nisu dostupne (404) - koristim prazan niz');
         setNotifikacije([]);
@@ -60,7 +62,6 @@ const NotificationBell = () => {
         return;
       }
       
-      // 🔥 PROVJERI DA LI JE RATE LIMIT (429)
       if (res.status === 429) {
         console.warn('⚠️ Rate limit (429) - koristim prazne notifikacije');
         setNotifikacije([]);
@@ -69,7 +70,6 @@ const NotificationBell = () => {
         return;
       }
       
-      // 🔥 PROVJERI DA LI JE SERVER GREŠKA (500)
       if (res.status >= 500) {
         console.warn('⚠️ Server greška (500) - koristim prazne notifikacije');
         setNotifikacije([]);
@@ -80,7 +80,6 @@ const NotificationBell = () => {
       
       const data = await res.json();
       
-      // 🔥 SIGURNOSNA PROVJERA - osiguraj da je data array
       if (data && Array.isArray(data)) {
         setNotifikacije(data);
         setUnreadCount(data.filter(n => !n.procitano).length);
@@ -102,28 +101,26 @@ const NotificationBell = () => {
   };
 
   // ============================================================
-  // 🔥 GENERIŠI AUTOMATSKE PREPORUKE - SA 404 I 429 ZAŠTITOM
+  // 🔥 GENERIŠI AUTOMATSKE PREPORUKE - SAMO SA EMAILOM!
   // ============================================================
-  const generatePreporuke = async (korisnikId) => {
+  const generatePreporuke = async (email) => {
+    if (!email) return;
+    
     try {
-      const param = korisnikId.includes('@') ? korisnikId : korisnikId;
-      const res = await fetch(`${API_URL}/api/notifikacije/preporuke/${param}`);
+      const res = await fetch(`${API_URL}/api/notifikacije/preporuke/${encodeURIComponent(email)}`);
       
-      // 🔥 PROVJERI 404
       if (res.status === 404) {
         console.warn('⚠️ Preporuke nisu dostupne (404) - preskačem');
         return;
       }
       
-      // 🔥 PROVJERI 429
       if (res.status === 429) {
         console.warn('⚠️ Rate limit (429) - preskačem preporuke');
         return;
       }
       
-      // 🔥 AKO JE SVE OK, OSVJEŽI NOTIFIKACIJE
       if (res.status === 200) {
-        setTimeout(() => fetchNotifikacije(korisnikId), 1000);
+        setTimeout(() => fetchNotifikacije(email), 1000);
       }
     } catch (error) {
       console.error('Greška pri generisanju preporuka:', error);
