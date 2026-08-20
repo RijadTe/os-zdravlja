@@ -5829,7 +5829,7 @@ app.post('/api/ai-chat', async (req, res) => {
             content: message
           }
         ],
-        model: "mixtral-8x7b-32768",  // 🔥 NAJBOLJI BESPLATNI MODEL!
+        model: "llama-3.2-3b-preview",  // 🔥 NAJBOLJI BESPLATNI MODEL!
         temperature: 0.7,
         max_tokens: 300,
       });
@@ -5843,7 +5843,7 @@ app.post('/api/ai-chat', async (req, res) => {
           korisnik_email: email, 
           poruka: message, 
           odgovor: answer,
-          model: '"mixtral-8x7b-32768"',
+          model: '"llama-3.2-3b-preview",',
           created_at: new Date().toISOString()
         }]);
 
