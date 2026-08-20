@@ -51,6 +51,9 @@ const Groq = require('groq-sdk');
 
 const app = express();
 
+// Render koristi proxy, ovo je obavezno!
+app.set('trust proxy', true);
+
 // ============================================================
 // PROVJERA ENV VARIJABLI (detaljna)
 // ============================================================
