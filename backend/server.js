@@ -5843,7 +5843,7 @@ app.post('/api/ai-chat', async (req, res) => {
           korisnik_email: email, 
           poruka: message, 
           odgovor: answer,
-          model: '"groq/compound",',
+          model: 'groq/compound',
           created_at: new Date().toISOString()
         }]);
 
