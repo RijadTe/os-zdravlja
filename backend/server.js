@@ -10,6 +10,7 @@ const requiredEnv = [
   'SUPABASE_URL',
   'SUPABASE_ANON_KEY',
   'OPENAI_API_KEY',
+  'GEMINI_API_KEY',
   'STRIPE_SECRET_KEY',
   'VAPID_PUBLIC_KEY',
   'VAPID_PRIVATE_KEY'
@@ -56,6 +57,7 @@ console.log('PORT:', process.env.PORT || '5000');
 console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? '✅' : '❌');
 console.log('SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY ? '✅' : '❌');
 console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? '✅' : '❌');
+console.log('GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? '✅' : '❌');
 console.log('STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? '✅' : '❌');
 console.log('VAPID_PUBLIC_KEY:', process.env.VAPID_PUBLIC_KEY ? '✅' : '❌');
 console.log('VAPID_PRIVATE_KEY:', process.env.VAPID_PRIVATE_KEY ? '✅' : '❌');
@@ -5725,7 +5727,28 @@ app.get('/api/micro-nutrients/today/:email', async (req, res) => {
 });
 
 // ============================================================
-// 🤖 AI CHAT ENDPOINT
+// 🤖 AI CHAT ENDPOINT - KORISTI GOOGLE GEMINI (FREE!)
+// ============================================================
+
+// 🔥 NA VRHU FAJLA, NAKON OSTALIH IMPORTA, DODAJ:
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+// 🔥 INICIJALIZIRAJ GEMINI (NAKON SUPABASE KONFIGURACIJE)
+let gemini = null;
+if (process.env.GEMINI_API_KEY) {
+  try {
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    gemini = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    console.log('✅ Google Gemini povezan za AI Chat!');
+  } catch (error) {
+    console.warn('⚠️ Gemini nije dostupan:', error.message);
+  }
+} else {
+  console.warn('⚠️ GEMINI_API_KEY nije postavljen, AI Chat neće raditi.');
+}
+
+// ============================================================
+// 🤖 AI CHAT ENDPOINT - SA GEMINI
 // ============================================================
 
 app.post('/api/ai-chat', async (req, res) => {
@@ -5766,9 +5789,8 @@ app.post('/api/ai-chat', async (req, res) => {
     const today = new Date().toISOString().split('T')[0];
     let count = user.ai_chat_date === today ? user.ai_chat_count : 0;
 
-console.log(`🤖 AI Chat zahtjev od: ${email}`);
-console.log(`📊 Trenutni broj poruka: ${count}/${MAX_DAILY_MESSAGES}`);
-
+    console.log(`🤖 AI Chat zahtjev od: ${email}`);
+    console.log(`📊 Trenutni broj poruka: ${count}/${MAX_DAILY_MESSAGES}`);
 
     if (count >= MAX_DAILY_MESSAGES) {
       return res.status(429).json({ 
@@ -5776,9 +5798,11 @@ console.log(`📊 Trenutni broj poruka: ${count}/${MAX_DAILY_MESSAGES}`);
       });
     }
 
-    // Pozovi OpenAI
-    if (!openai) {
-      return res.status(503).json({ error: 'AI usluga trenutno nije dostupna.' });
+    // 🔥 3. PROVJERA: DA LI JE GEMINI DOSTUPAN
+    if (!gemini) {
+      return res.status(503).json({ 
+        error: 'AI usluga trenutno nije dostupna. Molimo pokušajte kasnije.' 
+      });
     }
 
     const systemPrompt = `
@@ -5786,7 +5810,7 @@ console.log(`📊 Trenutni broj poruka: ${count}/${MAX_DAILY_MESSAGES}`);
       Korisnik se zove ${user.ime || 'Korisnik'}.
       
       Pravila:
-      1. Odgovaraj kratko i korisno (max 200 tokena)
+      1. Odgovaraj kratko i korisno (max 200 riječi)
       2. Ako ne znaš, reci da ne znaš
       3. Ne daj medicinske savjete - uvijek preporuči ljekara
       4. Budi prijateljski i motivirajući
@@ -5795,38 +5819,55 @@ console.log(`📊 Trenutni broj poruka: ${count}/${MAX_DAILY_MESSAGES}`);
       Tema: Ishrana, recepti, zdrave navike, wellness
     `;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message }
-      ],
-      max_tokens: 300,
-      temperature: 0.7,
-    });
+    // 🔥 POZIV GEMINI (UMJESTO OPENAI)
+    try {
+      const result = await gemini.generateContent({
+        contents: [
+          { 
+            role: "user", 
+            parts: [{ text: systemPrompt + "\n\nKorisnik pita: " + message }] 
+          }
+        ],
+        generationConfig: {
+          maxOutputTokens: 300,
+          temperature: 0.7,
+        }
+      });
 
-    const answer = response.choices[0].message.content;
+      const answer = result.response.text();
 
-    // Spremi u bazu (history)
-    await supabase
-      .from('ai_chat_history')
-      .insert([{ 
-        korisnik_email: email, 
-        poruka: message, 
-        odgovor: answer 
-      }]);
+      // Spremi u bazu (history)
+      await supabase
+        .from('ai_chat_history')
+        .insert([{ 
+          korisnik_email: email, 
+          poruka: message, 
+          odgovor: answer,
+          model: 'gemini-1.5-flash',
+          created_at: new Date().toISOString()
+        }]);
 
-    // Ažuriraj broj poruka
-    const newCount = count + 1;
-    await supabase
-      .from('profili')
-      .update({ 
-        ai_chat_count: newCount,
-        ai_chat_date: today
-      })
-      .eq('email', email);
+      // Ažuriraj broj poruka
+      const newCount = count + 1;
+      await supabase
+        .from('profili')
+        .update({ 
+          ai_chat_count: newCount,
+          ai_chat_date: today
+        })
+        .eq('email', email);
 
-    res.json({ response: answer });
+      console.log(`✅ Gemini odgovorio za: ${email}`);
+      res.json({ response: answer });
+
+    } catch (geminiError) {
+      console.error('❌ Gemini greška:', geminiError);
+      
+      // 🔥 FALLBACK: Ako Gemini ne radi, vrati poruku
+      return res.status(503).json({ 
+        error: 'AI usluga trenutno ne odgovara. Molimo pokušajte ponovo za nekoliko sekundi.' 
+      });
+    }
 
   } catch (error) {
     console.error('❌ Greška:', error);
