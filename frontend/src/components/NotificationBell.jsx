@@ -12,43 +12,56 @@ const NotificationBell = () => {
   const [user, setUser] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
+  const isMounted = useRef(true);
+  const fetchingRef = useRef(false);
+  const intervalRef = useRef(null);
 
+  // ============================================================
+  // 🔥 INICIJALIZACIJA - SAMO JEDNOM
+  // ============================================================
   useEffect(() => {
-    // 🔥 SAMO EMAIL - NIKAD ID!
     const email = localStorage.getItem('userEmail');
+    const userData = JSON.parse(localStorage.getItem('user'));
+    const userEmail = email || userData?.email;
     
-    if (email) {
-      setUser({ email: email });
-      fetchNotifikacije(email);
-      generatePreporuke(email);
-    } else {
-      // Ako nema emaila, pokušaj iz user objekta
-      const userData = JSON.parse(localStorage.getItem('user'));
-      const userEmail = userData?.email;
-      if (userEmail) {
-        setUser({ email: userEmail });
-        fetchNotifikacije(userEmail);
-        generatePreporuke(userEmail);
+    if (userEmail && !fetchingRef.current) {
+      fetchingRef.current = true;
+      setUser({ email: userEmail });
+      
+      // Prvo dohvati notifikacije
+      fetchNotifikacije(userEmail);
+      
+      // Generiši preporuke (ali ne čekaj)
+      generatePreporuke(userEmail);
+      
+      // 🔥 POSTAVI INTERVAL - SVAKIH 6 SATI
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
       }
+      
+      intervalRef.current = setInterval(() => {
+        if (userEmail && isMounted.current) {
+          console.log('🔄 Osvježavam notifikacije (6 sati)');
+          fetchNotifikacije(userEmail);
+          generatePreporuke(userEmail);
+        }
+      }, 6 * 60 * 60 * 1000); // 6 sati u milisekundama
     }
-  }, []);
 
-  // 🔥 ZATVORI DROPDOWN KAD SE KLIKNE VAN
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
+    return () => {
+      isMounted.current = false;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // ============================================================
-  // 🔥 DOHVATI NOTIFIKACIJE - SAMO SA EMAILOM!
+  // 🔥 DOHVATI NOTIFIKACIJE
   // ============================================================
   const fetchNotifikacije = async (email) => {
-    if (!email) return;
+    if (!email || !isMounted.current) return;
     
     try {
       setLoading(true);
@@ -56,55 +69,62 @@ const NotificationBell = () => {
       
       if (res.status === 404) {
         console.warn('⚠️ Notifikacije nisu dostupne (404) - koristim prazan niz');
-        setNotifikacije([]);
-        setUnreadCount(0);
-        setLoading(false);
+        if (isMounted.current) {
+          setNotifikacije([]);
+          setUnreadCount(0);
+        }
         return;
       }
       
       if (res.status === 429) {
         console.warn('⚠️ Rate limit (429) - koristim prazne notifikacije');
-        setNotifikacije([]);
-        setUnreadCount(0);
-        setLoading(false);
+        if (isMounted.current) {
+          setNotifikacije([]);
+          setUnreadCount(0);
+        }
         return;
       }
       
       if (res.status >= 500) {
         console.warn('⚠️ Server greška (500) - koristim prazne notifikacije');
-        setNotifikacije([]);
-        setUnreadCount(0);
-        setLoading(false);
+        if (isMounted.current) {
+          setNotifikacije([]);
+          setUnreadCount(0);
+        }
         return;
       }
       
       const data = await res.json();
       
-      if (data && Array.isArray(data)) {
-        setNotifikacije(data);
-        setUnreadCount(data.filter(n => !n.procitano).length);
-      } else if (data && Array.isArray(data.data)) {
-        setNotifikacije(data.data);
-        setUnreadCount(data.data.filter(n => !n.procitano).length);
-      } else {
-        console.warn('⚠️ Notifikacije nisu array, postavljam prazan niz');
-        setNotifikacije([]);
-        setUnreadCount(0);
+      if (isMounted.current) {
+        if (data && Array.isArray(data)) {
+          setNotifikacije(data);
+          setUnreadCount(data.filter(n => !n.procitano).length);
+        } else if (data && Array.isArray(data.data)) {
+          setNotifikacije(data.data);
+          setUnreadCount(data.data.filter(n => !n.procitano).length);
+        } else {
+          console.warn('⚠️ Notifikacije nisu array, postavljam prazan niz');
+          setNotifikacije([]);
+          setUnreadCount(0);
+        }
       }
     } catch (error) {
       console.error('Greška pri dohvatanju notifikacija:', error);
-      setNotifikacije([]);
-      setUnreadCount(0);
+      if (isMounted.current) {
+        setNotifikacije([]);
+        setUnreadCount(0);
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   };
 
   // ============================================================
-  // 🔥 GENERIŠI AUTOMATSKE PREPORUKE - SAMO SA EMAILOM!
+  // 🔥 GENERIŠI AUTOMATSKE PREPORUKE (BEZ PETLJE!)
   // ============================================================
   const generatePreporuke = async (email) => {
-    if (!email) return;
+    if (!email || !isMounted.current) return;
     
     try {
       const res = await fetch(`${API_URL}/api/notifikacije/preporuke/${encodeURIComponent(email)}`);
@@ -119,12 +139,25 @@ const NotificationBell = () => {
         return;
       }
       
-      if (res.status === 200) {
-        setTimeout(() => fetchNotifikacije(email), 1000);
+      // 🔥 SAMO OSVJEŽI NOTIFIKACIJE AKO JE USPJEŠNO (BEZ PETLJE!)
+      if (res.status === 200 && isMounted.current) {
+        // Ne pozivamo fetchNotifikacije ovdje da izbjegnemo petlju
+        // Samo ažuriramo stanje ako je potrebno
+        console.log('✅ Preporuke generisane');
       }
     } catch (error) {
       console.error('Greška pri generisanju preporuka:', error);
     }
+  };
+
+  // ============================================================
+  // 🔥 RUČNO OSVJEŽAVANJE (ZA KORISNIKA)
+  // ============================================================
+  const handleRefresh = async () => {
+    if (!user?.email) return;
+    console.log('🔄 Ručno osvježavanje notifikacija');
+    await fetchNotifikacije(user.email);
+    await generatePreporuke(user.email);
   };
 
   // ============================================================
@@ -141,10 +174,12 @@ const NotificationBell = () => {
         return;
       }
       
-      setNotifikacije(prev => 
-        prev.map(n => n.id === id ? { ...n, procitano: true } : n)
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      if (isMounted.current) {
+        setNotifikacije(prev => 
+          prev.map(n => n.id === id ? { ...n, procitano: true } : n)
+        );
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
     } catch (error) {
       console.error('Greška pri označavanju:', error);
     }
@@ -174,7 +209,9 @@ const NotificationBell = () => {
         return;
       }
       
-      setNotifikacije(prev => prev.filter(n => n.id !== id));
+      if (isMounted.current) {
+        setNotifikacije(prev => prev.filter(n => n.id !== id));
+      }
     } catch (error) {
       console.error('Greška pri brisanju:', error);
     }
@@ -188,9 +225,9 @@ const NotificationBell = () => {
     const danas = new Date();
     const razlika = Math.floor((danas - d) / (1000 * 60));
     
-    if (razlika < 1) return t('notification.just_now');
-    if (razlika < 60) return `${razlika} ${t('notification.min')}`;
-    if (razlika < 1440) return `${Math.floor(razlika / 60)}${t('notification.h')}`;
+    if (razlika < 1) return t('notification.just_now') || 'Upravo sada';
+    if (razlika < 60) return `${razlika} ${t('notification.min') || 'min'}`;
+    if (razlika < 1440) return `${Math.floor(razlika / 60)}${t('notification.h') || 'h'}`;
     return d.toLocaleDateString('hr', { day: '2-digit', month: '2-digit' });
   };
 
@@ -208,6 +245,12 @@ const NotificationBell = () => {
       case 'motivacija': return '🌟';
       case 'rucak': return '🍽️';
       case 'podsjetnik': return '⏰';
+      case 'lajk': return '❤️';
+      case 'premium_istek': return '⚠️';
+      case 'bedz': return '🏆';
+      case 'recepti': return '📖';
+      case 'dorucak': return '🌅';
+      case 'vecera': return '🌙';
       default: return '🔔';
     }
   };
@@ -223,6 +266,9 @@ const NotificationBell = () => {
       case 'motivacija': return 'border-green-400 bg-green-50 dark:bg-green-900/30';
       case 'energija': return 'border-orange-400 bg-orange-50 dark:bg-orange-900/30';
       case 'tajni_recept': return 'border-red-400 bg-red-50 dark:bg-red-900/30';
+      case 'lajk': return 'border-pink-400 bg-pink-50 dark:bg-pink-900/30';
+      case 'premium_istek': return 'border-red-600 bg-red-50 dark:bg-red-900/40';
+      case 'bedz': return 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/30';
       default: return 'border-blue-400 bg-blue-50 dark:bg-blue-900/30';
     }
   };
@@ -269,7 +315,7 @@ const NotificationBell = () => {
             {/* HEADER */}
             <div className="sticky top-0 bg-white dark:bg-gray-800 p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
               <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                🔔 {t('notification.title')}
+                🔔 {t('notification.title') || 'Notifikacije'}
                 {unreadCount > 0 && (
                   <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">
                     {unreadCount}
@@ -277,12 +323,19 @@ const NotificationBell = () => {
                 )}
               </h3>
               <div className="flex items-center gap-2">
+                <button
+                  onClick={handleRefresh}
+                  className="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 hover:underline"
+                  title={t('notification.refresh') || 'Osvježi'}
+                >
+                  🔄
+                </button>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
                     className="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 hover:underline"
                   >
-                    {t('notification.mark_all')}
+                    {t('notification.mark_all') || 'Označi sve'}
                   </button>
                 )}
                 <button
@@ -299,13 +352,13 @@ const NotificationBell = () => {
               {loading ? (
                 <div className="text-center py-4 text-gray-500 dark:text-gray-400">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
-                  <p className="mt-1 text-sm">{t('common.loading')}</p>
+                  <p className="mt-1 text-sm">{t('common.loading') || 'Učitavanje...'}</p>
                 </div>
               ) : notifikacije.length === 0 ? (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   <span className="text-4xl block mb-2">🎉</span>
-                  <p>{t('notification.no_notifications')}</p>
-                  <p className="text-xs">{t('notification.come_back_later')}</p>
+                  <p>{t('notification.no_notifications') || 'Nema notifikacija'}</p>
+                  <p className="text-xs">{t('notification.come_back_later') || 'Vratite se kasnije'}</p>
                 </div>
               ) : (
                 notifikacije.map((notif) => (
@@ -336,7 +389,7 @@ const NotificationBell = () => {
                               }}
                               className="text-xs text-blue-500 hover:text-blue-600 hover:underline font-medium"
                             >
-                              {t('notification.open')} →
+                              {t('notification.open') || 'Otvori'} →
                             </a>
                           )}
                         </div>
@@ -353,7 +406,7 @@ const NotificationBell = () => {
                         onClick={() => markAsRead(notif.id)}
                         className="mt-1 text-xs text-green-500 hover:text-green-600 hover:underline"
                       >
-                        ✅ {t('notification.mark_read')}
+                        ✅ {t('notification.mark_read') || 'Označi kao pročitano'}
                       </button>
                     )}
                   </div>
@@ -364,14 +417,19 @@ const NotificationBell = () => {
             {/* FOOTER */}
             <div className="sticky bottom-0 bg-white dark:bg-gray-800 p-2 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
               <span className="text-xs text-gray-400 dark:text-gray-500">
-                {notifikacije.length} {t('notification.notifications')}
+                {notifikacije.length} {t('notification.notifications') || 'notifikacija'}
               </span>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                {t('common.close')}
-              </button>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                  {t('notification.refresh_every') || 'Osvježava se svakih 6 sati'}
+                </span>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  {t('common.close') || 'Zatvori'}
+                </button>
+              </div>
             </div>
           </div>
         </>
