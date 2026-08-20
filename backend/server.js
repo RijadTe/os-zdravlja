@@ -10,7 +10,7 @@ const requiredEnv = [
   'SUPABASE_URL',
   'SUPABASE_ANON_KEY',
   'OPENAI_API_KEY',
-  'GEMINI_API_KEY',
+  'GROQ_API_KEY',
   'STRIPE_SECRET_KEY',
   'VAPID_PUBLIC_KEY',
   'VAPID_PRIVATE_KEY'
@@ -57,7 +57,7 @@ console.log('PORT:', process.env.PORT || '5000');
 console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? '✅' : '❌');
 console.log('SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY ? '✅' : '❌');
 console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? '✅' : '❌');
-console.log('GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? '✅' : '❌');
+console.log('GROQ_API_KEY:', process.env.GROQ_API_KEY ? '✅' : '❌');
 console.log('STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? '✅' : '❌');
 console.log('VAPID_PUBLIC_KEY:', process.env.VAPID_PUBLIC_KEY ? '✅' : '❌');
 console.log('VAPID_PRIVATE_KEY:', process.env.VAPID_PRIVATE_KEY ? '✅' : '❌');
@@ -5727,28 +5727,7 @@ app.get('/api/micro-nutrients/today/:email', async (req, res) => {
 });
 
 // ============================================================
-// 🤖 AI CHAT ENDPOINT - KORISTI GOOGLE GEMINI (FREE!)
-// ============================================================
-
-// 🔥 NA VRHU FAJLA, NAKON OSTALIH IMPORTA, DODAJ:
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
-// 🔥 INICIJALIZIRAJ GEMINI (NAKON SUPABASE KONFIGURACIJE)
-let gemini = null;
-if (process.env.GEMINI_API_KEY) {
-  try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    gemini = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    console.log('✅ Google Gemini povezan za AI Chat!');
-  } catch (error) {
-    console.warn('⚠️ Gemini nije dostupan:', error.message);
-  }
-} else {
-  console.warn('⚠️ GEMINI_API_KEY nije postavljen, AI Chat neće raditi.');
-}
-
-// ============================================================
-// 🤖 AI CHAT ENDPOINT - SA GEMINI
+// 🤖 AI CHAT ENDPOINT - SA GROQ
 // ============================================================
 
 app.post('/api/ai-chat', async (req, res) => {
@@ -5798,8 +5777,8 @@ app.post('/api/ai-chat', async (req, res) => {
       });
     }
 
-    // 🔥 3. PROVJERA: DA LI JE GEMINI DOSTUPAN
-    if (!gemini) {
+    // 🔥 3. PROVJERA: DA LI JE GROQ DOSTUPAN
+    if (!groq) {
       return res.status(503).json({ 
         error: 'AI usluga trenutno nije dostupna. Molimo pokušajte kasnije.' 
       });
@@ -5819,22 +5798,25 @@ app.post('/api/ai-chat', async (req, res) => {
       Tema: Ishrana, recepti, zdrave navike, wellness
     `;
 
-    // 🔥 POZIV GEMINI (UMJESTO OPENAI)
+    // 🔥 POZIV GROQ
     try {
-      const result = await gemini.generateContent({
-        contents: [
-          { 
-            role: "user", 
-            parts: [{ text: systemPrompt + "\n\nKorisnik pita: " + message }] 
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          {
+            role: "user",
+            content: message
           }
         ],
-        generationConfig: {
-          maxOutputTokens: 300,
-          temperature: 0.7,
-        }
+        model: "llama3-70b-8192",  // 🔥 NAJBOLJI BESPLATNI MODEL!
+        temperature: 0.7,
+        max_tokens: 300,
       });
 
-      const answer = result.response.text();
+      const answer = chatCompletion.choices[0]?.message?.content || "Nema odgovora.";
 
       // Spremi u bazu (history)
       await supabase
@@ -5843,7 +5825,7 @@ app.post('/api/ai-chat', async (req, res) => {
           korisnik_email: email, 
           poruka: message, 
           odgovor: answer,
-          model: 'gemini-1.5-flash',
+          model: 'llama3-70b-8192',
           created_at: new Date().toISOString()
         }]);
 
@@ -5857,13 +5839,13 @@ app.post('/api/ai-chat', async (req, res) => {
         })
         .eq('email', email);
 
-      console.log(`✅ Gemini odgovorio za: ${email}`);
+      console.log(`✅ Groq odgovorio za: ${email}`);
       res.json({ response: answer });
 
-    } catch (geminiError) {
-      console.error('❌ Gemini greška:', geminiError);
+    } catch (groqError) {
+      console.error('❌ Groq greška:', groqError);
       
-      // 🔥 FALLBACK: Ako Gemini ne radi, vrati poruku
+      // 🔥 FALLBACK: Ako Groq ne radi, vrati poruku
       return res.status(503).json({ 
         error: 'AI usluga trenutno ne odgovara. Molimo pokušajte ponovo za nekoliko sekundi.' 
       });
