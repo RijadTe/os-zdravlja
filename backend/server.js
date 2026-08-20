@@ -689,8 +689,32 @@ async function sendPushNotification(email, title, body, link = '/') {
   }
 }
 
+// ============================================================
+// NOTIFIKACIJE - KREIRAJ (SA PROVJEROM DUPLIKATA)
+// ============================================================
 async function createNotification(email, tip, poruka, link = '/') {
   try {
+    // 🔥 PROVJERI DA LI VEĆ POSTOJI ISTA NOTIFIKACIJA DANAS
+    const danas = new Date().toISOString().split('T')[0];
+    
+    const { data: existing, error: checkError } = await supabase
+      .from('notifikacije')
+      .select('id')
+      .eq('korisnik_email', email)
+      .eq('tip', tip)
+      .eq('poruka', poruka)
+      .gte('created_at', `${danas}T00:00:00.000Z`)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error('❌ Greška pri provjeri duplikata:', checkError);
+    }
+
+    if (existing) {
+      console.log(`ℹ️ Notifikacija već postoji danas za ${email} (${tip})`);
+      return existing;
+    }
+
     const { data: profil, error: profilError } = await supabase
       .from('profili')
       .select('id')
@@ -3636,7 +3660,7 @@ app.get('/api/zdravstveni-podaci/:email', async (req, res) => {
 });
 
 // ============================================================
-// 30. 🔥 NOTIFIKACIJE - GENERIŠI PREPORUKE
+// 30. 🔥 NOTIFIKACIJE - GENERIŠI PREPORUKE (SAMO JEDNOM DNEVNO)
 // ============================================================
 app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
   try {
@@ -3659,7 +3683,28 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
     const restrikcije = profil.izbjegava || [];
     const preporuke = [];
     const sat = new Date().getHours();
+    const danas = new Date().toISOString().split('T')[0];
 
+    // 🔥 PROVJERI KOJE NOTIFIKACIJE SMO VEĆ POSLALI DANAS
+    const { data: existingNotifications, error: existingError } = await supabase
+      .from('notifikacije')
+      .select('tip')
+      .eq('korisnik_email', email)
+      .gte('created_at', `${danas}T00:00:00.000Z`);
+
+    if (existingError) {
+      console.error('❌ Greška pri provjeri postojanih notifikacija:', existingError);
+    }
+
+    const hasSentToday = (tip) => {
+      return existingNotifications?.some(n => n.tip === tip) || false;
+    };
+
+    console.log(`📊 Već poslano danas: ${existingNotifications?.map(n => n.tip).join(', ') || 'ništa'}`);
+
+    // ============================================================
+    // 1. ZDRAVSTVENE PREPORUKE (SAMO JEDNOM DNEVNO)
+    // ============================================================
     const { data: zdravstveni, error: zdravError } = await supabase
       .from('zdravstveni_podaci')
       .select('*')
@@ -3674,7 +3719,7 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       const prosjekStresa = zdravstveni.reduce((acc, z) => acc + (z.nivo_stresa || 0), 0) / zdravstveni.length;
       const prosjekEnergije = zdravstveni.reduce((acc, z) => acc + (z.energija || 0), 0) / zdravstveni.length;
 
-      if (prosjekSna < 6) {
+      if (prosjekSna < 6 && !hasSentToday('san')) {
         preporuke.push({
           tip: 'san',
           poruka: `😴 ${ime}, primjećujem da spavaš manje od 6 sati u prosjeku. Pokušaj ranije na spavanje večeras!`,
@@ -3682,7 +3727,7 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
         });
       }
 
-      if (prosjekStresa > 6) {
+      if (prosjekStresa > 6 && !hasSentToday('coach')) {
         preporuke.push({
           tip: 'coach',
           poruka: `🧘 ${ime}, primjećujem da si pod stresom. Isprobaj vježbe disanja ili čaj od kamilice.`,
@@ -3690,7 +3735,7 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
         });
       }
 
-      if (prosjekEnergije < 5) {
+      if (prosjekEnergije < 5 && !hasSentToday('energija')) {
         preporuke.push({
           tip: 'energija',
           poruka: `⚡ ${ime}, energija ti je na niskom nivou. Probaj smoothie od banane ili proteinski obrok.`,
@@ -3698,7 +3743,7 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
         });
       }
 
-      if (prosjekSna >= 7 && prosjekStresa < 4 && prosjekEnergije >= 7) {
+      if (prosjekSna >= 7 && prosjekStresa < 4 && prosjekEnergije >= 7 && !hasSentToday('motivacija')) {
         preporuke.push({
           tip: 'motivacija',
           poruka: `🌟 Odlično, ${ime}! San, energija i stres su na dobrom nivou. Nastavi ovako!`,
@@ -3707,17 +3752,9 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       }
     }
 
-    const namirnice = profil.namirnice || [];
-    if (namirnice.length < 3) {
-      preporuke.push({
-        tip: 'kupovina',
-        poruka: `🛒 ${ime}, primjećujem da ti ponestaje namirnica. Vrijeme je za odlazak u trgovinu!`,
-        link: '/'
-      });
-    }
-
-    const danas = new Date().toISOString().split('T')[0];
-    
+    // ============================================================
+    // 2. PREPORUKE ZA OBROKE (SAMO JEDNOM DNEVNO PO TIPU)
+    // ============================================================
     const { data: danasnjiObroci, error: obrociError } = await supabase
       .from('obroci')
       .select('*')
@@ -3729,14 +3766,10 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
     const imaDoručak = danasnjiObroci?.some(o => o.tip === 'Doručak') || false;
     const imaRučak = danasnjiObroci?.some(o => o.tip === 'Ručak') || false;
     const imaVečeru = danasnjiObroci?.some(o => o.tip === 'Večera') || false;
-
     const ukupneKalorije = danasnjiObroci?.reduce((sum, o) => sum + (o.kalorije || 0), 0) || 0;
 
-    const zadnjiObrok = danasnjiObroci?.sort((a, b) => 
-      new Date(b.created_at) - new Date(a.created_at)
-    )[0];
-
-    if (sat >= 7 && sat <= 10 && !imaDoručak) {
+    // Doručak - samo ako nije poslan danas
+    if (sat >= 7 && sat <= 10 && !imaDoručak && !hasSentToday('dorucak')) {
       let poruka = `🌅 ${ime}, vrijeme je za doručak! Dobre jutarnje navike počinju obrokom bogatim proteinima.`;
       if (isPremium) {
         poruka += ` 📊 Danas si uneo/la ${ukupneKalorije} kcal.`;
@@ -3748,7 +3781,8 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       });
     }
 
-    if (sat >= 12 && sat <= 15 && !imaRučak) {
+    // Ručak - samo ako nije poslan danas
+    if (sat >= 12 && sat <= 15 && !imaRučak && !hasSentToday('rucak')) {
       let poruka = `🍽️ ${ime}, vrijeme je za ručak! Ne preskači glavni obrok u danu.`;
       if (isPremium) {
         poruka += ` 📊 Danas si uneo/la ${ukupneKalorije} kcal.`;
@@ -3760,7 +3794,8 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       });
     }
 
-    if (sat >= 18 && sat <= 21 && !imaVečeru) {
+    // Večera - samo ako nije poslana danas
+    if (sat >= 18 && sat <= 21 && !imaVečeru && !hasSentToday('vecera')) {
       let poruka = `🌙 ${ime}, vrijeme je za laganu večeru! Izbjegavaj tešku hranu prije spavanja.`;
       if (isPremium) {
         poruka += ` 📊 Danas si uneo/la ${ukupneKalorije} kcal.`;
@@ -3772,114 +3807,75 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       });
     }
 
-    if (isPremium && zadnjiObrok) {
-      const moodAfter = zadnjiObrok.mood_after || '😐';
-      const kalorije = zadnjiObrok.kalorije || 0;
-      const naziv = zadnjiObrok.naziv || 'obrok';
-
-      let moodPoruka = '';
-      if (moodAfter === '😊' || moodAfter === '🤩') {
-        moodPoruka = `😊 Odlično se osjećaš nakon jela! Nastavi sa zdravim navikama.`;
-      } else if (moodAfter === '😞' || moodAfter === '😡') {
-        moodPoruka = `😔 Primjećujem da si loše raspoložen/a nakon jela. Možda probaj laganiji obrok sljedeći put?`;
-      } else if (moodAfter === '😴') {
-        moodPoruka = `😴 Osjećaš se umorno nakon jela. Probaj manje porcije ili lakšu hranu.`;
-      } else if (moodAfter === '😌') {
-        moodPoruka = `😌 Opušten/a si nakon jela. To je odličan znak da ti hrana prija!`;
-      }
-
-      if (moodPoruka) {
-        preporuke.push({
-          tip: 'motivacija',
-          poruka: `🍽️ Nakon jela "${naziv}" (${kalorije} kcal): ${moodPoruka}`,
-          link: '/food-planner'
-        });
-      }
-
-      if (ukupneKalorije > 0) {
-        let kalorijePoruka = '';
-        const cilj = 2200;
-        const preostalo = cilj - ukupneKalorije;
-        
-        if (preostalo > 500) {
-          kalorijePoruka = `📊 Danas si uneo/la ${ukupneKalorije} kcal. Preostalo ti je ${preostalo} kcal do cilja (${cilj} kcal).`;
-        } else if (preostalo > 0) {
-          kalorijePoruka = `📊 Danas si uneo/la ${ukupneKalorije} kcal. Odlično, blizu si cilja (${cilj} kcal)!`;
-        } else {
-          kalorijePoruka = `📊 Danas si uneo/la ${ukupneKalorije} kcal. Prešao/la si cilj (${cilj} kcal) za ${Math.abs(preostalo)} kcal.`;
+    // ============================================================
+    // 3. PREPORUKE ZA RECEPTE (SAMO JEDNOM DNEVNO)
+    // ============================================================
+    if (!hasSentToday('recepti')) {
+      let query = supabase.from('recepti').select('*').limit(3);
+      
+      if (profil.vrsta && profil.vrsta.length > 0) {
+        const vrste = profil.vrsta.filter(v => v !== 'Svejedno');
+        if (vrste.length > 0) {
+          query = query.in('vrsta', vrste);
         }
-
+      }
+      
+      if (restrikcije && restrikcije.length > 0) {
+        const hasNoRestrictions = restrikcije.some(r => 
+          r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
+        );
+        
+        if (!hasNoRestrictions) {
+          query = query.not('izbjegava', '&&', restrikcije);
+        }
+      }
+      
+      const { data: recepti } = await query;
+      
+      if (recepti && recepti.length > 0) {
+        const naziviRecepata = recepti.map(r => r.naziv).join(', ');
         preporuke.push({
-          tip: 'energija',
-          poruka: kalorijePoruka,
-          link: '/food-planner'
+          tip: 'recepti',
+          poruka: `🍽️ ${ime}, preporučujemo vam recepte: ${naziviRecepata}`,
+          link: '/recipes'
         });
       }
     }
 
-    if (danasnjiObroci && danasnjiObroci.length > 0) {
-      const zadnji = danasnjiObroci.sort((a, b) => 
-        new Date(b.created_at) - new Date(a.created_at)
-      )[0];
-      
-      if (zadnji) {
-        const vrijemeZadnjeg = new Date(zadnji.created_at);
-        const satiOdZadnjeg = (Date.now() - vrijemeZadnjeg.getTime()) / (1000 * 60 * 60);
-        
-        if (satiOdZadnjeg > 5) {
-          let poruka = `⏰ ${ime}, prošlo je više od 5 sati od zadnjeg obroka. Vrijeme je za nešto zdravo!`;
-          if (isPremium) {
-            poruka += ` 📊 Danas si uneo/la ${ukupneKalorije} kcal.`;
-          }
-          preporuke.push({
-            tip: 'podsjetnik',
-            poruka: poruka,
-            link: '/food-planner'
-          });
-        }
-      }
-    }
-
-    let query = supabase.from('recepti').select('*').limit(3);
-    
-    if (profil.vrsta && profil.vrsta.length > 0) {
-      const vrste = profil.vrsta.filter(v => v !== 'Svejedno');
-      if (vrste.length > 0) {
-        query = query.in('vrsta', vrste);
-      }
-    }
-    
-    if (restrikcije && restrikcije.length > 0) {
-      const hasNoRestrictions = restrikcije.some(r => 
-        r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
-      );
-      
-      if (!hasNoRestrictions) {
-        query = query.not('izbjegava', '&&', restrikcije);
-        console.log('🔒 Lifestyle Coach filtriram po izbjegava:', restrikcije);
-      }
-    }
-    
-    const { data: recepti } = await query;
-    
-    if (recepti && recepti.length > 0) {
-      const naziviRecepata = recepti.map(r => r.naziv).join(', ');
-      preporuke.push({
-        tip: 'recepti',
-        poruka: `🍽️ ${ime}, preporučujemo vam recepte: ${naziviRecepata}`,
-        link: '/recipes'
-      });
-    }
-
+    // ============================================================
+    // 4. KREIRAJ SAMO NOVE PREPORUKE (KOJE NISU POSLANE DANAS)
+    // ============================================================
+    let kreirano = 0;
     for (const preporuka of preporuke) {
-      await createNotification(
-        email,
-        preporuka.tip,
-        preporuka.poruka,
-        preporuka.link || '/'
-      );
+      // Još jedna provjera prije kreiranja
+      const { data: checkExisting } = await supabase
+        .from('notifikacije')
+        .select('id')
+        .eq('korisnik_email', email)
+        .eq('tip', preporuka.tip)
+        .gte('created_at', `${danas}T00:00:00.000Z`)
+        .maybeSingle();
+
+      if (!checkExisting) {
+        await createNotification(
+          email,
+          preporuka.tip,
+          preporuka.poruka,
+          preporuka.link || '/'
+        );
+        kreirano++;
+      }
     }
 
+    if (kreirano > 0) {
+      console.log(`✅ Kreirano ${kreirano} novih preporuka za ${email}`);
+    } else {
+      console.log(`ℹ️ Nema novih preporuka za ${email} (već poslano danas)`);
+    }
+
+    // ============================================================
+    // 5. VRATI SVE NOTIFIKACIJE
+    // ============================================================
     const { data: notifikacije, error: notifError } = await supabase
       .from('notifikacije')
       .select('*')
@@ -3890,7 +3886,8 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
 
     res.json({
       success: true,
-      notifikacije: notifikacije || []
+      notifikacije: notifikacije || [],
+      _nove_preporuke: kreirano
     });
 
   } catch (error) {
