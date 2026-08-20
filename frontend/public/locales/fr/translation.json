@@ -1155,18 +1155,22 @@
   "micro_nutrients": {
     "title": "Micronutriments",
     "subtitle": "Entrez votre apport quotidien en micronutriments",
-    "vitamin_a": "Vitamine A (μg)",
-    "vitamin_c": "Vitamine C (mg)",
-    "vitamin_d": "Vitamine D (μg)",
-    "iron": "Fer (mg)",
-    "magnesium": "Magnésium (mg)",
-    "calcium": "Calcium (mg)",
-    "zinc": "Zinc (mg)",
+    "daily_view": "Vue quotidienne",
+    "weekly_view": "Vue hebdomadaire",
+    "weekly_average": "Moyenne hebdomadaire",
+    "weekly_average_label": "Moyenne de la semaine",
+    "vitamin_a": "Vitamine A",
+    "vitamin_c": "Vitamine C",
+    "vitamin_d": "Vitamine D",
+    "iron": "Fer",
+    "magnesium": "Magnésium",
+    "calcium": "Calcium",
+    "zinc": "Zinc",
     "saving": "Enregistrement...",
-    "success": "✅ Micronutriments enregistrés avec succès !",
+    "success": "✅ Micronutriments enregistrés avec succès!",
     "errors": {
-      "login_required": "❌ Vous n'êtes pas connecté !",
-      "save_failed": "❌ Erreur lors de l'enregistrement !"
+      "login_required": "❌ Vous n'êtes pas connecté!",
+      "save_failed": "❌ Erreur lors de l'enregistrement!"
     }
   }
 }

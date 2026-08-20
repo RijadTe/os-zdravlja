@@ -1152,18 +1152,22 @@
       "reset_failed": "❌ Error resetting!"
     }
   },
-  "micro_nutrients": {
+   "micro_nutrients": {
     "title": "Micronutrients",
     "subtitle": "Enter your daily micronutrient intake",
-    "vitamin_a": "Vitamin A (μg)",
-    "vitamin_c": "Vitamin C (mg)",
-    "vitamin_d": "Vitamin D (μg)",
-    "iron": "Iron (mg)",
-    "magnesium": "Magnesium (mg)",
-    "calcium": "Calcium (mg)",
-    "zinc": "Zinc (mg)",
+    "daily_view": "Daily view",
+    "weekly_view": "Weekly view",
+    "weekly_average": "Weekly average",
+    "weekly_average_label": "Weekly average",
+    "vitamin_a": "Vitamin A",
+    "vitamin_c": "Vitamin C",
+    "vitamin_d": "Vitamin D",
+    "iron": "Iron",
+    "magnesium": "Magnesium",
+    "calcium": "Calcium",
+    "zinc": "Zinc",
     "saving": "Saving...",
-    "success": "✅ Micronutrients saved successfully!",
+    "success": "✅ Micronutrients successfully saved!",
     "errors": {
       "login_required": "❌ You are not logged in!",
       "save_failed": "❌ Error saving!"

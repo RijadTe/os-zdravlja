@@ -5,14 +5,14 @@ import { useTranslation } from 'react-i18next';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
-// 1. DEFINICIJA NUTRIJENATA SA IKONAMA I CILJEVIMA
+// 1. DEFINICIJA NUTRIJENATA SA SVG IKONAMA I labelKey
 // ============================================================
 const NUTRIENT_DEFS = [
   { 
     id: 'vitaminA', 
     key: 'vitaminA',
     dbKey: 'vitamin_a',
-    label: 'Vitamin A', 
+    labelKey: 'micro_nutrients.vitamin_a',  // ← DODANO ZA PRIJEVOD
     unit: 'µg', 
     target: 900,
     icon: 'vitamin-a',
@@ -22,7 +22,7 @@ const NUTRIENT_DEFS = [
     id: 'vitaminC', 
     key: 'vitaminC',
     dbKey: 'vitamin_c',
-    label: 'Vitamin C', 
+    labelKey: 'micro_nutrients.vitamin_c',  // ← DODANO ZA PRIJEVOD
     unit: 'mg', 
     target: 90,
     icon: 'vitamin-c',
@@ -32,7 +32,7 @@ const NUTRIENT_DEFS = [
     id: 'vitaminD', 
     key: 'vitaminD',
     dbKey: 'vitamin_d',
-    label: 'Vitamin D', 
+    labelKey: 'micro_nutrients.vitamin_d',  // ← DODANO ZA PRIJEVOD
     unit: 'µg', 
     target: 15,
     icon: 'vitamin-d',
@@ -42,7 +42,7 @@ const NUTRIENT_DEFS = [
     id: 'iron', 
     key: 'iron',
     dbKey: 'zelezo',
-    label: 'Željezo', 
+    labelKey: 'micro_nutrients.iron',  // ← DODANO ZA PRIJEVOD
     unit: 'mg', 
     target: 14,
     icon: 'iron',
@@ -52,7 +52,7 @@ const NUTRIENT_DEFS = [
     id: 'magnesium', 
     key: 'magnesium',
     dbKey: 'magnezij',
-    label: 'Magnezij', 
+    labelKey: 'micro_nutrients.magnesium',  // ← DODANO ZA PRIJEVOD
     unit: 'mg', 
     target: 400,
     icon: 'magnesium',
@@ -62,7 +62,7 @@ const NUTRIENT_DEFS = [
     id: 'calcium', 
     key: 'calcium',
     dbKey: 'kalcij',
-    label: 'Kalcij', 
+    labelKey: 'micro_nutrients.calcium',  // ← DODANO ZA PRIJEVOD
     unit: 'mg', 
     target: 1000,
     icon: 'calcium',
@@ -72,7 +72,7 @@ const NUTRIENT_DEFS = [
     id: 'zinc', 
     key: 'zinc',
     dbKey: 'cink',
-    label: 'Cink', 
+    labelKey: 'micro_nutrients.zinc',  // ← DODANO ZA PRIJEVOD
     unit: 'mg', 
     target: 11,
     icon: 'zinc',
@@ -98,6 +98,9 @@ const getDateForWeekday = (weekOffset = 0, dayOffset = 0) => {
   return monday.toISOString().split('T')[0];
 };
 
+// ============================================================
+// 3. GLAVNA KOMPONENTA
+// ============================================================
 const MicroNutrients = () => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
@@ -119,7 +122,7 @@ const MicroNutrients = () => {
   const email = localStorage.getItem('userEmail');
 
   // ============================================================
-  // 3. INICIJALIZACIJA TJEDNIH DATUMA
+  // 4. INICIJALIZACIJA TJEDNIH DATUMA
   // ============================================================
   useEffect(() => {
     const dates = [];
@@ -136,7 +139,7 @@ const MicroNutrients = () => {
   }, []);
 
   // ============================================================
-  // 4. DOHVAĆANJE PODATAKA IZ SUABASE
+  // 5. DOHVAĆANJE PODATAKA IZ SUABASE
   // ============================================================
   useEffect(() => {
     const fetchAllNutrients = async () => {
@@ -151,7 +154,7 @@ const MicroNutrients = () => {
         if (result.success && result.data) {
           const allEntries = result.data;
           
-          // 4a. DANAŠNJE VRIJEDNOSTI
+          // 5a. DANAŠNJE VRIJEDNOSTI
           const today = new Date().toISOString().split('T')[0];
           const todayEntry = allEntries.find(n => n.datum === today);
           
@@ -167,7 +170,7 @@ const MicroNutrients = () => {
             });
           }
 
-          // 4b. TJEDNI PODACI
+          // 5b. TJEDNI PODACI
           const newWeekly = {};
           NUTRIENT_DEFS.forEach(n => {
             newWeekly[n.id] = [0, 0, 0, 0, 0, 0, 0];
@@ -199,7 +202,7 @@ const MicroNutrients = () => {
   }, [email, weeklyDates]);
 
   // ============================================================
-  // 5. HANDLER ZA PROMJENU
+  // 6. HANDLER ZA PROMJENU
   // ============================================================
   const handleChange = (key, value) => {
     const numValue = parseFloat(value) || 0;
@@ -207,7 +210,7 @@ const MicroNutrients = () => {
   };
 
   // ============================================================
-  // 6. SPREMANJE U SUABASE
+  // 7. SPREMANJE U SUABASE
   // ============================================================
   const handleSave = async () => {
     if (!email) {
@@ -263,7 +266,7 @@ const MicroNutrients = () => {
   };
 
   // ============================================================
-  // 7. RENDER - DNEVNI PRIKAZ
+  // 8. RENDER - DNEVNI PRIKAZ (RESPONSIVE + SVG IKONE + PRIJEVODI)
   // ============================================================
   const renderDaily = () => {
     return NUTRIENT_DEFS.map((n, index) => {
@@ -317,7 +320,8 @@ const MicroNutrients = () => {
             }
           }}
         >
-          <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${iconColors[n.icon]}`}>
+          {/* SVG IKONA */}
+          <div className={`w-12 h-12 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${iconColors[n.icon]}`}>
             <span 
               className="w-6 h-6"
               dangerouslySetInnerHTML={{ __html: n.svg }}
@@ -325,24 +329,24 @@ const MicroNutrients = () => {
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <span className="font-medium text-sm text-gray-800 dark:text-gray-200">
-                {n.label}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
+              <span className="font-medium text-sm sm:text-base text-gray-800 dark:text-gray-200">
+                {t(n.labelKey)}  {/* ← KORISTI PRIJEVOD */}
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                 <input
                   type="number"
                   value={value}
                   onChange={(e) => handleChange(n.key, e.target.value)}
-                  className="w-16 px-2 py-1 text-sm text-center border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                  className="w-14 sm:w-16 px-1.5 sm:px-2 py-1 text-xs sm:text-sm text-center border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
                   placeholder="0"
                   min="0"
                   step="0.1"
                   onClick={(e) => e.stopPropagation()}
                 />
                 <span className="text-xs text-gray-500 dark:text-gray-400">{n.unit}</span>
-                <span className="text-xs text-gray-400 dark:text-gray-500">/ {n.target}</span>
-                <span className={`text-xs font-semibold min-w-[36px] text-right ${statusColor}`}>
+                <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:inline">/ {n.target}</span>
+                <span className={`text-xs font-semibold min-w-[32px] sm:min-w-[36px] text-right ${statusColor}`}>
                   {pctRounded}%
                 </span>
                 <span className="text-sm">{statusIcon}</span>
@@ -361,7 +365,7 @@ const MicroNutrients = () => {
   };
 
   // ============================================================
-  // 8. RENDER - TJEDNI GRAF
+  // 9. RENDER - TJEDNI GRAF (RESPONSIVE + SVG IKONE + PRIJEVODI)
   // ============================================================
   const renderWeekly = () => {
     const days = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'];
@@ -387,13 +391,13 @@ const MicroNutrients = () => {
 
       return (
         <div key={index} className="space-y-1">
-          <div className="flex justify-between text-xs">
+          <div className="flex justify-between text-xs sm:text-sm">
             <span className="font-medium text-gray-700 dark:text-gray-300">
               {day} {isToday && '👈'}
             </span>
             <span className="text-gray-500 dark:text-gray-400">{Math.round(pct)}%</span>
           </div>
-          <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div className="w-full h-2 sm:h-2.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
             <div 
               className={`h-full rounded-full transition-all duration-500 ${barColor}`}
               style={{ width: `${pct}%` }}
@@ -429,14 +433,14 @@ const MicroNutrients = () => {
         </button>
 
         <div className="flex items-center gap-3 mb-4">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconColors[selectedNutrient]} bg-gray-100 dark:bg-gray-800`}>
+          <div className={`w-12 h-12 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center ${iconColors[selectedNutrient]} bg-gray-100 dark:bg-gray-800`}>
             <span className="w-6 h-6" dangerouslySetInnerHTML={{ __html: nutrient.svg }} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-              {nutrient.label}
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-white">
+              {t(nutrient.labelKey)}  {/* ← KORISTI PRIJEVOD */}
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
               {t('micro_nutrients.weekly_average') || 'Tjedni prosjek'}
             </p>
           </div>
@@ -446,8 +450,8 @@ const MicroNutrients = () => {
           {bars}
         </div>
 
-        <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-300">
+        <div className="p-3 sm:p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl text-center">
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
             {t('micro_nutrients.weekly_average_label') || 'Prosjek tjedna'}:
             <span className={`font-bold ml-1 ${avgColor}`}>{avg}%</span>
             <span className="ml-2">{avgText}</span>
@@ -458,7 +462,7 @@ const MicroNutrients = () => {
   };
 
   // ============================================================
-  // 9. GLAVNI RENDER
+  // 10. GLAVNI RENDER
   // ============================================================
   if (loading && Object.keys(weeklyData).length === 0) {
     return (
@@ -474,27 +478,27 @@ const MicroNutrients = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-6 px-4">
-      {/* HEADER */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl shadow-lg shadow-emerald-500/20">
-          <span className="text-3xl">📊</span>
+    <div className="max-w-4xl mx-auto py-4 sm:py-6 px-3 sm:px-4">
+      {/* HEADER - RESPONSIVE */}
+      <div className="flex items-center gap-3 mb-4 sm:mb-6">
+        <div className="p-2 sm:p-3 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl sm:rounded-2xl shadow-lg shadow-emerald-500/20">
+          <span className="text-2xl sm:text-3xl">📊</span>
         </div>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">
             {t('micro_nutrients.title')}
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
             {t('micro_nutrients.subtitle') || 'Unesite dnevni unos mikronutrijenata'}
           </p>
         </div>
       </div>
 
-      {/* VIEW TOGGLE */}
+      {/* VIEW TOGGLE - RESPONSIVE */}
       <div className="flex gap-2 mb-4">
         <button
           onClick={() => setView('daily')}
-          className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
+          className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition ${
             view === 'daily'
               ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25'
               : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
@@ -504,7 +508,7 @@ const MicroNutrients = () => {
         </button>
         <button
           onClick={() => setView('weekly')}
-          className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
+          className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition ${
             view === 'weekly'
               ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25'
               : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
@@ -514,22 +518,22 @@ const MicroNutrients = () => {
         </button>
       </div>
 
-      {/* KARTICA */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+      {/* KARTICA - RESPONSIVE */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6">
         {view === 'daily' ? (
           <>
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {renderDaily()}
             </div>
 
             <button
               onClick={handleSave}
               disabled={loading}
-              className="w-full mt-6 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-3.5 rounded-xl font-semibold transition disabled:opacity-50 shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
+              className="w-full mt-4 sm:mt-6 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-3 sm:py-3.5 rounded-xl font-semibold transition disabled:opacity-50 shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 text-sm sm:text-base"
             >
               {loading ? (
                 <>
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                   </svg>
