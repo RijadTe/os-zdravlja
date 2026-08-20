@@ -46,6 +46,8 @@ const cloudinary = require('cloudinary').v2;
 const speakeasy = require('speakeasy');
 const geoip = require('geoip-lite');
 const cron = require('node-cron');
+const Groq = require('groq-sdk');
+
 
 const app = express();
 
@@ -293,6 +295,22 @@ const upload = multer({
 // ============================================================
 const supabase = createClient(supabaseUrl, supabaseKey);
 console.log('✅ Supabase povezan!');
+
+// ============================================================
+// 🔥🔥🔥 GROQ INICIJALIZACIJA (DODAJ OVDJE!) 🔥🔥🔥
+// ============================================================
+let groq = null;
+if (process.env.GROQ_API_KEY) {
+  try {
+    groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    console.log('✅ Groq povezan za AI Chat!');
+  } catch (error) {
+    console.warn('⚠️ Groq nije dostupan:', error.message);
+  }
+} else {
+  console.warn('⚠️ GROQ_API_KEY nije postavljen, AI Chat neće raditi.');
+}
+
 
 // ============================================================
 // 🔥 PREMIUM FUNKCIJE - PROVJERA STATUSA
