@@ -5829,7 +5829,7 @@ app.post('/api/ai-chat', async (req, res) => {
             content: message
           }
         ],
-        model: "llama-3.2-3b-preview",  // 🔥 NAJBOLJI BESPLATNI MODEL!
+        model: "groq/compound",  // 🔥 NAJBOLJI BESPLATNI MODEL!
         temperature: 0.7,
         max_tokens: 300,
       });
@@ -5843,7 +5843,7 @@ app.post('/api/ai-chat', async (req, res) => {
           korisnik_email: email, 
           poruka: message, 
           odgovor: answer,
-          model: '"llama-3.2-3b-preview",',
+          model: '"groq/compound",',
           created_at: new Date().toISOString()
         }]);
 
