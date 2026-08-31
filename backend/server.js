@@ -804,7 +804,7 @@ async function sendPushNotification(email, title, body, link = '/') {
 }
 
 // ============================================================
-// NOTIFIKACIJE - KREIRAJ (SA PROVJEROM DUPLIKATA)
+// NOTIFIKACIJE - KREIRAJ (SA PROVJEROM DUPLIKATA + OBRISANO)
 // ============================================================
 async function createNotification(email, tip, poruka, link = '/') {
   try {
@@ -813,7 +813,7 @@ async function createNotification(email, tip, poruka, link = '/') {
     
     const { data: existing, error: checkError } = await supabase
       .from('notifikacije')
-      .select('id')
+      .select('id, obrisano, procitano')
       .eq('korisnik_email', email)
       .eq('tip', tip)
       .eq('poruka', poruka)
@@ -824,11 +824,32 @@ async function createNotification(email, tip, poruka, link = '/') {
       console.error('❌ Greška pri provjeri duplikata:', checkError);
     }
 
+    // 🔥 AKO POSTOJI - NE KREIRAJ NOVU!
     if (existing) {
-      console.log(`ℹ️ Notifikacija već postoji danas za ${email} (${tip})`);
+      console.log(`ℹ️ Notifikacija već postoji danas za ${email} (${tip}), preskačem.`);
+      
+      // 🔥 AKO JE OBRISANA, VRATI JE U PRIKAZ
+      if (existing.obrisano === true) {
+        const { error: updateError } = await supabase
+          .from('notifikacije')
+          .update({ 
+            obrisano: false,
+            procitano: false,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existing.id);
+        
+        if (updateError) {
+          console.error('❌ Greška pri vraćanju notifikacije:', updateError);
+        } else {
+          console.log(`✅ Notifikacija vraćena iz obrisanog stanja: ${existing.id}`);
+        }
+      }
+      
       return existing;
     }
 
+    // 🔥 KREIRAJ NOVU NOTIFIKACIJU (SAMO AKO NE POSTOJI)
     const { data: profil, error: profilError } = await supabase
       .from('profili')
       .select('id')
@@ -848,6 +869,8 @@ async function createNotification(email, tip, poruka, link = '/') {
         tip: tip,
         poruka: poruka,
         link: link,
+        procitano: false,
+        obrisano: false,
         created_at: new Date().toISOString()
       }])
       .select();
