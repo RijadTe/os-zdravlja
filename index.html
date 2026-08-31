@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="hr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/logo.png" type="image/png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#2563eb" />
+    
+    <!-- ============================================================ -->
+    <!-- 🔥🔥🔥 CAPACITOR MOCK - MORA BITI PRVI! 🔥🔥🔥 -->
+    <!-- ============================================================ -->
+    <script>
+      (function() {
+        if (typeof window !== 'undefined' && !window.Capacitor) {
+          console.log('🔧 Inicijalizacija Capacitor mock za web...');
+          
+          window.Capacitor = {
+            isNativePlatform: function() { return false; },
+            getPlatform: function() { return 'web'; },
+            isPluginAvailable: function() { return false; },
+            platform: 'web',
+            isNative: false,
+            registerPlugin: function() {},
+            Plugin: class {}
+          };
+          
+          if (!window.capacitor) {
+            window.capacitor = {
+              isNative: false,
+              platform: 'web',
+              getPlatform: function() { return 'web'; }
+            };
+          }
+          
+          console.log('✅ Capacitor mock inicijaliziran za web');
+        }
+      })();
+    </script>
+    
+    <!-- ============================================================ -->
+    <!-- 📄 SEO - OSNOVNI META TAGOVI -->
+    <!-- ============================================================ -->
+    <title>OS Zdravlja – Operativni sistem za tvoje zdravlje</title>
+    <meta name="description" content="OS Zdravlja – Operativni sistem za tvoje zdravlje. Recepti, AI, personalizacija i zdravlje na jednom mjestu." />
+    <meta name="keywords" content="zdravlje, recepti, AI, personalizacija, prehrana, OS Zdravlja, healthy, recipes, wellness" />
+    <meta name="author" content="PROTOCOL" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://os-zdravlja.vercel.app" />
+    
+    <!-- ============================================================ -->
+    <!-- 📱 OPEN GRAPH (Facebook, LinkedIn, WhatsApp) -->
+    <!-- ============================================================ -->
+    <meta property="og:title" content="OS Zdravlja – Operativni sistem za tvoje zdravlje" />
+    <meta property="og:description" content="Otkrivajte recepte prilagođene vašim potrebama, dijetama i ukusu. AI Chef, HealthyChef, Food Planner i još mnogo toga." />
+    <meta property="og:image" content="https://os-zdravlja.vercel.app/icons/icon-512.png" />
+    <meta property="og:url" content="https://os-zdravlja.vercel.app" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="OS Zdravlja" />
+    <meta property="og:locale" content="hr_HR" />
+    
+    <!-- ============================================================ -->
+    <!-- 🐦 TWITTER CARDS -->
+    <!-- ============================================================ -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="OS Zdravlja – Operativni sistem za tvoje zdravlje" />
+    <meta name="twitter:description" content="Otkrivajte recepte prilagođene vašim potrebama, dijetama i ukusu." />
+    <meta name="twitter:image" content="https://os-zdravlja.vercel.app/icons/icon-512.png" />
+    
+    <!-- ============================================================ -->
+    <!-- 📊 GOOGLE ANALYTICS (GA4) -->
+    <!-- ============================================================ -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-P0G2NP5MS9"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-P0G2NP5MS9');
+    </script>
+    
+    <!-- ============================================================ -->
+    <!-- 📊 GOOGLE ADSENSE -->
+    <!-- ============================================================ -->
+    <script 
+      async 
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9027267899539658"
+      crossorigin="anonymous">
+    </script>
+    
+    <!-- ============================================================ -->
+    <!-- ⚡ SIGURNOSNI HEADERI -->
+    <!-- ============================================================ -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <!-- 🔥 UKLONJEN X-Frame-Options - postavlja se na serveru -->
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    
+    <!-- ============================================================ -->
+    <!-- ⚡ KOMPLETNA ZAŠTITA – Desni klik, prečice, DevTools, print -->
+    <!-- ============================================================ -->
+    <script>
+      (function() {
+        console.log('🛡️ Aktiviranje potpune zaštite...');
+
+        // ============================================================
+        // 1. ONEMOGUĆI DESNI KLIK (svi elementi)
+        // ============================================================
+        document.addEventListener('contextmenu', function(e) {
+          e.preventDefault();
+          return false;
+        });
+
+        // ============================================================
+        // 2. ONEMOGUĆI SVE PREČICE (osim osnovnih u input poljima)
+        // ============================================================
+        document.addEventListener('keydown', function(e) {
+          // DOZVOLI osnovne prečice u input poljima
+          const tag = e.target.tagName.toLowerCase();
+          if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) {
+            // Dozvoli Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+A u input poljima
+            if (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'v' || e.key === 'V' || e.key === 'x' || e.key === 'X' || e.key === 'a' || e.key === 'A')) {
+              return;
+            }
+            // Dozvoli backspace, delete, arrow keys, tab
+            if (e.key === 'Backspace' || e.key === 'Delete' || e.key.startsWith('Arrow') || e.key === 'Tab') {
+              return;
+            }
+          }
+
+          // Zabranjene kombinacije
+          const forbidden = [
+            // F12 - DevTools
+            { key: 'F12' },
+            // Ctrl+U - View Source
+            { ctrl: true, key: 'u' }, { ctrl: true, key: 'U' },
+            // Ctrl+S - Save
+            { ctrl: true, key: 's' }, { ctrl: true, key: 'S' },
+            // Ctrl+P - Print
+            { ctrl: true, key: 'p' }, { ctrl: true, key: 'P' },
+            // Ctrl+Shift+I - DevTools
+            { ctrl: true, shift: true, key: 'I' },
+            // Ctrl+Shift+J - Console
+            { ctrl: true, shift: true, key: 'J' },
+            // Ctrl+Shift+C - Inspect
+            { ctrl: true, shift: true, key: 'C' },
+            // Ctrl+Shift+U - View Source
+            { ctrl: true, shift: true, key: 'U' },
+            // Ctrl+Shift+S - Save as
+            { ctrl: true, shift: true, key: 'S' },
+            // Ctrl+Alt+I - Inspect
+            { ctrl: true, alt: true, key: 'I' },
+            // Ctrl+Alt+J - Console
+            { ctrl: true, alt: true, key: 'J' },
+            // Meta (Windows/Command) + ...
+            { meta: true, key: 'i' }, { meta: true, key: 'I' },
+            { meta: true, key: 's' }, { meta: true, key: 'S' },
+            { meta: true, key: 'u' }, { meta: true, key: 'U' },
+            { meta: true, key: 'p' }, { meta: true, key: 'P' },
+            { meta: true, key: 'q' }, { meta: true, key: 'Q' },
+            { meta: true, key: 'w' }, { meta: true, key: 'W' },
+            { meta: true, shift: true, key: 'i' },
+            { meta: true, shift: true, key: 's' },
+            { meta: true, shift: true, key: 'u' },
+            { meta: true, shift: true, key: 'p' },
+          ];
+
+          for (const rule of forbidden) {
+            let match = true;
+            if (rule.ctrl !== undefined && e.ctrlKey !== rule.ctrl) match = false;
+            if (rule.shift !== undefined && e.shiftKey !== rule.shift) match = false;
+            if (rule.alt !== undefined && e.altKey !== rule.alt) match = false;
+            if (rule.meta !== undefined && e.metaKey !== rule.meta) match = false;
+            if (rule.key && e.key !== rule.key) match = false;
+
+            if (match) {
+              e.preventDefault();
+              e.stopPropagation();
+              return false;
+            }
+          }
+
+          // Onemogući F1-F12 (osim F5)
+          if (e.key.startsWith('F') && e.key !== 'F5') {
+            const num = parseInt(e.key.replace('F', ''));
+            if (num >= 1 && num <= 12) {
+              e.preventDefault();
+              return false;
+            }
+          }
+        });
+
+        // ============================================================
+        // 3. ONEMOGUĆI SREDNJI KLIK
+        // ============================================================
+        document.addEventListener('mousedown', function(e) {
+          if (e.button === 1) {
+            e.preventDefault();
+            return false;
+          }
+        });
+
+        // ============================================================
+        // 4. ONEMOGUĆI DRAG AND DROP
+        // ============================================================
+        document.addEventListener('dragstart', function(e) {
+          e.preventDefault();
+          return false;
+        });
+
+        // ============================================================
+        // 5. ONEMOGUĆI SELECTION (tekst) - osim u input poljima
+        // ============================================================
+        document.addEventListener('selectstart', function(e) {
+          const tag = e.target.tagName.toLowerCase();
+          if (tag !== 'input' && tag !== 'textarea') {
+            e.preventDefault();
+            return false;
+          }
+        });
+
+        // ============================================================
+        // 6. ONEMOGUĆI PRINT
+        // ============================================================
+        window.addEventListener('beforeprint', function(e) {
+          e.preventDefault();
+          alert('🛡️ Printanje je onemogućeno!');
+          return false;
+        });
+
+        // ============================================================
+        // 7. ONEMOGUĆI COPY/PASTE (osim u input poljima)
+        // ============================================================
+        document.addEventListener('copy', function(e) {
+          const tag = e.target.tagName.toLowerCase();
+          if (tag !== 'input' && tag !== 'textarea') {
+            e.preventDefault();
+            return false;
+          }
+        });
+
+        document.addEventListener('cut', function(e) {
+          const tag = e.target.tagName.toLowerCase();
+          if (tag !== 'input' && tag !== 'textarea') {
+            e.preventDefault();
+            return false;
+          }
+        });
+
+        // ============================================================
+        // 8. DEVTOOLS DETEKCIJA
+        // ============================================================
+        (function detectDevTools() {
+          const element = new Image();
+          Object.defineProperty(element, 'id', {
+            get: function() {
+              console.warn('🔍 DevTools detektovani!');
+              // Opcionalno: preusmjeri ili zatvori stranicu
+              // window.location.href = '/';
+            }
+          });
+          console.log('%c', element);
+        })();
+
+        // ============================================================
+        // 9. ZAŠTITA SLIKA
+        // ============================================================
+        document.addEventListener('mousedown', function(e) {
+          if (e.target.tagName === 'IMG') {
+            e.preventDefault();
+            return false;
+          }
+        });
+
+        // ============================================================
+        // 10. TOUCH ZAŠTITA (mobile)
+        // ============================================================
+        document.addEventListener('touchstart', function(e) {
+          if (e.target.tagName === 'IMG') {
+            e.preventDefault();
+            return false;
+          }
+        });
+
+        // ============================================================
+        // 11. CSS ZAŠTITA
+        // ============================================================
+        const style = document.createElement('style');
+        style.textContent = `
+          /* Onemogući selektovanje teksta (osim inputa) */
+          body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+          }
+          
+          /* Dozvoli selektovanje u input poljima */
+          input, textarea, select, [contenteditable="true"] {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+          }
+          
+          /* Onemogući drag na slikama */
+          img {
+            -webkit-user-drag: none;
+            user-drag: none;
+            -webkit-touch-callout: none;
+          }
+          
+          /* Onemogući long-press na mobilnim */
+          * {
+            -webkit-touch-callout: none;
+          }
+        `;
+        document.head.appendChild(style);
+
+        console.log('✅ Potpuna zaštita aktivirana!');
+        console.log('🛡️ Onemogućeni: desni klik, prečice (osim u inputima), DevTools, print, drag, selection.');
+        console.log('✅ Dozvoljene: Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+A u input poljima.');
+      })();
+    </script>
+  </head>
+  <body>
+
+    <!-- ZAŠTITNI EKRAN - PRIKAZUJE SE DOK SE APLIKACIJA NE UČITA -->
+    <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:#ffffff; z-index:9999; display:flex; align-items:center; justify-content:center;">
+      <img src="/logo.png" alt="OS Zdravlja" style="max-width:60%; height:auto;" />
+    </div>
+
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Service Worker registracija -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(() => console.log('✅ Service Worker registrovan'))
+          .catch(err => console.log('❌ Greška pri registraciji Service Worker-a:', err));
+      }
+    </script>
+  </body>
+</html>
