@@ -172,20 +172,20 @@ console.log('✅ XSS sanitizacija aktivirana');
 // 2. COOKIE PARSER - Potreban za CSRF
 app.use(cookieParser());
 
-// 3. CSRF ZAŠTITA - ISKLJUČENO ZA TEST
-// app.use(csrf({ cookie: true }));
-// console.log('✅ CSRF zaštita aktivirana');
+// 3. CSRF ZAŠTITA
+app.use(csrf({ cookie: true }));
+console.log('✅ CSRF zaštita aktivirana');
 
 // 4. CSRF VALIDACIJA - ISKLJUČENA
-// app.use('/api/*', (req, res, next) => {
-//   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
-//     const token = req.headers['x-csrf-token'] || req.body._csrf;
-//     if (!token || token !== req.csrfToken()) {
-//       return res.status(403).json({ error: 'CSRF token nevažeći!' });
-//     }
-//   }
-//   next();
-// });
+app.use('/api/*', (req, res, next) => {
+if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+const token = req.headers['x-csrf-token'] || req.body._csrf;
+if (!token || token !== req.csrfToken()) {
+return res.status(403).json({ error: 'CSRF token nevažeći!' });
+ }
+}
+next();
+});
 console.log('✅ CSRF validacija za POST/PUT/DELETE/PATCH aktivirana');
 
 // ============================================================
