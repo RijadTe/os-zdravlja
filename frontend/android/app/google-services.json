@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "963109779061",
+    "project_id": "smartkuhar-1ad4f",
+    "storage_bucket": "smartkuhar-1ad4f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:963109779061:android:56afbfa68e736815ffaa3c",
+        "android_client_info": {
+          "package_name": "com.smartkuhar.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkd9Lk80Wsti8rPsqco5QDVbzsjfJ861g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

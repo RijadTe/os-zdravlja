@@ -1,0 +1,1242 @@
+{
+  "scanreceipt": {
+    "select_file": "Sélectionner l'image du ticket",
+    "scanning": "Numérisation...",
+    "scan": "Numériser",
+    "info": "Prenez en photo votre ticket de caisse et nous ajouterons automatiquement les courses à votre réfrigérateur."
+  },
+  "app": {
+    "title": "OS Santé – Système d'exploitation pour votre santé",
+    "subtitle": "Découvrez des recettes adaptées à vos besoins, régimes et goûts."
+  },
+  "nav": {
+    "home": "Accueil",
+    "community": "Communauté",
+    "profile": "Profil",
+    "login": "Connexion",
+    "quiz": "Quiz",
+    "premium": "Premium",
+    "recipes": "Recettes",
+    "water": "Eau",
+    "goals": "Objectifs",
+    "micro": "Micro",
+    "ai_chat": "Chat IA"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue. Veuillez réessayer.",
+    "success": "Succès !",
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "search": "Rechercher...",
+    "back": "Retour",
+    "light": "Clair",
+    "dark": "Sombre",
+    "retry": "Réessayer"
+  },
+  "labels": {
+    "vrijeme": {
+      "kratko": "Court",
+      "srednje": "Moyen",
+      "dugo": "Long"
+    },
+    "tezina": {
+      "lagani": "Facile",
+      "srednji": "Moyen",
+      "teski": "Difficile"
+    },
+    "kalorije": {
+      "nisko": "Faible",
+      "srednje": "Moyen",
+      "visoko": "Élevé"
+    },
+    "kategorija": {
+      "dijeta": "Diététique",
+      "deserti": "Desserts",
+      "slano": "Salé",
+      "napici": "Boissons"
+    }
+  },
+  "home": {
+    "hero": {
+      "title": "OS Santé",
+      "subtitle": "Système d'exploitation pour votre santé",
+      "description": "Découvrez des recettes adaptées à vos besoins, régimes et goûts.",
+      "start_quiz": "Commencer le quiz",
+      "ai_chef": "Recherche Chef IA"
+    },
+    "alert_required": "Veuillez répondre à toutes les questions.",
+    "no_profile": {
+      "title": "Personnalisez votre expérience !",
+      "description": "Répondez à un court quiz et nous vous montrerons des recettes parfaites pour vous.",
+      "button": "Commencer le quiz"
+    },
+    "profile": {
+      "title": "Votre profil",
+      "completed": "Quiz terminé",
+      "name": "Nom",
+      "eat": "Veux manger",
+      "prefers": "Préfère",
+      "avoids": "Évite",
+      "not_set": "Non défini",
+      "not_selected": "Non sélectionné"
+    },
+    "categories": {
+      "title": "CHOISIR UNE CATÉGORIE",
+      "diet": "DIÉTÉTIQUE",
+      "desserts": "DESSERTS",
+      "savory": "SALÉ",
+      "quiz": "QUIZ",
+      "ai_chef": "CHEF IA",
+      "drinks": "BOISSONS"
+    },
+    "lifestyle": {
+      "title": "Coach de vie",
+      "sleep": "Sommeil",
+      "excellent": "Excellent",
+      "good": "Bon",
+      "bad": "Mauvais",
+      "energy": "Énergie",
+      "full": "Plein",
+      "moderate": "Modéré",
+      "tired": "Fatigué",
+      "stress": "Stress",
+      "low": "Faible",
+      "high": "Élevé",
+      "get_advice": "Obtenir des recommandations",
+      "recommended": "Recettes recommandées pour vous :"
+    },
+    "fridge": {
+      "title": "Mon réfrigérateur",
+      "placeholder": "Ajouter un ingrédient...",
+      "add": "Ajouter",
+      "find_recipes": "Trouver des recettes",
+      "empty": "Le réfrigérateur est vide.",
+      "empty_hint": "Ajoutez les ingrédients que vous devez acheter.",
+      "premium": "⭐ PREMIUM",
+      "delete": "Supprimer",
+      "total": "Total",
+      "ingredient": "ingrédient",
+      "ingredients": "ingrédients",
+      "remaining": "Restant",
+      "slots": "emplacements",
+      "remaining_to_buy": "Restant à acheter",
+      "clear": "Vider",
+      "searching": "Recherche...",
+      "limit_reached": "❌ Vous avez atteint le nombre maximum d'ingrédients (5) pour les utilisateurs FREE. Devenez Premium pour une liste illimitée !",
+      "limit_reached_premium": "❌ Vous avez atteint le nombre maximum d'ingrédients.",
+      "scan_limit_reached": "❌ Vous ne pouvez pas ajouter plus de 5 ingrédients. Vous en avez actuellement {{count}} sur 5. Devenez Premium pour une liste illimitée !",
+      "no_items_for_search": "Ajoutez au moins un ingrédient non acheté !",
+      "no_recipes_found": "Aucune recette pour ces ingrédients. Essayez d'ajouter plus d'ingrédients.",
+      "search_error": "Une erreur est survenue. Veuillez réessayer.",
+      "rate_limit": "Trop de requêtes. Veuillez patienter un instant et réessayer.",
+      "scan_success": "✅ {{count}} ingrédients ajoutés au réfrigérateur !",
+      "clear_confirm": "Êtes-vous sûr de vouloir vider le réfrigérateur ?"
+    },
+    "foodplanner": {
+      "title": "Planificateur alimentaire complet",
+      "description": "Suivez vos repas, analysez votre nutrition et planifiez votre semaine avec un assistant IA.",
+      "emoji": "Saisie émotionnelle",
+      "emoji_desc": "Choisissez un emoji avant/après",
+      "ai": "Recommandations IA",
+      "ai_desc": "Basé sur l'humeur",
+      "chart": "Graphique",
+      "chart_desc": "Aperçu visuel sur la semaine",
+      "watch": "Montre connectée",
+      "watch_desc": "Apple Health, Google Fit",
+      "pdf": "Rapport PDF",
+      "pdf_desc": "Hebdomadaire/Mensuel",
+      "plan": "Plan de repas",
+      "plan_desc": "Plan IA selon l'humeur",
+      "connected": "Connecté au Coach de vie",
+      "connected_desc": "Les recommandations sont ajoutées automatiquement au Journal",
+      "open": "Ouvrir le journal alimentaire"
+    },
+    "healthychef": {
+      "title": "HealthyChef",
+      "description": "Recettes personnalisées pour vos besoins de santé.",
+      "hormonal": "HORMONAL",
+      "thyroid": "THYROÏDE",
+      "anemia": "ANÉMIE",
+      "bones": "OS",
+      "menopause": "MÉNOPAUSE",
+      "pcos": "SOPK",
+      "open": "Ouvrir HealthyChef"
+    },
+    "recipes": {
+      "title": "Recettes recommandées",
+      "filters_active": "filtres actifs",
+      "loading": "Chargement des recettes...",
+      "no_results": "Aucune recette correspondant aux filtres.",
+      "reset_filters": "Réinitialiser les filtres"
+    },
+    "filters": {
+      "all_types": "Tous les types",
+      "all_time": "Tout le temps",
+      "all_difficulty": "Tous les niveaux",
+      "preferences": "Toutes les préférences",
+      "high_protein": "Riche en protéines",
+      "high_fiber": "Riche en fibres",
+      "high_carbs": "Riche en glucides",
+      "reset": "Réinitialiser",
+      "savory": "Salé",
+      "desserts": "Desserts",
+      "diet": "Diététique",
+      "drinks": "Boissons",
+      "short": "Court",
+      "medium": "Moyen",
+      "long": "Long",
+      "beginner": "Débutant",
+      "intermediate": "Intermédiaire",
+      "professional": "Professionnel"
+    },
+    "premium": {
+      "title": "Contenu Premium",
+      "description": "Débloquez le Planificateur alimentaire complet et toutes les fonctionnalités Premium !",
+      "button": "Devenir Premium",
+      "unlocked": "Débloqué",
+      "unlock_all": "Devenez Premium et débloquez tout",
+      "all_unlocked": "Toutes les fonctionnalités sont disponibles !",
+      "all_locked": "Toutes les fonctionnalités sont verrouillées. Devenez Premium pour les utiliser."
+    },
+    "advice_tired_stressed": "😴 Je remarque que vous êtes fatigué et stressé. Je recommande des repas légers et nourrissants qui vous donneront de l'énergie sans vous alourdir.",
+    "advice_bad_sleep_low_energy": "😴 Mauvais sommeil et faible énergie. Je recommande des repas riches en protéines et vitamines pour une récupération rapide.",
+    "advice_bad_sleep_good_stress": "😴 Votre sommeil n'est pas optimal, mais vous êtes détendu. Je recommande des dîners légers qui ne surchargent pas la digestion.",
+    "advice_good_energy_low_stress": "⚡ Excellent ! Vous avez une bonne énergie et un faible stress. Il est temps d'expérimenter de nouvelles recettes !",
+    "advice_good_energy_high_stress": "⚡ Vous avez de l'énergie, mais vous êtes stressé. Je recommande des repas apaisants et relaxants.",
+    "advice_low_energy_low_stress": "😴 Faible énergie, mais vous êtes détendu. Je recommande des repas qui augmentent l'énergie.",
+    "advice_all_good": "😊 Excellente condition ! Continuez avec votre alimentation habituelle et profitez de repas variés.",
+    "advice_explore_recipes": "😊 Basé sur votre humeur, nous vous recommandons d'explorer notre base de données de recettes et de trouver quelque chose qui vous convient !",
+    "advice_error": "❌ Une erreur est survenue. Veuillez réessayer."
+  },
+  "quiz": {
+    "title": "👋 FAISONS CONNAISSANCE",
+    "subtitle": "Répondez à 6 questions et nous adapterons les recettes à vos besoins !",
+    "edit_title": "✏️ Modifier les filtres",
+    "edit_subtitle": "Ajustez vos préférences et profitez de recettes parfaites !",
+    "step_label": "Étapes",
+    "step": "Étape {current} sur {total}",
+    "selected": "Sélectionné : {count}/{max}",
+    "select_placeholder": "Choisir...",
+    "logged_in_as": "👋 Connecté en tant que",
+    "questions": {
+      "vrsta": "🍽️ Que voulez-vous manger aujourd'hui ? * (max 3)",
+      "preferencije": "💪 Que PRÉFÉREZ-VOUS ? (max 2)",
+      "restrikcije": "🚫 Qu'ÉVITEZ-VOUS ? (max 3)",
+      "vrijeme": "⏱️ Combien de temps avez-vous pour la préparation ? *",
+      "tezina": "👨‍🍳 Quel est votre niveau en cuisine ? *",
+      "kalorije": "🔥 Quelle gamme de calories préférez-vous ? *"
+    },
+    "options": {
+      "vrsta": ["Desserts", "Salé", "Recettes diététiques", "Boissons", "Tout"],
+      "restrikcije": ["Aucune restriction", "Sans gluten", "Sans lactose", "Sans sucre", "Vegan", "Sans noix"],
+      "preferencije": ["Riche en protéines", "Riche en fibres", "Riche en glucides", "Tout"],
+      "vrijeme": ["Court (15-30 min)", "Moyen (30-45 min)", "Long (45-60+ min)"],
+      "tezina": ["Débutant", "Intermédiaire", "Professionnel"],
+      "kalorije": ["Faible (jusqu'à 300 kcal)", "Modéré (300-500 kcal)", "Moyen (500-700 kcal)", "Élevé (900+ kcal)"]
+    },
+    "buttons": {
+      "back": "Retour",
+      "next": "Suivant →",
+      "submit": "✅ Commençons",
+      "save": "✅ Enregistrer les modifications"
+    },
+    "toast": {
+      "already_completed": "ℹ️ Vous avez déjà terminé le quiz. Vous pouvez modifier à nouveau vos préférences.",
+      "login_required": "🔒 Veuillez vous connecter pour accéder au quiz.",
+      "max_selected": "Vous pouvez sélectionner un maximum de {max} options.",
+      "fill_all_fields": "Veuillez remplir tous les champs.",
+      "not_logged_in": "❌ Vous n'êtes pas connecté. Veuillez vous connecter.",
+      "success": "✅ Quiz terminé ! Filtres enregistrés.",
+      "error": "❌ Erreur lors de l'envoi du quiz : {message}"
+    }
+  },
+  "premium": {
+  "title": "⭐ Premium",
+  "subtitle": "Débloquez toutes les fonctionnalités et améliorez votre expérience culinaire !",
+  "alert": {
+    "login_required": "❌ Veuillez vous connecter d'abord.",
+    "session_error": "Erreur lors de la création de la session.",
+    "payment_error": "❌ Erreur de paiement"
+  },
+  "free": {
+    "title": "Free",
+    "price": "€0",
+    "features": {
+      "ai_chef": "AI Chef - recherche de recettes",
+      "recipes": "Recettes (10 000+)",
+      "categories": "Catégories (6)",
+      "quiz": "Quiz (personnalisation)",
+      "goals": "Objectifs",
+      "water": "Suivi de l'eau",
+      "micronutrients": "Micronutriments",
+      "community": "Communauté (lecture)",
+      "badges": "Badges",
+      "pdf_report": "Rapport PDF (basique)",
+      "shopping_list_limited": "Liste de courses (max 5 articles)",
+      "virtual_fridge_limited": "Réfrigérateur virtuel (limité)"
+    },
+    "missing": {
+      "ingredient_recognition": "Plus de scans photo (15 par jour)",
+      "virtual_fridge": "Réfrigérateur virtuel (illimité)",
+      "shopping_list": "Liste de courses illimitée",
+      "voice_search": "Recherche vocale",
+      "voice_cooking": "Cuisine vocale",
+      "ai_chat": "AI Chat",
+      "healthychef": "HealthyChef",
+      "sommelier": "Sommelier",
+      "food_diary": "Journal alimentaire + Analytique",
+      "meal_plan": "Plan de repas",
+      "lifestyle_coach": "Lifestyle Coach",
+      "pdf_report": "Rapport PDF avancé",
+      "no_ads": "Sans publicité"
+    },
+    "limit_hint": "🛒 Liste de courses: max 5 articles | 🧊 Réfrigérateur: limité (FREE)"
+  },
+  "premium": {
+    "title": "⭐ Premium",
+    "price": "€4.99",
+    "period": "/ mois",
+    "best_value": "Meilleur rapport qualité-prix",
+    "total_features": "13+ fonctionnalités Premium !"
+  },
+  "features": {
+    "ingredient_recognition": "📸 Reconnaissance des ingrédients",
+    "ingredient_recognition_desc": "Prenez une photo – Premium vous donne 15 scans par jour (au lieu de 3). Le système reconnaît ce qu'il y a dans votre frigo. Sans taper !",
+    "virtual_fridge": "🧊 Réfrigérateur virtuel",
+    "virtual_fridge_desc": "Ajoutez vos ingrédients et le système vous recommande des recettes en fonction. Articles illimités !",
+    "shopping_list": "🛒 Liste de courses",
+    "shopping_list_desc": "Générez une liste de courses à partir de votre plan de repas. Articles illimités !",
+    "voice_search": "🎤 Recherche vocale",
+    "voice_search_desc": "Au lieu de taper, dites simplement les ingrédients que vous avez à la maison.",
+    "voice_cooking": "🎤 Cuisine vocale",
+    "voice_cooking_desc": "Écoutez les instructions étape par étape pendant que vous cuisinez – mains libres !",
+    "ai_chat": "💬 AI Chat",
+    "ai_chat_desc": "Posez des questions sur la nutrition, les recettes et les habitudes saines – l'assistant IA répond en temps réel. (10 messages par jour)",
+    "healthychef": "🌿 HealthyChef",
+    "healthychef_desc": "6 catégories, 29 sous-catégories – recettes pour le cycle hormonal, la thyroïde, l'anémie, la ménopause, le SOPK et les os.",
+    "sommelier": "🍷 Sommelier",
+    "sommelier_desc": "Pour chaque recette, obtenez des recommandations d'épices, de boissons, d'accompagnements et d'heure idéale pour le repas.",
+    "food_diary": "📊 Journal alimentaire + Analytique",
+    "food_diary_desc": "Enregistrez les repas et suivez les calories, protéines, glucides et lipides tout au long de la semaine avec des graphiques.",
+    "meal_plan": "📅 Plan de repas personnalisé",
+    "meal_plan_desc": "Générez un plan de repas hebdomadaire basé sur votre humeur et vos préférences.",
+    "lifestyle_coach": "🧘 Lifestyle Coach",
+    "lifestyle_coach_desc": "Répondez à des questions sur le sommeil, l'énergie et le stress – obtenez des recommandations nutritionnelles personnalisées.",
+    "pdf_report": "📄 Rapport PDF avancé",
+    "pdf_report_desc": "Générez des rapports hebdomadaires ou mensuels sur votre nutrition avec tous les détails.",
+    "no_ads": "🔒 Sans publicité",
+    "no_ads_desc": "Profitez d'une expérience propre sans publicités gênantes."
+  },
+  "details": {
+    "title": "🎁 Qu'obtenez-vous avec Premium ?",
+    "subtitle": "Débloquez 13+ fonctionnalités avancées qui faciliteront votre cuisine quotidienne !"
+  },
+  "cta": {
+    "title": "🌟 Prêt pour l'expérience Premium ?",
+    "subtitle": "Rejoignez des milliers d'utilisateurs satisfaits qui profitent de toutes les fonctionnalités Premium !",
+    "button": "🚀 Devenir Premium",
+    "secure": "🔒 Paiement sécurisé via Stripe. Annulez à tout moment."
+  },
+  "button": {
+    "loading": "⏳ Traitement en cours...",
+    "default": "🚀 Devenir Premium"
+  },
+  "already_premium": "Vous êtes déjà un utilisateur Premium ! 🎉",
+  "premium_until": "Premium valable jusqu'au",
+  "days_left": "{{days}} jours restants",
+  "go_to_profile": "Aller au profil →"
+  },
+  "aichef": {
+    "seo_title": "Chef IA – OS Santé",
+    "seo_description": "Recherchez des recettes par ingrédients ou prenez une photo – le Chef IA reconnaît et suggère des recettes parfaites !",
+    "title": "🤖 Chef IA – Qu'y a-t-il dans votre réfrigérateur ?",
+    "subtitle": "Saisissez les ingrédients que vous avez à la maison ou utilisez Premium pour des options avancées.",
+    "placeholder": "Entrez les ingrédients (ex. poulet, oignon, carotte)...",
+    "common_searches": "📌 Recherches fréquentes",
+    "no_results": "Aucune recette pour les ingrédients saisis.",
+    "try_again": "Essayez avec d'autres ingrédients.",
+    "back_home": "Retour à l'accueil",
+    "premium_hint": "⭐ Devenez Premium pour des recherches illimitées et des options avancées.",
+    "premium_link": "Devenir Premium →",
+    "buttons": {
+      "take_photo": "Prendre une photo",
+      "limit_used_tomorrow": "🚫 Limite atteinte - demain !",
+      "watch_video_unlock": "🔒 Regarder une vidéo pour 1 photo",
+      "watch_video_action": "Regarder la vidéo → 1 photo",
+      "type": "Saisir",
+      "voice": "Voix",
+      "search": "🔍 Rechercher des recettes",
+      "searching": "Recherche...",
+      "remove_image": "Supprimer l'image"
+    },
+    "status": {
+      "processing": "⏳ L'IA traite votre demande...",
+      "searching": "🔍 Recherche de recettes...",
+      "sending": "📤 Envoi de la demande...",
+      "analyzing": "⏳ L'IA analyse les ingrédients...",
+      "done": "✅ Terminé !",
+      "waiting": "⏱️ Attente : {seconds} secondes"
+    },
+    "status_labels": {
+      "photos": "photos",
+      "video": "vidéo",
+      "remaining": "restant",
+      "limit_used": "Limite atteinte",
+      "watch_video": "Regardez une vidéo pour une photo !"
+    },
+    "results": {
+      "title": "📋 Résultats de la recherche",
+      "found": "✅ {count} recettes trouvées !",
+      "recipes": "recettes",
+      "from_cache": "💾 Résultats du cache ({{seconds}}s)",
+      "from_database": "📚 Résultats de la base de données ({{seconds}}s)",
+      "from_ai": "🤖 Résultats générés par l'IA ({{seconds}}s)"
+    },
+    "filters": {
+      "all_types": "Tous les types",
+      "all_time": "Tout le temps",
+      "all_difficulty": "Tous les niveaux",
+      "reset": "Réinitialiser"
+    },
+    "unlock": {
+      "watch_for_photo": "🎬 Regardez une vidéo pour 1 photo !",
+      "current_photos": "Actuel : {used}/{max} photos",
+      "remaining_videos": "Publicités vidéo restantes : {count}",
+      "unlocked_photo": "+1 photo !",
+      "now_have_photos": "Vous avez maintenant {count}/{max} photos restantes",
+      "use_remaining": "Utilisez vos {count} photos restantes !",
+      "all_photos_used": "✅ Vous avez utilisé toutes les {max} photos aujourd'hui !",
+      "premium_photos": "⭐ Les utilisateurs Premium bénéficient de {max} photos par jour (sans publicités vidéo)",
+      "video_limit_reached": "📺 Limite quotidienne de publicités vidéo atteinte ({max}/{max})"
+    },
+    "messages": {
+      "simulated_ad": "🎬 Publicité vidéo simulée...",
+      "simulated_ad_countdown": "🎬 Publicité simulée... {{seconds}}/3 secondes",
+      "loading_video_ad": "🎬 Chargement de la publicité vidéo... Veuillez patienter.",
+      "ad_loading_continue": "⏳ Chargement de la publicité, on continue...",
+      "video_ad_finished": "✅ Publicité vidéo terminée !",
+      "watching_ad": "🎬 Regarder la publicité... {{seconds}}/5 secondes",
+      "premium_access": "⭐ Les utilisateurs Premium ont 15 photos par jour !",
+      "ad_already_playing": "⏳ Une publicité est déjà en cours, veuillez patienter...",
+      "no_photos_watch_video": "📸 Pas de photos ! Regardez une vidéo pour 1 photo.",
+      "no_more_pictures": "📸 Pas de photos ! Regardez une vidéo pour 1 photo.",
+      "daily_limit_reached": "⚠️ Vous avez atteint la limite quotidienne de {{max}} photos. Réessayez demain !",
+      "video_limit_reached": "⚠️ Vous avez atteint la limite quotidienne de {{max}} publicités vidéo. Réessayez demain !",
+      "already_have_photos": "✅ Vous avez déjà {{count}} photos restantes ! Utilisez-les.",
+      "already_used_all": "✅ Vous avez déjà utilisé toutes les {{max}} photos aujourd'hui. Réessayez demain !",
+      "video_not_completed": "❌ La publicité vidéo n'est pas terminée. Veuillez réessayer.",
+      "unlock_success": "✅ +1 photo ! Vous avez maintenant {{remaining}} photos restantes. {{videoLeft}} publicités vidéo restantes pour aujourd'hui.",
+      "video_ad_not_finished": "❌ La publicité vidéo n'est pas terminée. Veuillez réessayer.",
+      "video_ad_unlocked": "✅ +1 photo ! {{remaining}} publicités vidéo restantes pour aujourd'hui.",
+      "video_ad_limit_reached": "⚠️ Vous avez atteint la limite quotidienne de {{maxVideoAds}} publicités vidéo. Réessayez demain !",
+      "daily_limit_remaining": "✅ Vous avez déjà {{remaining}} photos restantes ! Utilisez-les.",
+      "cache_hit": "💾 Résultats du cache ({{elapsed}}s)",
+      "database_result": "📚 Résultats de la base de données ({{elapsed}}s)",
+      "ai_generated": "🤖 Résultats générés par l'IA ({{elapsed}}s)",
+      "ai_thinking": "⏳ L'IA réfléchit... déjà {{elapsed}} secondes",
+      "ai_generating_recipes": "🧠 L'IA génère des recettes... ({{elapsed}}s)",
+      "ai_processing": "⏳ L'IA travaille encore... ({{elapsed}}s)"
+    },
+    "errors": {
+      "login_required": "⚠️ Vous devez être connecté.",
+      "no_input": "⚠️ Saisissez des ingrédients ou téléchargez une image.",
+      "photo_premium": "📸 La photo est disponible uniquement pour les utilisateurs Premium ou après déblocage.",
+      "search_failed": "❌ La recherche a échoué. Veuillez réessayer.",
+      "general": "❌ Une erreur est survenue. Veuillez réessayer.",
+      "voice_premium": "🎤 La recherche vocale est disponible uniquement pour les utilisateurs Premium.",
+      "voice_not_supported": "❌ Votre navigateur ne prend pas en charge la recherche vocale.",
+      "voice_error": "❌ Une erreur est survenue avec la recherche vocale. Veuillez réessayer.",
+      "error": "❌ Erreur"
+    },
+    "card": {
+      "photo": "Photo",
+      "photos_count": "0/3",
+      "ready": "Prêt",
+      "photo_hint": "Prendre ou télécharger une photo",
+      "video": "Vidéo",
+      "watch": "Regarder",
+      "watch_video": "🎬 Regarder la vidéo",
+      "unlocked": "✅ Débloqué",
+      "has_photos": "✅ Vous avez des photos",
+      "limit_used": "⛔ Limite atteinte",
+      "remaining": "Restant",
+      "photos": "photos",
+      "premium_user": "⭐ Utilisateur Premium",
+      "status": "Statut",
+      "premium": "Premium",
+      "free": "🔒 Free",
+      "free_badge": "🔓 FREE",
+      "all_features": "✅ Toutes les fonctionnalités",
+      "limited": "🔒 Limité",
+      "become_premium": "⭐ Devenir → PREMIUM",
+      "voice": "Voix",
+      "search": "recherche",
+      "locked": "🔒 Verrouillé",
+      "voice_premium_hint": "⭐ Devenez Premium pour la recherche vocale",
+      "premium_badge": "⭐ PREMIUM",
+      "premium_feature": "⭐ Fonctionnalité Premium",
+      "watching_ad": "Regarder la publicité...",
+      "seconds": "secondes"
+    },
+    "status_messages": {
+      "communicating": "📡 Communication avec le serveur...",
+      "searching_db": "🔍 Recherche dans la base de données de recettes... ({{seconds}}s)",
+      "consulting_ai": "🤖 Consultation du chef IA... ({{seconds}}s)",
+      "ai_thinking": "⏳ L'IA réfléchit... déjà {{seconds}} secondes",
+      "ai_generating": "🧠 L'IA génère des recettes... ({{seconds}}s)",
+      "ai_still_thinking": "🧠 L'IA réfléchit encore ({{seconds}}s), merci de votre patience !",
+      "ai_still_working": "⏳ L'IA travaille encore... ({{seconds}}s)",
+      "taking_longer": "⏳ Cela prend un peu plus de temps ({{seconds}}s), l'IA prépare des recettes parfaites !"
+    },
+    "voice": {
+      "listening": "🎤 Écoute... Parlez votre requête",
+      "recognized": "✅ Reconnu : \"{{text}}\"",
+      "text_recognized": "📝 Texte reconnu, lancement de la recherche...",
+      "not_recognized": "❌ Je n'ai pas reconnu le texte. Veuillez réessayer.",
+      "microphone_access": "❌ Veuillez autoriser l'accès au microphone pour la recherche vocale.",
+      "no_speech": "❌ Je n'ai pas entendu de parole. Veuillez réessayer.",
+      "no_microphone": "❌ Pas d'accès au microphone. Vérifiez les paramètres.",
+      "error": "❌ Erreur avec la recherche vocale. Veuillez réessayer."
+    },
+    "badge": {
+      "ai": "IA"
+    }
+  },
+  "foodplanner": {
+    "title": "Journal alimentaire",
+    "premium": {
+      "title": "Journal alimentaire",
+      "description": "Cette section est disponible uniquement pour les utilisateurs Premium.",
+      "button": "Devenir Premium"
+    },
+    "tabs": {
+      "diary": "Journal",
+      "analytics": "Analyses",
+      "plan": "Plan de repas"
+    },
+    "diary": {
+      "today": "Aujourd'hui,",
+      "goal": "Objectif quotidien :",
+      "consumed": "Consommé :",
+      "protein": "Protéines",
+      "carbs": "Glucides",
+      "fat": "Lipides",
+      "add_meal": "Ajouter un repas",
+      "meal_name": "Nom du plat...",
+      "breakfast": "Petit-déjeuner",
+      "lunch": "Déjeuner",
+      "dinner": "Dîner",
+      "snack": "Collation",
+      "mood_before": "😊 Humeur AVANT le repas",
+      "mood_after": "😊 Humeur APRÈS le repas",
+      "note_placeholder": "📝 Note (ex. 'J'avais faim', 'Ennui')",
+      "calories": "Calories",
+      "protein_g": "Protéines (g)",
+      "carbs_g": "Glucides (g)",
+      "fat_g": "Lipides (g)",
+      "add_button": "➕ Ajouter un repas",
+      "sending": "⏳ Envoi...",
+      "loading": "⏳ Chargement des repas...",
+      "no_meals": "Aucun repas enregistré pour aujourd'hui.",
+      "add_first": "Ajoutez votre premier repas !",
+      "delete": "Supprimer le repas"
+    },
+    "analytics": {
+      "title": "📈 Analyses",
+      "no_data": "Pas assez de données pour les analyses.",
+      "add_meals": "Enregistrez quelques repas pour voir les statistiques.",
+      "weekly_chart": "📊 Apport calorique hebdomadaire",
+      "macro_chart": "🥧 Macronutriments",
+      "generating": "Génération...",
+      "generate_pdf": "Générer un rapport PDF"
+    },
+    "plan": {
+      "title": "📅 Plan de repas",
+      "generate": "Générer un plan hebdomadaire",
+      "generating": "Génération...",
+      "days": {
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mer",
+        "thu": "Jeu",
+        "fri": "Ven",
+        "sat": "Sam",
+        "sun": "Dim"
+      },
+      "hint": "💡 Le plan est généré en fonction des ingrédients de votre réfrigérateur"
+    },
+    "chart": {
+      "week_labels": ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
+      "calories": "Calories",
+      "goal": "Objectif (2200 kcal)",
+      "protein": "Protéines",
+      "carbs": "Glucides",
+      "fat": "Lipides"
+    },
+    "moods": {
+      "happy": "Heureux",
+      "neutral": "Neutre",
+      "sad": "Triste",
+      "angry": "En colère",
+      "tired": "Fatigué",
+      "excited": "Excité",
+      "relaxed": "Détendu",
+      "thoughtful": "Pensif"
+    },
+    "alerts": {
+      "fill_fields": "⚠️ Veuillez saisir le nom et les calories.",
+      "login_required": "⚠️ Vous devez être connecté.",
+      "add_error": "❌ Erreur lors de l'ajout du repas. Veuillez réessayer.",
+      "delete_confirm": "Êtes-vous sûr de vouloir supprimer ce repas ?",
+      "delete_error": "❌ Erreur lors de la suppression du repas.",
+      "plan_error": "❌ Erreur lors de la génération du plan. Veuillez réessayer.",
+      "no_meals": "⚠️ Aucun repas pour le rapport. Ajoutez d'abord quelques repas.",
+      "pdf_error": "❌ Erreur lors de la génération du PDF."
+    }
+  },
+  "community": {
+    "title": "Communauté",
+    "loading": "Chargement des publications...",
+    "share_recipe": "Partagez votre recette",
+    "recipe_name": "Nom de la recette *",
+    "description": "Description...",
+    "ingredients": "Ingrédients (séparés par des virgules)",
+    "post_button": "Publier",
+    "unknown_user": "Utilisateur inconnu",
+    "alerts": {
+      "login_required": "Vous devez être connecté pour publier !"
+    },
+    "filters": {
+      "title": "Filtres",
+      "reset": "Réinitialiser",
+      "all_types": "🍽️ Tous les types",
+      "savory": "Salé",
+      "desserts": "Desserts",
+      "diet": "Diététique",
+      "drinks": "Boissons",
+      "all_time": "⏱️ Tout le temps",
+      "short": "⚡ Court",
+      "medium": "⏳ Moyen",
+      "long": "🐢 Long",
+      "all_difficulty": "🏋️ Tous les niveaux",
+      "beginner": "👶 Débutant",
+      "intermediate": "👨‍🍳 Intermédiaire",
+      "professional": "👨‍🍳⭐ Professionnel",
+      "all_calories": "🔥 Toutes les calories",
+      "low_cal": "🔥 Jusqu'à 300 kcal",
+      "medium_cal": "🔥 300-500 kcal",
+      "high_cal": "🔥 500-700 kcal",
+      "very_high_cal": "🔥 900+ kcal",
+      "active": "actif"
+    },
+    "no_results": "Aucune publication correspondant à vos filtres.",
+    "no_posts": "Aucune publication dans la communauté.",
+    "be_first": "Soyez le premier à partager une recette ! 🍽️",
+    "showing": "Affichage de {{count}} sur {{total}} publications",
+    "page": "page {{current}}/{{total}}",
+    "select_time": "Choisir le temps...",
+    "select_difficulty": "Choisir la difficulté...",
+    "prep_time": "⏱️ Temps de préparation",
+    "difficulty": "👨‍🍳 Difficulté",
+    "allergens": "🚫 Restrictions / Allergènes",
+    "select_all_that_apply": "sélectionnez tout ce qui s'applique",
+    "selected": "Sélectionné",
+    "untitled": "Sans titre",
+    "click_for_details": "📖 Pour les détails de la préparation, ouvrez la recette",
+    "restrictions": {
+      "none": "Aucune restriction"
+    },
+    "alergeni": {
+      "bez_glutena": "Sans gluten",
+      "bez_laktoze": "Sans lactose",
+      "bez_secera": "Sans sucre",
+      "veganski": "Vegan",
+      "bez_orasastih": "Sans noix"
+    },
+    "recipe_type": "Type de plat",
+    "select_type": "Choisir le type de plat..."
+  },
+  "forgotpassword": {
+    "title": "Mot de passe oublié ?",
+    "subtitle": "Entrez votre e-mail et nous vous enverrons un lien de réinitialisation.",
+    "email_label": "E-mail",
+    "email_placeholder": "vous@email.com",
+    "remembered": "Vous vous souvenez de votre mot de passe ?",
+    "login_link": "Se connecter",
+    "back_home": "Retour à l'accueil",
+    "check_spam": "Vérifiez votre dossier spam/courriers indésirables si vous ne voyez pas l'e-mail.",
+    "button": {
+      "send": "📧 Envoyer le lien",
+      "sending": "⏳ Envoi...",
+      "sent": "✅ Envoyé"
+    },
+    "success": {
+      "message": "✅ Le lien de réinitialisation du mot de passe a été envoyé à votre e-mail."
+    },
+    "errors": {
+      "email_required": "⚠️ Veuillez saisir votre e-mail.",
+      "invalid_email": "⚠️ Veuillez saisir une adresse e-mail valide.",
+      "general": "❌ Erreur lors de l'envoi du lien. Veuillez réessayer."
+    }
+  },
+  "healthychef": {
+    "title": "HealthyChef",
+    "loading": "Chargement...",
+    "breadcrumb": {
+      "home": "Accueil"
+    },
+    "premium": {
+      "description": "Cette section est disponible uniquement pour les utilisateurs Premium.",
+      "button": "Devenir Premium"
+    },
+    "categories": {
+      "subtitle": "Sélectionnez une catégorie pour des recettes personnalisées.",
+      "empty": "Aucune catégorie disponible.",
+      "items": {
+        "hormonal_cycle": "Cycle hormonal",
+        "thyroid": "Thyroïde & Hashimoto",
+        "anemia": "Anémie",
+        "bones": "Os et articulations",
+        "menopause": "Ménopause",
+        "pcos": "SOPK & Résistance à l'insuline"
+      }
+    },
+    "phases": {
+      "back_to_categories": "Retour aux catégories",
+      "category": "Catégorie",
+      "subtitle": "Sélectionnez la phase pour laquelle vous voulez des recettes.",
+      "loading": "Chargement des phases...",
+      "empty": "Aucune phase disponible pour cette catégorie.",
+      "items": {
+        "hormonal_cycle": {
+          "menstrual": "Phase menstruelle",
+          "follicular": "Phase folliculaire",
+          "ovulation": "Ovulation",
+          "early_luteal": "Phase lutéale précoce",
+          "pms": "SPM"
+        },
+        "menopause": {
+          "perimenopause": "Périménopause",
+          "menopause": "Ménopause",
+          "postmenopause": "Postménopause"
+        },
+        "pcos": {
+          "mild_ir": "IR légère / Stade précoce",
+          "moderate_ir": "IR modérée / Chaos hormonal",
+          "severe_ir": "IR sévère / Prédiabète"
+        }
+      }
+    },
+    "recipes": {
+      "back_to_phases": "Retour aux phases",
+      "title": "Recettes",
+      "subtitle": "Recettes adaptées à vos préférences et besoins de santé.",
+      "filters_active": "filtres actifs",
+      "loading": "Chargement des recettes...",
+      "no_results": "Aucune recette pour cette phase avec les filtres actuels.",
+      "reset_filters": "Réinitialiser les filtres"
+    },
+    "filters": {
+      "all_types": "Tous les types",
+      "all_time": "Tout le temps",
+      "all_difficulty": "Tous les niveaux",
+      "desserts": "Desserts",
+      "savory": "Salé",
+      "diet": "Diététique",
+      "drinks": "Boissons",
+      "short": "Court",
+      "medium": "Moyen",
+      "long": "Long",
+      "beginner": "Débutant",
+      "intermediate": "Intermédiaire",
+      "professional": "Professionnel",
+      "reset": "Réinitialiser les filtres"
+    }
+  },
+  "login": {
+    "title": "Connexion",
+    "subtitle": "Bon retour ! Connectez-vous pour continuer.",
+    "email_label": "E-mail",
+    "email_placeholder": "vous@email.com",
+    "password_label": "Mot de passe",
+    "password_placeholder": "••••••••",
+    "remember_me": "Se souvenir de moi",
+    "forgot_password": "Mot de passe oublié ?",
+    "no_account": "Pas de compte ?",
+    "register_link": "S'inscrire",
+    "back_home": "Retour à l'accueil",
+    "success": "✅ Connexion réussie ! Redirection...",
+    "button": {
+      "login": "🔑 Se connecter",
+      "loading": "⏳ Connexion..."
+    },
+    "errors": {
+      "required": "❌ L'e-mail et le mot de passe sont requis.",
+      "invalid": "❌ E-mail ou mot de passe incorrect.",
+      "general": "❌ Une erreur est survenue. Veuillez réessayer."
+    }
+  },
+  "premiumcancel": {
+    "title": "Paiement annulé",
+    "subtitle": "Vous n'êtes pas devenu utilisateur Premium.",
+    "message": "Si vous avez des questions, n'hésitez pas à nous contacter.",
+    "button": "Réessayer"
+  },
+  "premiumsuccess": {
+    "loading": "Vérification de votre paiement...",
+    "success": {
+      "title": "Félicitations !",
+      "subtitle": "Vous êtes devenu utilisateur Premium !",
+      "message": "Vous avez maintenant accès à toutes les fonctionnalités Premium.",
+      "activated": "Statut Premium activé",
+      "home_button": "Retour à l'accueil",
+      "profile_button": "Aller au profil"
+    },
+    "error": {
+      "title": "Une erreur est survenue",
+      "message": "Si vous avez effectué le paiement, veuillez contacter le support.",
+      "retry_button": "Réessayer",
+      "home_button": "Retour à l'accueil"
+    },
+    "errors": {
+      "no_session": "❌ Pas d'ID de session. Veuillez contacter le support.",
+      "not_confirmed": "❌ Paiement non confirmé. Veuillez réessayer.",
+      "verification": "❌ Erreur de vérification. Veuillez réessayer."
+    }
+  },
+  "privacypolicy": {
+    "title": "Politique de confidentialité",
+    "intro": "prend votre vie privée au sérieux.",
+    "collect_info": "Nous ne collectons que les données que vous nous fournissez volontairement :",
+    "data": {
+      "email": "Adresse e-mail",
+      "name": "Nom",
+      "preferences": "Préférences alimentaires",
+      "nutrition": "Données nutritionnelles (enregistrements de repas)"
+    },
+    "sharing": {
+      "title": "Vos données ne sont JAMAIS partagées avec des tiers."
+    },
+    "delete_info": "Vous pouvez demander la suppression de toutes vos données à tout moment via votre profil.",
+    "last_updated": "Dernière mise à jour : 31.07.2026.",
+    "back_home": "Retour à l'accueil"
+  },
+  "profile": {
+    "seo_title": "Profil – OS Santé",
+    "seo_description": "Votre profil – consultez vos préférences, vos badges gagnés et vos progrès sur OS Santé.",
+    "loading": "Chargement du profil...",
+    "default_name": "Utilisateur",
+    "not_found": "Profil introuvable.",
+    "take_quiz": "Faire le quiz",
+    "premium": "Premium",
+    "become_premium": "Devenir Premium",
+    "progress": "Progrès",
+    "recipes_cooked": "recettes cuisinées",
+    "quiz": "Quiz",
+    "completed": "Terminé",
+    "not_completed": "Non terminé",
+    "preferences": "Mes préférences",
+    "preferences_types": "Type",
+    "restrictions": "Restrictions",
+    "none": "Aucune",
+    "not_selected": "Non sélectionné",
+    "time": "Temps",
+    "skill": "Compétence",
+    "calories": "Calories",
+    "edit_filters": "Modifier les filtres",
+    "delete_data": "Supprimer toutes les données",
+    "deleting": "Suppression...",
+    "logout": "Se déconnecter",
+    "delete_confirm": "Êtes-vous sûr ? Cette action est irréversible !",
+    "delete_error": "Erreur lors de la suppression des données.",
+    "language": "Langue",
+    "no_badges": "Aucun badge gagné pour l'instant.",
+    "badges_hint": "Publiez des recettes et collectez des likes pour gagner des badges !",
+    "other_filters": "Autres filtres",
+    "stats": {
+      "recipes_cooked": "Recettes cuisinées",
+      "badges_earned": "Badges gagnés",
+      "quiz_completed": "Terminé",
+      "quiz_not_completed": "Non terminé",
+      "status": "Statut",
+      "status_premium": "Premium",
+      "status_free": "Free"
+    },
+    "badges": {
+      "title": "Badges gagnés",
+      "first_recipe": "Première recette",
+      "three_days": "3 jours d'affilée",
+      "ten_recipes": "10 recettes",
+      "earned": "Gagné 🎉",
+      "locked": "Verrouillé",
+      "available": "Badges disponibles :",
+      "scroll_hint": "Défilez pour les badges...",
+      "available_list": {
+        "first_recipe": "Première recette",
+        "three_recipes": "3 recettes",
+        "ten_recipes": "10 recettes",
+        "twenty_recipes": "20 recettes",
+        "ten_likes": "10 likes",
+        "fifty_likes": "50 likes"
+      },
+      "descriptions": {
+        "first_recipe": "Vous avez publié votre première recette dans la communauté !",
+        "three_recipes": "Vous avez publié 3 recettes dans la communauté !",
+        "ten_recipes": "Vous avez publié 10 recettes dans la communauté !",
+        "twenty_recipes": "Vous avez publié 20 recettes dans la communauté !",
+        "popular_recipe": "Votre recette a reçu 10 likes !",
+        "super_popular": "Votre recette a reçu 50 likes !"
+      }
+    },
+  "health": {
+  "title": "Profil de santé",
+  "connected": "Connecté",
+  "steps": "Pas",
+  "heart_rate": "BPM",
+  "sleep": "Sommeil",
+  "calories": "Calories",
+  "connect_google_fit": "Connecter Google Fit",
+  "sync_button": "Synchroniser les données de santé",
+  "syncing": "Synchronisation...",
+  "last_sync": "Dernière synchronisation"
+}
+  },
+  "health": {
+  "section_title": "Appareils connectés",
+  "title": "⌚ Connexion SmartWatch",
+  "connected": "Connecté",
+  "connected_to": "Connecté à",
+  "syncing": "Synchronisation...",
+  "sync_btn": "Synchroniser les données",
+  "disconnect_btn": "Déconnecter l'appareil",
+  "last_sync": "Dernière synchronisation",
+  "connect": {
+    "only_mobile": "📱 La connexion SmartWatch est disponible uniquement sur les appareils mobiles.",
+    "google_fit_desc": "🔗 Connectez Google Fit pour synchroniser les données de votre SmartWatch (Samsung, Garmin, Huawei, Xiaomi).",
+    "apple_health_desc": "🔗 Connectez Apple Health pour synchroniser les données de votre Apple Watch.",
+    "web_desc": "📱 Cette fonctionnalité est disponible uniquement sur les appareils mobiles.",
+    "google_fit_btn": "🔗 Connecter Google Fit",
+    "apple_health_btn": "🔗 Connecter Apple Health",
+    "web_btn": "📱 Non disponible sur le web",
+    "security": "Vos données sont sécurisées et chiffrées"
+  },
+  "disconnect": {
+    "confirm": "Êtes-vous sûr de vouloir déconnecter la SmartWatch ?"
+  },
+  "sync": {
+    "login_required": "⚠️ Vous devez être connecté pour synchroniser.",
+    "success": "✅ Données synchronisées avec succès depuis la SmartWatch !",
+    "error": "❌ Erreur de synchronisation : "
+  },
+  "sync_info": {
+    "title": "📊 Données synchronisées :",
+    "steps": "Pas",
+    "sleep": "Sommeil",
+    "heart_rate": "Fréquence cardiaque",
+    "water": "Eau",
+    "calories": "Calories",
+    "daily": "Apport quotidien"
+  }
+},
+  "register": {
+    "title": "Créer un compte",
+    "subtitle": "Rejoignez-nous et découvrez des recettes parfaites !",
+    "email_label": "E-mail",
+    "email_placeholder": "vous@email.com",
+    "name_label": "Nom",
+    "name_placeholder": "Jean Dupont",
+    "password_label": "Mot de passe",
+    "password_placeholder": "•••••••• (min 6 caractères)",
+    "confirm_password_label": "Confirmer le mot de passe",
+    "confirm_password_placeholder": "••••••••",
+    "have_account": "Vous avez déjà un compte ?",
+    "login_link": "Se connecter",
+    "success": "✅ Inscription réussie ! Redirection...",
+    "button": {
+      "register": "✅ S'inscrire",
+      "loading": "⏳ Création..."
+    },
+    "errors": {
+      "all_fields": "❌ Tous les champs sont requis.",
+      "passwords_match": "❌ Les mots de passe ne correspondent pas.",
+      "password_length": "❌ Le mot de passe doit comporter au moins 6 caractères.",
+      "email_exists": "❌ Un utilisateur avec cet e-mail existe déjà. Veuillez vous connecter.",
+      "profile_create": "❌ Erreur lors de la création du profil : ",
+      "general": "❌ Erreur d'inscription : "
+    },
+    "language_hint": "La langue sélectionnée ne peut pas être modifiée après l'inscription."
+  },
+  "resetpassword": {
+    "title": "Nouveau mot de passe",
+    "subtitle": "Entrez un nouveau mot de passe pour votre compte.",
+    "new_password_label": "Nouveau mot de passe",
+    "new_password_placeholder": "•••••••• (min 6 caractères)",
+    "confirm_password_label": "Confirmer le mot de passe",
+    "confirm_password_placeholder": "••••••••",
+    "remembered": "Vous vous souvenez de votre mot de passe ?",
+    "login_link": "Se connecter",
+    "back_home": "Retour à l'accueil",
+    "password_hint": "Minimum 6 caractères",
+    "button": {
+      "reset": "🔐 Changer le mot de passe",
+      "loading": "⏳ Changement..."
+    },
+    "success": {
+      "message": "✅ Mot de passe changé avec succès !"
+    },
+    "errors": {
+      "fields_required": "⚠️ Veuillez saisir et confirmer votre mot de passe.",
+      "passwords_match": "❌ Les mots de passe ne correspondent pas.",
+      "password_length": "❌ Le mot de passe doit comporter au moins 6 caractères.",
+      "general": "❌ Erreur lors de la réinitialisation du mot de passe."
+    }
+  },
+  "termsofservice": {
+    "title": "Conditions d'utilisation",
+    "disclaimer": {
+      "title": "⚠️ AVERTISSEMENT SANTÉ",
+      "text": "OS Santé fournit un contenu informatif et éducatif sur la nutrition et la santé.",
+      "strong": "IL NE REMPLACE PAS UN AVIS MÉDICAL."
+    },
+    "consult": {
+      "text": "Avant d'apporter des changements à votre alimentation ou à votre mode de vie,",
+      "strong": "consultez votre médecin ou nutritionniste."
+    },
+    "last_updated": "Dernière mise à jour : 31.07.2026.",
+    "back_home": "Retour à l'accueil"
+  },
+  "recipe": {
+    "step": "Étape",
+    "of": "sur",
+    "finished": "✅ Recette lue !",
+    "no_steps": "⚠️ Aucune instruction pour cette recette.",
+    "voice_cooking": "Cuisine vocale",
+    "start_reading": "Commencer la lecture",
+    "pause": "Pause",
+    "resume": "Reprendre",
+    "stop": "Arrêter",
+    "reading": "Lecture...",
+    "paused": "En pause",
+    "not_supported": "Votre navigateur ne prend pas en charge la lecture vocale.",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "ingredients": "Ingrédients",
+    "instructions": "Instructions",
+    "nutrition": "Valeurs nutritionnelles",
+    "calories": "Calories",
+    "protein": "Protéines",
+    "carbs": "Glucides",
+    "fat": "Lipides",
+    "fiber": "Fibres",
+    "sodium": "Sodium",
+    "servings": "Portions",
+    "original": "Original",
+    "for": "pour",
+    "person": "personne",
+    "people": "personnes",
+    "adjusted": "Adapté pour",
+    "tip": "Astuce",
+    "tip_text": "Vous pouvez adapter cette recette à vos préférences. Remplacez les ingrédients comme vous le souhaitez.",
+    "sommelier": "Sommelier – Combinaisons parfaites",
+    "spices": "Épices",
+    "drink": "Boisson",
+    "side": "Accompagnement",
+    "time": "Heure du repas",
+    "ask_again": "Demander à nouveau",
+    "ask_sommelier": "Demander au Sommelier",
+    "sommelier_desc": "L'IA recommande des épices, une boisson et un accompagnement basés sur les ingrédients.",
+    "voice_premium": "🎤 La cuisine vocale est disponible uniquement pour les utilisateurs Premium.",
+    "share": "Partager",
+    "start_timer": "Démarrer le minuteur",
+    "print": "Imprimer",
+    "email": "E-mail",
+    "similar": "Recettes similaires",
+    "cached": "Réponse du cache",
+    "fallback": "Réponse de secours utilisée (sans IA)",
+    "not_found": "Recette non trouvée",
+    "not_found_desc": "La recette demandée n'existe pas ou a été supprimée.",
+    "time_up": "⏰ Le temps est écoulé !",
+    "recipe": "Recette",
+    "copied": "📋 Recette copiée dans le presse-papiers !",
+    "all_recipes": "Toutes les recettes",
+    "kcal": "kcal",
+    "restrictions": "restriction"
+  },
+  "recipes": {
+    "category_recipes": "Recettes dans la catégorie : {{category}}",
+    "all": "Toutes les recettes",
+    "all_recipes": "Toutes les recettes",
+    "all_time": "Tout le temps",
+    "all_levels": "Tous les niveaux",
+    "preferences": "Préférences",
+    "high_protein": "Riche en protéines",
+    "high_fiber": "Riche en fibres",
+    "high_carb": "Riche en glucides",
+    "reset": "Réinitialiser",
+    "showing": "Affichage",
+    "of": "sur",
+    "recipes": "recettes",
+    "filters_active": "filtres actifs",
+    "search": "🔍 Rechercher des recettes...",
+    "excluding": "Évite",
+    "short": "Court",
+    "medium": "Moyen",
+    "long": "Long",
+    "beginner": "Débutant",
+    "intermediate": "Intermédiaire",
+    "professional": "Professionnel",
+    "low_cal": "Faible",
+    "moderate": "Modéré",
+    "medium_cal": "Moyen",
+    "high_cal": "Élevé",
+    "no_recipes": "Aucune recette",
+    "no_recipes_desc": "Il n'y a actuellement aucune recette dans la base de données. Veuillez réessayer plus tard.",
+    "no_results": "Aucune recette ne correspond à vos critères.",
+    "reset_filters": "Réinitialiser les filtres",
+    "categories": {
+      "diet": "Diététique",
+      "desserts": "Desserts",
+      "savory": "Salé",
+      "drinks": "Boissons"
+    },
+    "filters": {
+      "search_label": "RECHERCHE",
+      "time_label": "TEMPS",
+      "difficulty_label": "DIFFICULTÉ",
+      "all_difficulty": "Tous les niveaux",
+      "preferences_label": "PRÉFÉRENCES",
+      "all_preferences": "Toutes les préférences",
+      "high_carbs": "🍞 Riche en glucides",
+      "calories_label": "CALORIES",
+      "all_calories": "Toutes les calories",
+      "page": "Page",
+      "previous": "⬅️ Précédent",
+      "next": "Suivant ➡️",
+      "first": "⏮",
+      "last": "⏭",
+      "page_of": "Page {current} sur {total}"
+    },
+    "badges": {
+      "type": "🍽️",
+      "time": "⏱️",
+      "difficulty": "🏋️",
+      "preference": "💪",
+      "calories": "🔥",
+      "search": "🔍"
+    }
+  },
+  "notification": {
+    "title": "Notifications",
+    "notifications": "notifications",
+    "no_notifications": "Tout est calme",
+    "come_back_later": "Revenez plus tard",
+    "mark_all": "Tout marquer comme lu",
+    "mark_read": "Marquer comme lu",
+    "open": "Ouvrir",
+    "just_now": "À l'instant",
+    "min": "min",
+    "h": "h",
+    "refresh": "Rafraîchir",
+    "refresh_every": "Rafraîchit toutes les 4 heures"
+  },
+  "tajni_recept": {
+    "title": "Recette secrète du jour",
+    "secret_recipe": "Recette secrète",
+    "recipe_of_the_day": "Recette secrète du jour",
+    "disappears": "Aujourd'hui seulement – disparaît demain !",
+    "no_recipe": "Pas de recette secrète aujourd'hui.",
+    "click_hint": "Cliquez pour découvrir la recette avant qu'elle ne disparaisse !",
+    "share_button": "Partager la recette",
+    "send_to_friend": "Envoyer à un ami",
+    "shared_success": "✅ Recette partagée avec succès !",
+    "copied": "✅ Recette copiée dans le presse-papiers ! Partagez-la avec des amis !",
+    "share_error": "❌ Erreur lors du partage. Veuillez réessayer.",
+    "whatsapp_message": "Découvrez la recette secrète du jour :",
+    "error": "❌ La recette secrète est actuellement indisponible."
+  },
+  "ai_chat": {
+    "title": "Chat IA",
+    "welcome": "Bienvenue ! Posez une question sur la nutrition, les recettes ou la santé.",
+    "welcome_sub": "Posez une question sur la nutrition, les recettes ou la santé",
+    "placeholder": "Écrivez un message...",
+    "send": "Envoyer",
+    "login_required": "❌ Vous n'êtes pas connecté !",
+    "premium_hint": "⭐ Cette fonctionnalité est disponible uniquement pour les utilisateurs Premium",
+    "premium_only": "⭐ Cette fonctionnalité est disponible uniquement pour les utilisateurs Premium !",
+    "premium_only_short": "Cette fonctionnalité est disponible uniquement pour les utilisateurs Premium",
+    "premium_link": "Devenir Premium",
+    "premium_link_short": "Devenir Premium",
+    "premium_user": "⭐ Utilisateur Premium",
+    "premium_feature": "🔒 Fonctionnalité Premium",
+    "remaining": "Restant : {{count}}/{{total}}",
+    "remaining_info": "💡 Il vous reste {{count}} messages sur {{total}} aujourd'hui",
+    "limit_reached": "⚠️ Vous avez atteint la limite de {{limit}} messages par jour.",
+    "limit_reached_message": "⏳ Vous avez atteint la limite quotidienne de {{limit}} messages. Réessayez demain !",
+    "disclaimer_title": "AVERTISSEMENT SANTÉ",
+    "disclaimer_text": "Le Chat IA fournit un contenu informatif et éducatif sur la nutrition et la santé.",
+    "disclaimer_strong": "IL NE REMPLACE PAS UN AVIS MÉDICAL.",
+    "disclaimer_consult": " Avant d'apporter des changements à votre alimentation ou à votre mode de vie, consultez votre médecin ou nutritionniste.",
+    "disclaimer_footer": "Le Chat IA fournit un contenu informatif et éducatif sur la nutrition et la santé.",
+    "disclaimer_footer_strong": "IL NE REMPLACE PAS UN AVIS MÉDICAL.",
+    "disclaimer_footer_consult": " Avant d'apporter des changements à votre alimentation, consultez votre médecin."
+  },
+  "goals": {
+    "title": "Mes objectifs",
+    "subtitle": "Définissez et suivez vos objectifs",
+    "weight": "Poids cible (kg)",
+    "weight_placeholder": "ex. 75 kg",
+    "body_fat": "Pourcentage de graisse corporelle cible",
+    "body_fat_placeholder": "ex. 15%",
+    "water": "Apport d'eau cible (ml)",
+    "water_placeholder": "ex. 2000 ml",
+    "steps": "Nombre de pas cible",
+    "steps_placeholder": "ex. 10000 pas",
+    "saving": "Enregistrement...",
+    "success": "✅ Objectifs enregistrés avec succès !",
+    "errors": {
+      "login_required": "❌ Vous n'êtes pas connecté !",
+      "save_failed": "❌ Erreur lors de l'enregistrement des objectifs !"
+    }
+  },
+  "water": {
+    "title": "Suivi de l'eau",
+    "subtitle": "Suivez votre consommation d'eau quotidienne",
+    "goal": "Objectif",
+    "current": "Actuel",
+    "progress": "Progrès",
+    "entries": "Entrées aujourd'hui",
+    "completed": "terminé",
+    "reset": "Réinitialiser la consommation",
+    "reset_confirm": "Êtes-vous sûr de vouloir réinitialiser la consommation d'eau d'aujourd'hui ?",
+    "errors": {
+      "login_required": "❌ Vous n'êtes pas connecté !",
+      "add_failed": "❌ Erreur lors de l'ajout d'eau !",
+      "reset_failed": "❌ Erreur lors de la réinitialisation !"
+    }
+  },
+  "micro_nutrients": {
+    "title": "Micronutriments",
+    "subtitle": "Entrez votre apport quotidien en micronutriments",
+    "daily_view": "Vue quotidienne",
+    "weekly_view": "Vue hebdomadaire",
+    "weekly_average": "Moyenne hebdomadaire",
+    "weekly_average_label": "Moyenne de la semaine",
+    "vitamin_a": "Vitamine A",
+    "vitamin_c": "Vitamine C",
+    "vitamin_d": "Vitamine D",
+    "iron": "Fer",
+    "magnesium": "Magnésium",
+    "calcium": "Calcium",
+    "zinc": "Zinc",
+    "saving": "Enregistrement...",
+    "success": "✅ Micronutriments enregistrés avec succès!",
+    "errors": {
+      "login_required": "❌ Vous n'êtes pas connecté!",
+      "save_failed": "❌ Erreur lors de l'enregistrement!"
+    }
+  }
+}

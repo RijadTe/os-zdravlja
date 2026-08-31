@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="hr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/logo.png" type="image/png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#2563eb" />
+    
+    <!-- ============================================================ -->
+    <!-- 🔥🔥🔥 CAPACITOR MOCK - MORA BITI PRVI! 🔥🔥🔥 -->
+    <!-- ============================================================ -->
+    <script>
+      (function() {
+        if (typeof window !== 'undefined' && !window.Capacitor) {
+          console.log('🔧 Inicijalizacija Capacitor mock za web...');
+          
+          window.Capacitor = {
+            isNativePlatform: function() { return false; },
+            getPlatform: function() { return 'web'; },
+            isPluginAvailable: function() { return false; },
+            platform: 'web',
+            isNative: false,
+            registerPlugin: function() {},
+            Plugin: class {}
+          };
+          
+          if (!window.capacitor) {
+            window.capacitor = {
+              isNative: false,
+              platform: 'web',
+              getPlatform: function() { return 'web'; }
+            };
+          }
+          
+          console.log('✅ Capacitor mock inicijaliziran za web');
+        }
+      })();
+    </script>
+    
+    <!-- ============================================================ -->
+    <!-- 📄 SEO - OSNOVNI META TAGOVI -->
+    <!-- ============================================================ -->
+    <title>OS Zdravlja – Operativni sistem za tvoje zdravlje</title>
+    <meta name="description" content="OS Zdravlja – Operativni sistem za tvoje zdravlje. Recepti, AI, personalizacija i zdravlje na jednom mjestu." />
+    <meta name="keywords" content="zdravlje, recepti, AI, personalizacija, prehrana, OS Zdravlja, healthy, recipes, wellness" />
+    <meta name="author" content="PROTOCOL" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://os-zdravlja.vercel.app" />
+    
+    <!-- ============================================================ -->
+    <!-- 📱 OPEN GRAPH (Facebook, LinkedIn, WhatsApp) -->
+    <!-- ============================================================ -->
+    <meta property="og:title" content="OS Zdravlja – Operativni sistem za tvoje zdravlje" />
+    <meta property="og:description" content="Otkrivajte recepte prilagođene vašim potrebama, dijetama i ukusu. AI Chef, HealthyChef, Food Planner i još mnogo toga." />
+    <meta property="og:image" content="https://os-zdravlja.vercel.app/icons/icon-512.png" />
+    <meta property="og:url" content="https://os-zdravlja.vercel.app" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="OS Zdravlja" />
+    <meta property="og:locale" content="hr_HR" />
+    
+    <!-- ============================================================ -->
+    <!-- 🐦 TWITTER CARDS -->
+    <!-- ============================================================ -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="OS Zdravlja – Operativni sistem za tvoje zdravlje" />
+    <meta name="twitter:description" content="Otkrivajte recepte prilagođene vašim potrebama, dijetama i ukusu." />
+    <meta name="twitter:image" content="https://os-zdravlja.vercel.app/icons/icon-512.png" />
+    
+    <!-- ============================================================ -->
+    <!-- 📊 GOOGLE ANALYTICS (GA4) -->
+    <!-- ============================================================ -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-P0G2NP5MS9"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-P0G2NP5MS9');
+    </script>
+    
+    <!-- ============================================================ -->
+    <!-- 📊 GOOGLE ADSENSE -->
+    <!-- ============================================================ -->
+    <script 
+      async 
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9027267899539658"
+      crossorigin="anonymous">
+    </script>
+    
+    <!-- ============================================================ -->
+    <!-- ⚡ SIGURNOSNI HEADERI -->
+    <!-- ============================================================ -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    
+    <!-- ============================================================ -->
+    <!-- ⚡ KOMPLETNA ZAŠTITA – Sa admin ključem -->
+    <!-- ============================================================ -->
+    <script>
+      (function() {
+        // 🔐 ADMIN KONFIGURACIJA - SAMO TI ZNAŠ OVO!
+        const ADMIN_SECRET = 'os-zdravlja-2026-admin-tajna-kljuc';
+        const STORAGE_DEBUG_KEY = 'debug_mode';
+        const STORAGE_TOKEN_KEY = 'debug_token';
+        
+        // ============================================================
+        // 🔍 PROVJERA DEBUG MODE
+        // ============================================================
+        const isDebug = (() => {
+          try {
+            // 🔐 PROVJERA ADMIN TOKENA
+            const hasToken = localStorage.getItem(STORAGE_TOKEN_KEY) === ADMIN_SECRET;
+            const hasFlag = localStorage.getItem(STORAGE_DEBUG_KEY) === 'true';
+            
+            // 🔥 SAMO AKO IMA I TOKEN I FLAG - DEBUG JE AKTIVAN
+            const result = hasFlag && hasToken;
+            
+            if (result) {
+              console.log('🔐 Admin token validan! Debug mode AKTIVAN.');
+            }
+            
+            return result;
+          } catch (e) {
+            return false;
+          }
+        })();
+        
+        // 🔥 AKO SMO U DEBUG MODU - ISKLJUČI ZAŠTITU
+        if (isDebug) {
+          console.log('🐞 DEBUG MODE AKTIVIRAN (Admin)');
+          console.log('🛡️ Zaštita je ISKLJUČENA za debug.');
+          console.log('💡 Za uključivanje zaštite: localStorage.removeItem("debug_mode") i localStorage.removeItem("debug_token")');
+          console.log('💡 Za isključivanje zaštite: localStorage.setItem("debug_mode", "true") i localStorage.setItem("debug_token", "os-zdravlja-2026-admin-tajna-kljuc")');
+          
+          // Dodaj vizuelni indikator
+          const indicator = document.createElement('div');
+          indicator.style.cssText = `
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-family: monospace;
+            z-index: 99999;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+          `;
+          indicator.textContent = '🔐 ADMIN DEBUG';
+          document.body.appendChild(indicator);
+          
+          // Dodaj i dugme za brzo isključivanje
+          const toggleBtn = document.createElement('button');
+          toggleBtn.style.cssText = `
+            position: fixed;
+            bottom: 50px;
+            right: 10px;
+            background: #ef4444;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-family: monospace;
+            z-index: 99999;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+          `;
+          toggleBtn.textContent = '🔒 Isključi debug';
+          toggleBtn.onclick = function() {
+            localStorage.removeItem('debug_mode');
+            localStorage.removeItem('debug_token');
+            location.reload();
+          };
+          document.body.appendChild(toggleBtn);
+          
+          return; // 🔥 IZLAZIMO - ZAŠTITA ISKLJUČENA
+        }
+        
+        // ============================================================
+        // 🔒 ZAŠTITA - AKTIVNA
+        // ============================================================
+        console.log('🛡️ Aktiviranje potpune zaštite...');
+        console.log('🔐 Admin ključ za debug: localStorage.setItem("debug_token", "EliRi1995@")');
+
+        // 1. ONEMOGUĆI DESNI KLIK
+        document.addEventListener('contextmenu', function(e) {
+          e.preventDefault();
+          return false;
+        });
+
+        // 2. ONEMOGUĆI SVE PREČICE (osim u input poljima)
+        document.addEventListener('keydown', function(e) {
+          const tag = e.target.tagName.toLowerCase();
+          if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) {
+            if (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'v' || e.key === 'V' || 
+                              e.key === 'x' || e.key === 'X' || e.key === 'a' || e.key === 'A')) {
+              return;
+            }
+            if (e.key === 'Backspace' || e.key === 'Delete' || e.key.startsWith('Arrow') || e.key === 'Tab') {
+              return;
+            }
+          }
+
+          const forbidden = [
+            { key: 'F12' },
+            { ctrl: true, key: 'u' }, { ctrl: true, key: 'U' },
+            { ctrl: true, key: 's' }, { ctrl: true, key: 'S' },
+            { ctrl: true, key: 'p' }, { ctrl: true, key: 'P' },
+            { ctrl: true, shift: true, key: 'I' },
+            { ctrl: true, shift: true, key: 'J' },
+            { ctrl: true, shift: true, key: 'C' },
+            { ctrl: true, shift: true, key: 'U' },
+            { ctrl: true, shift: true, key: 'S' },
+            { ctrl: true, alt: true, key: 'I' },
+            { ctrl: true, alt: true, key: 'J' },
+            { meta: true, key: 'i' }, { meta: true, key: 'I' },
+            { meta: true, key: 's' }, { meta: true, key: 'S' },
+            { meta: true, key: 'u' }, { meta: true, key: 'U' },
+            { meta: true, key: 'p' }, { meta: true, key: 'P' },
+            { meta: true, key: 'q' }, { meta: true, key: 'Q' },
+            { meta: true, key: 'w' }, { meta: true, key: 'W' },
+            { meta: true, shift: true, key: 'i' },
+            { meta: true, shift: true, key: 's' },
+            { meta: true, shift: true, key: 'u' },
+            { meta: true, shift: true, key: 'p' },
+          ];
+
+          for (const rule of forbidden) {
+            let match = true;
+            if (rule.ctrl !== undefined && e.ctrlKey !== rule.ctrl) match = false;
+            if (rule.shift !== undefined && e.shiftKey !== rule.shift) match = false;
+            if (rule.alt !== undefined && e.altKey !== rule.alt) match = false;
+            if (rule.meta !== undefined && e.metaKey !== rule.meta) match = false;
+            if (rule.key && e.key !== rule.key) match = false;
+
+            if (match) {
+              e.preventDefault();
+              e.stopPropagation();
+              return false;
+            }
+          }
+
+          if (e.key.startsWith('F') && e.key !== 'F5') {
+            const num = parseInt(e.key.replace('F', ''));
+            if (num >= 1 && num <= 12) {
+              e.preventDefault();
+              return false;
+            }
+          }
+        });
+
+        // 3. ONEMOGUĆI SREDNJI KLIK
+        document.addEventListener('mousedown', function(e) {
+          if (e.button === 1) {
+            e.preventDefault();
+            return false;
+          }
+        });
+
+        // 4. ONEMOGUĆI DRAG AND DROP
+        document.addEventListener('dragstart', function(e) {
+          e.preventDefault();
+          return false;
+        });
+
+        // 5. ONEMOGUĆI SELECTION
+        document.addEventListener('selectstart', function(e) {
+          const tag = e.target.tagName.toLowerCase();
+          if (tag !== 'input' && tag !== 'textarea') {
+            e.preventDefault();
+            return false;
+          }
+        });
+
+        // 6. ONEMOGUĆI PRINT
+        window.addEventListener('beforeprint', function(e) {
+          e.preventDefault();
+          alert('🛡️ Printanje je onemogućeno!');
+          return false;
+        });
+
+        // 7. ONEMOGUĆI COPY/PASTE
+        document.addEventListener('copy', function(e) {
+          const tag = e.target.tagName.toLowerCase();
+          if (tag !== 'input' && tag !== 'textarea') {
+            e.preventDefault();
+            return false;
+          }
+        });
+
+        document.addEventListener('cut', function(e) {
+          const tag = e.target.tagName.toLowerCase();
+          if (tag !== 'input' && tag !== 'textarea') {
+            e.preventDefault();
+            return false;
+          }
+        });
+
+        // 8. DEVTOOLS DETEKCIJA
+        (function detectDevTools() {
+          const element = new Image();
+          Object.defineProperty(element, 'id', {
+            get: function() {
+              console.warn('🔍 DevTools detektovani!');
+            }
+          });
+          console.log('%c', element);
+        })();
+
+        // 9. ZAŠTITA SLIKA
+        document.addEventListener('mousedown', function(e) {
+          if (e.target.tagName === 'IMG') {
+            e.preventDefault();
+            return false;
+          }
+        });
+
+        // 10. TOUCH ZAŠTITA (mobile)
+        document.addEventListener('touchstart', function(e) {
+          if (e.target.tagName === 'IMG') {
+            e.preventDefault();
+            return false;
+          }
+        });
+
+        // 11. CSS ZAŠTITA
+        const style = document.createElement('style');
+        style.textContent = `
+          body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+          }
+          input, textarea, select, [contenteditable="true"] {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+          }
+          img {
+            -webkit-user-drag: none;
+            user-drag: none;
+            -webkit-touch-callout: none;
+          }
+          * {
+            -webkit-touch-callout: none;
+          }
+        `;
+        document.head.appendChild(style);
+
+        console.log('✅ Potpuna zaštita aktivirana!');
+        console.log('🛡️ Onemogućeni: desni klik, prečice (osim u inputima), DevTools, print, drag, selection.');
+        console.log('🔐 Admin ključ: localStorage.setItem("debug_token", "os-zdravlja-2026-admin-tajna-kljuc")');
+        console.log('💡 Za isključivanje zaštite: localStorage.setItem("debug_mode", "true") i setItem("debug_token", "os-zdravlja-2026-admin-tajna-kljuc")');
+      })();
+    </script>
+  </head>
+  <body>
+
+    <!-- ZAŠTITNI EKRAN - PRIKAZUJE SE DOK SE APLIKACIJA NE UČITA -->
+    <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:#ffffff; z-index:9999; display:flex; align-items:center; justify-content:center;">
+      <img src="/logo.png" alt="OS Zdravlja" style="max-width:60%; height:auto;" />
+    </div>
+
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Service Worker registracija -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(() => console.log('✅ Service Worker registrovan'))
+          .catch(err => console.log('❌ Greška pri registraciji Service Worker-a:', err));
+      }
+    </script>
+  </body>
+</html>

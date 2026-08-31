@@ -1,0 +1,19 @@
+# ============================================================
+# ROBOTS.TXT - OS Zdravlja
+# ============================================================
+
+User-agent: *
+Allow: /
+
+Sitemap: https://os-zdravlja.vercel.app/sitemap.xml
+
+# ============================================================
+# ZABRANE RUTE (ne želimo da se indeksiraju)
+# ============================================================
+Disallow: /login
+Disallow: /register
+Disallow: /profile
+Disallow: /premium-success
+Disallow: /premium-cancel
+Disallow: /reset-password
+Disallow: /forgot-password
