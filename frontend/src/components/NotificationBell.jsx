@@ -1,7 +1,6 @@
 // frontend/src/components/NotificationBell.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getCsrfHeaders } from '../utils/csrf'; 
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -66,14 +65,7 @@ const NotificationBell = () => {
     
     try {
       setLoading(true);
-      // 🔥 DODANO - CSRF HEADERS (opciono za GET)
-      const headers = {
-        ...getCsrfHeaders()
-      };
-      
-      const res = await fetch(`${API_URL}/api/notifikacije/${encodeURIComponent(email)}`, {
-        headers
-      });
+      const res = await fetch(`${API_URL}/api/notifikacije/${encodeURIComponent(email)}`);
       
       if (res.status === 404) {
         console.warn('⚠️ Notifikacije nisu dostupne (404) - koristim prazan niz');
@@ -136,14 +128,7 @@ const NotificationBell = () => {
     
     try {
       console.log(`🧠 Pozivam generatePreporuke za: ${email}`);
-      // 🔥 DODANO - CSRF HEADERS
-      const headers = {
-        ...getCsrfHeaders()
-      };
-      
-      const res = await fetch(`${API_URL}/api/notifikacije/preporuke/${encodeURIComponent(email)}`, {
-        headers
-      });
+      const res = await fetch(`${API_URL}/api/notifikacije/preporuke/${encodeURIComponent(email)}`);
       
       if (res.status === 404) {
         console.warn('⚠️ Preporuke nisu dostupne (404) - preskačem');
@@ -176,28 +161,19 @@ const NotificationBell = () => {
   };
 
   // ============================================================
-  // OZNAČI KAO PROČITANO (SA CSRF TOKENOM)
+  // OZNAČI KAO PROČITANO
   // ============================================================
   const markAsRead = async (id) => {
     try {
-      // 🔥 DODANO - CSRF HEADERS
-      const headers = {
-        'Content-Type': 'application/json',
-        ...getCsrfHeaders()
-      };
-
       const res = await fetch(`${API_URL}/api/notifikacije/${id}/read`, {
         method: 'PUT',
-        headers
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
       if (res.status === 404) {
         console.warn('⚠️ Notifikacija nije pronađena (404)');
-        return;
-      }
-      
-      if (res.status === 403) {
-        console.warn('⚠️ CSRF token nevažeći!');
         return;
       }
       
@@ -223,28 +199,19 @@ const NotificationBell = () => {
   };
 
   // ============================================================
-  // IZBRIŠI NOTIFIKACIJU (SA CSRF TOKENOM)
+  // IZBRIŠI NOTIFIKACIJU
   // ============================================================
   const deleteNotification = async (id) => {
     try {
-      // 🔥 DODANO - CSRF HEADERS
-      const headers = {
-        'Content-Type': 'application/json',
-        ...getCsrfHeaders()
-      };
-
       const res = await fetch(`${API_URL}/api/notifikacije/${id}`, {
         method: 'DELETE',
-        headers
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       
       if (res.status === 404) {
         console.warn('⚠️ Notifikacija nije pronađena (404)');
-        return;
-      }
-      
-      if (res.status === 403) {
-        console.warn('⚠️ CSRF token nevažeći!');
         return;
       }
       

@@ -48,7 +48,6 @@ const geoip = require('geoip-lite');
 const cron = require('node-cron');
 const Groq = require('groq-sdk');
 const xss = require('xss');
-const csrf = require('csurf');
 const cookieParser = require('cookie-parser');
 
 
@@ -151,10 +150,8 @@ console.log('✅ CORS konfiguriran sa dinamičkom provjerom');
 
 
 // ============================================================
-// 🔥🔥🔥 DODAJ OVDJE - XSS + CSRF ZAŠTITA 🔥🔥🔥
+// 🔥🔥🔥 XSS ZAŠTITA (BEZ CSRF) 🔥🔥🔥
 // ============================================================
-
-
 
 // 1. XSS SANITIZACIJA - Čisti sve inpute
 app.use((req, res, next) => {
@@ -169,25 +166,12 @@ app.use((req, res, next) => {
 });
 console.log('✅ XSS sanitizacija aktivirana');
 
-// 2. COOKIE PARSER - Potreban za CSRF
+// 2. COOKIE PARSER - Za session i push notifikacije
 app.use(cookieParser());
+console.log('✅ Cookie parser aktiviran');
 
-// 3. CSRF ZAŠTITA
-app.use(csrf({ cookie: true }));
-console.log('✅ CSRF zaštita aktivirana');
-
-// 4. CSRF VALIDACIJA - ISKLJUČENA
-app.use('/api/*', (req, res, next) => {
-if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
-const token = req.headers['x-csrf-token'] || req.body._csrf;
-if (!token || token !== req.csrfToken()) {
-return res.status(403).json({ error: 'CSRF token nevažeći!' });
- }
-}
-next();
-});
-console.log('✅ CSRF validacija za POST/PUT/DELETE/PATCH aktivirana');
-
+// 3. CSRF ZAŠTITA - ISKLJUČENA (nije potrebna uz CORS + Rate Limit)
+console.log('⏭️ CSRF zaštita isključena - koristi se CORS + Rate Limit');
 // ============================================================
 // 🔥 MIDDLEWARE - HELMET
 // ============================================================
