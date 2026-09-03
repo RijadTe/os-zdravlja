@@ -34,9 +34,14 @@ export const getApiUrl = () => {
     baseUrl = baseUrl.replace(/\/api$/, '');
   }
   
-  // 🔥 ISTI URL ZA SVE PLATFORME - BEZ /api NA KRAJU!
-  // apiFetch funkcija će dodati /api + endpoint
-  return baseUrl;
+  // 🔥🔥🔥 KLJUČNA LOGIKA - RAZLIČITO ZA PWA I NATIVE!
+  if (isNative()) {
+    // 🔥 NATIVE: BEZ /api (šalje direktno na /profil)
+    return baseUrl;
+  } else {
+    // 🔥 PWA: SA /api (šalje na /api/profil)
+    return `${baseUrl}/api`;
+  }
 };
 
 // 4. Izvezi gotov URL za korištenje u cijeloj aplikaciji
