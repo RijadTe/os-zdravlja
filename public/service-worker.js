@@ -51,8 +51,15 @@ self.addEventListener('activate', event => {
 // ============================================================
 // 📡 FETCH – prvo iz keša, pa sa interneta
 // ============================================================
+
 self.addEventListener('fetch', event => {
   const request = event.request;
+
+  // 🔥🔥🔥 DOZVOLI ZAHTJEVE KA BACKENDU! 🔥🔥🔥
+  if (request.url.includes('os-zdravlja-backend.onrender.com')) {
+    event.respondWith(fetch(request));
+    return;
+  }
 
   // Preskoči API pozive (ne keširamo ih)
   if (request.url.includes('/api/')) {
@@ -75,16 +82,13 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(request)
       .then(cachedResponse => {
-        // Ako postoji u kešu – vrati odmah
         if (cachedResponse) {
           console.log(`✅ Keš: ${request.url}`);
           return cachedResponse;
         }
 
-        // Ako nema u kešu – dohvati sa interneta
         return fetch(request)
           .then(networkResponse => {
-            // Spremi u dinamički keš (samo HTML, CSS, JS, slike)
             if (
               request.url.endsWith('.html') ||
               request.url.endsWith('.css') ||
@@ -101,21 +105,17 @@ self.addEventListener('fetch', event => {
             return networkResponse;
           })
           .catch(() => {
-            // Ako nema interneta i nema keša – prikaži offline stranicu
             console.log(`📡 Offline: ${request.url}`);
             
-            // Ako je zahtjev za HTML stranicu, vrati offline.html
             if (request.headers.get('accept')?.includes('text/html')) {
               return caches.match('/offline.html');
             }
             
-            // Za sve ostale zahtjeve vrati offline.html
             return caches.match('/offline.html');
           });
       })
   );
 });
-
 // ============================================================
 // 🔔 PUSH NOTIFIKACIJE (ako želiš kasnije)
 // ============================================================
