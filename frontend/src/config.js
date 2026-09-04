@@ -25,9 +25,38 @@ export const isNative = () => {
 // 2. Uzmi URL iz .env fajla
 const ENV_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+// 🔥🔥🔥 DODAJ SANITIZACIJU - UKLONI "VITE_API_URL=" PREFIKS!
+const sanitizeUrl = (url) => {
+  if (typeof url !== 'string') return url;
+  
+  console.log('🔧 Pre sanitizacije:', url);
+  
+  // Ako sadrži "VITE_API_URL=", izvuci pravi URL
+  if (url.includes('VITE_API_URL=')) {
+    const match = url.match(/VITE_API_URL=(.+)/);
+    if (match && match[1]) {
+      const clean = match[1];
+      console.log('🔧 Posle sanitizacije:', clean);
+      return clean;
+    }
+  }
+  
+  // Ako sadrži duple // na početku (nakon protokola)
+  if (url.includes('://') && url.includes('//')) {
+    // Popravi duple // (osim nakon ://)
+    url = url.replace(/([^:]\/)\/+/g, '$1');
+  }
+  
+  return url;
+};
+
 // 3. Generiši PRAVI URL za svaku platformu - 🔥 POPRAVLJENO!
 export const getApiUrl = () => {
-  let baseUrl = ENV_URL.replace(/\/+$/, ''); // Skini / sa kraja
+  // 🔥 PRVO SANITIZIRAJ URL!
+  let baseUrl = sanitizeUrl(ENV_URL);
+  
+  // Skini / sa kraja
+  baseUrl = baseUrl.replace(/\/+$/, '');
   
   // 🔥 SKINI SVE /api SA KRAJA (da ne dupliramo)
   while (baseUrl.endsWith('/api')) {
@@ -48,8 +77,12 @@ export const getApiUrl = () => {
 export const API_URL = getApiUrl();
 
 // 5. Log za provjeru (vidi se u konzoli)
-console.log(`📡 Platforma: ${isNative() ? '📱 NATIVE' : '🌐 PWA'}`);
-console.log(`📡 API URL (BASE): ${API_URL}`);
+console.log('🔍 === CONFIG DEBUG ===');
+console.log('📡 ENV_URL:', ENV_URL);
+console.log('📡 Platforma:', isNative() ? '📱 NATIVE' : '🌐 PWA');
+console.log('📡 API_URL:', API_URL);
+console.log('📡 API_URL ends with /?', API_URL.endsWith('/'));
+console.log('🔍 ====================');
 
 // ============================================================
 // 🔥 DODATNE KONFIGURACIJE (AKO TREBA)
