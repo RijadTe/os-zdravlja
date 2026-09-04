@@ -2,6 +2,12 @@
 
 import { API_URL, isNative } from './config';
 
+// 🔥 DODAJ LOGOVE ZA DEBUG
+console.log('🔍 === API.JS DEBUG ===');
+console.log('📡 API_URL:', API_URL);
+console.log('📡 Platforma:', isNative() ? '📱 NATIVE' : '🌐 PWA');
+console.log('🔍 ====================');
+
 // ============================================================
 // 🔥 GLAVNA FUNKCIJA ZA SVE API POZIVE
 // ============================================================
@@ -14,8 +20,8 @@ export const apiFetch = async (endpoint, options = {}) => {
     cleanEndpoint = cleanEndpoint.substring(4);
   }
   
-  // 3. 🔥🔥🔥 DODAJ /api/ PREFIKS (backend očekuje /api/...)
-  const url = `${API_URL}/api/${cleanEndpoint}`;
+  // 🔥🔥🔥 POPRAVLJENO: NE DODAJ /api/ JER GA CONFIG VEĆ IMA!
+  const url = `${API_URL}/${cleanEndpoint}`;
   
   // 4. Log za provjeru (vidjet ćeš u konzoli)
   console.log(`📡 [${isNative() ? '📱 NATIVE' : '🌐 PWA'}] ${options.method || 'GET'} ${url}`);
@@ -118,10 +124,9 @@ export const api = {
     return apiFetch(`community/objave${query ? `?${query}` : ''}`);
   },
   getPost: (id) => apiFetch(`community/objave/${id}`),
-  // 🔥🔥🔥 POPRAVI I OVO! 🔥🔥🔥
   createPost: (formData) => {
     // Za slike, šaljemo direktno (bez JSON)
-    return fetch(`${API_URL}/api/community/objave`, {  // ← DODAJ /api/!
+    return fetch(`${API_URL}/community/objave`, {
       method: 'POST',
       body: formData,
     });
