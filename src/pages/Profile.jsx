@@ -1,5 +1,9 @@
 // frontend/src/pages/Profile.jsx
 
+// 🔥🔥🔥 VERZIJA: 2.0.2 - DEPLOYANO 2026-09-05
+console.log('🔥🔥🔥 PROFILE.JSX SE UČITAVA - VERZIJA 2.0.2');
+console.log('🔥🔥🔥 OVO JE NOVA VERZIJA!');
+
 // ============================================================
 // 🔥 MAPA ZA SVE JEZIKE (PROŠIRENA ZA SVE VARIJANTE)
 // ============================================================
@@ -959,6 +963,9 @@ const Profile = () => {
                       // 🔥 DIREKTNO IZ BAZE - OVO JE KLJUČNO!
                       const lang = profile?.preferred_language || 'hr';
                       
+                      console.log('🔥🔥🔥 NOVA VERZIJA - JEZIK IZ BAZE:', lang);
+                      console.log('🔥🔥🔥 profile cijeli:', profile);
+                      
                       // 🔥 JEDNOSTAVNA MAPA
                       const map = {
                         'hr': 'Hrvatski',
@@ -977,12 +984,9 @@ const Profile = () => {
                         'sl-SI': 'Slovenščina'
                       };
                       
-                      console.log('🌍 PRIKAZ JEZIKA:', {
-                        'iz baze': lang,
-                        'prikaz': map[lang] || 'Hrvatski'
-                      });
-                      
-                      return map[lang] || 'Hrvatski';
+                      const result = map[lang] || 'Hrvatski';
+                      console.log('🔥🔥🔥 REZULTAT PRIKAZA:', result);
+                      return result;
                     })()
                   }
                 </span>
