@@ -13,6 +13,18 @@ const LANGUAGE_NAMES = {
   'sl': 'Slovenščina'
 };
 
+// ============================================================
+// 🔥 POMOĆNA FUNKCIJA ZA NORMALIZACIJU JEZIKA
+// ============================================================
+const normalizeLanguage = (lang) => {
+  if (!lang) return 'hr';
+  // hr-HR → hr, en-US → en, it-IT → it
+  if (lang.includes('-')) {
+    return lang.split('-')[0].toLowerCase();
+  }
+  return lang.toLowerCase().trim();
+};
+
 {
       <SEO 
         title="Profil"
@@ -921,7 +933,7 @@ const Profile = () => {
               </div>
               <div className="flex items-center justify-center md:justify-start gap-2 text-white/60 text-xs mt-1">
                 <span>✨</span>
-                <span>🌍 {t('profile.language')}: {LANGUAGE_NAMES[profile.preferred_language] || profile.preferred_language || 'Hrvatski'}</span>
+                <span>🌍 {t('profile.language')}: {LANGUAGE_NAMES[normalizeLanguage(profile?.preferred_language)] || 'Hrvatski'}</span>
               </div>
             </div>
           </div>
