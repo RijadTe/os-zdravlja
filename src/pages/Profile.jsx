@@ -956,15 +956,33 @@ const Profile = () => {
                 <span>
                   🌍 {t('profile.language')}: {
                     (() => {
-                      // 🔥 KORISTIMO profile.preferred_language, NE i18n.language!
-                      const userLang = profile?.preferred_language || 'hr';
-                      // Debug - provjera u konzoli
-                      console.log('🌍 Profil jezik:', {
-                        'profile.preferred_language': userLang,
-                        'i18n.language (NE KORISTI!)': i18n.language,
-                        'prikazani naziv': getLanguageName(userLang)
+                      // 🔥 DIREKTNO IZ BAZE - OVO JE KLJUČNO!
+                      const lang = profile?.preferred_language || 'hr';
+                      
+                      // 🔥 JEDNOSTAVNA MAPA
+                      const map = {
+                        'hr': 'Hrvatski',
+                        'hr-HR': 'Hrvatski',
+                        'en': 'English',
+                        'en-US': 'English',
+                        'de': 'Deutsch',
+                        'de-DE': 'Deutsch',
+                        'fr': 'Français',
+                        'fr-FR': 'Français',
+                        'it': 'Italiano',
+                        'it-IT': 'Italiano',
+                        'es': 'Español',
+                        'es-ES': 'Español',
+                        'sl': 'Slovenščina',
+                        'sl-SI': 'Slovenščina'
+                      };
+                      
+                      console.log('🌍 PRIKAZ JEZIKA:', {
+                        'iz baze': lang,
+                        'prikaz': map[lang] || 'Hrvatski'
                       });
-                      return getLanguageName(userLang);
+                      
+                      return map[lang] || 'Hrvatski';
                     })()
                   }
                 </span>
