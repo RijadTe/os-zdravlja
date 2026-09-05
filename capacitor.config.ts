@@ -12,6 +12,7 @@ const config: CapacitorConfig = {
     allowNavigation: ['*']
   },
   android: {
+    path: '../android',   // 🔥 DODAO SAM OVO - pokazuje na android folder u root-u
     allowMixedContent: true,
     webContentsDebuggingEnabled: true,
   },
