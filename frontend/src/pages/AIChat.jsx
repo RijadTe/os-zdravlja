@@ -161,8 +161,8 @@ const AIChat = () => {
                 <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-700 rounded-xl max-w-sm">
                   <p className="text-sm text-gray-700 dark:text-gray-300">
                     {isPremium 
-                      ? `⭐ Premium korisnik: ${PREMIUM_LIMIT} poruka dnevno`
-                      : `📩 Free korisnik: ${FREE_LIMIT} poruka dnevno`
+                      ? `Premium korisnik: ${PREMIUM_LIMIT} poruka dnevno`
+                      : `Free korisnik: ${FREE_LIMIT} poruka dnevno`
                     }
                   </p>
                   {!isPremium && (
