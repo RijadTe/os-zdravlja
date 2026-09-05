@@ -1,13 +1,61 @@
 // frontend/src/pages/Profile.jsx
 
-{
-      <SEO 
-        title="Profil"
-        description="Vaš profil – pregledajte svoje preferencije, osvojene bedževe i napredak na OS Zdravlja."
-        url="https://os-zdravlja.vercel.app/profile"
-      />
+// 🔥🔥🔥 VERZIJA: 2.0.2 - DEPLOYANO 2026-09-05
+console.log('🔥🔥🔥 PROFILE.JSX SE UČITAVA - VERZIJA 2.0.2');
+console.log('🔥🔥🔥 OVO JE NOVA VERZIJA!');
+
+// ============================================================
+// 🔥 MAPA ZA SVE JEZIKE (PROŠIRENA ZA SVE VARIJANTE)
+// ============================================================
+const LANGUAGE_NAMES = {
+  // Kratke verzije (standardne)
+  'hr': 'Hrvatski',
+  'en': 'English',
+  'de': 'Deutsch',
+  'fr': 'Français',
+  'it': 'Italiano',
+  'es': 'Español',
+  'sl': 'Slovenščina',
+  // Dugačke verzije sa crticom (Supabase format)
+  'hr-HR': 'Hrvatski',
+  'en-US': 'English',
+  'en-GB': 'English',
+  'de-DE': 'Deutsch',
+  'fr-FR': 'Français',
+  'it-IT': 'Italiano',
+  'es-ES': 'Español',
+  'sl-SI': 'Slovenščina'
 };
 
+// ============================================================
+// 🔥 POMOĆNA FUNKCIJA ZA NORMALIZACIJU JEZIKA
+// ============================================================
+const normalizeLanguage = (lang) => {
+  if (!lang) return 'hr';
+  // Prvo provjeri da li postoji direktno u mapi
+  if (LANGUAGE_NAMES[lang]) return lang;
+  // hr-HR → hr, en-US → en, it-IT → it
+  if (lang.includes('-')) {
+    return lang.split('-')[0].toLowerCase();
+  }
+  return lang.toLowerCase().trim();
+};
+
+// ============================================================
+// 🌍 FUNKCIJA ZA DOBIVANJE NAZIVA JEZIKA
+// ============================================================
+const getLanguageName = (lang) => {
+  if (!lang) return 'Hrvatski';
+  // Prvo probaj direktno iz mape
+  if (LANGUAGE_NAMES[lang]) return LANGUAGE_NAMES[lang];
+  // Ako ne, normaliziraj pa probaj
+  const normalized = normalizeLanguage(lang);
+  return LANGUAGE_NAMES[normalized] || 'Hrvatski';
+};
+
+// ============================================================
+// 🚀 GLAVNA KOMPONENTA
+// ============================================================
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -906,12 +954,12 @@ const Profile = () => {
                 <span>📧</span>
                 <span>{profile.email}</span>
               </div>
+              {/* ===== PRIKAZ JEZIKA - POPRAVLJEN ===== */}
               <div className="flex items-center justify-center md:justify-start gap-2 text-white/60 text-xs mt-1">
                 <span>✨</span>
-                <span>🌍 {t('profile.language')}: {
-                  profile.preferred_language === 'hr' ? 'Hrvatski' : 
-                  profile.preferred_language === 'en' ? 'English' : 'Deutsch'
-                }</span>
+                <span>
+                  🌍 {t('profile.language')}: {getLanguageName(profile?.preferred_language)}
+                </span>
               </div>
             </div>
           </div>
