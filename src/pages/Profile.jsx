@@ -1,18 +1,5 @@
 // frontend/src/pages/Profile.jsx
 
-// ============================================================
-// 🔥 MAPA ZA SVE JEZIKE
-// ============================================================
-const LANGUAGE_NAMES = {
-  'hr': 'Hrvatski',
-  'en': 'English',
-  'de': 'Deutsch',
-  'fr': 'Français',
-  'it': 'Italiano',
-  'es': 'Español',
-  'sl': 'Slovenščina'
-};
-
 {
       <SEO 
         title="Profil"
@@ -921,7 +908,10 @@ const Profile = () => {
               </div>
               <div className="flex items-center justify-center md:justify-start gap-2 text-white/60 text-xs mt-1">
                 <span>✨</span>
-                <span>🌍 {t('profile.language')}: {LANGUAGE_NAMES[profile.preferred_language] || profile.preferred_language || 'Hrvatski'}</span>
+                <span>🌍 {t('profile.language')}: {
+                  profile.preferred_language === 'hr' ? 'Hrvatski' : 
+                  profile.preferred_language === 'en' ? 'English' : 'Deutsch'
+                }</span>
               </div>
             </div>
           </div>
