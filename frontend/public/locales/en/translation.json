@@ -1171,6 +1171,7 @@
     "premium_link": "Become Premium",
     "premium_link_short": "Become Premium",
     "premium_user": "⭐ Premium user",
+    "free_user": "📩 Free user",
     "premium_feature": "🔒 Premium feature",
     "remaining": "Remaining: {{count}}/{{total}}",
     "remaining_info": "💡 You have {{count}} of {{total}} messages left today",

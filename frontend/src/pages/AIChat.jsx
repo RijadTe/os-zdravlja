@@ -13,7 +13,10 @@ const AIChat = () => {
   const [chatCount, setChatCount] = useState(0);
   const [chatDate, setChatDate] = useState('');
 
-  const MAX_DAILY_MESSAGES = 10;
+  // 🔥 RAZLIČITI LIMITI ZA FREE I PREMIUM
+  const FREE_LIMIT = 10;
+  const PREMIUM_LIMIT = 25;
+  
   const email = localStorage.getItem('userEmail');
 
   useEffect(() => {
@@ -50,13 +53,11 @@ const AIChat = () => {
       return;
     }
 
-    if (!isPremium) {
-      alert(t('ai_chat.premium_only'));
-      return;
-    }
-
-    if (chatCount >= MAX_DAILY_MESSAGES) {
-      alert(t('ai_chat.limit_reached', { limit: MAX_DAILY_MESSAGES }));
+    // 🔥 Provjera limita prema statusu
+    const maxLimit = isPremium ? PREMIUM_LIMIT : FREE_LIMIT;
+    
+    if (chatCount >= maxLimit) {
+      alert(t('ai_chat.limit_reached', { limit: maxLimit }));
       return;
     }
 
@@ -92,10 +93,12 @@ const AIChat = () => {
     }
   };
 
-  const remainingMessages = Math.max(0, MAX_DAILY_MESSAGES - chatCount);
+  // 🔥 Izračunaj preostale poruke prema limitu
+  const maxLimit = isPremium ? PREMIUM_LIMIT : FREE_LIMIT;
+  const remainingMessages = Math.max(0, maxLimit - chatCount);
 
   return (
-    <div className="max-w-4xl mx-auto py-6 px-4">
+    <div className="max-w-4xl mx-auto py-6 px-4 pb-24">
       {/* 🔥 DISCLAIMER - NA VRHU STRANICE */}
       <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl">
         <div className="flex items-start gap-3">
@@ -120,16 +123,25 @@ const AIChat = () => {
             🤖 {t('ai_chat.title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {isPremium ? t('ai_chat.premium_user') : t('ai_chat.premium_feature')}
+            {isPremium 
+              ? `⭐ ${t('ai_chat.premium_user')} (${PREMIUM_LIMIT} poruka/dan)` 
+              : `📩 ${t('ai_chat.free_user')} (${FREE_LIMIT} poruka/dan)`
+            }
           </p>
         </div>
-        {isPremium && (
-          <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-full border border-blue-200 dark:border-blue-700">
-            <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-              📨 {t('ai_chat.remaining', { count: remainingMessages, total: MAX_DAILY_MESSAGES })}
-            </span>
-          </div>
-        )}
+        <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${
+          isPremium 
+            ? 'bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border-yellow-200 dark:border-yellow-700'
+            : 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700'
+        }`}>
+          <span className={`text-sm font-medium ${
+            isPremium 
+              ? 'text-yellow-600 dark:text-yellow-400'
+              : 'text-blue-600 dark:text-blue-400'
+          }`}>
+            {isPremium ? '⭐' : '📨'} {t('ai_chat.remaining', { count: remainingMessages, total: maxLimit })}
+          </span>
+        </div>
       </div>
 
       {/* Chat Container */}
@@ -146,20 +158,22 @@ const AIChat = () => {
                 <p className="text-sm text-gray-400 dark:text-gray-500 mt-1 max-w-md">
                   {t('ai_chat.welcome_sub')}
                 </p>
-                {!isPremium ? (
-                  <div className="mt-6 p-4 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border border-yellow-200 dark:border-yellow-700 rounded-xl max-w-sm">
-                    <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                      {t('ai_chat.premium_hint')}
-                    </p>
-                    <a href="/premium" className="inline-block mt-2 text-sm font-semibold text-yellow-600 dark:text-yellow-400 hover:underline">
-                      {t('ai_chat.premium_link')} →
-                    </a>
-                  </div>
-                ) : (
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
-                    {t('ai_chat.remaining_info', { count: remainingMessages, total: MAX_DAILY_MESSAGES })}
+                <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-700 rounded-xl max-w-sm">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {isPremium 
+                      ? `⭐ Premium korisnik: ${PREMIUM_LIMIT} poruka dnevno`
+                      : `📩 Free korisnik: ${FREE_LIMIT} poruka dnevno`
+                    }
                   </p>
-                )}
+                  {!isPremium && (
+                    <a href="/premium" className="inline-block mt-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">
+                      ⭐ Postani Premium za 25 poruka dnevno →
+                    </a>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
+                  {t('ai_chat.remaining_info', { count: remainingMessages, total: maxLimit })}
+                </p>
               </div>
             ) : (
               messages.map((msg, idx) => (
@@ -196,45 +210,52 @@ const AIChat = () => {
 
           {/* Input Area */}
           <div className="border-t border-gray-200 dark:border-gray-700 p-4">
-            {isPremium ? (
-              <>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                    placeholder={t('ai_chat.placeholder')}
-                    className="flex-1 border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm sm:text-base bg-gray-50 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                    disabled={loading || remainingMessages === 0}
-                  />
-                  <button
-                    onClick={sendMessage}
-                    disabled={loading || !input.trim() || remainingMessages === 0}
-                    className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-6 py-2.5 rounded-xl transition disabled:opacity-50 font-medium flex items-center gap-2"
-                  >
-                    <span>📤</span>
-                    <span className="hidden sm:inline">{t('ai_chat.send')}</span>
-                  </button>
-                </div>
-                {remainingMessages === 0 && messages.length > 0 && (
-                  <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl text-center">
-                    <p className="text-sm text-amber-700 dark:text-amber-300">
-                      {t('ai_chat.limit_reached_message', { limit: MAX_DAILY_MESSAGES })}
-                    </p>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="text-center py-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  🔒 {t('ai_chat.premium_only_short')}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                placeholder={t('ai_chat.placeholder')}
+                className="flex-1 border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-2.5 text-sm sm:text-base bg-gray-50 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                disabled={loading || remainingMessages === 0}
+              />
+              <button
+                onClick={sendMessage}
+                disabled={loading || !input.trim() || remainingMessages === 0}
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-6 py-2.5 rounded-xl transition disabled:opacity-50 font-medium flex items-center gap-2"
+              >
+                <span>📤</span>
+                <span className="hidden sm:inline">{t('ai_chat.send')}</span>
+              </button>
+            </div>
+            {remainingMessages === 0 && messages.length > 0 && (
+              <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl text-center">
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  {t('ai_chat.limit_reached_message', { limit: maxLimit })}
+                  {!isPremium && (
+                    <a href="/premium" className="inline-block ml-2 font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">
+                      ⭐ Postani Premium
+                    </a>
+                  )}
                 </p>
-                <a href="/premium" className="inline-block mt-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">
-                  ⭐ {t('ai_chat.premium_link_short')}
-                </a>
               </div>
             )}
+            <div className="mt-2 text-center">
+              <p className="text-[10px] text-gray-400 dark:text-gray-500">
+                {isPremium 
+                  ? `⭐ Premium: ${remainingMessages}/${PREMIUM_LIMIT} poruka preostalo`
+                  : `📩 Free: ${remainingMessages}/${FREE_LIMIT} poruka preostalo`
+                }
+                {!isPremium && (
+                  <span className="ml-2">
+                    <a href="/premium" className="text-emerald-500 dark:text-emerald-400 hover:underline font-medium">
+                      ⭐ Upgrade na Premium
+                    </a>
+                  </span>
+                )}
+              </p>
+            </div>
           </div>
         </div>
       </div>

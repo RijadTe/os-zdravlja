@@ -1171,6 +1171,7 @@
     "premium_link": "Postanite Premium",
     "premium_link_short": "Postanite Premium",
     "premium_user": "⭐ Premium korisnik",
+    "free_user": "📩 Free korisnik",
     "premium_feature": "🔒 Premium funkcionalnost",
     "remaining": "Preostalo: {{count}}/{{total}}",
     "remaining_info": "💡 Preostalo vam je {{count}} od {{total}} poruka danas",
