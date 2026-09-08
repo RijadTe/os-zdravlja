@@ -1407,7 +1407,7 @@ setRezultati(processedData);
     
     const timer = setTimeout(() => {
       handlePretraga();
-    }, 800);
+    }, 1500);
     
     return () => clearTimeout(timer);
   }, [debouncedTekst, loading, handlePretraga, isVoiceSearch]);
