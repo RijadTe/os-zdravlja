@@ -960,6 +960,7 @@ const data = await response.json();
 console.log('📊 Podaci od servera:', data?.length || 0);
 
 // 🔥 AKO NEMA REZULTATA, POKUŠAJ GROQ
+
 if (!data || data.length === 0) {
   console.log('🔄 Nema rezultata iz baze/OpenAI, pokušavam Groq...');
   
@@ -976,6 +977,8 @@ if (!data || data.length === 0) {
 
     if (groqRes.ok) {
       const groqData = await groqRes.json();
+      console.log('📊 Groq podaci:', groqData?.length || 0);
+      
       if (groqData && groqData.length > 0) {
         const processedData = groqData.map(recipe => {
           if (recipe.prevod && currentLang !== 'hr') {
@@ -990,18 +993,22 @@ if (!data || data.length === 0) {
           }
           return recipe;
         });
+        
+        console.log('📊 Procesirani podaci:', processedData.length);
+        
+        // 🔥 POSTAVI SVE STATE-OVE
         setRezultati(processedData);
         setPoruka(`✅ ${processedData.length} recepata (Groq AI)`);
         setPorukaType('success');
-        setLoading(false);
         setProgress(100);
         setStatus(t('aichef.status.done'));
         
-        // 🔥 OČISTI SLIKU NAKON OCR-A (ako je bila)
+        // 🔥 OČISTI SLIKU
         setSlika(null);
         setSlikaPreview(null);
         setOcrProgress(0);
         
+        // 🔥 AŽURIRAJ LIMIT
         if (isImageProcessed && !user?.premium) {
           await fetchDailyLimit();
         }
@@ -1011,6 +1018,7 @@ if (!data || data.length === 0) {
           await fetchDailyLimit();
         }
 
+        // 🔥 SAČUVAJ PRETRAGU
         if (finalText.trim() && processedData.length > 0) {
           const novaPretraga = {
             tekst: finalText.trim(),
@@ -1021,6 +1029,9 @@ if (!data || data.length === 0) {
           setCestePretrage(nove);
           localStorage.setItem('cestePretrage', JSON.stringify(nove));
         }
+        
+        // 🔥 NA KRAJU UGASI LOADING
+        setLoading(false);
         return;
       }
     }
