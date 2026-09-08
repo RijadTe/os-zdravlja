@@ -24,6 +24,18 @@ if %errorlevel% neq 0 (
 
 echo.
 echo ========================================
+echo  🔄 Syncing Capacitor...
+echo ========================================
+call npx cap sync android
+
+if %errorlevel% neq 0 (
+    echo ❌ GRESKA: Capacitor sync nije uspio!
+    pause
+    exit /b %errorlevel%
+)
+
+echo.
+echo ========================================
 echo  ✅ ZAVRSENO!
 echo  📱 Pokreni aplikaciju u Android Studiju
 echo ========================================
