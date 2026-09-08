@@ -960,12 +960,12 @@ statusInterval = setInterval(() => {
   }
 }, 2000);
 
-// 🔥🔥🔥 TIMEOUT ZA PRETRAGU - 5 SEKUNDI ZA OPENAI, ONDA GROQ 🔥🔥🔥
+// 🔥🔥🔥 TIMEOUT ZA PRETRAGU - 3 SEKUNDI ZA OPENAI, ONDA GROQ 🔥🔥🔥
 const controller = new AbortController();
 const timeoutId = setTimeout(() => {
-  console.log('⏰ 5 sekundi je prošlo, prekidam OpenAI zahtjev...');
+  console.log('⏰ 3 sekundi je prošlo, prekidam OpenAI zahtjev...');
   controller.abort();
-}, 5000); // 🔥 5 SEKUNDI
+}, 3000); // 🔥 3 SEKUNDI
 
 let res;
 let isTimeout = false;
@@ -980,7 +980,7 @@ try {
 } catch (fetchError) {
   clearTimeout(timeoutId);
   if (fetchError.name === 'AbortError') {
-    console.log('⏰ OpenAI timeout (5s) - prelazim na Groq...');
+    console.log('⏰ OpenAI timeout (3s) - prelazim na Groq...');
     isTimeout = true;
   } else {
     throw fetchError;
