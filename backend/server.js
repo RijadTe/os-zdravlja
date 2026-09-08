@@ -5722,11 +5722,12 @@ app.post('/api/badges/award', async (req, res) => {
 // ============================================================
 // 🔥 AI CHEF - GROQ SAMO (FALLBACK ZA FRONTEND TIMEOUT)
 // ============================================================
+
 app.post('/api/ai-chef-groq', async (req, res) => {
   try {
     const { tekst, email, jezik } = req.body;
     
-    console.log(`🤖 Groq AI Chef pretraga za: ${email}`);
+    console.log(`🤖 Groq AI Chef pretraga za: ${email || 'anonimno'}`);
     console.log(`📝 Tekst: ${tekst}`);
     console.log(`🌐 Jezik: ${jezik || 'hr'}`);
     
@@ -5756,7 +5757,7 @@ app.post('/api/ai-chef-groq', async (req, res) => {
       restrikcijePrompt = `Korisnik IZBJEGAVA: ${restrikcije.join(', ')}. SVAKI recept MORA biti BEZ ovih sastojaka!`;
     }
     
-    // 🔥 PRIREMI PROMPT ZA GROQ
+    // 🔥 PRIREMI PROMPT ZA GROQ - SA ZABRANOM MARKDOWN
     const prompt = `
       KREIRAJ RECEPTE na osnovu dostupnih sastojaka.
       
@@ -5764,7 +5765,11 @@ app.post('/api/ai-chef-groq', async (req, res) => {
       
       🔒 RESTRIKCIJE: ${restrikcijePrompt}
       
-      Kreiraj 3-5 recepta u JSON formatu:
+      ⚠️ VAŽNO: Odgovori ISKLJUČIVO u čistom JSON formatu.
+      NE dodaj markdown, NE dodaj \`\`\`json, NE dodaj nikakav dodatni tekst.
+      Odgovor MORA počinjati sa { i završavati sa }.
+      
+      Kreiraj 3-5 recepta:
       {
         "recepti": [
           {
@@ -5779,21 +5784,22 @@ app.post('/api/ai-chef-groq', async (req, res) => {
           }
         ]
       }
-      
-      Odgovori isključivo u JSON formatu.
     `;
     
     // 🔥 PROVERI DA LI JE GROQ DOSTUPAN
     if (!groqChef) {
-      console.warn('⚠️ Groq nije dostupan, vraćam prazan niz');
-      return res.json([]);
+      console.warn('⚠️ Groq nije dostupan');
+      // 🔥 NE VRATI PRAZAN NIZ! VRATI GREŠKU!
+      return res.status(503).json({ 
+        error: 'Groq AI usluga trenutno nije dostupna. Pokušajte kasnije.' 
+      });
     }
     
     const groqResponse = await groqChef.chat.completions.create({
       messages: [
         { 
           role: "system", 
-          content: "Ti si AI kuhar koji kreira zdrave recepte. Odgovaraj isključivo u JSON formatu." 
+          content: "Ti si AI kuhar koji kreira zdrave recepte. Odgovaraj isključivo u čistom JSON formatu. NEMOJ koristiti markdown. NEMOJ dodavati ```json. Odgovori SAMO sa JSON objektom." 
         },
         { role: "user", content: prompt }
       ],
@@ -5802,7 +5808,42 @@ app.post('/api/ai-chef-groq', async (req, res) => {
       max_tokens: 1500,
     });
     
-    const aiData = JSON.parse(groqResponse.choices[0].message.content);
+    // 🔥 IZVADI ČISTI JSON IZ ODGOVORA (ukloni markdown)
+    let content = groqResponse.choices[0].message.content;
+    console.log('📥 Groq raw odgovor (prvih 200):', content.substring(0, 200));
+    
+    // Ukloni markdown
+    content = content.replace(/```json\s*/g, '');
+    content = content.replace(/```\s*/g, '');
+    content = content.trim();
+    
+    // Parsiraj JSON
+    let aiData;
+    try {
+      aiData = JSON.parse(content);
+    } catch (parseError) {
+      console.error('❌ Greška pri parsiranju Groq odgovora:', parseError.message);
+      console.log('📝 Raw content:', content);
+      
+      // 🔥 POKUŠAJ IZVUĆI JSON IZ TEKSTA (regex fallback)
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          aiData = JSON.parse(jsonMatch[0]);
+          console.log('✅ JSON izvučen regex-om');
+        } catch (e2) {
+          console.error('❌ Regex fallback neuspješan:', e2.message);
+          return res.status(500).json({ 
+            error: 'Groq je vratio nevalidan JSON format. Pokušajte ponovo.' 
+          });
+        }
+      } else {
+        return res.status(500).json({ 
+          error: 'Groq nije vratio validan JSON. Pokušajte ponovo.' 
+        });
+      }
+    }
+    
     const results = (aiData.recepti || []).map((r, index) => ({
       ...r,
       id: `groq-${Date.now()}-${index}`,
@@ -5812,11 +5853,18 @@ app.post('/api/ai-chef-groq', async (req, res) => {
     }));
     
     console.log(`✅ Groq generisao ${results.length} recepata`);
+    
+    if (results.length === 0) {
+      return res.status(404).json({ 
+        error: 'Nema recepata za ove sastojke. Pokušajte sa drugom kombinacijom.' 
+      });
+    }
+    
     res.json(results);
     
   } catch (error) {
     console.error('❌ Groq greška:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message || 'Groq greška' });
   }
 });
 
