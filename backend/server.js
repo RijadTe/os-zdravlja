@@ -5799,7 +5799,7 @@ app.post('/api/ai-chef-groq', async (req, res) => {
       ],
       model: "groq/compound",
       temperature: 0.7,
-      max_tokens: 2048,
+      max_tokens: 1500,
     });
     
     const aiData = JSON.parse(groqResponse.choices[0].message.content);
