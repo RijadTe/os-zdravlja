@@ -10,25 +10,6 @@ import { isNative } from '../utils/platform';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
-// CUSTOM HOOK - DEBOUNCE
-// ============================================================
-const useDebounce = (value, delay) => {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-};
-
-// ============================================================
 // GLAVNA KOMPONENTA
 // ============================================================
 const AIChef = () => {
@@ -72,8 +53,6 @@ const AIChef = () => {
   const [ocrProgress, setOcrProgress] = useState(0);
   const recognitionRef = useRef(null);
   const fileInputRef = useRef(null);
-
-  const debouncedTekst = useDebounce(tekst, 400);
 
   // ============================================================
   // 🔥 RESETIRANJE BROJA VIDEO REKLAMA I SLIKANJA SVAKI DAN
@@ -1398,21 +1377,6 @@ setRezultati(processedData);
   }, [slika, user, dailyLimit, videoWatched, i18n.language, t, fetchDailyLimit, cestePretrage, loading, tekst]);
 
   // ============================================================
-  // 🔥 DEBOUNCE - JEDNOSTAVAN (KAO U AIChat)
-  // ============================================================
-  useEffect(() => {
-    if (isVoiceSearch || loading || !debouncedTekst.trim()) {
-      return;
-    }
-    
-    const timer = setTimeout(() => {
-      handlePretraga();
-    }, 1500);
-    
-    return () => clearTimeout(timer);
-  }, [debouncedTekst, loading, handlePretraga, isVoiceSearch]);
-
-  // ============================================================
   // FILTRIRAJ REZULTATE SA RESTRIKCIJAMA
   // ============================================================
   useEffect(() => {
@@ -1736,6 +1700,13 @@ setRezultati(processedData);
               id="tekstInput"
               value={tekst}
               onChange={(e) => setTekst(e.target.value)}
+              onKeyDown={(e) => {
+                // 🔥 Enter + Shift = novi red, Enter sam = pretraga
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handlePretraga();
+                }
+              }}
               placeholder={t('aichef.placeholder')}
               className="w-full border-0 bg-gray-50/80 dark:bg-gray-700/50 rounded-xl sm:rounded-2xl px-4 sm:px-5 py-3 sm:py-4 h-24 sm:h-28 resize-none focus:outline-none focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-500 transition-all text-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm sm:text-base"
             />
