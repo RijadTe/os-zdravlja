@@ -73,6 +73,7 @@ const AIChef = () => {
   const recognitionRef = useRef(null);
   const fileInputRef = useRef(null);
   const requestTimeout = useRef(null);
+  const lastRequestTime = useRef(0);
 
   const debouncedTekst = useDebounce(tekst, 400);
 
@@ -1386,35 +1387,36 @@ clearInterval(statusInterval);
     }
   }, [slika, user, dailyLimit, videoWatched, i18n.language, t, fetchDailyLimit, cestePretrage, loading, tekst]);
 
-  // ============================================================
-  // 🔥 DEBOUNCE - SAMO ZA TIPKANJE (JEDINI!)
-  // ============================================================
-  useEffect(() => {
-    // 🔥 NE POKREĆI PRETRAGU AKO:
-    // 1. Glasovna pretraga je aktivna
-    // 2. Već se učitava
-    // 3. Nema teksta
-    if (isVoiceSearch || loading || !debouncedTekst.trim()) {
-      return;
-    }
-    
-    // 🔥 OČISTI PRETHODNI TIMEOUT
+// ============================================================
+// 🔥 DEBOUNCE - SAMO ZA TIPKANJE (JEDINI!)
+// ============================================================
+useEffect(() => {
+  if (isVoiceSearch || loading || !debouncedTekst.trim()) {
+    return;
+  }
+  
+  // 🔥 SPREČI PREVIŠE ZAHTEVA - MIN 2 SEKUNDE IZMEĐU
+  const now = Date.now();
+  if (now - lastRequestTime.current < 2000) {
+    console.log('⏳ Previše zahteva - čekam...');
+    return;
+  }
+  
+  if (requestTimeout.current) {
+    clearTimeout(requestTimeout.current);
+  }
+  
+  requestTimeout.current = setTimeout(() => {
+    lastRequestTime.current = Date.now();
+    handlePretraga();
+  }, 1000);
+  
+  return () => {
     if (requestTimeout.current) {
       clearTimeout(requestTimeout.current);
     }
-    
-    // 🔥 SAČEKAJ 1 SEKUNDU PRE SLANJA ZAHTEVA
-    requestTimeout.current = setTimeout(() => {
-      handlePretraga();
-    }, 1000);
-    
-    // 🔥 OČISTI TIMEOUT KAD SE KOMPONENTA UNMOUNT-UJE
-    return () => {
-      if (requestTimeout.current) {
-        clearTimeout(requestTimeout.current);
-      }
-    };
-  }, [debouncedTekst, loading, handlePretraga, isVoiceSearch]);
+  };
+}, [debouncedTekst, loading, handlePretraga, isVoiceSearch]);
 
   // ============================================================
   // FILTRIRAJ REZULTATE SA RESTRIKCIJAMA
