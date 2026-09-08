@@ -237,75 +237,109 @@ const AIChef = () => {
     }
   }, [user, fetchDailyLimit, fetchVideoAdCount]);
 
-  // ============================================================
-  // 🔥 NATIVE SPEECH RECOGNITION - SAMO AKO JE STVARNO NATIVE
-  // ============================================================
-  const handleNativeVoiceSearch = async () => {
-    // 🔥 isNative je boolean
-    if (!isNative) {
-      console.warn('⚠️ Native voice search nije dostupan');
-      setPoruka(t('aichef.voice.not_available'));
-      setPorukaType('warning');
+// ============================================================
+// 🔥 NATIVE SPEECH RECOGNITION - SAMO AKO JE STVARNO NATIVE
+// ============================================================
+const handleNativeVoiceSearch = async () => {
+  // 🔥 isNative je boolean
+  if (!isNative) {
+    console.warn('⚠️ Native voice search nije dostupan');
+    setPoruka(t('aichef.voice.not_available'));
+    setPorukaType('warning');
+    setIsVoiceSearch(false);
+    setLoading(false);
+    return;
+  }
+
+  try {
+    // 🔥 DINAMIČKI IMPORT sa try-catch
+    let SpeechRecognition;
+    try {
+      const module = await import('@capacitor-community/speech-recognition');
+      SpeechRecognition = module.SpeechRecognition;
+    } catch (importError) {
+      console.error('❌ Greška pri učitavanju SpeechRecognition:', importError);
+      setPoruka('Glasovna pretraga nije dostupna');
+      setPorukaType('error');
       setIsVoiceSearch(false);
       setLoading(false);
       return;
     }
 
-    try {
-      // 🔥 DINAMIČKI IMPORT sa try-catch
-      let SpeechRecognition;
-      try {
-        const module = await import('@capacitor-community/speech-recognition');
-        SpeechRecognition = module.SpeechRecognition;
-      } catch (importError) {
-        console.error('❌ Greška pri učitavanju SpeechRecognition:', importError);
-        setPoruka(t('aichef.voice.not_available'));
-        setPorukaType('error');
-        setIsVoiceSearch(false);
-        setLoading(false);
-        return;
-      }
-      
-      const permission = await SpeechRecognition.requestPermission();
-      if (!permission) {
-        setPoruka(t('aichef.voice.microphone_access'));
-        setPorukaType('error');
-        setIsVoiceSearch(false);
-        setLoading(false);
-        return;
-      }
-
-      const result = await SpeechRecognition.start({
-        language: 'hr-HR',
-        maxResults: 1,
-        prompt: 'Izgovorite sastojke za pretragu...'
-      });
-
-      const transcript = result.matches?.[0] || '';
-      setTekst(transcript);
-      setPoruka(t('aichef.voice.recognized', { text: transcript }));
-      setPorukaType('success');
-      setVoiceActive(false);
-
-      if (transcript.trim()) {
-        setTimeout(() => {
-          handlePretragaDirect(transcript);
-        }, 100);
-      } else {
-        setPoruka(t('aichef.voice.not_recognized'));
-        setPorukaType('error');
-        setLoading(false);
-        setProgress(0);
-        setIsVoiceSearch(false);
-      }
-    } catch (error) {
-      console.error('Native voice error:', error);
-      setPoruka(t('aichef.voice.error'));
+    // ✅ 1. PROVERI DA LI JE DOSTUPNO
+    const available = await SpeechRecognition.isAvailable();
+    if (!available) {
+      setPoruka('Glasovna pretraga nije dostupna na ovom uređaju');
       setPorukaType('error');
       setIsVoiceSearch(false);
       setLoading(false);
+      return;
     }
-  };
+
+    // ✅ 2. ZATRAŽI DOZVOLU
+    const permission = await SpeechRecognition.requestPermission();
+    if (!permission) {
+      setPoruka(t('aichef.voice.microphone_access'));
+      setPorukaType('error');
+      setIsVoiceSearch(false);
+      setLoading(false);
+      return;
+    }
+
+    // ✅ 3. POKRENI PREPOZNAVANJE - ISPRAVNA METODA: startListening()
+    setVoiceActive(true);
+    setPoruka('🎤 Slušam... govorite sastojke');
+    setPorukaType('info');
+    setLoading(true);
+    setStatus(t('aichef.status.voice_search'));
+    setProgress(10);
+
+    const result = await SpeechRecognition.startListening({
+      language: 'hr-HR',
+      maxResults: 1,
+      prompt: 'Izgovorite sastojke za pretragu...'
+    });
+
+    // ✅ 4. OBRADI REZULTAT
+    const transcript = result.matches?.[0] || '';
+    setTekst(transcript);
+    setPoruka(t('aichef.voice.recognized', { text: transcript }));
+    setPorukaType('success');
+    setVoiceActive(false);
+    setProgress(30);
+
+    if (transcript.trim()) {
+      setTimeout(() => {
+        handlePretragaDirect(transcript);
+      }, 100);
+    } else {
+      setPoruka(t('aichef.voice.not_recognized'));
+      setPorukaType('error');
+      setLoading(false);
+      setProgress(0);
+      setIsVoiceSearch(false);
+    }
+
+  } catch (error) {
+    console.error('Native voice error:', error);
+    
+    // ✅ 5. HANDLE SPECIFIČNE GREŠKE
+    if (error.message?.includes('not available') || error.message?.includes('NOT_AVAILABLE')) {
+      setPoruka('Glasovna pretraga nije dostupna na ovom uređaju');
+    } else if (error.message?.includes('permission') || error.message?.includes('PERMISSION')) {
+      setPoruka('Dozvola za mikrofon nije data');
+    } else if (error.message?.includes('timeout') || error.message?.includes('TIMEOUT')) {
+      setPoruka('Vreme za glasovnu pretragu je isteklo');
+    } else {
+      setPoruka(t('aichef.voice.error'));
+    }
+    setPorukaType('error');
+    setIsVoiceSearch(false);
+    setLoading(false);
+    setVoiceActive(false);
+    setProgress(0);
+  }
+};
 
   // ============================================================
   // 🔥 WEB SPEECH RECOGNITION
