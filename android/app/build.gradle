@@ -50,8 +50,14 @@ dependencies {
     // 🔥 ADMOB
     implementation 'com.google.android.gms:play-services-ads:23.2.0'
     
-    // 🔥🔥🔥 SPEECH RECOGNITION - KAO PROJEKAT 🔥🔥🔥
+    // 🔥 SPEECH RECOGNITION
     implementation project(':capacitor-community-speech-recognition')
+    
+    // 🔥🔥🔥 TEXT-TO-SPEECH 🔥🔥🔥
+    implementation project(':capacitor-community-text-to-speech')
+    
+    // 🔥🔥🔥 SHARE 🔥🔥🔥
+    implementation project(':capacitor-share')
 }
 
 apply from: 'capacitor.build.gradle'

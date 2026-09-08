@@ -1277,16 +1277,34 @@ const handleNativeVoiceSearch = async () => {
     }
   }, [slika, user, dailyLimit, videoWatched, i18n.language, t, fetchDailyLimit, cestePretrage, loading, tekst]);
 
-  // ============================================================
-  // 🔥 DEBOUNCE - SAMO ZA TIPKANJE
-  // ============================================================
-  useEffect(() => {
-    if (isVoiceSearch) return;
-    
-    if (debouncedTekst.trim() && !loading) {
-      handlePretraga();
+// Dodaj na vrh komponente
+const requestTimeout = useRef(null);
+
+// ============================================================
+// 🔥 DEBOUNCE - SAMO ZA TIPKANJE
+// ============================================================
+useEffect(() => {
+  if (isVoiceSearch || loading || !debouncedTekst.trim()) {
+    return;
+  }
+  
+  // 🔥 OČISTI PRETHODNI TIMEOUT
+  if (requestTimeout.current) {
+    clearTimeout(requestTimeout.current);
+  }
+  
+  // 🔥 SAČEKAJ 1 SEKUNDU PRE SLANJA ZAHTEVA
+  requestTimeout.current = setTimeout(() => {
+    handlePretraga();
+  }, 1000);
+  
+  // 🔥 OČISTI TIMEOUT KAD SE KOMPONENTA UNMOUNT-UJE
+  return () => {
+    if (requestTimeout.current) {
+      clearTimeout(requestTimeout.current);
     }
-  }, [debouncedTekst, loading, handlePretraga, isVoiceSearch]);
+  };
+}, [debouncedTekst, loading, handlePretraga, isVoiceSearch]);
 
   // ============================================================
   // FILTRIRAJ REZULTATE SA RESTRIKCIJAMA
