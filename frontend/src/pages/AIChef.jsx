@@ -72,8 +72,6 @@ const AIChef = () => {
   const [ocrProgress, setOcrProgress] = useState(0);
   const recognitionRef = useRef(null);
   const fileInputRef = useRef(null);
-  const requestTimeout = useRef(null);
-  const lastRequestTime = useRef(0);
 
   const debouncedTekst = useDebounce(tekst, 400);
 
@@ -239,109 +237,101 @@ const AIChef = () => {
     }
   }, [user, fetchDailyLimit, fetchVideoAdCount]);
 
-// ============================================================
-// 🔥 NATIVE SPEECH RECOGNITION - SAMO AKO JE STVARNO NATIVE
-// ============================================================
-const handleNativeVoiceSearch = async () => {
-  // 🔥 isNative je boolean
-  if (!isNative) {
-    console.warn('⚠️ Native voice search nije dostupan');
-    setPoruka(t('aichef.voice.not_available'));
-    setPorukaType('warning');
-    setIsVoiceSearch(false);
-    setLoading(false);
-    return;
-  }
+  // ============================================================
+  // 🔥 NATIVE SPEECH RECOGNITION - SAMO AKO JE STVARNO NATIVE
+  // ============================================================
+  const handleNativeVoiceSearch = async () => {
+    if (!isNative) {
+      console.warn('⚠️ Native voice search nije dostupan');
+      setPoruka(t('aichef.voice.not_available'));
+      setPorukaType('warning');
+      setIsVoiceSearch(false);
+      setLoading(false);
+      return;
+    }
 
-  try {
-    // 🔥 DINAMIČKI IMPORT sa try-catch
-    let SpeechRecognition;
     try {
-      const module = await import('@capacitor-community/speech-recognition');
-      SpeechRecognition = module.SpeechRecognition;
-    } catch (importError) {
-      console.error('❌ Greška pri učitavanju SpeechRecognition:', importError);
-      setPoruka('Glasovna pretraga nije dostupna');
+      let SpeechRecognition;
+      try {
+        const module = await import('@capacitor-community/speech-recognition');
+        SpeechRecognition = module.SpeechRecognition;
+      } catch (importError) {
+        console.error('❌ Greška pri učitavanju SpeechRecognition:', importError);
+        setPoruka('Glasovna pretraga nije dostupna');
+        setPorukaType('error');
+        setIsVoiceSearch(false);
+        setLoading(false);
+        return;
+      }
+
+      const available = await SpeechRecognition.isAvailable();
+      if (!available) {
+        setPoruka('Glasovna pretraga nije dostupna na ovom uređaju');
+        setPorukaType('error');
+        setIsVoiceSearch(false);
+        setLoading(false);
+        return;
+      }
+
+      const permission = await SpeechRecognition.requestPermission();
+      if (!permission) {
+        setPoruka(t('aichef.voice.microphone_access'));
+        setPorukaType('error');
+        setIsVoiceSearch(false);
+        setLoading(false);
+        return;
+      }
+
+      setVoiceActive(true);
+      setPoruka('🎤 Slušam... govorite sastojke');
+      setPorukaType('info');
+      setLoading(true);
+      setStatus(t('aichef.status.voice_search'));
+      setProgress(10);
+
+      const result = await SpeechRecognition.startListening({
+        language: 'hr-HR',
+        maxResults: 1,
+        prompt: 'Izgovorite sastojke za pretragu...'
+      });
+
+      const transcript = result.matches?.[0] || '';
+      setTekst(transcript);
+      setPoruka(t('aichef.voice.recognized', { text: transcript }));
+      setPorukaType('success');
+      setVoiceActive(false);
+      setProgress(30);
+
+      if (transcript.trim()) {
+        setTimeout(() => {
+          handlePretragaDirect(transcript);
+        }, 100);
+      } else {
+        setPoruka(t('aichef.voice.not_recognized'));
+        setPorukaType('error');
+        setLoading(false);
+        setProgress(0);
+        setIsVoiceSearch(false);
+      }
+
+    } catch (error) {
+      console.error('Native voice error:', error);
+      if (error.message?.includes('not available') || error.message?.includes('NOT_AVAILABLE')) {
+        setPoruka('Glasovna pretraga nije dostupna na ovom uređaju');
+      } else if (error.message?.includes('permission') || error.message?.includes('PERMISSION')) {
+        setPoruka('Dozvola za mikrofon nije data');
+      } else if (error.message?.includes('timeout') || error.message?.includes('TIMEOUT')) {
+        setPoruka('Vreme za glasovnu pretragu je isteklo');
+      } else {
+        setPoruka(t('aichef.voice.error'));
+      }
       setPorukaType('error');
       setIsVoiceSearch(false);
       setLoading(false);
-      return;
-    }
-
-    // ✅ 1. PROVERI DA LI JE DOSTUPNO
-    const available = await SpeechRecognition.isAvailable();
-    if (!available) {
-      setPoruka('Glasovna pretraga nije dostupna na ovom uređaju');
-      setPorukaType('error');
-      setIsVoiceSearch(false);
-      setLoading(false);
-      return;
-    }
-
-    // ✅ 2. ZATRAŽI DOZVOLU
-    const permission = await SpeechRecognition.requestPermission();
-    if (!permission) {
-      setPoruka(t('aichef.voice.microphone_access'));
-      setPorukaType('error');
-      setIsVoiceSearch(false);
-      setLoading(false);
-      return;
-    }
-
-    // ✅ 3. POKRENI PREPOZNAVANJE - ISPRAVNA METODA: startListening()
-    setVoiceActive(true);
-    setPoruka('🎤 Slušam... govorite sastojke');
-    setPorukaType('info');
-    setLoading(true);
-    setStatus(t('aichef.status.voice_search'));
-    setProgress(10);
-
-    const result = await SpeechRecognition.startListening({
-      language: 'hr-HR',
-      maxResults: 1,
-      prompt: 'Izgovorite sastojke za pretragu...'
-    });
-
-    // ✅ 4. OBRADI REZULTAT
-    const transcript = result.matches?.[0] || '';
-    setTekst(transcript);
-    setPoruka(t('aichef.voice.recognized', { text: transcript }));
-    setPorukaType('success');
-    setVoiceActive(false);
-    setProgress(30);
-
-    if (transcript.trim()) {
-      setTimeout(() => {
-        handlePretragaDirect(transcript);
-      }, 100);
-    } else {
-      setPoruka(t('aichef.voice.not_recognized'));
-      setPorukaType('error');
-      setLoading(false);
+      setVoiceActive(false);
       setProgress(0);
-      setIsVoiceSearch(false);
     }
-
-  } catch (error) {
-    console.error('Native voice error:', error);
-    
-    // ✅ 5. HANDLE SPECIFIČNE GREŠKE
-    if (error.message?.includes('not available') || error.message?.includes('NOT_AVAILABLE')) {
-      setPoruka('Glasovna pretraga nije dostupna na ovom uređaju');
-    } else if (error.message?.includes('permission') || error.message?.includes('PERMISSION')) {
-      setPoruka('Dozvola za mikrofon nije data');
-    } else if (error.message?.includes('timeout') || error.message?.includes('TIMEOUT')) {
-      setPoruka('Vreme za glasovnu pretragu je isteklo');
-    } else {
-      setPoruka(t('aichef.voice.error'));
-    }
-    setPorukaType('error');
-    setIsVoiceSearch(false);
-    setLoading(false);
-    setVoiceActive(false);
-    setProgress(0);
-  }
-};
+  };
 
   // ============================================================
   // 🔥 WEB SPEECH RECOGNITION
@@ -463,7 +453,6 @@ const handleNativeVoiceSearch = async () => {
   const showNativeAd = () => {
     return new Promise(async (resolve) => {
       try {
-        // 🔥 isNative je boolean
         if (!isNative) {
           console.warn('⚠️ Native AdMob nije dostupan');
           resolve(false);
@@ -472,7 +461,6 @@ const handleNativeVoiceSearch = async () => {
 
         setIsVideoAdPlaying(true);
         
-        // 🔥 DINAMIČKI IMPORT
         let AdMob;
         try {
           const module = await import('@capacitor-community/admob');
@@ -523,9 +511,7 @@ const handleNativeVoiceSearch = async () => {
     return new Promise((resolve) => {
       setIsVideoAdPlaying(true);
 
-      // Provjeri da li je AdMob omogućen
       if (!shouldShowAds()) {
-        // Fallback simulacija
         let seconds = 0;
         setPoruka(t('aichef.messages.simulated_ad'));
         setPorukaType('info');
@@ -544,7 +530,6 @@ const handleNativeVoiceSearch = async () => {
         return;
       }
 
-      // Pronađi kontejner za reklamu
       let adContainer = document.getElementById('video-ad-container');
       if (!adContainer) {
         adContainer = document.createElement('div');
@@ -570,7 +555,6 @@ const handleNativeVoiceSearch = async () => {
       setPoruka('📢 Učitavam video reklamu...');
       setPorukaType('info');
 
-      // 🔥 KREIRAJ AdSense REKLAMU
       const ins = document.createElement('ins');
       ins.className = 'adsbygoogle';
       ins.style.display = 'block';
@@ -581,7 +565,6 @@ const handleNativeVoiceSearch = async () => {
       ins.style.borderRadius = '12px';
       ins.style.overflow = 'hidden';
       
-      // 🔥 KORISTI getAdUnitId ZA BANNER
       const adUnitId = getAdUnitId('banner');
       const pubId = adUnitId.split('/')[0];
       const slotId = adUnitId.split('/')[1];
@@ -593,7 +576,6 @@ const handleNativeVoiceSearch = async () => {
       
       adContainer.appendChild(ins);
 
-      // Pokreni AdSense
       let adSenseLoaded = false;
       try {
         if (typeof window.adsbygoogle !== 'undefined') {
@@ -619,7 +601,6 @@ const handleNativeVoiceSearch = async () => {
         console.error('❌ AdSense greška:', e);
       }
 
-      // Praćenje trajanja reklame
       let seconds = 0;
       let resolved = false;
       let adDisplayed = false;
@@ -701,7 +682,6 @@ const handleNativeVoiceSearch = async () => {
       return Promise.resolve(true);
     }
 
-    // 🔥 isNative (boolean) - bez zagrada!
     if (isNative) {
       return showNativeAd();
     } else {
@@ -809,12 +789,14 @@ const handleNativeVoiceSearch = async () => {
   };
 
   // ============================================================
-  // 🔥 GLAVNA PRETRAGA (SA FRONTEND OCR)
+  // 🔥 GLAVNA PRETRAGA - POJEDNOSTAVLJENA (KAO AIChat)
   // ============================================================
   const handlePretraga = useCallback(async () => {
-    if (isVoiceSearch) return;
+    // 🔥 PROVERA KAO U AIChat
     if (loading) return;
+    if (isVoiceSearch) return;
 
+    // 🔥 PROVERA INPUTA
     if (!tekst.trim() && !slika) {
       setPoruka(t('aichef.errors.no_input'));
       setPorukaType('warning');
@@ -825,6 +807,7 @@ const handleNativeVoiceSearch = async () => {
     const email = user?.email || localStorage.getItem('userEmail');
     const currentLang = i18n.language || 'hr';
 
+    // 🔥 PROVERA LIMITA ZA SLIKANJE
     if (slika && !user?.premium) {
       if (dailyLimit.preostalo <= 0) {
         setPoruka(t('aichef.messages.no_more_pictures'));
@@ -855,7 +838,7 @@ const handleNativeVoiceSearch = async () => {
       let finalText = tekst;
       let isImageProcessed = false;
 
-      // 🔥 AKO JE SLIKA, OCR-UJ NA FRONTENDU!
+      // 🔥 OCR ZA SLIKU (ISTO KAO PRE)
       if (slika) {
         setPoruka('🔍 Prepoznajem sastojke sa slike...');
         setPorukaType('info');
@@ -863,7 +846,6 @@ const handleNativeVoiceSearch = async () => {
         setStatus('🖼️ OCR analiza slike...');
 
         try {
-          // 🔥 WEB OCR - Tesseract
           const result = await Tesseract.recognize(
             slika,
             'hrv+eng',
@@ -883,7 +865,6 @@ const handleNativeVoiceSearch = async () => {
           finalText = ocrResult;
           console.log('📝 Prepoznat tekst:', finalText);
 
-          // Ako OCR nije prepoznao ništa
           if (!finalText || finalText.trim() === '') {
             setPoruka('❌ Nismo prepoznali sastojke na slici. Pokušajte sa boljom slikom ili unesite tekst ručno.');
             setPorukaType('error');
@@ -900,8 +881,6 @@ const handleNativeVoiceSearch = async () => {
 
         } catch (ocrError) {
           console.error('❌ OCR greška:', ocrError);
-          
-          // Fallback: pokušaj sa nazivom fajla
           const fileName = slika.name?.split('.')[0] || 'nepoznato';
           if (fileName && fileName.length > 0) {
             finalText = fileName;
@@ -921,7 +900,6 @@ const handleNativeVoiceSearch = async () => {
         }
       }
 
-      // Ako nema teksta (ni iz inputa ni iz OCR)
       if (!finalText || finalText.trim() === '') {
         setPoruka(t('aichef.errors.no_input'));
         setPorukaType('warning');
@@ -935,150 +913,83 @@ const handleNativeVoiceSearch = async () => {
       setProgress(40);
       setStatus(t('aichef.status.sending'));
 
-      // 🔥 POŠALJI SAMO TEKST NA BACKEND (BEZ SLIKE!)
       const formData = new FormData();
       formData.append('tekst', finalText.trim());
       if (email) formData.append('email', email);
       formData.append('jezik', currentLang);
 
-setProgress(50);
-setStatus(t('aichef.status.analyzing'));
+      setProgress(50);
+      setStatus(t('aichef.status.analyzing'));
 
-statusInterval = setInterval(() => {
-  const elapsed = Math.floor((Date.now() - startTime) / 1000);
-  if (elapsed < 3) {
-    setStatus(t('aichef.status.searching_database', { elapsed }));
-  } else if (elapsed < 6) {
-    setStatus(t('aichef.status.consulting_ai', { elapsed }));
-    setPoruka(t('aichef.messages.ai_thinking', { elapsed }));
-  } else if (elapsed < 10) {
-    setStatus(t('aichef.status.ai_generating_recipes', { elapsed }));
-    setPoruka(t('aichef.messages.ai_generating_recipes', { elapsed }));
-  } else {
-    setStatus(t('aichef.status.ai_processing', { elapsed }));
-    setPoruka(t('aichef.messages.ai_processing', { elapsed }));
-  }
-}, 2000);
+      statusInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        if (elapsed < 3) {
+          setStatus(t('aichef.status.searching_database', { elapsed }));
+        } else if (elapsed < 6) {
+          setStatus(t('aichef.status.consulting_ai', { elapsed }));
+          setPoruka(t('aichef.messages.ai_thinking', { elapsed }));
+        } else if (elapsed < 10) {
+          setStatus(t('aichef.status.ai_generating_recipes', { elapsed }));
+          setPoruka(t('aichef.messages.ai_generating_recipes', { elapsed }));
+        } else {
+          setStatus(t('aichef.status.ai_processing', { elapsed }));
+          setPoruka(t('aichef.messages.ai_processing', { elapsed }));
+        }
+      }, 2000);
 
-// 🔥🔥🔥 TIMEOUT ZA PRETRAGU - 3 SEKUNDI ZA OPENAI, ONDA GROQ 🔥🔥🔥
-const controller = new AbortController();
-const timeoutId = setTimeout(() => {
-  console.log('⏰ 3 sekundi je prošlo, prekidam OpenAI zahtjev...');
-  controller.abort();
-}, 3000); // 🔥 3 SEKUNDI
+      // 🔥 POZIV NA BACKEND (ISTI KAO U AIChat)
+      console.log('📤 Šaljem zahtev na /api/ai-chef...');
+      const response = await fetch(`${API_URL}/api/ai-chef`, {
+        method: 'POST',
+        body: formData
+      });
 
-let res;
-let isTimeout = false;
+      clearInterval(statusInterval);
 
-try {
-  res = await fetch(`${API_URL}/api/ai-chef`, {
-    method: 'POST',
-    body: formData,
-    signal: controller.signal
-  });
-  clearTimeout(timeoutId);
-} catch (fetchError) {
-  clearTimeout(timeoutId);
-  if (fetchError.name === 'AbortError') {
-    console.log('⏰ OpenAI timeout (3s) - prelazim na Groq...');
-    isTimeout = true;
-  } else {
-    throw fetchError;
-  }
-}
+      // 🔥 PROVERA ODGOVORA (KAO U AIChat)
+      console.log('📡 Status odgovora:', response.status);
+      
+      if (!response.ok) {
+        let errorMessage = '❌ Greška na serveru. Pokušajte ponovo.';
+        try {
+          const errorData = await response.json();
+          if (response.status === 429) {
+            errorMessage = '❌ Previše zahteva. Pokušajte za minut.';
+          } else if (response.status === 504) {
+            errorMessage = '⏰ AI pretraga traje predugo. Pokušajte ponovo.';
+          } else if (response.status === 503) {
+            errorMessage = '🔧 AI usluga trenutno nije dostupna. Pokušajte kasnije.';
+          } else {
+            errorMessage = errorData?.error || errorMessage;
+          }
+        } catch (e) {
+          console.error('❌ Greška pri parsiranju:', e);
+        }
+        
+        setPoruka(errorMessage);
+        setPorukaType('error');
+        setLoading(false);
+        setProgress(0);
+        setStatus('');
+        return;
+      }
 
-// 🔥 AKO JE TIMEOUT ILI 429, POKUŠAJ SA GROQ (DRUGI ENDPOINT)
-if (isTimeout || (res && res.status === 429)) {
-  console.log('🔄 OpenAI nije odgovorio (timeout ili 429), prelazim na Groq...');
-  
-  setPoruka('🔄 OpenAI nije dostupan, koristimo besplatni Groq AI...');
-  setPorukaType('info');
-  setProgress(60);
-  setStatus('🤖 Groq AI generira recepte...');
-  
-  // 🔥 POZOVI GROQ ENDPOINT
-  const groqRes = await fetch(`${API_URL}/api/ai-chef-groq`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      tekst: finalText.trim(),
-      email: email,
-      jezik: currentLang
-    })
-  });
+      const data = await response.json();
+      console.log('📊 Podaci od servera:', data?.length || 0);
 
-  if (!groqRes.ok) {
-    const errorData = await groqRes.json();
-    throw new Error(errorData.error || 'Groq greška');
-  }
-
-  const groqData = await groqRes.json();
-  
-  if (!groqData || groqData.length === 0) {
-    setPoruka('😕 Nema recepata. Pokušajte sa drugim sastojcima.');
-    setPorukaType('warning');
-    setLoading(false);
-    setProgress(0);
-    setStatus('');
-    return;
-  }
-
-  // 🔥 OBRADI GROQ REZULTATE
-  const processedData = groqData.map(recipe => {
-    if (recipe.prevod && currentLang !== 'hr') {
-      return {
-        ...recipe,
-        naziv: recipe.prevod.naziv || recipe.naziv,
-        opis: recipe.prevod.opis || recipe.opis,
-        sastojci: recipe.prevod.sastojci || recipe.sastojci,
-        upute: recipe.prevod.upute || recipe.upute,
-        nacin_pripreme: recipe.prevod.nacin_pripreme || recipe.nacin_pripreme
-      };
-    }
-    return recipe;
-  });
-
-  setRezultati(processedData);
-  setPoruka(`✅ ${processedData.length} recepata (Groq AI)`);
-  setPorukaType('success');
-  setLoading(false);
-  setProgress(100);
-  setStatus(t('aichef.status.done'));
-  clearInterval(statusInterval);
-  
-  // 🔥 OČISTI SLIKU NAKON OCR-A
-  setSlika(null);
-  setSlikaPreview(null);
-  setOcrProgress(0);
-  
-  if (isImageProcessed && !user?.premium) {
-    await fetchDailyLimit();
-  }
-  
-  if (videoWatched) {
-    setVideoWatched(false);
-    await fetchDailyLimit();
-  }
-
-  if (finalText.trim() && processedData.length > 0) {
-    const novaPretraga = {
-      tekst: finalText.trim(),
-      datum: new Date().toLocaleDateString('hr'),
-      rezultati: processedData.length
-    };
-    const nove = [novaPretraga, ...cestePretrage.filter(p => p.tekst !== finalText.trim())].slice(0, 5);
-    setCestePretrage(nove);
-    localStorage.setItem('cestePretrage', JSON.stringify(nove));
-  }
-  return;
-}
-
-clearInterval(statusInterval);
+      if (!data || data.length === 0) {
+        setPoruka('😕 Nema recepata za ove sastojke. Pokušajte sa drugim kombinacijama.');
+        setPorukaType('warning');
+        setRezultati([]);
+        setLoading(false);
+        setProgress(0);
+        setStatus('');
+        return;
+      }
 
       setProgress(100);
       setStatus(t('aichef.status.done'));
-      const data = await res.json();
-      
+
       const processedData = data.map(recipe => {
         if (recipe.prevod && currentLang !== 'hr') {
           return {
@@ -1097,13 +1008,13 @@ clearInterval(statusInterval);
       
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
       
-      if (res.headers.get('X-Cache') === 'HIT') {
+      if (response.headers.get('X-Cache') === 'HIT') {
         setPoruka(t('aichef.messages.cache_hit', { elapsed }));
         setPorukaType('info');
-      } else if (res.headers.get('X-Source') === 'database') {
+      } else if (response.headers.get('X-Source') === 'database') {
         setPoruka(t('aichef.messages.database_result', { elapsed }));
         setPorukaType('success');
-      } else if (res.headers.get('X-Source') === 'ai_generated') {
+      } else if (response.headers.get('X-Source') === 'ai_generated') {
         setPoruka(t('aichef.messages.ai_generated', { elapsed }));
         setPorukaType('success');
       } else {
@@ -1111,7 +1022,6 @@ clearInterval(statusInterval);
         setPorukaType('success');
       }
 
-      // 🔥 OČISTI SLIKU NAKON OCR-A
       setSlika(null);
       setSlikaPreview(null);
       setOcrProgress(0);
@@ -1135,10 +1045,11 @@ clearInterval(statusInterval);
         setCestePretrage(nove);
         localStorage.setItem('cestePretrage', JSON.stringify(nove));
       }
+
     } catch (error) {
       console.error('❌ Greška:', error);
       clearInterval(statusInterval);
-      setPoruka(t('aichef.errors.search_failed'));
+      setPoruka(`❌ ${error.message || t('aichef.errors.search_failed')}`);
       setPorukaType('error');
       setStatus(t('aichef.errors.error'));
       setOcrProgress(0);
@@ -1202,7 +1113,6 @@ clearInterval(statusInterval);
       let finalText = searchText;
       let isImageProcessed = false;
 
-      // 🔥 AKO JE SLIKA, OCR-UJ NA FRONTENDU!
       if (slika) {
         setPoruka('🔍 Prepoznajem sastojke sa slike...');
         setPorukaType('info');
@@ -1210,7 +1120,6 @@ clearInterval(statusInterval);
         setStatus('🖼️ OCR analiza slike...');
 
         try {
-          // 🔥 KORISTI SAMO TESSERACT (ZA SVE PLATFORME)
           const result = await Tesseract.recognize(
             slika,
             'hrv+eng',
@@ -1276,7 +1185,6 @@ clearInterval(statusInterval);
       setProgress(40);
       setStatus(t('aichef.status.communicating_with_server'));
 
-      // 🔥 ŠALJI SAMO TEKST!
       const formData = new FormData();
       formData.append('tekst', finalText.trim());
       if (email) formData.append('email', email);
@@ -1301,17 +1209,46 @@ clearInterval(statusInterval);
         }
       }, 2000);
 
-      const res = await fetch(`${API_URL}/api/ai-chef`, {
+      const response = await fetch(`${API_URL}/api/ai-chef`, {
         method: 'POST',
         body: formData
       });
 
       clearInterval(statusInterval);
 
+      if (!response.ok) {
+        let errorMessage = '❌ Greška na serveru. Pokušajte ponovo.';
+        try {
+          const errorData = await response.json();
+          if (response.status === 429) {
+            errorMessage = '❌ Previše zahteva. Pokušajte za minut.';
+          } else {
+            errorMessage = errorData?.error || errorMessage;
+          }
+        } catch (e) {}
+        
+        setPoruka(errorMessage);
+        setPorukaType('error');
+        setLoading(false);
+        setProgress(0);
+        setStatus('');
+        return;
+      }
+
       setProgress(100);
       setStatus(t('aichef.status.done'));
-      const data = await res.json();
+      const data = await response.json();
       
+      if (!data || data.length === 0) {
+        setPoruka('😕 Nema recepata za ove sastojke.');
+        setPorukaType('warning');
+        setRezultati([]);
+        setLoading(false);
+        setProgress(0);
+        setStatus('');
+        return;
+      }
+
       const processedData = data.map(recipe => {
         if (recipe.prevod && currentLang !== 'hr') {
           return {
@@ -1330,13 +1267,13 @@ clearInterval(statusInterval);
       
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
       
-      if (res.headers.get('X-Cache') === 'HIT') {
+      if (response.headers.get('X-Cache') === 'HIT') {
         setPoruka(t('aichef.messages.cache_hit', { elapsed }));
         setPorukaType('info');
-      } else if (res.headers.get('X-Source') === 'database') {
+      } else if (response.headers.get('X-Source') === 'database') {
         setPoruka(t('aichef.messages.database_result', { elapsed }));
         setPorukaType('success');
-      } else if (res.headers.get('X-Source') === 'ai_generated') {
+      } else if (response.headers.get('X-Source') === 'ai_generated') {
         setPoruka(t('aichef.messages.ai_generated', { elapsed }));
         setPorukaType('success');
       } else {
@@ -1367,6 +1304,7 @@ clearInterval(statusInterval);
         setCestePretrage(nove);
         localStorage.setItem('cestePretrage', JSON.stringify(nove));
       }
+
     } catch (error) {
       console.error('❌ Greška:', error);
       clearInterval(statusInterval);
@@ -1387,36 +1325,20 @@ clearInterval(statusInterval);
     }
   }, [slika, user, dailyLimit, videoWatched, i18n.language, t, fetchDailyLimit, cestePretrage, loading, tekst]);
 
-// ============================================================
-// 🔥 DEBOUNCE - SAMO ZA TIPKANJE (JEDINI!)
-// ============================================================
-useEffect(() => {
-  if (isVoiceSearch || loading || !debouncedTekst.trim()) {
-    return;
-  }
-  
-  // 🔥 SPREČI PREVIŠE ZAHTEVA - MIN 2 SEKUNDE IZMEĐU
-  const now = Date.now();
-  if (now - lastRequestTime.current < 2000) {
-    console.log('⏳ Previše zahteva - čekam...');
-    return;
-  }
-  
-  if (requestTimeout.current) {
-    clearTimeout(requestTimeout.current);
-  }
-  
-  requestTimeout.current = setTimeout(() => {
-    lastRequestTime.current = Date.now();
-    handlePretraga();
-  }, 1000);
-  
-  return () => {
-    if (requestTimeout.current) {
-      clearTimeout(requestTimeout.current);
+  // ============================================================
+  // 🔥 DEBOUNCE - JEDNOSTAVAN (KAO U AIChat)
+  // ============================================================
+  useEffect(() => {
+    if (isVoiceSearch || loading || !debouncedTekst.trim()) {
+      return;
     }
-  };
-}, [debouncedTekst, loading, handlePretraga, isVoiceSearch]);
+    
+    const timer = setTimeout(() => {
+      handlePretraga();
+    }, 800);
+    
+    return () => clearTimeout(timer);
+  }, [debouncedTekst, loading, handlePretraga, isVoiceSearch]);
 
   // ============================================================
   // FILTRIRAJ REZULTATE SA RESTRIKCIJAMA
@@ -1450,22 +1372,22 @@ useEffect(() => {
   }, [filteri, rezultati, profil]);
 
   // ============================================================
-// 🔥 GLASOVNA PRETRAGA - KORISTI WEB SPEECH API ZA SVE
-// ============================================================
+  // 🔥 GLASOVNA PRETRAGA - KORISTI WEB SPEECH API ZA SVE
+  // ============================================================
+  const handleVoiceSearch = () => {
+    if (!user?.premium) {
+      navigate('/premium');
+      return;
+    }
 
-const handleVoiceSearch = () => {
-  if (!user?.premium) {
-    navigate('/premium');
-    return;
-  }
+    setIsVoiceSearch(true);
 
-  setIsVoiceSearch(true);
-
-  // 🔥 UVEK KORISTI WEB SPEECH API
-  // Na Native Android-u, WebView podržava webkitSpeechRecognition
-  // Na PWA-u, browser podržava SpeechRecognition
-  handleWebVoiceSearch();
-};
+    if (isNative) {
+      handleNativeVoiceSearch();
+    } else {
+      handleWebVoiceSearch();
+    }
+  };
 
   // ============================================================
   // OPCIJE ZA FILTERE
@@ -1543,10 +1465,7 @@ const handleVoiceSearch = () => {
             ============================================================ */}
         {user && (
           <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-6">
-            
-            {/* ============================================================
-                1. SLIKA - ZAJEDNIČKI ZA FREE I PREMIUM
-                ============================================================ */}
+            {/* 1. SLIKA */}
             <div 
               onClick={() => {
                 if (dailyLimit.preostalo > 0 || user?.premium) {
@@ -1582,11 +1501,8 @@ const handleVoiceSearch = () => {
               </p>
             </div>
 
-            {/* ============================================================
-                2. FREE: VIDEO | PREMIUM: PREOSTALO SLIKANJA
-                ============================================================ */}
+            {/* 2. VIDEO/PREOSTALO */}
             {!user?.premium ? (
-              // 🔥 FREE - VIDEO KARTICA
               <div 
                 className={`bg-gradient-to-br ${videoAdCount < maxVideoAds ? 'from-purple-500 to-purple-600' : 'from-red-500 to-red-600'} rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-white/20 backdrop-blur-sm ${videoAdCount < maxVideoAds ? 'cursor-pointer hover:scale-[1.02] hover:shadow-xl' : ''} transition-transform flex flex-col h-full min-h-[90px] sm:min-h-[130px]`}
               >
@@ -1620,7 +1536,6 @@ const handleVoiceSearch = () => {
                 </div>
               </div>
             ) : (
-              // 🔥 PREMIUM - PREOSTALO SLIKANJA
               <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-white/20 backdrop-blur-sm hover:scale-[1.02] transition-transform flex flex-col h-full min-h-[90px] sm:min-h-[130px]">
                 <div className="flex items-start gap-2 sm:gap-3 flex-1">
                   <div className="p-1.5 sm:p-2 bg-white/20 rounded-lg sm:rounded-xl text-2xl sm:text-3xl flex-shrink-0 mt-0.5">🎯</div>
@@ -1634,9 +1549,7 @@ const handleVoiceSearch = () => {
               </div>
             )}
 
-            {/* ============================================================
-                3. STATUS - PREUSMJERI NA PREMIUM ZA FREE
-                ============================================================ */}
+            {/* 3. STATUS */}
             <div 
               className={`bg-gradient-to-br ${user?.premium ? 'from-amber-500 to-yellow-600' : 'from-gray-500 to-gray-600'} rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-white/20 backdrop-blur-sm ${!user?.premium ? 'cursor-pointer hover:scale-[1.02] hover:shadow-xl' : ''} transition-transform flex flex-col h-full min-h-[90px] sm:min-h-[130px]`}
               onClick={() => {
@@ -1670,9 +1583,7 @@ const handleVoiceSearch = () => {
               )}
             </div>
 
-            {/* ============================================================
-                4. GLASOVNA - PREUSMJERI NA PREMIUM ZA FREE
-                ============================================================ */}
+            {/* 4. GLASOVNA */}
             {!user?.premium ? (
               <div 
                 className="bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg border border-white/20 backdrop-blur-sm cursor-pointer hover:scale-[1.02] hover:shadow-xl transition-transform flex flex-col h-full min-h-[90px] sm:min-h-[130px]"
