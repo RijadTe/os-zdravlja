@@ -42,15 +42,16 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
     
-    // 🔥 FIREBASE BoM - OBAVEZNO!
+    // 🔥 FIREBASE BoM
     implementation platform('com.google.firebase:firebase-bom:33.1.0')
-    
-    // 🔥 FIREBASE PROIZVODI (bez verzija - BoM ih upravlja)
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-messaging'
     
     // 🔥 ADMOB
     implementation 'com.google.android.gms:play-services-ads:23.2.0'
+    
+    // 🔥🔥🔥 SPEECH RECOGNITION - KAO PROJEKAT 🔥🔥🔥
+    implementation project(':capacitor-community-speech-recognition')
 }
 
 apply from: 'capacitor.build.gradle'

@@ -1320,23 +1320,22 @@ const handleNativeVoiceSearch = async () => {
   }, [filteri, rezultati, profil]);
 
   // ============================================================
-  // 🔥 GLASOVNA PRETRAGA - PREUSMJERI NA PREMIUM ZA FREE
-  // ============================================================
-  const handleVoiceSearch = () => {
-    if (!user?.premium) {
-      navigate('/premium');
-      return;
-    }
+// 🔥 GLASOVNA PRETRAGA - KORISTI WEB SPEECH API ZA SVE
+// ============================================================
 
-    setIsVoiceSearch(true);
+const handleVoiceSearch = () => {
+  if (!user?.premium) {
+    navigate('/premium');
+    return;
+  }
 
-    // 🔥 isNative (boolean) - bez zagrada!
-    if (isNative) {
-      handleNativeVoiceSearch();
-    } else {
-      handleWebVoiceSearch();
-    }
-  };
+  setIsVoiceSearch(true);
+
+  // 🔥 UVEK KORISTI WEB SPEECH API
+  // Na Native Android-u, WebView podržava webkitSpeechRecognition
+  // Na PWA-u, browser podržava SpeechRecognition
+  handleWebVoiceSearch();
+};
 
   // ============================================================
   // OPCIJE ZA FILTERE
