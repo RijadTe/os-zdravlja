@@ -789,7 +789,7 @@ const AIChef = () => {
   };
 
   // ============================================================
-  // 🔥 GLAVNA PRETRAGA - POJEDNOSTAVLJENA (KAO AIChat)
+  // 🔥 GLAVNA PRETRAGA - POJEDNOSTAVLJENA 
   // ============================================================
   const handlePretraga = useCallback(async () => {
     // 🔥 PROVERA KAO U AIChat
@@ -946,7 +946,10 @@ const AIChef = () => {
 
       clearInterval(statusInterval);
 
-      // 🔥 PROVERA ODGOVORA (KAO U AIChat)
+      // ================================== //
+      // 🔥 PROVERA ODGOVORA (KAO U AIChat) //
+      // ================================== //
+
       console.log('📡 Status odgovora:', response.status);
       
       if (!response.ok) {
@@ -974,37 +977,106 @@ const AIChef = () => {
         return;
       }
 
-      const data = await response.json();
-      console.log('📊 Podaci od servera:', data?.length || 0);
+const data = await response.json();
+console.log('📊 Podaci od servera:', data?.length || 0);
 
-      if (!data || data.length === 0) {
-        setPoruka('😕 Nema recepata za ove sastojke. Pokušajte sa drugim kombinacijama.');
-        setPorukaType('warning');
-        setRezultati([]);
+// 🔥 AKO NEMA REZULTATA, POKUŠAJ GROQ
+if (!data || data.length === 0) {
+  console.log('🔄 Nema rezultata iz baze/OpenAI, pokušavam Groq...');
+  
+  try {
+    const groqRes = await fetch(`${API_URL}/api/ai-chef-groq`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tekst: finalText.trim(),
+        email: email,
+        jezik: currentLang
+      })
+    });
+
+    if (groqRes.ok) {
+      const groqData = await groqRes.json();
+      if (groqData && groqData.length > 0) {
+        const processedData = groqData.map(recipe => {
+          if (recipe.prevod && currentLang !== 'hr') {
+            return {
+              ...recipe,
+              naziv: recipe.prevod.naziv || recipe.naziv,
+              opis: recipe.prevod.opis || recipe.opis,
+              sastojci: recipe.prevod.sastojci || recipe.sastojci,
+              upute: recipe.prevod.upute || recipe.upute,
+              nacin_pripreme: recipe.prevod.nacin_pripreme || recipe.nacin_pripreme
+            };
+          }
+          return recipe;
+        });
+        setRezultati(processedData);
+        setPoruka(`✅ ${processedData.length} recepata (Groq AI)`);
+        setPorukaType('success');
         setLoading(false);
-        setProgress(0);
-        setStatus('');
+        setProgress(100);
+        setStatus(t('aichef.status.done'));
+        
+        // 🔥 OČISTI SLIKU NAKON OCR-A (ako je bila)
+        setSlika(null);
+        setSlikaPreview(null);
+        setOcrProgress(0);
+        
+        if (isImageProcessed && !user?.premium) {
+          await fetchDailyLimit();
+        }
+        
+        if (videoWatched) {
+          setVideoWatched(false);
+          await fetchDailyLimit();
+        }
+
+        if (finalText.trim() && processedData.length > 0) {
+          const novaPretraga = {
+            tekst: finalText.trim(),
+            datum: new Date().toLocaleDateString('hr'),
+            rezultati: processedData.length
+          };
+          const nove = [novaPretraga, ...cestePretrage.filter(p => p.tekst !== finalText.trim())].slice(0, 5);
+          setCestePretrage(nove);
+          localStorage.setItem('cestePretrage', JSON.stringify(nove));
+        }
         return;
       }
+    }
+  } catch (groqError) {
+    console.error('❌ Groq greška:', groqError);
+  }
+  
+  setPoruka('😕 Nema recepata za ove sastojke. Pokušajte sa drugim kombinacijama.');
+  setPorukaType('warning');
+  setRezultati([]);
+  setLoading(false);
+  setProgress(0);
+  setStatus('');
+  return;
+}
 
-      setProgress(100);
-      setStatus(t('aichef.status.done'));
+// 🔥 NASTAVI SA NORMALNOM OBRADOM (ako ima rezultata iz OpenAI/baze)
+setProgress(100);
+setStatus(t('aichef.status.done'));
 
-      const processedData = data.map(recipe => {
-        if (recipe.prevod && currentLang !== 'hr') {
-          return {
-            ...recipe,
-            naziv: recipe.prevod.naziv || recipe.naziv,
-            opis: recipe.prevod.opis || recipe.opis,
-            sastojci: recipe.prevod.sastojci || recipe.sastojci,
-            upute: recipe.prevod.upute || recipe.upute,
-            nacin_pripreme: recipe.prevod.nacin_pripreme || recipe.nacin_pripreme
-          };
-        }
-        return recipe;
-      });
-      
-      setRezultati(processedData);
+const processedData = data.map(recipe => {
+  if (recipe.prevod && currentLang !== 'hr') {
+    return {
+      ...recipe,
+      naziv: recipe.prevod.naziv || recipe.naziv,
+      opis: recipe.prevod.opis || recipe.opis,
+      sastojci: recipe.prevod.sastojci || recipe.sastojci,
+      upute: recipe.prevod.upute || recipe.upute,
+      nacin_pripreme: recipe.prevod.nacin_pripreme || recipe.nacin_pripreme
+    };
+  }
+  return recipe;
+});
+
+setRezultati(processedData);
       
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
       

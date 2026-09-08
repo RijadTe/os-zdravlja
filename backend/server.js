@@ -6863,4 +6863,5 @@ app.listen(PORT, () => {
   console.log('\n=================================');
   console.log(`✅ Server pokrenut na http://localhost:${PORT}`);
   console.log('=================================\n');
+  console.log('🔍 GroqChef status:', groqChef ? '✅' : '❌');
 });
