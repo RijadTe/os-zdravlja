@@ -172,6 +172,8 @@ console.log('✅ Cookie parser aktiviran');
 
 // 3. CSRF ZAŠTITA - ISKLJUČENA (nije potrebna uz CORS + Rate Limit)
 console.log('⏭️ CSRF zaštita isključena - koristi se CORS + Rate Limit');
+
+
 // ============================================================
 // 🔥 MIDDLEWARE - HELMET
 // ============================================================
@@ -204,6 +206,8 @@ console.log('✅ Helmet sigurnosni headeri aktivirani');
 // ============================================================
 // 🔥 RATE LIMIT - PRILAGOĐEN TVOJIM POTREBAMA
 // ============================================================
+
+
 console.log('🛡️ POSTAVLJAM RATE LIMIT...');
 
 const apiLimiter = rateLimit({
@@ -260,6 +264,7 @@ console.log('   - Teški endpointi: 500 zahtjeva/min');
 // ============================================================
 // 🔥 IP BAN LISTA
 // ============================================================
+
 const bannedIPs = new Set();
 
 app.use((req, res, next) => {
@@ -285,6 +290,7 @@ app.post('/api/admin/ban-ip', (req, res) => {
 // ============================================================
 // OSTALI MIDDLEWARES
 // ============================================================
+
 app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -395,20 +401,35 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 console.log('✅ Supabase povezan!');
 
 // ============================================================
-// 🔥🔥🔥 GROQ INICIJALIZACIJA (DODAJ OVDJE!) 🔥🔥🔥
+// 🔥🔥🔥 GROQ INICIJALIZACIJA - DVA KLJUČA! 🔥🔥🔥
 // ============================================================
-let groq = null;
+
+let groq = null;          // Za AI Chat
+let groqChef = null;     // Za AI Chef i AI Sommelier
+
+// 🔥 Groq #1 - ZA AI CHAT
 if (process.env.GROQ_API_KEY) {
   try {
     groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-    console.log('✅ Groq povezan za AI Chat!');
+    console.log('✅ Groq #1 povezan (AI Chat)!');
   } catch (error) {
-    console.warn('⚠️ Groq nije dostupan:', error.message);
+    console.warn('⚠️ Groq #1 nije dostupan:', error.message);
   }
 } else {
   console.warn('⚠️ GROQ_API_KEY nije postavljen, AI Chat neće raditi.');
 }
 
+// 🔥 Groq #2 - ZA AI CHEF I AI SOMELIER
+if (process.env.GROQ_API_KEY_CHEF) {
+  try {
+    groqChef = new Groq({ apiKey: process.env.GROQ_API_KEY_CHEF });
+    console.log('✅ Groq #2 povezan (AI Chef + Sommelier)!');
+  } catch (error) {
+    console.warn('⚠️ Groq #2 nije dostupan:', error.message);
+  }
+} else {
+  console.warn('⚠️ GROQ_API_KEY_CHEF nije postavljen, AI Chef i Sommelier neće raditi.');
+}
 
 // ============================================================
 // 🔥 PREMIUM FUNKCIJE - PROVJERA STATUSA
@@ -3099,7 +3120,7 @@ app.get('/api/ai-chef/video-ads/:email', async (req, res) => {
 });
 
 // ============================================================
-// 25. 🔥🔥🔥 AI CHEF - PRETRAGA SA BAZOM I AI FALLBACKOM
+// 25. 🔥🔥🔥 AI CHEF - PRETRAGA SA BAZOM I AI FALLBACKOM (OpenAI + Groq)
 // ============================================================
 app.post('/api/ai-chef', async (req, res) => {
   try {
@@ -3221,7 +3242,7 @@ app.post('/api/ai-chef', async (req, res) => {
       
     } catch (error) {
       if (error.message === 'BAZA_TIMEOUT') {
-        console.warn(`⏰ Baza pretraga traje predugo (>${baseTimeout}ms), prelazim na OpenAI...`);
+        console.warn(`⏰ Baza pretraga traje predugo (>${baseTimeout}ms), prelazim na AI...`);
         recepti = [];
       } else {
         console.error('❌ Greška pri dohvatu recepata:', error);
@@ -3295,7 +3316,7 @@ app.post('/api/ai-chef', async (req, res) => {
       });
 
       // 🔥 KORISTI SORTIRANI TEKST ZA HASH (BOLJI CACHE HIT!)
-      const hashToSave = textHash;  // ← OVO JE SADA SORTIRANI HASH
+      const hashToSave = textHash;
       const typeToSave = 'tekst';
       const originalResults = bazaRezultati.map(r => {
         const clean = { ...r };
@@ -3310,184 +3331,229 @@ app.post('/api/ai-chef', async (req, res) => {
       return res.json(results);
     }
 
-    console.log('❌ Nema recepata u bazi (ili timeout), pozivam OpenAI...');
+    // ============================================================
+    // 🔥🔥🔥 NEMA U BAZI - POZIVAM AI (OpenAI PRVI, GROQ FALLBACK)
+    // ============================================================
+    console.log('❌ Nema recepata u bazi (ili timeout), pozivam AI...');
 
-    if (!openai) {
-      console.warn('⚠️ OpenAI nije dostupan, vraćam prazan niz');
+    // 🔥 PRIPREMI PROMPT (ISTI ZA OBA AI)
+    let restrikcijePrompt = 'Nema posebnih restrikcija.';
+    let alergeniPrompt = '';
+    let dijetnePrompt = '';
+    
+    if (restrikcije && restrikcije.length > 0) {
+      const alergeniList = ['gluten', 'laktoza', 'jaja', 'orašasti', 'orasasti', 'soja', 'kikiriki', 'morski plodovi'];
+      const alergeni = [];
+      const dijetne = [];
+      
+      restrikcije.forEach(r => {
+        const rLower = r.toLowerCase();
+        const jeAlergen = alergeniList.some(a => rLower.includes(a));
+        if (jeAlergen) {
+          alergeni.push(r);
+        } else {
+          dijetne.push(r);
+        }
+      });
+      
+      if (alergeni.length > 0) {
+        alergeniPrompt = `\n⚠️ ALERGENI KOJE MORATE IZBJEĆI: ${alergeni.join(', ')}.\nSVAKI predloženi recept MORA biti BEZ ovih sastojaka!`;
+      }
+      if (dijetne.length > 0) {
+        dijetnePrompt = `\n🥗 DIJETNE OZNAKE: ${dijetne.join(', ')}.\nSVAKI predloženi recept MORA odgovarati ovim dijetnim zahtjevima.`;
+      }
+      
+      restrikcijePrompt = `Korisnik IZBJEGAVA: ${restrikcije.join(', ')}.`;
+    }
+
+    let vrstaPrompt = '';
+    if (korisnikVrsta && korisnikVrsta.length > 0) {
+      const vrste = korisnikVrsta.filter(v => v !== 'Svejedno');
+      if (vrste.length > 0) {
+        vrstaPrompt = `\n🍽️ PREFERIRANE VRSTE JELA: ${vrste.join(', ')}.`;
+      }
+    }
+
+    let preferencijePrompt = '';
+    if (korisnikPreferencije && korisnikPreferencije.length > 0) {
+      const prefs = korisnikPreferencije.filter(p => p !== 'Svejedno');
+      if (prefs.length > 0) {
+        preferencijePrompt = `\n💪 NUTRICIONI PREFERENCIJE: ${prefs.join(', ')}.`;
+      }
+    }
+
+    const jezikMapa = {
+      'hr': 'hrvatskom',
+      'en': 'engleskom',
+      'de': 'njemačkom'
+    };
+    const jezikNaziv = jezikMapa[jezik] || 'hrvatskom';
+
+    const prompt = `
+      KREIRAJ RECEPTE na ${jezikNaziv} jeziku na osnovu dostupnih sastojaka.
+      
+      📦 DOSTUPNI SASTOJCI:
+      ${sastojci.join(', ')}
+      
+      👤 KORISNIK: ${korisnikIme}
+      
+      🔒 RESTRIKCIJE KORISNIKA:
+      ${restrikcijePrompt}
+      ${alergeniPrompt}
+      ${dijetnePrompt}
+      ${vrstaPrompt}
+      ${preferencijePrompt}
+      
+      ⚠️ VAŽNA UPOZORENJA (OBAVEZNO):
+      1. SVAKI recept MORA BITI BEZ ALERGENA iz liste!
+      2. SVAKI recept MORA ODGOVARATI DIJETNIM OZNAKAMA!
+      3. Koristi DOSTUPNE SASTOJKE što je više moguće!
+      4. Ako nedostaju neki sastojci, predloži zamjene!
+      5. Recepti trebaju biti zdravi, ukusni i jednostavni za pripremu!
+      6. Odgovori na ${jezikNaziv} jeziku!
+      
+      📋 FORMAT:
+      Kreiraj 3-5 recepta. Svaki recept treba imati:
+      - naziv: Naziv jela
+      - opis: Kratak opis (1-2 rečenice)
+      - sastojci: Lista sastojaka (sa količinama)
+      - upute: Koraci pripreme
+      - vrijeme: Vrijeme pripreme (npr. "30 min")
+      - tezina: Težina (Početnik/Srednji/Profesionalac)
+      - kalorije: Broj kalorija po porciji
+      - vrsta: Vrsta jela (Slano/Deserti/Dijetalni recepti/Napitki)
+      
+      Odgovori isključivo u JSON formatu:
+      {
+        "recepti": [
+          {
+            "naziv": "...",
+            "opis": "...",
+            "sastojci": ["...", "..."],
+            "upute": ["...", "..."],
+            "vrijeme": "...",
+            "tezina": "...",
+            "kalorije": 0,
+            "vrsta": "..."
+          }
+        ]
+      }
+    `;
+
+    let aiResults = [];
+    let aiSource = 'none';
+
+    // 🔥 1. PRVO POKUŠAJ SA OPENAI (AKO IMA KREDITA)
+    if (openai) {
+      try {
+        console.log('🤖 Pokušavam OpenAI (primarni)...');
+        console.log('📝 Šaljem OpenAI zahtjev...');
+        console.log('🔒 Restrikcije u promptu:', restrikcijePrompt);
+        console.log('🌐 Jezik odgovora:', jezikNaziv);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+          controller.abort();
+          console.warn('⏰ OpenAI timeout nakon 25 sekundi!');
+        }, 25000);
+
+        let response;
+        try {
+          response = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.8,
+            response_format: { type: "json_object" },
+            timeout: 25000
+          }, {
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+        } catch (openaiTimeoutError) {
+          clearTimeout(timeoutId);
+          if (openaiTimeoutError.code === 'ETIMEDOUT' || openaiTimeoutError.name === 'AbortError') {
+            console.error('⏰ OpenAI timeout - prekidam zahtjev');
+            throw new Error('OpenAI timeout');
+          }
+          throw openaiTimeoutError;
+        }
+
+        const aiData = JSON.parse(response.choices[0].message.content);
+        aiResults = aiData.recepti || [];
+        aiSource = 'openai';
+        console.log(`✅ OpenAI generisao ${aiResults.length} recepata`);
+
+      } catch (openaiError) {
+        console.error('❌ OpenAI greška:', openaiError.message);
+        
+        // 🔥 PROVERI DA LI JE GREŠKA ZBOG NEDOSTATKA KREDITA
+        if (openaiError.message?.includes('insufficient_quota') || 
+            openaiError.message?.includes('429') ||
+            openaiError.message?.includes('billing') ||
+            openaiError.message?.includes('OpenAI timeout')) {
+          console.log('⚠️ OpenAI nema kredita ili timeout, prelazim na Groq...');
+        } else {
+          console.log('⚠️ OpenAI greška, prelazim na Groq...');
+        }
+      }
+    } else {
+      console.log('⚠️ OpenAI nije dostupan, prelazim na Groq...');
+    }
+
+    // 🔥 2. AKO OPENAI NIJE USPIO, POKUŠAJ GROQ (BESPLATNI FALLBACK)
+    if (aiResults.length === 0 && groqChef) {
+      try {
+        console.log('🔄 Pokušavam Groq (besplatni fallback)...');
+        
+        const groqResponse = await groqChef.chat.completions.create({
+          messages: [
+            { 
+              role: "system", 
+              content: "Ti si AI kuhar koji kreira zdrave recepte. Odgovaraj isključivo u JSON formatu." 
+            },
+            { role: "user", content: prompt }
+          ],
+          model: "groq/compound",  // 🔥 Tvoj besplatni model!
+          temperature: 0.7,
+          max_tokens: 2048,
+        });
+
+        const aiData = JSON.parse(groqResponse.choices[0].message.content);
+        aiResults = aiData.recepti || [];
+        aiSource = 'groq';
+        console.log(`✅ Groq generisao ${aiResults.length} recepata (BESPLATNO!)`);
+
+      } catch (groqError) {
+        console.error('❌ Groq 2 greška:', groqError.message);
+      }
+    }
+
+    // 🔥 3. AKO SVE PADNE - PRAZAN REZULTAT
+    if (aiResults.length === 0) {
+      console.warn('⚠️ Nijedan AI servis nije dostupan, vraćam prazan niz');
       res.setHeader('X-Cache-Hit', 'false');
       res.setHeader('X-Source', 'empty');
       return res.json([]);
     }
 
-    try {
-      console.log('🤖 Generišem AI recepte na osnovu sastojaka...');
-      console.log('⏰ OpenAI timeout postavljen na 25 sekundi');
+    // 🔥 OBRADI REZULTATE
+    let processedResults = aiResults.map((r, index) => ({
+      ...r,
+      id: `ai-${Date.now()}-${index}`,
+      _ai_generated: true,
+      _source: aiSource,
+      alergeni: restrikcije || []
+    }));
 
-      let restrikcijePrompt = 'Nema posebnih restrikcija.';
-      let alergeniPrompt = '';
-      let dijetnePrompt = '';
-      
-      if (restrikcije && restrikcije.length > 0) {
-        const alergeniList = ['gluten', 'laktoza', 'jaja', 'orašasti', 'orasasti', 'soja', 'kikiriki', 'morski plodovi'];
-        const alergeni = [];
-        const dijetne = [];
-        
-        restrikcije.forEach(r => {
-          const rLower = r.toLowerCase();
-          const jeAlergen = alergeniList.some(a => rLower.includes(a));
-          if (jeAlergen) {
-            alergeni.push(r);
-          } else {
-            dijetne.push(r);
-          }
-        });
-        
-        if (alergeni.length > 0) {
-          alergeniPrompt = `\n⚠️ ALERGENI KOJE MORATE IZBJEĆI: ${alergeni.join(', ')}.\nSVAKI predloženi recept MORA biti BEZ ovih sastojaka!`;
-        }
-        if (dijetne.length > 0) {
-          dijetnePrompt = `\n🥗 DIJETNE OZNAKE: ${dijetne.join(', ')}.\nSVAKI predloženi recept MORA odgovarati ovim dijetnim zahtjevima.`;
-        }
-        
-        restrikcijePrompt = `Korisnik IZBJEGAVA: ${restrikcije.join(', ')}.`;
-      }
+    // 🔥 SAČUVAJ U KEŠ
+    const hashToSave = textHash;
+    const typeToSave = 'tekst';
+    await saveToCache(hashToSave, typeToSave, processedResults);
 
-      let vrstaPrompt = '';
-      if (korisnikVrsta && korisnikVrsta.length > 0) {
-        const vrste = korisnikVrsta.filter(v => v !== 'Svejedno');
-        if (vrste.length > 0) {
-          vrstaPrompt = `\n🍽️ PREFERIRANE VRSTE JELA: ${vrste.join(', ')}.`;
-        }
-      }
-
-      let preferencijePrompt = '';
-      if (korisnikPreferencije && korisnikPreferencije.length > 0) {
-        const prefs = korisnikPreferencije.filter(p => p !== 'Svejedno');
-        if (prefs.length > 0) {
-          preferencijePrompt = `\n💪 NUTRICIONI PREFERENCIJE: ${prefs.join(', ')}.`;
-        }
-      }
-
-      const jezikMapa = {
-        'hr': 'hrvatskom',
-        'en': 'engleskom',
-        'de': 'njemačkom'
-      };
-      const jezikNaziv = jezikMapa[jezik] || 'hrvatskom';
-
-      const prompt = `
-        KREIRAJ RECEPTE na ${jezikNaziv} jeziku na osnovu dostupnih sastojaka.
-        
-        📦 DOSTUPNI SASTOJCI:
-        ${sastojci.join(', ')}
-        
-        👤 KORISNIK: ${korisnikIme}
-        
-        🔒 RESTRIKCIJE KORISNIKA:
-        ${restrikcijePrompt}
-        ${alergeniPrompt}
-        ${dijetnePrompt}
-        ${vrstaPrompt}
-        ${preferencijePrompt}
-        
-        ⚠️ VAŽNA UPOZORENJA (OBAVEZNO):
-        1. SVAKI recept MORA BITI BEZ ALERGENA iz liste!
-        2. SVAKI recept MORA ODGOVARATI DIJETNIM OZNAKAMA!
-        3. Koristi DOSTUPNE SASTOJKE što je više moguće!
-        4. Ako nedostaju neki sastojci, predloži zamjene!
-        5. Recepti trebaju biti zdravi, ukusni i jednostavni za pripremu!
-        6. Odgovori na ${jezikNaziv} jeziku!
-        
-        📋 FORMAT:
-        Kreiraj 3-5 recepta. Svaki recept treba imati:
-        - naziv: Naziv jela
-        - opis: Kratak opis (1-2 rečenice)
-        - sastojci: Lista sastojaka (sa količinama)
-        - upute: Koraci pripreme
-        - vrijeme: Vrijeme pripreme (npr. "30 min")
-        - tezina: Težina (Početnik/Srednji/Profesionalac)
-        - kalorije: Broj kalorija po porciji
-        - vrsta: Vrsta jela (Slano/Deserti/Dijetalni recepti/Napitki)
-        
-        Odgovori isključivo u JSON formatu:
-        {
-          "recepti": [
-            {
-              "naziv": "...",
-              "opis": "...",
-              "sastojci": ["...", "..."],
-              "upute": ["...", "..."],
-              "vrijeme": "...",
-              "tezina": "...",
-              "kalorije": 0,
-              "vrsta": "..."
-            }
-          ]
-        }
-      `;
-
-      console.log('📝 Šaljem OpenAI zahtjev...');
-      console.log('🔒 Restrikcije u promptu:', restrikcijePrompt);
-      console.log('🌐 Jezik odgovora:', jezikNaziv);
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        controller.abort();
-        console.warn('⏰ OpenAI timeout nakon 25 sekundi!');
-      }, 25000);
-
-      let response;
-      try {
-        response = await openai.chat.completions.create({
-          model: "gpt-3.5-turbo",
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.8,
-          response_format: { type: "json_object" },
-          timeout: 25000
-        }, {
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-      } catch (openaiTimeoutError) {
-        clearTimeout(timeoutId);
-        if (openaiTimeoutError.code === 'ETIMEDOUT' || openaiTimeoutError.name === 'AbortError') {
-          console.error('⏰ OpenAI timeout - prekidam zahtjev');
-          return res.status(504).json({
-            error: '⏰ AI pretraga traje predugo. Pokušajte ponovo za nekoliko sekundi.',
-            timeout: true
-          });
-        }
-        throw openaiTimeoutError;
-      }
-
-      const aiData = JSON.parse(response.choices[0].message.content);
-      console.log('✅ OpenAI generisao recepte:', aiData.recepti?.length || 0);
-
-      let aiResults = aiData.recepti || [];
-      
-      aiResults = aiResults.map((r, index) => ({
-        ...r,
-        id: `ai-${Date.now()}-${index}`,
-        _ai_generated: true,
-        alergeni: restrikcije || []
-      }));
-
-      // 🔥 KORISTI SORTIRANI TEKST ZA HASH (BOLJI CACHE HIT!)
-      const hashToSave = textHash;  // ← OVO JE SADA SORTIRANI HASH
-      const typeToSave = 'tekst';
-      await saveToCache(hashToSave, typeToSave, aiResults);
-
-      res.setHeader('X-Content-Language', jezik || 'hr');
-      res.setHeader('X-Source', 'ai_generated');
-      res.setHeader('X-Cache-Hit', 'false');
-      res.json(aiResults);
-
-    } catch (openaiError) {
-      console.error('❌ OpenAI greška:', openaiError.message);
-      res.setHeader('X-Cache-Hit', 'false');
-      res.setHeader('X-Source', 'error');
-      res.json([]);
-    }
+    res.setHeader('X-Content-Language', jezik || 'hr');
+    res.setHeader('X-Source', aiSource === 'openai' ? 'openai_generated' : 'groq_generated');
+    res.setHeader('X-Cache-Hit', 'false');
+    res.json(processedResults);
 
   } catch (error) {
     console.error('❌ Greška pri AI pretrazi:', error);
@@ -4533,7 +4599,7 @@ app.post('/api/test-quiz', (req, res) => {
 });
 
 // ============================================================
-// 45. AI SOMELIER (SA KEŠOM!)
+// 45. AI SOMELIER (SA KEŠOM!) - OpenAI + Groq FALLBACK
 // ============================================================
 app.post('/api/ai-sommelier', async (req, res) => {
   console.log('\n🍷 === AI SOMELIJER ===');
@@ -4567,41 +4633,96 @@ app.post('/api/ai-sommelier', async (req, res) => {
       vrijeme_jela: 'Večera (19-21h)'
     };
 
+    // 🔥 PRIPREMI PROMPT (ISTI ZA OBA AI)
+    const prompt = `Za jelo "${naziv}" sa sastojcima: ${sastojci?.join(', ') || 'nepoznati'}. 
+    Predloži:
+    1. Začine (2-3)
+    2. Piće (vino, sok, čaj...)
+    3. Prilog (salata, krompir, povrće...)
+    4. Idealno vrijeme za jelo (doručak, ručak, večera...)
+    
+    Odgovori u JSON formatu: { "zacini": "...", "pice": "...", "prilog": "...", "vrijeme_jela": "..." }`;
+
+    let aiSuccess = false;
+
+    // 🔥 1. PRVO POKUŠAJ SA OPENAI (AKO IMA KREDITA)
     if (openai) {
       try {
-        const prompt = `Za jelo "${naziv}" sa sastojcima: ${sastojci?.join(', ') || 'nepoznati'}. 
-        Predloži:
-        1. Začine (2-3)
-        2. Piće (vino, sok, čaj...)
-        3. Prilog (salata, krompir, povrće...)
-        4. Idealno vrijeme za jelo (doručak, ručak, večera...)
-        
-        Odgovori u JSON formatu: { "zacini": "...", "pice": "...", "prilog": "...", "vrijeme_jela": "..." }`;
+        console.log('🤖 Pokušavam OpenAI za Sommelier...');
         
         const response = await openai.chat.completions.create({
           model: "gpt-3.5-turbo",
           messages: [{ role: "user", content: prompt }],
           temperature: 0.7,
-          response_format: { type: "json_object" }
+          response_format: { type: "json_object" },
+          timeout: 10000
         });
         
         result = JSON.parse(response.choices[0].message.content);
-        console.log('✅ OpenAI odgovor generisan');
+        aiSuccess = true;
+        console.log('✅ OpenAI Sommelier odgovor generisan');
+
       } catch (openaiError) {
-        console.error('❌ OpenAI greška:', openaiError.message);
+        console.error('❌ OpenAI Sommelier greška:', openaiError.message);
+        
+        // 🔥 PROVERI DA LI JE GREŠKA ZBOG NEDOSTATKA KREDITA
+        if (openaiError.message?.includes('insufficient_quota') || 
+            openaiError.message?.includes('429') ||
+            openaiError.message?.includes('billing') ||
+            openaiError.message?.includes('timeout')) {
+          console.log('⚠️ OpenAI nema kredita ili timeout, prelazim na Groq...');
+        } else {
+          console.log('⚠️ OpenAI greška, prelazim na Groq...');
+        }
       }
     } else {
-      console.log('ℹ️ OpenAI nije dostupan, koristim fallback odgovor');
+      console.log('⚠️ OpenAI nije dostupan, prelazim na Groq...');
     }
 
-    if (receptId) {
+    // 🔥 2. AKO OPENAI NIJE USPIO, POKUŠAJ GROQ (BESPLATNI FALLBACK)
+    if (!aiSuccess && groqChef
+    ) {
+      try {
+        console.log('🔄 Pokušavam Groq za Sommelier (besplatni fallback)...');
+        
+        const groqResponse = await groqChef.chat.completions.create({
+          messages: [
+            { 
+              role: "system", 
+              content: "Ti si AI sommelier za hranu. Odgovaraj isključivo u JSON formatu." 
+            },
+            { role: "user", content: prompt }
+          ],
+          model: "groq/compound",  // 🔥 Tvoj besplatni model!
+          temperature: 0.7,
+          max_tokens: 500,
+        });
+        
+        result = JSON.parse(groqResponse.choices[0].message.content);
+        aiSuccess = true;
+        console.log('✅ Groq Sommelier odgovor generisan (BESPLATNO!)');
+
+      } catch (groqError) {
+        console.error('❌ Groq Sommelier greška:', groqError.message);
+      }
+    }
+
+    // 🔥 3. AKO SVE PADNE - KORISTI FALLBACK (VEĆ POSTAVLJEN)
+    if (!aiSuccess) {
+      console.log('ℹ️ Nijedan AI nije dostupan, koristim fallback odgovor');
+      // result je već postavljen sa fallback vrijednostima
+    }
+
+    // 🔥 SAČUVAJ U KEŠ (AKO IMA RECEPT ID)
+    if (receptId && aiSuccess) {
       await saveSommelierCache(receptId, result);
       console.log('✅ Sačuvano u keš za recept:', receptId);
     }
 
     res.json({
       ...result,
-      _cached: false
+      _cached: false,
+      _source: aiSuccess ? (openai ? 'openai' : 'groq') : 'fallback'
     });
 
   } catch (error) {
@@ -4612,7 +4733,8 @@ app.post('/api/ai-sommelier', async (req, res) => {
       prilog: 'Krompir na žaru',
       vrijeme_jela: 'Večera (19-21h)',
       _cached: false,
-      _fallback: true
+      _fallback: true,
+      _source: 'error'
     });
   }
 });
