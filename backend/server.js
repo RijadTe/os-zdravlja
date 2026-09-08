@@ -5720,6 +5720,108 @@ app.post('/api/badges/award', async (req, res) => {
 });
 
 // ============================================================
+// 🔥 AI CHEF - GROQ SAMO (FALLBACK ZA FRONTEND TIMEOUT)
+// ============================================================
+app.post('/api/ai-chef-groq', async (req, res) => {
+  try {
+    const { tekst, email, jezik } = req.body;
+    
+    console.log(`🤖 Groq AI Chef pretraga za: ${email}`);
+    console.log(`📝 Tekst: ${tekst}`);
+    console.log(`🌐 Jezik: ${jezik || 'hr'}`);
+    
+    // 🔥 DOHVATI KORISNIČKE RESTRIKCIJE
+    let restrikcije = [];
+    let korisnikIme = 'Korisnik';
+    
+    if (email) {
+      const { data: profil, error: profilError } = await supabase
+        .from('profili')
+        .select('ime, izbjegava')
+        .eq('email', email)
+        .maybeSingle();
+      
+      if (!profilError && profil) {
+        korisnikIme = profil.ime || 'Korisnik';
+        restrikcije = profil.izbjegava || [];
+        console.log(`👤 Korisnik: ${korisnikIme}`);
+        console.log(`🔒 Restrikcije:`, restrikcije);
+      }
+    }
+    
+    const sastojci = tekst.split(',').map(s => s.trim());
+    
+    let restrikcijePrompt = 'Nema posebnih restrikcija.';
+    if (restrikcije.length > 0) {
+      restrikcijePrompt = `Korisnik IZBJEGAVA: ${restrikcije.join(', ')}. SVAKI recept MORA biti BEZ ovih sastojaka!`;
+    }
+    
+    // 🔥 PRIREMI PROMPT ZA GROQ
+    const prompt = `
+      KREIRAJ RECEPTE na osnovu dostupnih sastojaka.
+      
+      📦 DOSTUPNI SASTOJCI: ${sastojci.join(', ')}
+      
+      🔒 RESTRIKCIJE: ${restrikcijePrompt}
+      
+      Kreiraj 3-5 recepta u JSON formatu:
+      {
+        "recepti": [
+          {
+            "naziv": "...",
+            "opis": "...",
+            "sastojci": ["...", "..."],
+            "upute": ["...", "..."],
+            "vrijeme": "30 min",
+            "tezina": "Srednji",
+            "kalorije": 0,
+            "vrsta": "Slano"
+          }
+        ]
+      }
+      
+      Odgovori isključivo u JSON formatu.
+    `;
+    
+    // 🔥 PROVERI DA LI JE GROQ DOSTUPAN
+    if (!groqChef) {
+      console.warn('⚠️ Groq nije dostupan, vraćam prazan niz');
+      return res.json([]);
+    }
+    
+    const groqResponse = await groqChef.chat.completions.create({
+      messages: [
+        { 
+          role: "system", 
+          content: "Ti si AI kuhar koji kreira zdrave recepte. Odgovaraj isključivo u JSON formatu." 
+        },
+        { role: "user", content: prompt }
+      ],
+      model: "groq/compound",
+      temperature: 0.7,
+      max_tokens: 2048,
+    });
+    
+    const aiData = JSON.parse(groqResponse.choices[0].message.content);
+    const results = (aiData.recepti || []).map((r, index) => ({
+      ...r,
+      id: `groq-${Date.now()}-${index}`,
+      _ai_generated: true,
+      _source: 'groq',
+      alergeni: restrikcije || []
+    }));
+    
+    console.log(`✅ Groq generisao ${results.length} recepata`);
+    res.json(results);
+    
+  } catch (error) {
+    console.error('❌ Groq greška:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+// ============================================================
 // 55. FALLBACK RUTA
 // ============================================================
 app.use('/*path', (req, res) => {

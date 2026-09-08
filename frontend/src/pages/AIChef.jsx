@@ -72,6 +72,7 @@ const AIChef = () => {
   const [ocrProgress, setOcrProgress] = useState(0);
   const recognitionRef = useRef(null);
   const fileInputRef = useRef(null);
+  const requestTimeout = useRef(null);
 
   const debouncedTekst = useDebounce(tekst, 400);
 
@@ -939,31 +940,139 @@ const handleNativeVoiceSearch = async () => {
       if (email) formData.append('email', email);
       formData.append('jezik', currentLang);
 
-      setProgress(50);
-      setStatus(t('aichef.status.analyzing'));
+setProgress(50);
+setStatus(t('aichef.status.analyzing'));
 
-      statusInterval = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        if (elapsed < 3) {
-          setStatus(t('aichef.status.searching_database', { elapsed }));
-        } else if (elapsed < 6) {
-          setStatus(t('aichef.status.consulting_ai', { elapsed }));
-          setPoruka(t('aichef.messages.ai_thinking', { elapsed }));
-        } else if (elapsed < 10) {
-          setStatus(t('aichef.status.ai_generating_recipes', { elapsed }));
-          setPoruka(t('aichef.messages.ai_generating_recipes', { elapsed }));
-        } else {
-          setStatus(t('aichef.status.ai_processing', { elapsed }));
-          setPoruka(t('aichef.messages.ai_processing', { elapsed }));
-        }
-      }, 2000);
+statusInterval = setInterval(() => {
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  if (elapsed < 3) {
+    setStatus(t('aichef.status.searching_database', { elapsed }));
+  } else if (elapsed < 6) {
+    setStatus(t('aichef.status.consulting_ai', { elapsed }));
+    setPoruka(t('aichef.messages.ai_thinking', { elapsed }));
+  } else if (elapsed < 10) {
+    setStatus(t('aichef.status.ai_generating_recipes', { elapsed }));
+    setPoruka(t('aichef.messages.ai_generating_recipes', { elapsed }));
+  } else {
+    setStatus(t('aichef.status.ai_processing', { elapsed }));
+    setPoruka(t('aichef.messages.ai_processing', { elapsed }));
+  }
+}, 2000);
 
-      const res = await fetch(`${API_URL}/api/ai-chef`, {
-        method: 'POST',
-        body: formData
-      });
+// 🔥🔥🔥 TIMEOUT ZA PRETRAGU - 5 SEKUNDI ZA OPENAI, ONDA GROQ 🔥🔥🔥
+const controller = new AbortController();
+const timeoutId = setTimeout(() => {
+  console.log('⏰ 5 sekundi je prošlo, prekidam OpenAI zahtjev...');
+  controller.abort();
+}, 5000); // 🔥 5 SEKUNDI
 
-      clearInterval(statusInterval);
+let res;
+let isTimeout = false;
+
+try {
+  res = await fetch(`${API_URL}/api/ai-chef`, {
+    method: 'POST',
+    body: formData,
+    signal: controller.signal
+  });
+  clearTimeout(timeoutId);
+} catch (fetchError) {
+  clearTimeout(timeoutId);
+  if (fetchError.name === 'AbortError') {
+    console.log('⏰ OpenAI timeout (5s) - prelazim na Groq...');
+    isTimeout = true;
+  } else {
+    throw fetchError;
+  }
+}
+
+// 🔥 AKO JE TIMEOUT ILI 429, POKUŠAJ SA GROQ (DRUGI ENDPOINT)
+if (isTimeout || (res && res.status === 429)) {
+  console.log('🔄 OpenAI nije odgovorio (timeout ili 429), prelazim na Groq...');
+  
+  setPoruka('🔄 OpenAI nije dostupan, koristimo besplatni Groq AI...');
+  setPorukaType('info');
+  setProgress(60);
+  setStatus('🤖 Groq AI generira recepte...');
+  
+  // 🔥 POZOVI GROQ ENDPOINT
+  const groqRes = await fetch(`${API_URL}/api/ai-chef-groq`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      tekst: finalText.trim(),
+      email: email,
+      jezik: currentLang
+    })
+  });
+
+  if (!groqRes.ok) {
+    const errorData = await groqRes.json();
+    throw new Error(errorData.error || 'Groq greška');
+  }
+
+  const groqData = await groqRes.json();
+  
+  if (!groqData || groqData.length === 0) {
+    setPoruka('😕 Nema recepata. Pokušajte sa drugim sastojcima.');
+    setPorukaType('warning');
+    setLoading(false);
+    setProgress(0);
+    setStatus('');
+    return;
+  }
+
+  // 🔥 OBRADI GROQ REZULTATE
+  const processedData = groqData.map(recipe => {
+    if (recipe.prevod && currentLang !== 'hr') {
+      return {
+        ...recipe,
+        naziv: recipe.prevod.naziv || recipe.naziv,
+        opis: recipe.prevod.opis || recipe.opis,
+        sastojci: recipe.prevod.sastojci || recipe.sastojci,
+        upute: recipe.prevod.upute || recipe.upute,
+        nacin_pripreme: recipe.prevod.nacin_pripreme || recipe.nacin_pripreme
+      };
+    }
+    return recipe;
+  });
+
+  setRezultati(processedData);
+  setPoruka(`✅ ${processedData.length} recepata (Groq AI)`);
+  setPorukaType('success');
+  setLoading(false);
+  setProgress(100);
+  setStatus(t('aichef.status.done'));
+  clearInterval(statusInterval);
+  
+  // 🔥 OČISTI SLIKU NAKON OCR-A
+  setSlika(null);
+  setSlikaPreview(null);
+  setOcrProgress(0);
+  
+  if (isImageProcessed && !user?.premium) {
+    await fetchDailyLimit();
+  }
+  
+  if (videoWatched) {
+    setVideoWatched(false);
+    await fetchDailyLimit();
+  }
+
+  if (finalText.trim() && processedData.length > 0) {
+    const novaPretraga = {
+      tekst: finalText.trim(),
+      datum: new Date().toLocaleDateString('hr'),
+      rezultati: processedData.length
+    };
+    const nove = [novaPretraga, ...cestePretrage.filter(p => p.tekst !== finalText.trim())].slice(0, 5);
+    setCestePretrage(nove);
+    localStorage.setItem('cestePretrage', JSON.stringify(nove));
+  }
+  return;
+}
+
+clearInterval(statusInterval);
 
       setProgress(100);
       setStatus(t('aichef.status.done'));
@@ -1277,34 +1386,35 @@ const handleNativeVoiceSearch = async () => {
     }
   }, [slika, user, dailyLimit, videoWatched, i18n.language, t, fetchDailyLimit, cestePretrage, loading, tekst]);
 
-// Dodaj na vrh komponente
-const requestTimeout = useRef(null);
-
-// ============================================================
-// 🔥 DEBOUNCE - SAMO ZA TIPKANJE
-// ============================================================
-useEffect(() => {
-  if (isVoiceSearch || loading || !debouncedTekst.trim()) {
-    return;
-  }
-  
-  // 🔥 OČISTI PRETHODNI TIMEOUT
-  if (requestTimeout.current) {
-    clearTimeout(requestTimeout.current);
-  }
-  
-  // 🔥 SAČEKAJ 1 SEKUNDU PRE SLANJA ZAHTEVA
-  requestTimeout.current = setTimeout(() => {
-    handlePretraga();
-  }, 1000);
-  
-  // 🔥 OČISTI TIMEOUT KAD SE KOMPONENTA UNMOUNT-UJE
-  return () => {
+  // ============================================================
+  // 🔥 DEBOUNCE - SAMO ZA TIPKANJE (JEDINI!)
+  // ============================================================
+  useEffect(() => {
+    // 🔥 NE POKREĆI PRETRAGU AKO:
+    // 1. Glasovna pretraga je aktivna
+    // 2. Već se učitava
+    // 3. Nema teksta
+    if (isVoiceSearch || loading || !debouncedTekst.trim()) {
+      return;
+    }
+    
+    // 🔥 OČISTI PRETHODNI TIMEOUT
     if (requestTimeout.current) {
       clearTimeout(requestTimeout.current);
     }
-  };
-}, [debouncedTekst, loading, handlePretraga, isVoiceSearch]);
+    
+    // 🔥 SAČEKAJ 1 SEKUNDU PRE SLANJA ZAHTEVA
+    requestTimeout.current = setTimeout(() => {
+      handlePretraga();
+    }, 1000);
+    
+    // 🔥 OČISTI TIMEOUT KAD SE KOMPONENTA UNMOUNT-UJE
+    return () => {
+      if (requestTimeout.current) {
+        clearTimeout(requestTimeout.current);
+      }
+    };
+  }, [debouncedTekst, loading, handlePretraga, isVoiceSearch]);
 
   // ============================================================
   // FILTRIRAJ REZULTATE SA RESTRIKCIJAMA
