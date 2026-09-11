@@ -326,31 +326,73 @@ const AIRecipe = () => {
   const [sommelierError, setSommelierError] = useState(null);
 
   // ============================================================
-  // 📊 PRERAČUNAJ SASTOJKE ZA BROJ OSOBA
-  // ============================================================
-  const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
-    if (!sastojci || sastojci.length === 0) return sastojci;
-    if (originalneOsobe === noveOsobe) return sastojci;
+// 📊 PRERAČUNAJ SASTOJKE ZA BROJ OSOBA (POBOLJŠANO)
+// ============================================================
+const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
+  if (!sastojci || sastojci.length === 0) return sastojci;
+  if (originalneOsobe === noveOsobe) return sastojci;
 
-    const faktor = noveOsobe / originalneOsobe;
+  const faktor = noveOsobe / originalneOsobe;
+  console.log(`🔄 Prilagođavam sastojke: ${originalneOsobe} → ${noveOsobe} (faktor: ${faktor})`);
 
-    return sastojci.map(sastojak => {
-      const match = sastojak.match(/^(\d+\.?\d*)\s*(g|kg|ml|l|kom|šolja|kašika|kafena kašika|prstohvat|dcl|dl)?/i);
+  return sastojci.map(sastojak => {
+    // 🔥 PROŠIRENI REGEX - hvata više formata
+    // Primjeri: "500g", "500 g", "2 kašike", "1.5 šolje", "1/2 kašičice", "2-3 čehna"
+    const match = sastojak.match(
+      /^(\d+(?:[.,]\d+)?(?:\s*\/\s*\d+)?)\s*(?:-\s*\d+(?:[.,]\d+)?)?\s*(g|kg|ml|l|dl|dcl|kom|komad|komada|šolja|šolje|kašika|kašike|kašičica|kašičice|kafena kašika|kafene kašike|prstohvat|prstohvata|češnja|češnja|češnje|glavica|glavice|list|lista|listova|kriška|kriške|kocka|kocke)?/i
+    );
 
-      if (match) {
-        const kolicina = parseFloat(match[1]);
-        const jedinica = match[2] || '';
-        const ostatak = sastojak.replace(/^(\d+\.?\d*)\s*(g|kg|ml|l|kom|šolja|kašika|kafena kašika|prstohvat|dcl|dl)?\s*/i, '');
+    if (match) {
+      let kolicinaStr = match[1];
+      const jedinica = match[2] || '';
 
-        const novaKolicina = Math.round(kolicina * faktor * 10) / 10;
-        const prikazKolicine = Number.isInteger(novaKolicina) ? novaKolicina : novaKolicina.toFixed(1);
-
-        return `${prikazKolicine}${jedinica ? ' ' + jedinica : ''}${ostatak ? ' ' + ostatak : ''}`;
+      // 🔥 PODRŠKA ZA RAZLOMKE (npr. "1/2")
+      let kolicina;
+      if (kolicinaStr.includes('/')) {
+        const [brojilac, imenilac] = kolicinaStr.split('/').map(s => parseFloat(s.trim()));
+        kolicina = brojilac / imenilac;
+      } else {
+        kolicina = parseFloat(kolicinaStr.replace(',', '.'));
       }
 
-      return sastojak;
-    });
-  };
+      if (isNaN(kolicina)) return sastojak;
+
+      // 🔥 IZRAČUNAJ NOVU KOLIČINU
+      const novaKolicina = kolicina * faktor;
+
+      // 🔥 FORMATIRAJ LIJEPO
+      let prikazKolicine;
+      if (novaKolicina < 0.1) {
+        prikazKolicine = 'prstohvat';
+      } else if (novaKolicina < 1) {
+        // Za male količine koristi razlomke
+        if (novaKolicina >= 0.5) prikazKolicine = '1/2';
+        else if (novaKolicina >= 0.33) prikazKolicine = '1/3';
+        else if (novaKolicina >= 0.25) prikazKolicine = '1/4';
+        else prikazKolicine = novaKolicina.toFixed(2);
+      } else if (Number.isInteger(novaKolicina)) {
+        prikazKolicine = novaKolicina.toString();
+      } else {
+        // Zaokruži na 1 decimalu
+        prikazKolicine = (Math.round(novaKolicina * 10) / 10).toString();
+      }
+
+      // 🔥 IZVADI OSTATAK TEKSTA (naziv sastojka)
+      const originalMatchLength = match[0].length;
+      const ostatak = sastojak.substring(originalMatchLength).trim();
+
+      // 🔥 SASTAVI NOVI STRING
+      if (jedinica) {
+        return `${prikazKolicine} ${jedinica}${ostatak ? ' ' + ostatak : ''}`;
+      } else {
+        return `${prikazKolicine}${ostatak ? ' ' + ostatak : ''}`;
+      }
+    }
+
+    // Ako nema broja, vrati original
+    return sastojak;
+  });
+};
 
   // ============================================================
   // 🔄 PREVEDI AI RECEPT
@@ -388,20 +430,29 @@ const AIRecipe = () => {
   // ============================================================
   // 🔄 AŽURIRAJ SASTOJKE KADA SE PROMIJENI BROJ OSOBA
   // ============================================================
-  useEffect(() => {
-    if (originalRecipe && originalRecipe.sastojci) {
-      const prilagodjeniSastojci = prilagodiSastojke(
-        originalRecipe.sastojci,
-        originalneOsobe || 4,
-        osobe
-      );
-
+ useEffect(() => {
+  if (originalRecipe && originalRecipe.sastojci) {
+    // 🔥 AKO JE BROJ OSOBA ISTI, VRATI ORIGINALNE SASTOJKE
+    if (osobe === originalneOsobe) {
       setRecipe({
         ...originalRecipe,
-        sastojci: prilagodjeniSastojci
+        sastojci: originalRecipe.sastojci
       });
+      return;
     }
-  }, [osobe, originalRecipe, originalneOsobe]);
+
+    const prilagodjeniSastojci = prilagodiSastojke(
+      originalRecipe.sastojci,
+      originalneOsobe || 4,
+      osobe
+    );
+
+    setRecipe({
+      ...originalRecipe,
+      sastojci: prilagodjeniSastojci
+    });
+  }
+}, [osobe, originalRecipe, originalneOsobe]);
 
   // ============================================================
   // 👤 KORISNIK
