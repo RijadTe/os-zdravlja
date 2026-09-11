@@ -22,14 +22,23 @@ const VoiceRecipeReader = ({ recipe }) => {
   const utteranceRef = useRef(null);
   const steps = recipe?.upute || [];
 
-  const getSpeechLang = () => {
-    const langMap = {
-      'hr': 'hr-HR',
-      'en': 'en-US',
-      'de': 'de-DE'
-    };
-    return langMap[i18n.language] || 'hr-HR';
+ const getSpeechLang = () => {
+  const langCode = (i18n.language || 'hr').split('-')[0].toLowerCase();
+  
+  const langMap = {
+    'hr': 'hr-HR',
+    'en': 'en-US',
+    'de': 'de-DE',
+    'fr': 'fr-FR',
+    'it': 'it-IT',
+    'es': 'es-ES',
+    'sl': 'sl-SI'
   };
+  
+  const result = langMap[langCode] || 'hr-HR';
+  console.log('🎤 Speech language:', langCode, '→', result);
+  return result;
+};
 
   useEffect(() => {
     if (!isNative && !('speechSynthesis' in window)) {
