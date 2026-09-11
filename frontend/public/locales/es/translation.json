@@ -1131,18 +1131,64 @@
     }
   },
   "notification": {
-    "title": "Notificaciones",
-    "notifications": "notificaciones",
-    "no_notifications": "Todo tranquilo",
-    "come_back_later": "Vuelve más tarde",
-    "mark_all": "Marcar todo como leído",
-    "mark_read": "Marcar como leído",
-    "open": "Abrir",
-    "just_now": "Justo ahora",
-    "min": "min",
-    "h": "h",
-    "refresh": "Actualizar",
-    "refresh_every": "Se actualiza cada 4 horas"
+  "title": "Notificaciones",
+  "notifications": "notificaciones",
+  "no_notifications": "Todo tranquilo",
+  "come_back_later": "Vuelve más tarde",
+  "mark_all": "Marcar todo",
+  "mark_read": "Marcar como leído",
+  "open": "Abrir",
+  "just_now": "Ahora mismo",
+  "min": "min",
+  "h": "h",
+  "refresh": "Actualizar",
+  "refresh_every": "Se actualiza cada 4 horas",
+
+  "voda": {
+    "message": "💧 {{ime}}, hoy has bebido {{trenutno}}ml de tu objetivo de {{cilj}}ml. ¡Todavía te faltan {{preostalo}}ml de agua!"
+  },
+  "dorucak": {
+    "message": "🌅 {{ime}}, ¡es hora del desayuno! Los buenos hábitos matutinos comienzan con una comida rica en proteínas."
+  },
+  "rucak": {
+    "message": "🍽️ {{ime}}, ¡es hora del almuerzo! No te saltes la comida principal del día."
+  },
+  "vecera": {
+    "message": "🌙 {{ime}}, ¡es hora de una cena ligera! Evita comidas pesadas antes de dormir."
+  },
+  "kupovina": {
+    "message": "🛒 {{ime}}, noto que te quedan pocas provisiones ({{broj}} artículos). ¡Es hora de ir de compras!"
+  },
+  "san": {
+    "message": "😴 {{ime}}, noto que duermes menos de 6 horas de media. ¡Intenta acostarte más temprano esta noche!"
+  },
+  "coach": {
+    "message": "🧘 {{ime}}, noto que estás estresado. Prueba ejercicios de respiración o té de manzanilla."
+  },
+  "energija": {
+    "message": "⚡ {{ime}}, tu energía está baja. Prueba un batido de plátano o una comida proteica."
+  },
+  "motivacija": {
+    "message": "🌟 ¡Excelente, {{ime}}! Sueño, energía y estrés están en buenos niveles. ¡Sigue así!"
+  },
+  "recepti": {
+    "message": "🍽️ {{ime}}, te recomendamos estas recetas: {{recepti}}"
+  },
+  "lajk": {
+    "message": "❤️ A {{ime}} le gustó tu publicación \"{{naziv}}\""
+  },
+  "bedz": {
+    "message": "🏆 ¡Felicidades! ¡Has ganado la insignia \"{{naziv}}\"! {{opis}}"
+  },
+  "premium_istek": {
+    "message": "⚠️ Tu cuenta Premium expiró el {{premium_do}}. ¡Renuévala para seguir usando las funciones Premium!"
+  },
+  "premium_aktiviran": {
+    "message": "🎉 ¡Felicidades! Tu cuenta Premium está activa hasta el {{premium_do}}."
+  },
+  "dobrodoslica": {
+    "message": "👋 ¡Bienvenido {{ime}}! Descubre recetas perfectas adaptadas a tus necesidades. ¡Haz el quiz para personalizar tu experiencia!"
+  }
   },
   "tajni_recept": {
     "title": "Receta secreta del día",

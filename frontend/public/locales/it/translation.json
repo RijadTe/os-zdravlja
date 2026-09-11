@@ -1131,18 +1131,64 @@
     }
   },
   "notification": {
-    "title": "Notifiche",
-    "notifications": "notifiche",
-    "no_notifications": "Tutto tranquillo",
-    "come_back_later": "Torna più tardi",
-    "mark_all": "Segna tutti come letti",
-    "mark_read": "Segna come letto",
-    "open": "Apri",
-    "just_now": "Proprio ora",
-    "min": "min",
-    "h": "h",
-    "refresh": "Aggiorna",
-    "refresh_every": "Si aggiorna ogni 4 ore"
+  "title": "Notifiche",
+  "notifications": "notifiche",
+  "no_notifications": "Tutto tranquillo",
+  "come_back_later": "Torna più tardi",
+  "mark_all": "Segna tutto",
+  "mark_read": "Segna come letto",
+  "open": "Apri",
+  "just_now": "Proprio ora",
+  "min": "min",
+  "h": "h",
+  "refresh": "Aggiorna",
+  "refresh_every": "Si aggiorna ogni 4 ore",
+
+  "voda": {
+    "message": "💧 {{ime}}, oggi hai bevuto {{trenutno}}ml del tuo obiettivo di {{cilj}}ml. Ti mancano ancora {{preostalo}}ml d'acqua!"
+  },
+  "dorucak": {
+    "message": "🌅 {{ime}}, è ora della colazione! Le buone abitudini mattutine iniziano con un pasto ricco di proteine."
+  },
+  "rucak": {
+    "message": "🍽️ {{ime}}, è ora di pranzo! Non saltare il pasto principale della giornata."
+  },
+  "vecera": {
+    "message": "🌙 {{ime}}, è ora di una cena leggera! Evita cibi pesanti prima di dormire."
+  },
+  "kupovina": {
+    "message": "🛒 {{ime}}, noto che ti stanno finendo le provviste ({{broj}} articoli). È ora di fare la spesa!"
+  },
+  "san": {
+    "message": "😴 {{ime}}, noto che dormi in media meno di 6 ore. Prova ad andare a letto prima stasera!"
+  },
+  "coach": {
+    "message": "🧘 {{ime}}, noto che sei stressato. Prova esercizi di respirazione o una tisana alla camomilla."
+  },
+  "energija": {
+    "message": "⚡ {{ime}}, la tua energia è bassa. Prova un frullato alla banana o un pasto proteico."
+  },
+  "motivacija": {
+    "message": "🌟 Ottimo, {{ime}}! Sonno, energia e stress sono a buoni livelli. Continua così!"
+  },
+  "recepti": {
+    "message": "🍽️ {{ime}}, ti consigliamo queste ricette: {{recepti}}"
+  },
+  "lajk": {
+    "message": "❤️ A {{ime}} è piaciuto il tuo post \"{{naziv}}\""
+  },
+  "bedz": {
+    "message": "🏆 Congratulazioni! Hai guadagnato il badge \"{{naziv}}\"! {{opis}}"
+  },
+  "premium_istek": {
+    "message": "⚠️ Il tuo account Premium è scaduto il {{premium_do}}. Rinnovalo per continuare a usare le funzionalità Premium!"
+  },
+  "premium_aktiviran": {
+    "message": "🎉 Congratulazioni! Il tuo account Premium è attivo fino al {{premium_do}}."
+  },
+  "dobrodoslica": {
+    "message": "👋 Benvenuto {{ime}}! Scopri ricette perfette per le tue esigenze. Fai il quiz per personalizzare la tua esperienza!"
+  }
   },
   "tajni_recept": {
     "title": "Ricetta segreta del giorno",

@@ -1131,18 +1131,64 @@
     }
   },
   "notification": {
-    "title": "Notifications",
-    "notifications": "notifications",
-    "no_notifications": "All quiet",
-    "come_back_later": "Come back later",
-    "mark_all": "Mark all as read",
-    "mark_read": "Mark as read",
-    "open": "Open",
-    "just_now": "Just now",
-    "min": "min",
-    "h": "h",
-    "refresh": "Refresh",
-    "refresh_every": "Refreshes every 4 hours"
+  "title": "Notifications",
+  "notifications": "notifications",
+  "no_notifications": "All quiet",
+  "come_back_later": "Come back later",
+  "mark_all": "Mark all",
+  "mark_read": "Mark as read",
+  "open": "Open",
+  "just_now": "Just now",
+  "min": "min",
+  "h": "h",
+  "refresh": "Refresh",
+  "refresh_every": "Refreshes every 4 hours",
+
+  "voda": {
+    "message": "💧 {{ime}}, you've had {{trenutno}}ml out of your {{cilj}}ml goal today. You still need {{preostalo}}ml of water!"
+  },
+  "dorucak": {
+    "message": "🌅 {{ime}}, it's breakfast time! Good morning habits start with a protein-rich meal."
+  },
+  "rucak": {
+    "message": "🍽️ {{ime}}, it's lunch time! Don't skip the main meal of the day."
+  },
+  "vecera": {
+    "message": "🌙 {{ime}}, it's time for a light dinner! Avoid heavy food before bed."
+  },
+  "kupovina": {
+    "message": "🛒 {{ime}}, I noticed you're running low on groceries ({{broj}} items). Time to go shopping!"
+  },
+  "san": {
+    "message": "😴 {{ime}}, I noticed you're sleeping less than 6 hours on average. Try going to bed earlier tonight!"
+  },
+  "coach": {
+    "message": "🧘 {{ime}}, I noticed you're stressed. Try breathing exercises or chamomile tea."
+  },
+  "energija": {
+    "message": "⚡ {{ime}}, your energy is low. Try a banana smoothie or a protein meal."
+  },
+  "motivacija": {
+    "message": "🌟 Great job, {{ime}}! Sleep, energy and stress are at good levels. Keep it up!"
+  },
+  "recepti": {
+    "message": "🍽️ {{ime}}, we recommend these recipes: {{recepti}}"
+  },
+  "lajk": {
+    "message": "❤️ {{ime}} liked your post \"{{naziv}}\""
+  },
+  "bedz": {
+    "message": "🏆 Congratulations! You earned the badge \"{{naziv}}\"! {{opis}}"
+  },
+  "premium_istek": {
+    "message": "⚠️ Your Premium account expired on {{premium_do}}. Renew it to continue using Premium features!"
+  },
+  "premium_aktiviran": {
+    "message": "🎉 Congratulations! Your Premium account is active until {{premium_do}}."
+  },
+  "dobrodoslica": {
+    "message": "👋 Welcome {{ime}}! Discover perfect recipes tailored to your needs. Take the quiz to personalize your experience!"
+  }
   },
   "tajni_recept": {
     "title": "Secret Recipe of the Day",

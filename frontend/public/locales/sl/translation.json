@@ -1131,18 +1131,64 @@
     }
   },
   "notification": {
-    "title": "Obvestila",
-    "notifications": "obvestil",
-    "no_notifications": "Vse je mirno",
-    "come_back_later": "Vrni se kasneje",
-    "mark_all": "Označi vse kot prebrano",
-    "mark_read": "Označi kot prebrano",
-    "open": "Odpri",
-    "just_now": "Prav zdaj",
-    "min": "min",
-    "h": "h",
-    "refresh": "Osveži",
-    "refresh_every": "Osveži se vsake 4 ure"
+  "title": "Obvestila",
+  "notifications": "obvestil",
+  "no_notifications": "Vse je mirno",
+  "come_back_later": "Vrni se pozneje",
+  "mark_all": "Označi vse",
+  "mark_read": "Označi kot prebrano",
+  "open": "Odpri",
+  "just_now": "Pravkar",
+  "min": "min",
+  "h": "h",
+  "refresh": "Osveži",
+  "refresh_every": "Osveži se vsake 4 ure",
+
+  "voda": {
+    "message": "💧 {{ime}}, danes si popil/a {{trenutno}}ml od cilja {{cilj}}ml. Manjka ti še {{preostalo}}ml vode!"
+  },
+  "dorucak": {
+    "message": "🌅 {{ime}}, čas je za zajtrk! Dobre jutranje navade se začnejo z obrokom, bogatim z beljakovinami."
+  },
+  "rucak": {
+    "message": "🍽️ {{ime}}, čas je za kosilo! Ne preskoči glavnega obroka dneva."
+  },
+  "vecera": {
+    "message": "🌙 {{ime}}, čas je za lahko večerjo! Izogibaj se težki hrani pred spanjem."
+  },
+  "kupovina": {
+    "message": "🛒 {{ime}}, opažam, da ti zmanjkuje živil ({{broj}} kosov). Čas je za nakupovanje!"
+  },
+  "san": {
+    "message": "😴 {{ime}}, opažam, da v povprečju spiš manj kot 6 ur. Poskusi danes iti spat prej!"
+  },
+  "coach": {
+    "message": "🧘 {{ime}}, opažam, da si pod stresom. Poskusi dihalne vaje ali čaj iz kamilice."
+  },
+  "energija": {
+    "message": "⚡ {{ime}}, tvoja energija je nizka. Poskusi smuti z banano ali beljakovinski obrok."
+  },
+  "motivacija": {
+    "message": "🌟 Odlično, {{ime}}! Spanec, energija in stres so na dobri ravni. Kar tako naprej!"
+  },
+  "recepti": {
+    "message": "🍽️ {{ime}}, priporočamo ti te recepte: {{recepti}}"
+  },
+  "lajk": {
+    "message": "❤️ {{ime}} je všečkal tvojo objavo \"{{naziv}}\""
+  },
+  "bedz": {
+    "message": "🏆 Čestitke! Prislužil/a si značko \"{{naziv}}\"! {{opis}}"
+  },
+  "premium_istek": {
+    "message": "⚠️ Tvoj Premium račun je potekel {{premium_do}}. Obnovi ga, da boš lahko še naprej uporabljal/a Premium funkcije!"
+  },
+  "premium_aktiviran": {
+    "message": "🎉 Čestitke! Tvoj Premium račun je aktiven do {{premium_do}}."
+  },
+  "dobrodoslica": {
+    "message": "👋 Dobrodošli {{ime}}! Odkrij popolne recepte, prilagojene tvojim potrebam. Opravi kviz za personalizacijo izkušnje!"
+  }
   },
   "tajni_recept": {
     "title": "Skrivni recept dneva",

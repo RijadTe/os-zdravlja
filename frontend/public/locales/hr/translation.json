@@ -1131,18 +1131,64 @@
     }
   },
   "notification": {
-    "title": "Notifikacije",
-    "notifications": "notifikacija",
-    "no_notifications": "Sve je mirno",
-    "come_back_later": "Vratite se kasnije",
-    "mark_all": "Označi sve",
-    "mark_read": "Označi kao pročitano",
-    "open": "Otvori",
-    "just_now": "Upravo sad",
-    "min": "min",
-    "h": "h",
-    "refresh": "Osvježi",
-    "refresh_every": "Osvježava se svakih 4 sata"
+  "title": "Notifikacije",
+  "notifications": "notifikacija",
+  "no_notifications": "Sve je mirno",
+  "come_back_later": "Vratite se kasnije",
+  "mark_all": "Označi sve",
+  "mark_read": "Označi kao pročitano",
+  "open": "Otvori",
+  "just_now": "Upravo sad",
+  "min": "min",
+  "h": "h",
+  "refresh": "Osvježi",
+  "refresh_every": "Osvježava se svakih 4 sata",
+
+  "voda": {
+    "message": "💧 {{ime}}, danas si popio/la {{trenutno}}ml od cilja {{cilj}}ml. Potrebno je još {{preostalo}}ml vode!"
+  },
+  "dorucak": {
+    "message": "🌅 {{ime}}, vrijeme je za doručak! Dobre jutarnje navike počinju obrokom bogatim proteinima."
+  },
+  "rucak": {
+    "message": "🍽️ {{ime}}, vrijeme je za ručak! Ne preskači glavni obrok u danu."
+  },
+  "vecera": {
+    "message": "🌙 {{ime}}, vrijeme je za laganu večeru! Izbjegavaj tešku hranu prije spavanja."
+  },
+  "kupovina": {
+    "message": "🛒 {{ime}}, primjećujem da ti ponestaje namirnica ({{broj}} komada). Vrijeme je za odlazak u trgovinu!"
+  },
+  "san": {
+    "message": "😴 {{ime}}, primjećujem da spavaš manje od 6 sati u prosjeku. Pokušaj ranije na spavanje večeras!"
+  },
+  "coach": {
+    "message": "🧘 {{ime}}, primjećujem da si pod stresom. Isprobaj vježbe disanja ili čaj od kamilice."
+  },
+  "energija": {
+    "message": "⚡ {{ime}}, energija ti je na niskom nivou. Probaj smoothie od banane ili proteinski obrok."
+  },
+  "motivacija": {
+    "message": "🌟 Odlično, {{ime}}! San, energija i stres su na dobrom nivou. Nastavi ovako!"
+  },
+  "recepti": {
+    "message": "🍽️ {{ime}}, preporučujemo vam recepte: {{recepti}}"
+  },
+  "lajk": {
+    "message": "❤️ {{ime}} je lajkovao/la vašu objavu \"{{naziv}}\""
+  },
+  "bedz": {
+    "message": "🏆 Čestitamo! Osvojili ste bedž \"{{naziv}}\"! {{opis}}"
+  },
+  "premium_istek": {
+    "message": "⚠️ Vaš Premium nalog je istekao {{premium_do}}. Obnovite ga da biste nastavili koristiti Premium funkcionalnosti!"
+  },
+  "premium_aktiviran": {
+    "message": "🎉 Čestitamo! Vaš Premium nalog je aktiviran do {{premium_do}}."
+  },
+  "dobrodoslica": {
+    "message": "👋 Dobrodošli {{ime}}! Otkrijte savršene recepte prilagođene vašim potrebama. Započnite kviz da personalizujemo vaše iskustvo!"
+  }
 },
   "tajni_recept": {
     "title": "Tajni recept dana",

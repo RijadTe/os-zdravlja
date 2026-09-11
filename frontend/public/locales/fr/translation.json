@@ -1131,18 +1131,64 @@
     }
   },
   "notification": {
-    "title": "Notifications",
-    "notifications": "notifications",
-    "no_notifications": "Tout est calme",
-    "come_back_later": "Revenez plus tard",
-    "mark_all": "Tout marquer comme lu",
-    "mark_read": "Marquer comme lu",
-    "open": "Ouvrir",
-    "just_now": "À l'instant",
-    "min": "min",
-    "h": "h",
-    "refresh": "Rafraîchir",
-    "refresh_every": "Rafraîchit toutes les 4 heures"
+  "title": "Notifications",
+  "notifications": "notifications",
+  "no_notifications": "Tout est calme",
+  "come_back_later": "Revenez plus tard",
+  "mark_all": "Tout marquer",
+  "mark_read": "Marquer comme lu",
+  "open": "Ouvrir",
+  "just_now": "À l'instant",
+  "min": "min",
+  "h": "h",
+  "refresh": "Actualiser",
+  "refresh_every": "Actualisation toutes les 4 heures",
+
+  "voda": {
+    "message": "💧 {{ime}}, tu as bu {{trenutno}}ml sur ton objectif de {{cilj}}ml aujourd'hui. Il te reste encore {{preostalo}}ml d'eau !"
+  },
+  "dorucak": {
+    "message": "🌅 {{ime}}, c'est l'heure du petit-déjeuner ! Les bonnes habitudes matinales commencent par un repas riche en protéines."
+  },
+  "rucak": {
+    "message": "🍽️ {{ime}}, c'est l'heure du déjeuner ! Ne saute pas le repas principal de la journée."
+  },
+  "vecera": {
+    "message": "🌙 {{ime}}, c'est l'heure d'un dîner léger ! Évite les aliments lourds avant de dormir."
+  },
+  "kupovina": {
+    "message": "🛒 {{ime}}, je remarque que tu manques de provisions ({{broj}} articles). C'est le moment de faire les courses !"
+  },
+  "san": {
+    "message": "😴 {{ime}}, je remarque que tu dors en moyenne moins de 6 heures. Essaie de te coucher plus tôt ce soir !"
+  },
+  "coach": {
+    "message": "🧘 {{ime}}, je remarque que tu es stressé. Essaie des exercices de respiration ou une infusion de camomille."
+  },
+  "energija": {
+    "message": "⚡ {{ime}}, ton énergie est basse. Essaie un smoothie à la banane ou un repas protéiné."
+  },
+  "motivacija": {
+    "message": "🌟 Excellent, {{ime}} ! Sommeil, énergie et stress sont à de bons niveaux. Continue comme ça !"
+  },
+  "recepti": {
+    "message": "🍽️ {{ime}}, nous te recommandons ces recettes : {{recepti}}"
+  },
+  "lajk": {
+    "message": "❤️ {{ime}} a aimé ta publication \"{{naziv}}\""
+  },
+  "bedz": {
+    "message": "🏆 Félicitations ! Tu as gagné le badge \"{{naziv}}\" ! {{opis}}"
+  },
+  "premium_istek": {
+    "message": "⚠️ Ton compte Premium a expiré le {{premium_do}}. Renouvelle-le pour continuer à utiliser les fonctionnalités Premium !"
+  },
+  "premium_aktiviran": {
+    "message": "🎉 Félicitations ! Ton compte Premium est actif jusqu'au {{premium_do}}."
+  },
+  "dobrodoslica": {
+    "message": "👋 Bienvenue {{ime}} ! Découvre des recettes parfaites adaptées à tes besoins. Fais le quiz pour personnaliser ton expérience !"
+  }
   },
   "tajni_recept": {
     "title": "Recette secrète du jour",

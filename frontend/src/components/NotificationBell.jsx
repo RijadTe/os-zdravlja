@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const NotificationBell = () => {
-  const { t } = useTranslation();
+const { t, i18n } = useTranslation();
   const [notifikacije, setNotifikacije] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -234,8 +234,8 @@ const NotificationBell = () => {
     if (razlika < 1) return t('notification.just_now') || 'Upravo sada';
     if (razlika < 60) return `${razlika} ${t('notification.min') || 'min'}`;
     if (razlika < 1440) return `${Math.floor(razlika / 60)}${t('notification.h') || 'h'}`;
-    return d.toLocaleDateString('hr', { day: '2-digit', month: '2-digit' });
-  };
+    return d.toLocaleDateString(i18n.language || 'hr', { day: '2-digit', month: '2-digit' });
+    };
 
   // ============================================================
   // IKONE ZA TIPOVE NOTIFIKACIJA
@@ -279,6 +279,23 @@ const NotificationBell = () => {
       case 'voda': return 'border-cyan-400 bg-cyan-50 dark:bg-cyan-900/30';
       default: return 'border-blue-400 bg-blue-50 dark:bg-blue-900/30';
     }
+  };
+
+  // ============================================================
+  // 🔥 PREVOD NOTIFIKACIJE (i18n)
+  // ============================================================
+  const getNotificationText = (notif) => {
+    // Ako notifikacija ima params i tip, koristi i18n prijevod
+    if (notif.tip && notif.params && typeof notif.params === 'object') {
+      const key = `notification.${notif.tip}.message`;
+      const translated = t(key, notif.params);
+      // Ako prijevod postoji (nije vratio sam ključ), koristi ga
+      if (translated && translated !== key) {
+        return translated;
+      }
+    }
+    // Fallback na originalnu poruku iz baze (HR)
+    return notif.poruka;
   };
 
   if (!user) return null;
@@ -381,9 +398,9 @@ const NotificationBell = () => {
                     <div className="flex items-start gap-3">
                       <span className="text-xl">{getIcon(notif.tip)}</span>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm ${notif.procitano ? 'text-gray-600 dark:text-gray-400' : 'text-gray-800 dark:text-white font-medium'}`}>
-                          {notif.poruka}
-                        </p>
+                       <p className={`text-sm ${notif.procitano ? 'text-gray-600 dark:text-gray-400' : 'text-gray-800 dark:text-white font-medium'}`}>
+  {getNotificationText(notif)}
+</p>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                           <span className="text-xs text-gray-400 dark:text-gray-500">
                             {formatDate(notif.created_at)}

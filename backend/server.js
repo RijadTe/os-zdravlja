@@ -810,19 +810,190 @@ async function sendPushNotification(email, title, body, link = '/') {
 }
 
 // ============================================================
-// NOTIFIKACIJE - KREIRAJ (SA PROVJEROM DUPLIKATA)
+// 🔥 FALLBACK PORUKE ZA NOTIFIKACIJE (HR - za bazu)
 // ============================================================
-async function createNotification(email, tip, poruka, link = '/') {
+function generateFallbackMessage(tip, params = {}) {
+  const ime = params.ime || 'Prijatelju';
+  const p = params;
+
+  const messages = {
+    'voda': `💧 ${ime}, danas si popio/la ${p.trenutno || 0}ml od cilja ${p.cilj || 2000}ml. Potrebno je još ${p.preostalo || 0}ml vode!`,
+    'dorucak': `🌅 ${ime}, vrijeme je za doručak! Dobre jutarnje navike počinju obrokom bogatim proteinima.`,
+    'rucak': `🍽️ ${ime}, vrijeme je za ručak! Ne preskači glavni obrok u danu.`,
+    'vecera': `🌙 ${ime}, vrijeme je za laganu večeru! Izbjegavaj tešku hranu prije spavanja.`,
+    'kupovina': `🛒 ${ime}, primjećujem da ti ponestaje namirnica (${p.broj || 0} komada). Vrijeme je za odlazak u trgovinu!`,
+    'san': `😴 ${ime}, primjećujem da spavaš manje od 6 sati u prosjeku. Pokušaj ranije na spavanje večeras!`,
+    'coach': `🧘 ${ime}, primjećujem da si pod stresom. Isprobaj vježbe disanja ili čaj od kamilice.`,
+    'energija': `⚡ ${ime}, energija ti je na niskom nivou. Probaj smoothie od banane ili proteinski obrok.`,
+    'motivacija': `🌟 Odlično, ${ime}! San, energija i stres su na dobrom nivou. Nastavi ovako!`,
+    'recepti': `🍽️ ${ime}, preporučujemo vam recepte: ${p.recepti || ''}`,
+    'lajk': `❤️ ${p.ime || 'Neko'} je lajkovao/la vašu objavu "${p.naziv || ''}"`,
+    'bedz': `🏆 Čestitamo! Osvojili ste bedž "${p.naziv || ''}"! ${p.opis || ''}`,
+    'premium_istek': `⚠️ Vaš Premium nalog je istekao ${p.premium_do || ''}. Obnovite ga da biste nastavili koristiti Premium funkcionalnosti!`,
+    'premium_aktiviran': `🎉 Čestitamo! Vaš Premium nalog je aktiviran do ${p.premium_do || ''}.`,
+    'dobrodoslica': `👋 Dobrodošli ${ime}! Otkrijte savršene recepte prilagođene vašim potrebama. Započnite kviz da personalizujemo vaše iskustvo!`,
+    'plan_obroka': `📅 Vaš plan obroka je spreman! Pogledajte šta smo pripremili za vas.`,
+    'tajni_recept': `🕵️ Tajni recept je otključan! Provjerite ga prije nego što nestane.`,
+  };
+
+  return messages[tip] || `🔔 Nova notifikacija: ${tip}`;
+}
+
+// ============================================================
+// 🔥 PUSH PORUKE NA KORISNIKOVOM JEZIKU
+// ============================================================
+function getPushMessage(tip, params = {}, jezik = 'hr') {
+  const ime = params.ime || 'Prijatelju';
+  const p = params;
+
+  const translations = {
+    'hr': {
+      'voda': `💧 ${ime}, popij malo vode! ${p.trenutno || 0}/${p.cilj || 2000}ml`,
+      'dorucak': `🌅 ${ime}, vrijeme je za doručak!`,
+      'rucak': `🍽️ ${ime}, vrijeme je za ručak!`,
+      'vecera': `🌙 ${ime}, vrijeme je za večeru!`,
+      'kupovina': `🛒 ${ime}, trebaš u trgovinu!`,
+      'san': `😴 ${ime}, spavaš premalo!`,
+      'coach': `🧘 ${ime}, opusti se malo!`,
+      'energija': `⚡ ${ime}, energija ti je niska!`,
+      'motivacija': `🌟 Odlično, ${ime}!`,
+      'recepti': `🍽️ Novi recepti za tebe!`,
+      'lajk': `❤️ Netko je lajkao tvoju objavu!`,
+      'bedz': `🏆 Osvojio/la si novi bedž!`,
+      'premium_istek': `⚠️ Premium je istekao!`,
+      'premium_aktiviran': `🎉 Premium aktiviran!`,
+      'dobrodoslica': `👋 Dobrodošli ${ime}!`,
+    },
+    'en': {
+      'voda': `💧 ${ime}, time to hydrate! ${p.trenutno || 0}/${p.cilj || 2000}ml`,
+      'dorucak': `🌅 ${ime}, it's breakfast time!`,
+      'rucak': `🍽️ ${ime}, it's lunch time!`,
+      'vecera': `🌙 ${ime}, it's dinner time!`,
+      'kupovina': `🛒 ${ime}, time to go shopping!`,
+      'san': `😴 ${ime}, you're sleeping too little!`,
+      'coach': `🧘 ${ime}, relax a bit!`,
+      'energija': `⚡ ${ime}, your energy is low!`,
+      'motivacija': `🌟 Great job, ${ime}!`,
+      'recepti': `🍽️ New recipes for you!`,
+      'lajk': `❤️ Someone liked your post!`,
+      'bedz': `🏆 You earned a new badge!`,
+      'premium_istek': `⚠️ Premium expired!`,
+      'premium_aktiviran': `🎉 Premium activated!`,
+      'dobrodoslica': `👋 Welcome ${ime}!`,
+    },
+    'de': {
+      'voda': `💧 ${ime}, Zeit zu trinken! ${p.trenutno || 0}/${p.cilj || 2000}ml`,
+      'dorucak': `🌅 ${ime}, Zeit fürs Frühstück!`,
+      'rucak': `🍽️ ${ime}, Zeit fürs Mittagessen!`,
+      'vecera': `🌙 ${ime}, Zeit fürs Abendessen!`,
+      'kupovina': `🛒 ${ime}, Zeit zum Einkaufen!`,
+      'san': `😴 ${ime}, du schläfst zu wenig!`,
+      'coach': `🧘 ${ime}, entspann dich!`,
+      'energija': `⚡ ${ime}, deine Energie ist niedrig!`,
+      'motivacija': `🌟 Super, ${ime}!`,
+      'recepti': `🍽️ Neue Rezepte für dich!`,
+      'lajk': `❤️ Jemand hat deinen Beitrag geliked!`,
+      'bedz': `🏆 Du hast ein neues Abzeichen!`,
+      'premium_istek': `⚠️ Premium abgelaufen!`,
+      'premium_aktiviran': `🎉 Premium aktiviert!`,
+      'dobrodoslica': `👋 Willkommen ${ime}!`,
+    },
+    'fr': {
+      'voda': `💧 ${ime}, il est temps de boire ! ${p.trenutno || 0}/${p.cilj || 2000}ml`,
+      'dorucak': `🌅 ${ime}, c'est l'heure du petit-déjeuner !`,
+      'rucak': `🍽️ ${ime}, c'est l'heure du déjeuner !`,
+      'vecera': `🌙 ${ime}, c'est l'heure du dîner !`,
+      'kupovina': `🛒 ${ime}, il est temps de faire les courses !`,
+      'san': `😴 ${ime}, tu dors trop peu !`,
+      'coach': `🧘 ${ime}, détends-toi !`,
+      'energija': `⚡ ${ime}, ton énergie est basse !`,
+      'motivacija': `🌟 Excellent, ${ime} !`,
+      'recepti': `🍽️ Nouvelles recettes pour toi !`,
+      'lajk': `❤️ Quelqu'un a aimé ta publication !`,
+      'bedz': `🏆 Tu as gagné un nouveau badge !`,
+      'premium_istek': `⚠️ Premium expiré !`,
+      'premium_aktiviran': `🎉 Premium activé !`,
+      'dobrodoslica': `👋 Bienvenue ${ime} !`,
+    },
+    'it': {
+      'voda': `💧 ${ime}, è ora di bere! ${p.trenutno || 0}/${p.cilj || 2000}ml`,
+      'dorucak': `🌅 ${ime}, è ora della colazione!`,
+      'rucak': `🍽️ ${ime}, è ora di pranzo!`,
+      'vecera': `🌙 ${ime}, è ora di cena!`,
+      'kupovina': `🛒 ${ime}, è ora di fare la spesa!`,
+      'san': `😴 ${ime}, dormi troppo poco!`,
+      'coach': `🧘 ${ime}, rilassati!`,
+      'energija': `⚡ ${ime}, la tua energia è bassa!`,
+      'motivacija': `🌟 Ottimo, ${ime}!`,
+      'recepti': `🍽️ Nuove ricette per te!`,
+      'lajk': `❤️ A qualcuno è piaciuto il tuo post!`,
+      'bedz': `🏆 Hai guadagnato un nuovo badge!`,
+      'premium_istek': `⚠️ Premium scaduto!`,
+      'premium_aktiviran': `🎉 Premium attivato!`,
+      'dobrodoslica': `👋 Benvenuto ${ime}!`,
+    },
+    'es': {
+      'voda': `💧 ${ime}, ¡hora de hidratarse! ${p.trenutno || 0}/${p.cilj || 2000}ml`,
+      'dorucak': `🌅 ${ime}, ¡es hora del desayuno!`,
+      'rucak': `🍽️ ${ime}, ¡es hora del almuerzo!`,
+      'vecera': `🌙 ${ime}, ¡es hora de la cena!`,
+      'kupovina': `🛒 ${ime}, ¡hora de ir de compras!`,
+      'san': `😴 ${ime}, ¡duermes muy poco!`,
+      'coach': `🧘 ${ime}, ¡relájate!`,
+      'energija': `⚡ ${ime}, ¡tu energía está baja!`,
+      'motivacija': `🌟 ¡Excelente, ${ime}!`,
+      'recepti': `🍽️ ¡Nuevas recetas para ti!`,
+      'lajk': `❤️ ¡A alguien le gustó tu publicación!`,
+      'bedz': `🏆 ¡Ganaste una nueva insignia!`,
+      'premium_istek': `⚠️ ¡Premium expirado!`,
+      'premium_aktiviran': `🎉 ¡Premium activado!`,
+      'dobrodoslica': `👋 ¡Bienvenido ${ime}!`,
+    },
+    'sl': {
+      'voda': `💧 ${ime}, čas je za vodo! ${p.trenutno || 0}/${p.cilj || 2000}ml`,
+      'dorucak': `🌅 ${ime}, čas je za zajtrk!`,
+      'rucak': `🍽️ ${ime}, čas je za kosilo!`,
+      'vecera': `🌙 ${ime}, čas je za večerjo!`,
+      'kupovina': `🛒 ${ime}, čas je za nakupovanje!`,
+      'san': `😴 ${ime}, premalo spiš!`,
+      'coach': `🧘 ${ime}, sprosti se!`,
+      'energija': `⚡ ${ime}, tvoja energija je nizka!`,
+      'motivacija': `🌟 Odlično, ${ime}!`,
+      'recepti': `🍽️ Novi recepti zate!`,
+      'lajk': `❤️ Nekdo je všečkal tvojo objavo!`,
+      'bedz': `🏆 Prislužil/a si novo značko!`,
+      'premium_istek': `⚠️ Premium je potekel!`,
+      'premium_aktiviran': `🎉 Premium aktiviran!`,
+      'dobrodoslica': `👋 Dobrodošli ${ime}!`,
+    }
+  };
+
+  const lang = translations[jezik] || translations['hr'];
+  return lang[tip] || `🔔 ${tip}`;
+}
+
+
+// ============================================================
+// NOTIFIKACIJE - KREIRAJ (SA PARAMS ZA i18n)
+// ============================================================
+async function createNotification(email, tip, params, link = '/') {
   try {
-    // 🔥 PROVJERI DA LI VEĆ POSTOJI ISTA NOTIFIKACIJA DANAS
+    // 🔥 Ako je params string (stari pozivi), pretvori u { ime } format
+    if (typeof params === 'string') {
+      params = { _legacy_poruka: params };
+    }
+
+    // 🔥 Generiši fallback poruku (HR) za push notifikaciju i bazu
+    const fallbackPoruka = generateFallbackMessage(tip, params);
+
+    // 🔥 PROVJERI DUPLIKAT ZA DANAS
     const danas = new Date().toISOString().split('T')[0];
-    
+
     const { data: existing, error: checkError } = await supabase
       .from('notifikacije')
       .select('id')
       .eq('korisnik_email', email)
       .eq('tip', tip)
-      .eq('poruka', poruka)
       .gte('created_at', `${danas}T00:00:00.000Z`)
       .maybeSingle();
 
@@ -830,13 +1001,13 @@ async function createNotification(email, tip, poruka, link = '/') {
       console.error('❌ Greška pri provjeri duplikata:', checkError);
     }
 
-    // 🔥 AKO POSTOJI - NE KREIRAJ NOVU! (NIŠTA NE RADIŠ S NJOM!)
+    // 🔥 AKO POSTOJI - NE KREIRAJ NOVU
     if (existing) {
       console.log(`ℹ️ Notifikacija već postoji danas za ${email} (${tip})`);
       return existing;
     }
 
-    // 🔥 KREIRAJ NOVU NOTIFIKACIJU (SAMO AKO NE POSTOJI)
+    // 🔥 DOHVATI PROFIL
     const { data: profil, error: profilError } = await supabase
       .from('profili')
       .select('id')
@@ -848,13 +1019,15 @@ async function createNotification(email, tip, poruka, link = '/') {
       return null;
     }
 
+    // 🔥 KREIRAJ NOTIFIKACIJU SA params (JSONB kolona)
     const { data, error } = await supabase
       .from('notifikacije')
       .insert([{
         korisnik_id: profil.id,
         korisnik_email: email,
         tip: tip,
-        poruka: poruka,
+        poruka: fallbackPoruka,       // fallback (HR) za staru verziju
+        params: params,                // 🔥 NOVO - JSONB za i18n
         link: link,
         created_at: new Date().toISOString()
       }])
@@ -865,9 +1038,21 @@ async function createNotification(email, tip, poruka, link = '/') {
       return null;
     }
 
-    console.log('✅ Notifikacija kreirana za:', email);
-    await sendPushNotification(email, 'OS Zdravlja', poruka, link);
-    
+    console.log('✅ Notifikacija kreirana za:', email, `(${tip})`);
+
+    // 🔥 POŠALJI PUSH SA PREVEDENOM PORUKOM
+    // Dohvati korisnikov jezik iz profila
+    const { data: userProfile } = await supabase
+      .from('profili')
+      .select('preferred_language')
+      .eq('email', email)
+      .maybeSingle();
+
+    const jezik = userProfile?.preferred_language || 'hr';
+    const pushPoruka = getPushMessage(tip, params, jezik);
+
+    await sendPushNotification(email, 'OS Zdravlja', pushPoruka, link);
+
     return data?.[0] || null;
   } catch (error) {
     console.error('❌ Greška:', error);
@@ -1227,12 +1412,12 @@ app.post('/api/auth/register',
       console.log('✅ Profil kreiran:', profileData);
       console.log('🌍 preferred_language sačuvan:', preferred_language || 'hr');
 
-      await createNotification(
-        email,
-        'motivacija',
-        `👋 Dobrodošli ${ime}! Otkrijte savršene recepte prilagođene vašim potrebama. Započnite kviz da personalizujemo vaše iskustvo!`,
-        '/quiz'
-      );
+   await createNotification(
+  email,
+  'dobrodoslica',
+  { ime: ime },
+  '/quiz'
+);
 
       res.status(201).json({
         success: true,
@@ -3799,7 +3984,7 @@ app.get('/api/zdravstveni-podaci/:email', async (req, res) => {
 });
 
 // ============================================================
-// 30. 🔥 NOTIFIKACIJE - GENERIŠI PREPORUKE (SVAKIH 4 SATA)
+// 30. 🔥 NOTIFIKACIJE - GENERIŠI PREPORUKE (S PARAMS ZA i18n)
 // ============================================================
 app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
   try {
@@ -3824,7 +4009,7 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
     const sat = new Date().getHours();
     const danas = new Date().toISOString().split('T')[0];
 
-    // 🔥 PROVJERI KOJE NOTIFIKACIJE SMO VEĆ POSLALI DANAS (UKLJUČUJUĆI I OBRISANE)
+    // 🔥 PROVJERI KOJE NOTIFIKACIJE SMO VEĆ POSLALI DANAS
     const { data: existingNotifications, error: existingError } = await supabase
       .from('notifikacije')
       .select('tip, created_at, obrisano')
@@ -3835,15 +4020,13 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       console.error('❌ Greška pri provjeri postojanih notifikacija:', existingError);
     }
 
-    // 🔥 PROVJERI DA LI JE NOTIFIKACIJA POSLANA U ZADNJIH 4 SATA (ČAK I OBRISANA)
     const hasSentRecently = (tip) => {
       const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000);
-      return existingNotifications?.some(n => 
+      return existingNotifications?.some(n =>
         n.tip === tip && new Date(n.created_at) > fourHoursAgo
       ) || false;
     };
 
-    // 🔥 PROVJERI DA LI JE POSLANA DANAS (ZA DNEVNE PREPORUKE) - ČAK I OBRISANA
     const hasSentToday = (tip) => {
       return existingNotifications?.some(n => n.tip === tip) || false;
     };
@@ -3870,7 +4053,7 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       if (prosjekSna < 6 && !hasSentToday('san')) {
         preporuke.push({
           tip: 'san',
-          poruka: `😴 ${ime}, primjećujem da spavaš manje od 6 sati u prosjeku. Pokušaj ranije na spavanje večeras!`,
+          params: { ime },
           link: '/'
         });
       }
@@ -3878,7 +4061,7 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       if (prosjekStresa > 6 && !hasSentToday('coach')) {
         preporuke.push({
           tip: 'coach',
-          poruka: `🧘 ${ime}, primjećujem da si pod stresom. Isprobaj vježbe disanja ili čaj od kamilice.`,
+          params: { ime },
           link: '/'
         });
       }
@@ -3886,7 +4069,7 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       if (prosjekEnergije < 5 && !hasSentToday('energija')) {
         preporuke.push({
           tip: 'energija',
-          poruka: `⚡ ${ime}, energija ti je na niskom nivou. Probaj smoothie od banane ili proteinski obrok.`,
+          params: { ime },
           link: '/recipes?preferencije=Visokoproteinski'
         });
       }
@@ -3894,7 +4077,7 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       if (prosjekSna >= 7 && prosjekStresa < 4 && prosjekEnergije >= 7 && !hasSentToday('motivacija')) {
         preporuke.push({
           tip: 'motivacija',
-          poruka: `🌟 Odlično, ${ime}! San, energija i stres su na dobrom nivou. Nastavi ovako!`,
+          params: { ime },
           link: '/profile'
         });
       }
@@ -3907,7 +4090,10 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
     if (namirnice.length < 3 && !hasSentRecently('kupovina')) {
       preporuke.push({
         tip: 'kupovina',
-        poruka: `🛒 ${ime}, primjećujem da ti ponestaje namirnica (${namirnice.length} komada). Vrijeme je za odlazak u trgovinu!`,
+        params: {
+          ime,
+          broj: namirnice.length
+        },
         link: '/grocery-list'
       });
     }
@@ -3932,7 +4118,12 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
       const preostalo = ciljVode - ukupnoVode;
       preporuke.push({
         tip: 'voda',
-        poruka: `💧 ${ime}, danas si popio/la ${ukupnoVode}ml od cilja ${ciljVode}ml. Potrebno je još ${preostalo}ml vode!`,
+        params: {
+          ime,
+          trenutno: ukupnoVode,
+          cilj: ciljVode,
+          preostalo
+        },
         link: '/water-tracker'
       });
     }
@@ -3954,29 +4145,26 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
     const imaRučak = danasnjiObroci?.some(o => o.tip === 'Ručak') || false;
     const imaVečeru = danasnjiObroci?.some(o => o.tip === 'Večera') || false;
 
-    // Doručak - samo ujutro, jednom dnevno
     if (sat >= 7 && sat <= 10 && !imaDoručak && !hasSentToday('dorucak')) {
       preporuke.push({
         tip: 'dorucak',
-        poruka: `🌅 ${ime}, vrijeme je za doručak! Dobre jutarnje navike počinju obrokom bogatim proteinima.`,
+        params: { ime },
         link: '/food-planner'
       });
     }
 
-    // Ručak - samo u podne, jednom dnevno
     if (sat >= 12 && sat <= 15 && !imaRučak && !hasSentToday('rucak')) {
       preporuke.push({
         tip: 'rucak',
-        poruka: `🍽️ ${ime}, vrijeme je za ručak! Ne preskači glavni obrok u danu.`,
+        params: { ime },
         link: '/food-planner'
       });
     }
 
-    // Večera - samo uveče, jednom dnevno
     if (sat >= 18 && sat <= 21 && !imaVečeru && !hasSentToday('vecera')) {
       preporuke.push({
         tip: 'vecera',
-        poruka: `🌙 ${ime}, vrijeme je za laganu večeru! Izbjegavaj tešku hranu prije spavanja.`,
+        params: { ime },
         link: '/food-planner'
       });
     }
@@ -3986,50 +4174,51 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
     // ============================================================
     if (!hasSentToday('recepti')) {
       let query = supabase.from('recepti').select('*').limit(3);
-      
+
       if (profil.vrsta && profil.vrsta.length > 0) {
         const vrste = profil.vrsta.filter(v => v !== 'Svejedno');
         if (vrste.length > 0) {
           query = query.in('vrsta', vrste);
         }
       }
-      
+
       if (restrikcije && restrikcije.length > 0) {
-        const hasNoRestrictions = restrikcije.some(r => 
+        const hasNoRestrictions = restrikcije.some(r =>
           r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
         );
-        
+
         if (!hasNoRestrictions) {
           query = query.not('izbjegava', '&&', restrikcije);
         }
       }
-      
+
       const { data: recepti } = await query;
-      
+
       if (recepti && recepti.length > 0) {
         const naziviRecepata = recepti.map(r => r.naziv).join(', ');
         preporuke.push({
           tip: 'recepti',
-          poruka: `🍽️ ${ime}, preporučujemo vam recepte: ${naziviRecepata}`,
+          params: {
+            ime,
+            recepti: naziviRecepata
+          },
           link: '/recipes'
         });
       }
     }
 
     // ============================================================
-    // 6. KREIRAJ NOTIFIKACIJE (SAMO AKO NISU POSLANE U ZADNJIH 4 SATA)
+    // 6. KREIRAJ NOTIFIKACIJE (SA PORUKOM ZA FALLBACK + PARAMS)
     // ============================================================
     let kreirano = 0;
     for (const preporuka of preporuke) {
-      // 🔥 DODATNA PROVJERA - 4 SATA (UKLJUČUJUĆI I OBRISANE)
       const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000);
-      
+
       const { data: checkExisting } = await supabase
         .from('notifikacije')
         .select('id')
         .eq('korisnik_email', email)
         .eq('tip', preporuka.tip)
-        .eq('poruka', preporuka.poruka)
         .gte('created_at', fourHoursAgo.toISOString())
         .maybeSingle();
 
@@ -4037,7 +4226,7 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
         await createNotification(
           email,
           preporuka.tip,
-          preporuka.poruka,
+          preporuka.params,
           preporuka.link || '/'
         );
         kreirano++;
@@ -4047,13 +4236,13 @@ app.get('/api/notifikacije/preporuke/:email', async (req, res) => {
     console.log(`✅ Kreirano ${kreirano} novih preporuka za ${email}`);
 
     // ============================================================
-    // 7. VRATI SVE NOTIFIKACIJE (SAMO ONE KOJE NISU OBRISANE)
+    // 7. VRATI SVE NOTIFIKACIJE (SAMO NE-OBRISANE)
     // ============================================================
     const { data: notifikacije, error: notifError } = await supabase
       .from('notifikacije')
       .select('*')
       .eq('korisnik_email', email)
-      .eq('obrisano', false)  // 🔥 SAMO NE-OBRISANE
+      .eq('obrisano', false)
       .order('created_at', { ascending: false });
 
     if (notifError) throw notifError;
@@ -4478,12 +4667,12 @@ app.post('/api/community/objave/:id/like', async (req, res) => {
 
       const ime = userData?.ime || 'Neko';
       
-      await createNotification(
-        objava.korisnik_email,
-        'lajk',
-        `${ime} je lajkovao/la vašu objavu "${objava.naziv}"`,
-        `/community`
-      );
+ await createNotification(
+  objava.korisnik_email,
+  'lajk',
+  { ime: ime, naziv: objava.naziv },
+  `/community`
+);
     }
 
     res.json({ lajkovi: noviLajkovi, lajkovao });
@@ -4868,64 +5057,6 @@ app.get('/api/verify-payment', async (req, res) => {
     console.error('❌ Greška pri verifikaciji:', error);
     res.status(500).json({ success: false, error: error.message });
   }
-});
-
-// ============================================================
-// 49. STRIPE WEBHOOK
-// ============================================================
-app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-  } catch (err) {
-    console.error('❌ Webhook greška:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object;
-    const email = session.metadata.email || session.customer_email;
-    
-    console.log('💰 Plaćanje (webhook) za:', email);
-
-    try {
-      const premiumDo = new Date();
-      premiumDo.setDate(premiumDo.getDate() + 30);
-      const premiumDoStr = premiumDo.toISOString().split('T')[0];
-      
-      const { error } = await supabase
-        .from('profili')
-        .update({ 
-          premium: true,
-          premium_do: premiumDoStr
-        })
-        .eq('email', email);
-
-      if (error) {
-        console.error('❌ Greška pri ažuriranju profila:', error);
-      } else {
-        console.log('✅ Premium aktiviran (webhook) za:', email);
-        console.log('📅 Premium važi do:', premiumDoStr);
-        
-        await createNotification(
-          email,
-          'motivacija',
-          `🎉 Čestitamo! Vaš Premium nalog je aktiviran do ${premiumDoStr}. Sada imate pristup svim Premium funkcionalnostima!`,
-          '/profile'
-        );
-      }
-    } catch (error) {
-      console.error('❌ Greška:', error);
-    }
-  }
-
-  res.json({ received: true });
 });
 
 // ============================================================
@@ -5343,12 +5474,12 @@ cron.schedule('0 0 * * *', async () => {
           console.log(`✅ Deaktiviran: ${user.email}`);
           
           try {
-            await createNotification(
-              user.email,
-              'premium_istek',
-              `⚠️ Vaš Premium nalog je istekao ${user.premium_do}. Obnovite ga da biste nastavili koristiti Premium funkcionalnosti!`,
-              '/premium'
-            );
+await createNotification(
+  user.email,
+  'premium_istek',
+  { premium_do: user.premium_do },
+  '/premium'
+);
           } catch (notifError) {
             console.error(`❌ Greška pri slanju notifikacije za ${user.email}:`, notifError);
           }
@@ -5493,12 +5624,12 @@ async function checkAndAwardBadges(email, akcija, podaci = {}) {
         noviBadgevi.push(badge);
         console.log(`🏆 Dodijeljen bedž: ${badge.naziv} za ${email}`);
         
-        await createNotification(
-          email,
-          'bedz',
-          `🎉 Čestitamo! Osvojili ste bedž "${badge.naziv}"! ${badge.opis || ''}`,
-          '/profile'
-        );
+  await createNotification(
+  email,
+  'bedz',
+  { naziv: badge.naziv, opis: badge.opis || '' },
+  '/profile'
+);
       }
     }
     
@@ -5733,11 +5864,11 @@ app.post('/api/badges/award', async (req, res) => {
     console.log(`🏆 Ručno dodijeljen bedž ${badge.naziv} za ${email}`);
     
     await createNotification(
-      email,
-      'bedz',
-      `🎉 Čestitamo! Osvojili ste bedž "${badge.naziv}"!`,
-      '/profile'
-    );
+  email,
+  'bedz',
+  { naziv: badge.naziv, opis: badge.opis || '' },
+  '/profile'
+);
     
     res.json({
       success: true,
