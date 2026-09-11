@@ -27,6 +27,7 @@ import TermsOfService from './pages/TermsOfService';
 import Footer from './components/Footer';
 import NotificationBell from './components/NotificationBell';
 import LanguageSwitcher from './components/LanguageSwitcher';
+import AIRecipe from './pages/AIRecipe';
 
 // 🔥🔥🔥 NOVE KOMPONENTE (DODATO) 🔥🔥🔥
 import BottomNav from './components/BottomNav';
@@ -511,6 +512,7 @@ useEffect(() => {
           <Route path="/goals" element={<Goals />} />
           <Route path="/water" element={<WaterTracker />} />
           <Route path="/micro-nutrients" element={<MicroNutrients />} />
+          <Route path="/ai-recipe/:id" element={<AIRecipe />} />
         </Routes>
         <Footer />
       </div>

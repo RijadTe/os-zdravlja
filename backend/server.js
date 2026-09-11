@@ -4944,8 +4944,23 @@ app.post('/api/recepti/translate', async (req, res) => {
       return res.status(400).json({ error: 'receptId i jezik su obavezni.' });
     }
 
-    if (!['en', 'de'].includes(jezik)) {
-      return res.status(400).json({ error: 'Jezik mora biti "en" ili "de".' });
+    // 🔥 PROVJERI DA LI JE GROQ/AI RECEPT - PRESKOČI PREVOD
+    if (receptId.startsWith('groq-') || receptId.startsWith('ai-')) {
+      console.log(`🤖 Groq/AI recept - prevod nije potreban: ${receptId}`);
+      return res.json({ 
+        success: true, 
+        data: null, 
+        message: 'Groq recepti se automatski generiraju na odabranom jeziku.',
+        is_groq: true 
+      });
+    }
+
+    // 🔥 PROŠIRI NA SVE JEZIKE
+    const dozvoljeniJezici = ['en', 'de', 'fr', 'it', 'es', 'sl'];
+    if (!dozvoljeniJezici.includes(jezik)) {
+      return res.status(400).json({ 
+        error: `Jezik mora biti jedan od: ${dozvoljeniJezici.join(', ')}.` 
+      });
     }
 
     console.log(`🔄 Prevodenje recepta ${receptId} na jezik: ${jezik}`);
@@ -5867,6 +5882,74 @@ app.post('/api/ai-chef-groq', async (req, res) => {
     res.status(500).json({ error: error.message || 'Groq greška' });
   }
 });
+
+
+// ============================================================
+// 🔥 DOHVATI GROQ RECEPT PO ID-u (ZA AI GENERIRANE RECEPTE)
+// ============================================================
+app.get('/api/recepti/groq/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    console.log(`🤖 Dohvatam Groq recept: ${id}`);
+
+    if (!id || !id.startsWith('groq-')) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Nevalidan Groq ID.' 
+      });
+    }
+
+    // 🔥 PRETRAŽI U AI CHEF CACHE
+    const { data: cacheData, error: cacheError } = await supabase
+      .from('ai_chef_cache')
+      .select('results')
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (cacheError) {
+      console.error('❌ Greška pri dohvatu keša:', cacheError);
+      return res.status(500).json({ 
+        success: false, 
+        error: cacheError.message 
+      });
+    }
+
+    // 🔥 PRONAĐI RECEPT U KEŠU
+    let foundRecipe = null;
+    if (cacheData && cacheData.length > 0) {
+      for (const cache of cacheData) {
+        if (cache.results && Array.isArray(cache.results)) {
+          const recipe = cache.results.find(r => r.id === id);
+          if (recipe) {
+            foundRecipe = recipe;
+            break;
+          }
+        }
+      }
+    }
+
+    if (foundRecipe) {
+      console.log(`✅ Groq recept pronađen: ${foundRecipe.naziv}`);
+      return res.json({ 
+        success: true, 
+        data: foundRecipe 
+      });
+    }
+
+    // 🔥 AKO NIJE PRONAĐEN
+    console.log(`⚠️ Groq recept nije pronađen: ${id}`);
+    return res.status(404).json({ 
+      success: false, 
+      error: 'Groq recept nije pronađen. Pretražite ponovo.' 
+    });
+
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 
 
 // ============================================================

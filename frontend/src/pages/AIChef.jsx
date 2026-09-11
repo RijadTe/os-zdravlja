@@ -1917,7 +1917,7 @@ useEffect(() => {
                   className="hover:-translate-y-1 transition-transform duration-300"
                 >
                   <Link
-                    to={`/recipes/${recipe.id}`}
+  to={recipe._ai_generated ? `/ai-recipe/${recipe.id}` : `/recipes/${recipe.id}`}
                     className="block bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all border border-gray-100 dark:border-gray-700 group"
                   >
                     <div className="relative overflow-hidden">
