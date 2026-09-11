@@ -578,7 +578,11 @@ async function deleteFromCloudinary(publicId) {
 async function translateRecipeText(recipe, targetLang) {
   const langMap = {
     'en': 'engleski',
-    'de': 'njemački'
+    'de': 'njemački',
+    'fr': 'francuski',
+    'it': 'talijanski',
+    'es': 'španjolski',
+    'sl': 'slovenski'
   };
   const langName = langMap[targetLang] || targetLang;
 
@@ -5199,8 +5203,11 @@ app.post('/api/recepti/translate-all', async (req, res) => {
   try {
     const { jezik } = req.body;
     
-    if (!jezik || !['en', 'de'].includes(jezik)) {
-      return res.status(400).json({ error: 'Parametar "jezik" je obavezan (en ili de).' });
+    const dozvoljeniJezici = ['en', 'de', 'fr', 'it', 'es', 'sl'];
+    if (!jezik || !dozvoljeniJezici.includes(jezik)) {
+      return res.status(400).json({ 
+        error: `Jezik mora biti jedan od: ${dozvoljeniJezici.join(', ')}.` 
+      });
     }
 
     console.log(`🔄 Masovni prevod recepata na jezik: ${jezik}`);
@@ -5289,7 +5296,8 @@ app.get('/api/recepti/translate/status', async (req, res) => {
 
     if (totalError) throw totalError;
 
-    if (jezik && ['en', 'de'].includes(jezik)) {
+    const dozvoljeniJezici = ['en', 'de', 'fr', 'it', 'es', 'sl'];
+    if (jezik && dozvoljeniJezici.includes(jezik)) {
       const { count: missing, error: missingError } = await supabase
         .from('recepti')
         .select('*', { count: 'exact', head: true })
