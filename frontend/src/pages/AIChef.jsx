@@ -892,10 +892,6 @@ const AIChef = () => {
       setProgress(40);
       setStatus(t('aichef.status.sending'));
 
-      const formData = new FormData();
-      formData.append('tekst', finalText.trim());
-      if (email) formData.append('email', email);
-      formData.append('jezik', currentLang);
 
       setProgress(50);
       setStatus(t('aichef.status.analyzing'));
@@ -920,14 +916,22 @@ const AIChef = () => {
       console.log('📤 Šaljem zahtev na /api/ai-chef...');
       const response = await fetch(`${API_URL}/api/ai-chef`, {
         method: 'POST',
-        body: formData
+       headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          tekst: finalText.trim(),
+          email: email || undefined,
+          jezik: currentLang
+        })
+    
       });
 
       clearInterval(statusInterval);
 
       // ================================== //
-      // 🔥 PROVERA ODGOVORA (KAO U AIChat) //
-      // ================================== //
+      // 🔥 PROVERA ODGOVORA               //
+      // ==================================//
 
       console.log('📡 Status odgovora:', response.status);
       
@@ -1258,11 +1262,7 @@ setRezultati(processedData);
       setProgress(40);
       setStatus(t('aichef.status.communicating_with_server'));
 
-      const formData = new FormData();
-      formData.append('tekst', finalText.trim());
-      if (email) formData.append('email', email);
-      formData.append('jezik', currentLang);
-
+    
       setProgress(50);
       setStatus(t('aichef.status.analyzing'));
 
@@ -1283,9 +1283,16 @@ setRezultati(processedData);
       }, 2000);
 
       const response = await fetch(`${API_URL}/api/ai-chef`, {
-        method: 'POST',
-        body: formData
-      });
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    tekst: finalText.trim(),
+    email: email || undefined,
+    jezik: currentLang
+  })
+});
 
       clearInterval(statusInterval);
 
