@@ -285,16 +285,50 @@ const { t, i18n } = useTranslation();
   // 🔥 PREVOD NOTIFIKACIJE (i18n)
   // ============================================================
   const getNotificationText = (notif) => {
-    // Ako notifikacija ima params i tip, koristi i18n prijevod
-    if (notif.tip && notif.params && typeof notif.params === 'object') {
+    // 🔥 DEBUG - vidi što stiže s backenda
+    console.log('🔍 notif.tip:', notif.tip);
+    console.log('🔍 notif.params:', notif.params);
+    console.log('🔍 typeof notif.params:', typeof notif.params);
+
+    let params = notif.params;
+
+    // 🔥 Ako je params STRING (Supabase ga često vraća kao JSON string) - parsiraj
+    if (typeof params === 'string') {
+      try {
+        params = JSON.parse(params);
+        console.log('✅ params parsiran iz stringa:', params);
+      } catch (e) {
+        console.error('❌ Greška pri parsiranju params:', e);
+        params = {};
+      }
+    }
+
+    // Ako params nije objekt ili je prazan, fallback na originalnu poruku
+    if (!params || typeof params !== 'object' || Array.isArray(params)) {
+      console.log('⚠️ params nije objekt, fallback na notif.poruka');
+      return notif.poruka;
+    }
+
+    // Ako params ima _legacy_poruka (stari format), vrati to
+    if (params._legacy_poruka) {
+      return params._legacy_poruka;
+    }
+
+    // 🔥 Pokušaj i18n prijevod
+    if (notif.tip) {
       const key = `notification.${notif.tip}.message`;
-      const translated = t(key, notif.params);
+      const translated = t(key, params);
+      
+      console.log('🔍 key:', key);
+      console.log('🔍 translated:', translated);
+      
       // Ako prijevod postoji (nije vratio sam ključ), koristi ga
       if (translated && translated !== key) {
         return translated;
       }
     }
-    // Fallback na originalnu poruku iz baze (HR)
+
+    // Fallback na originalnu poruku iz baze
     return notif.poruka;
   };
 
