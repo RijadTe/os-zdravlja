@@ -5774,32 +5774,64 @@ app.post('/api/ai-chef-groq', async (req, res) => {
     
     // 🔥 PRIREMI PROMPT ZA GROQ - SA ZABRANOM MARKDOWN
     const prompt = `
-      KREIRAJ RECEPTE na osnovu dostupnih sastojaka.
-      
-      📦 DOSTUPNI SASTOJCI: ${sastojci.join(', ')}
-      
-      🔒 RESTRIKCIJE: ${restrikcijePrompt}
-      
-      ⚠️ VAŽNO: Odgovori ISKLJUČIVO u čistom JSON formatu.
-      NE dodaj markdown, NE dodaj \`\`\`json, NE dodaj nikakav dodatni tekst.
-      Odgovor MORA počinjati sa { i završavati sa }.
-      
-      Kreiraj 3-5 recepta:
+  KREIRAJ DETALJNE RECEPTE na osnovu dostupnih sastojaka.
+  
+  📦 DOSTUPNI SASTOJCI: ${sastojci.join(', ')}
+  
+  🔒 RESTRIKCIJE: ${restrikcijePrompt}
+  
+  ⚠️ VAŽNO: Odgovori ISKLJUČIVO u čistom JSON formatu.
+  NE dodaj markdown, NE dodaj \`\`\`json, NE dodaj nikakav dodatni tekst.
+  Odgovor MORA počinjati sa { i završavati sa }.
+  
+  ⚠️ OBAVEZNO ZA SVAKI RECEPT:
+  1. SASTOJCI MORAJU IMATI TOČNE KOLIČINE (npr. "500g piletine", "2 glavice luka", "3 kašike ulja")
+  2. UPUTE MORAJU BITI DETALJNE - svaki korak treba opisati što točno raditi
+  3. Svaki korak treba imati 1-2 rečenice opisa
+  4. Navedi temperaturu pećnice, vrijeme kuhanja, način pripreme
+  5. Koristi DOSTUPNE SASTOJKE što više možeš
+  
+  Kreiraj 3-5 DETALJNIH recepta:
+  {
+    "recepti": [
       {
-        "recepti": [
-          {
-            "naziv": "...",
-            "opis": "...",
-            "sastojci": ["...", "..."],
-            "upute": ["...", "..."],
-            "vrijeme": "30 min",
-            "tezina": "Srednji",
-            "kalorije": 0,
-            "vrsta": "Slano"
-          }
-        ]
+        "naziv": "Piletina sa povrćem",
+        "opis": "Sočna piletina pečena sa svježim povrćem i začinima",
+        "sastojci": [
+          "500g pilećih prsa",
+          "2 glavice luka",
+          "3 čehna bijelog luka",
+          "2 paradajza",
+          "500g krompira",
+          "3 kašike maslinovog ulja",
+          "1 kašičica soli",
+          "1/2 kašičice crnog bibera",
+          "1 kašičica slatke paprike"
+        ],
+        "upute": [
+          "Zagrijte pećnicu na 200°C.",
+          "Piletinu narežite na kockice veličine 3cm i stavite u veliku zdjelu.",
+          "Luk i bijeli luk sitno nasjeckajte, paradajz narežite na kockice, a krompir na četvrtine.",
+          "U zdjelu sa piletinom dodajte nasjeckani luk, bijeli luk, paradajz i krompir.",
+          "Dodajte maslinovo ulje, so, biber i slatku papriku. Dobro promiješajte rukama.",
+          "Sve stavite u pleh obložen papirom za pečenje i rasporedite u jednom sloju.",
+          "Pecite 35-40 minuta na 200°C dok piletina ne postane zlatna, a krompir mekan.",
+          "Poslužite toplo, po želji pospite svježim peršunom."
+        ],
+        "vrijeme": "45 min",
+        "tezina": "Srednji",
+        "kalorije": 520,
+        "vrsta": "Slano",
+        "nacin_pripreme": "Pečenje u pećnici na 200°C"
       }
-    `;
+    ]
+  }
+  
+  ⚠️ ZAPAMTI:
+  - Sastojci MORAJU imati količine (g, ml, kom, kašika, itd.)
+  - Upute MORAJU biti detaljne (5-10 koraka po receptu)
+  - Svaki korak treba biti potpuna rečenica
+`;
     
     // 🔥 PROVERI DA LI JE GROQ DOSTUPAN
     if (!groqChef) {
