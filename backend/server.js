@@ -6114,12 +6114,13 @@ app.get('/api/recepti/groq/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    console.log(`🤖 Dohvatam Groq recept: ${id}`);
+    console.log(`🤖 Dohvatam AI/Groq recept: ${id}`);
 
-    if (!id || !id.startsWith('groq-')) {
+    // 🔥 PODRŽI OBA PREFIKSA
+    if (!id || (!id.startsWith('groq-') && !id.startsWith('ai-'))) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Nevalidan Groq ID.' 
+        error: 'Nevalidan AI/Groq ID.' 
       });
     }
 
