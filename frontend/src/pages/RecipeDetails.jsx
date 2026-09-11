@@ -452,20 +452,44 @@ const RecipeDetails = () => {
           sastojci: data.sastojci || []
         });
 
-        if (i18n.language !== 'hr') {
+        // 🔥 UZMI SAMO PRVI DIO JEZIKA (npr. 'de-DE' → 'de')
+        const currentLang = (i18n.language || 'hr').split('-')[0].toLowerCase();
+
+        if (currentLang !== 'hr') {
           try {
-            const translateRes = await fetch(`${API_URL}/api/recepti/translate`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                receptId: data.id,
-                jezik: i18n.language
-              })
-            });
-            const translateData = await translateRes.json();
-            if (translateData.success) {
-              setTranslatedRecipe(translateData.data);
-              console.log('✅ Prevod dohvaćen za:', i18n.language);
+            // 🔥 PROVJERI DA LI JE AI RECEPT
+            if (data.id?.startsWith('groq-') || data.id?.startsWith('ai-')) {
+              // 🔥 KORISTI AI PREVOD
+              console.log('🤖 AI recept - koristim AI prevod');
+              const translateRes = await fetch(`${API_URL}/api/recepti/groq/translate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  recept: data,
+                  jezik: currentLang
+                })
+              });
+              const translateData = await translateRes.json();
+              if (translateData.success) {
+                setTranslatedRecipe(translateData.data);
+                console.log('✅ AI prevod dohvaćen:', translateData._source);
+              }
+            } else {
+              // 🔥 OBIČNI RECEPT
+              console.log('📋 Obični recept - koristim standardni prevod');
+              const translateRes = await fetch(`${API_URL}/api/recepti/translate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  receptId: data.id,
+                  jezik: currentLang
+                })
+              });
+              const translateData = await translateRes.json();
+              if (translateData.success) {
+                setTranslatedRecipe(translateData.data);
+                console.log('✅ Prevod dohvaćen za:', currentLang);
+              }
             }
           } catch (translateError) {
             console.warn('⚠️ Greška pri prevodu:', translateError);
@@ -528,13 +552,17 @@ const RecipeDetails = () => {
     setLoadingSommelier(true);
     setSommelierError(null);
     try {
+      // 🔥 UZMI JEZIK IZ i18n
+      const currentLang = (i18n.language || 'hr').split('-')[0].toLowerCase();
+
       const res = await fetch(`${API_URL}/api/ai-sommelier`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           naziv: recipe?.naziv,
           sastojci: recipe?.sastojci,
-          receptId: recipe?.id
+          receptId: recipe?.id,
+          jezik: currentLang  // 🔥 DODANO
         })
       });
       const data = await res.json();

@@ -4607,7 +4607,7 @@ app.post('/api/ai-sommelier', async (req, res) => {
   console.log('📦 Recept ID:', req.body.receptId);
   
   try {
-    const { naziv, sastojci, receptId } = req.body;
+    const { naziv, sastojci, receptId, jezik = 'hr' } = req.body;
 
     if (receptId) {
       const cached = await checkSommelierCache(receptId);
@@ -4634,12 +4634,25 @@ app.post('/api/ai-sommelier', async (req, res) => {
     };
 
     // 🔥 PRIPREMI PROMPT (ISTI ZA OBA AI)
-    const prompt = `Za jelo "${naziv}" sa sastojcima: ${sastojci?.join(', ') || 'nepoznati'}. 
+const jezikMapa = {
+  'hr': 'hrvatskom',
+  'en': 'engleskom',
+  'de': 'njemačkom',
+  'fr': 'francuskom',
+  'it': 'talijanskom',
+  'es': 'španjolskom',
+  'sl': 'slovenskom'
+};
+const jezikNaziv = jezikMapa[jezik] || 'hrvatskom';
+
+const prompt = `Za jelo "${naziv}" sa sastojcima: ${sastojci?.join(', ') || 'nepoznati'}. 
     Predloži:
     1. Začine (2-3)
     2. Piće (vino, sok, čaj...)
     3. Prilog (salata, krompir, povrće...)
     4. Idealno vrijeme za jelo (doručak, ručak, večera...)
+    
+    ⚠️ VAŽNO: Odgovori ISKLJUČIVO na ${jezikNaziv} jeziku!
     
     Odgovori u JSON formatu: { "zacini": "...", "pice": "...", "prilog": "...", "vrijeme_jela": "..." }`;
 
@@ -5765,16 +5778,31 @@ app.post('/api/ai-chef-groq', async (req, res) => {
       }
     }
     
-    const sastojci = tekst.split(',').map(s => s.trim());
-    
-    let restrikcijePrompt = 'Nema posebnih restrikcija.';
-    if (restrikcije.length > 0) {
-      restrikcijePrompt = `Korisnik IZBJEGAVA: ${restrikcije.join(', ')}. SVAKI recept MORA biti BEZ ovih sastojaka!`;
-    }
-    
-    // 🔥 PRIREMI PROMPT ZA GROQ - SA ZABRANOM MARKDOWN
-    const prompt = `
-  KREIRAJ DETALJNE RECEPTE na osnovu dostupnih sastojaka.
+const sastojci = tekst.split(',').map(s => s.trim());
+
+let restrikcijePrompt = 'Nema posebnih restrikcija.';
+if (restrikcije.length > 0) {
+  restrikcijePrompt = `Korisnik IZBJEGAVA: ${restrikcije.join(', ')}. SVAKI recept MORA biti BEZ ovih sastojaka!`;
+}
+
+// 🔥 MAPIRANJE JEZIKA
+const jezikMapa = {
+  'hr': 'hrvatskom',
+  'en': 'engleskom',
+  'de': 'njemačkom',
+  'fr': 'francuskom',
+  'it': 'talijanskom',
+  'es': 'španjolskom',
+  'sl': 'slovenskom'
+};
+const jezikNaziv = jezikMapa[jezik] || 'hrvatskom';
+
+// 🔥 PRIREMI PROMPT ZA GROQ - SA ZABRANOM MARKDOWN
+const prompt = `
+  KREIRAJ DETALJNE RECEPTE na ${jezikNaziv} jeziku na osnovu dostupnih sastojaka.
+  
+  ⚠️ VAŽNO: Odgovori ISKLJUČIVO na ${jezikNaziv} jeziku!
+  Naziv, opis, sastojci, upute, način pripreme - SVE na ${jezikNaziv}!
   
   📦 DOSTUPNI SASTOJCI: ${sastojci.join(', ')}
   
@@ -5996,6 +6024,154 @@ app.get('/api/recepti/groq/:id', async (req, res) => {
   } catch (error) {
     console.error('❌ Greška:', error);
     res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+
+// ============================================================
+// 🔥 PREVOD AI/GROQ RECEPTA
+// ============================================================
+app.post('/api/recepti/groq/translate', async (req, res) => {
+  try {
+    const { recept, jezik } = req.body;
+
+    if (!recept || !jezik) {
+      return res.status(400).json({ 
+        error: 'recept i jezik su obavezni.' 
+      });
+    }
+
+    const dozvoljeniJezici = ['en', 'de', 'fr', 'it', 'es', 'sl'];
+    if (!dozvoljeniJezici.includes(jezik)) {
+      return res.status(400).json({ 
+        error: `Jezik mora biti jedan od: ${dozvoljeniJezici.join(', ')}.` 
+      });
+    }
+
+    console.log(`🔄 Prevod AI recepta na jezik: ${jezik}`);
+
+    const jezikMapa = {
+      'en': 'engleski',
+      'de': 'njemački',
+      'fr': 'francuski',
+      'it': 'talijanski',
+      'es': 'španjolski',
+      'sl': 'slovenski'
+    };
+    const jezikNaziv = jezikMapa[jezik];
+
+    const prompt = `
+      Prevedi sljedeći recept na ${jezikNaziv} jezik.
+      
+      NAZIV: ${recept.naziv}
+      OPIS: ${recept.opis || ''}
+      SASTOJCI: ${JSON.stringify(recept.sastojci || [])}
+      UPUTE: ${JSON.stringify(recept.upute || [])}
+      NAČIN PRIPREME: ${recept.nacin_pripreme || ''}
+      
+      ⚠️ VAŽNO:
+      - Prevedi SVE na ${jezikNaziv} jezik
+      - Sačuvaj strukturu (liste, redoslijed)
+      - Prevedi i nazive sastojaka
+      - Prevedi i korake pripreme
+      - Sačuvaj kulinarske termine
+      
+      Odgovori ISKLJUČIVO u JSON formatu:
+      {
+        "naziv": "...",
+        "opis": "...",
+        "sastojci": ["...", "..."],
+        "upute": ["...", "..."],
+        "nacin_pripreme": "..."
+      }
+    `;
+
+    // 🔥 1. OPENAI
+    if (openai) {
+      try {
+        console.log('🤖 OpenAI prevod...');
+        
+        const response = await openai.chat.completions.create({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.3,
+          response_format: { type: "json_object" },
+          timeout: 15000
+        });
+
+        const translation = JSON.parse(response.choices[0].message.content);
+        console.log('✅ OpenAI prevod uspješan');
+        
+        return res.json({
+          success: true,
+          data: translation,
+          _source: 'openai'
+        });
+
+      } catch (openaiError) {
+        console.error('❌ OpenAI prevod greška:', openaiError.message);
+      }
+    }
+
+    // 🔥 2. GROQ FALLBACK
+    if (groqChef) {
+      try {
+        console.log('🔄 Groq prevod (fallback)...');
+        
+        const groqResponse = await groqChef.chat.completions.create({
+          messages: [
+            { 
+              role: "system", 
+              content: "Ti si prevodilac recepata. Odgovaraj isključivo u JSON formatu." 
+            },
+            { role: "user", content: prompt }
+          ],
+          model: "groq/compound",
+          temperature: 0.3,
+          max_tokens: 2048,
+        });
+
+        let content = groqResponse.choices[0].message.content;
+        content = content.replace(/```json\s*/g, '');
+        content = content.replace(/```\s*/g, '');
+        content = content.trim();
+
+        let translation;
+        try {
+          translation = JSON.parse(content);
+        } catch (parseError) {
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            translation = JSON.parse(jsonMatch[0]);
+          } else {
+            throw new Error('Nevalidan JSON');
+          }
+        }
+
+        console.log('✅ Groq prevod uspješan');
+        
+        return res.json({
+          success: true,
+          data: translation,
+          _source: 'groq'
+        });
+
+      } catch (groqError) {
+        console.error('❌ Groq prevod greška:', groqError.message);
+      }
+    }
+
+    // 🔥 3. FALLBACK
+    console.warn('⚠️ Nijedan AI nije dostupan, vraćam original');
+    return res.json({
+      success: true,
+      data: recept,
+      _source: 'original'
+    });
+
+  } catch (error) {
+    console.error('❌ Greška pri prevodu AI recepta:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 

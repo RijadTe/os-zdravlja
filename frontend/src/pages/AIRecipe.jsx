@@ -21,23 +21,22 @@ const VoiceRecipeReader = ({ recipe }) => {
   const steps = recipe?.upute || [];
 
   const getSpeechLang = () => {
-  // 🔥 UZMI SAMO PRVI DIO JEZIKA (npr. 'hr-HR' → 'hr')
-  const langCode = (i18n.language || 'hr').split('-')[0].toLowerCase();
-  
-  const langMap = {
-    'hr': 'hr-HR',
-    'en': 'en-US',
-    'de': 'de-DE',
-    'fr': 'fr-FR',
-    'it': 'it-IT',
-    'es': 'es-ES',
-    'sl': 'sl-SI'
+    const langCode = (i18n.language || 'hr').split('-')[0].toLowerCase();
+
+    const langMap = {
+      'hr': 'hr-HR',
+      'en': 'en-US',
+      'de': 'de-DE',
+      'fr': 'fr-FR',
+      'it': 'it-IT',
+      'es': 'es-ES',
+      'sl': 'sl-SI'
+    };
+
+    const result = langMap[langCode] || 'hr-HR';
+    console.log('🎤 Speech language:', langCode, '→', result);
+    return result;
   };
-  
-  const result = langMap[langCode] || 'hr-HR';
-  console.log('🎤 Speech language:', langCode, '→', result);
-  return result;
-};
 
   useEffect(() => {
     if (!isNative && !('speechSynthesis' in window)) {
@@ -313,6 +312,7 @@ const AIRecipe = () => {
   const { t, i18n } = useTranslation();
   const [recipe, setRecipe] = useState(null);
   const [originalRecipe, setOriginalRecipe] = useState(null);
+  const [translatedRecipe, setTranslatedRecipe] = useState(null); // 🔥 DODANO
   const [loading, setLoading] = useState(true);
   const [osobe, setOsobe] = useState(4);
   const [originalneOsobe, setOriginalneOsobe] = useState(4);
@@ -331,25 +331,58 @@ const AIRecipe = () => {
   const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
     if (!sastojci || sastojci.length === 0) return sastojci;
     if (originalneOsobe === noveOsobe) return sastojci;
-    
+
     const faktor = noveOsobe / originalneOsobe;
-    
+
     return sastojci.map(sastojak => {
       const match = sastojak.match(/^(\d+\.?\d*)\s*(g|kg|ml|l|kom|šolja|kašika|kafena kašika|prstohvat|dcl|dl)?/i);
-      
+
       if (match) {
         const kolicina = parseFloat(match[1]);
         const jedinica = match[2] || '';
         const ostatak = sastojak.replace(/^(\d+\.?\d*)\s*(g|kg|ml|l|kom|šolja|kašika|kafena kašika|prstohvat|dcl|dl)?\s*/i, '');
-        
+
         const novaKolicina = Math.round(kolicina * faktor * 10) / 10;
         const prikazKolicine = Number.isInteger(novaKolicina) ? novaKolicina : novaKolicina.toFixed(1);
-        
+
         return `${prikazKolicine}${jedinica ? ' ' + jedinica : ''}${ostatak ? ' ' + ostatak : ''}`;
       }
-      
+
       return sastojak;
     });
+  };
+
+  // ============================================================
+  // 🔄 PREVEDI AI RECEPT
+  // ============================================================
+  const translateRecipe = async (recipeData, targetLang) => {
+    if (targetLang === 'hr') {
+      setTranslatedRecipe(null);
+      return;
+    }
+
+    try {
+      console.log('🔄 Prevodim AI recept na:', targetLang);
+
+      const res = await fetch(`${API_URL}/api/recepti/groq/translate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recept: recipeData,
+          jezik: targetLang
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.success && data.data) {
+        console.log('✅ Prevod dohvaćen:', data._source);
+        setTranslatedRecipe(data.data);
+      }
+    } catch (error) {
+      console.error('❌ Greška pri prevodu:', error);
+      setTranslatedRecipe(null);
+    }
   };
 
   // ============================================================
@@ -362,7 +395,7 @@ const AIRecipe = () => {
         originalneOsobe || 4,
         osobe
       );
-      
+
       setRecipe({
         ...originalRecipe,
         sastojci: prilagodjeniSastojci
@@ -386,16 +419,16 @@ const AIRecipe = () => {
       try {
         setLoading(true);
         console.log('🔍 Dohvatam AI recept ID:', id);
-        
+
         const res = await fetch(`${API_URL}/api/recepti/groq/${id}`);
-        
+
         if (!res.ok) {
           throw new Error('Recept nije pronađen');
         }
-        
+
         const data = await res.json();
         console.log('📊 AI recept dohvaćen:', data);
-        
+
         if (data.success && data.data) {
           const recipeData = data.data;
           setOriginalRecipe(recipeData);
@@ -404,23 +437,29 @@ const AIRecipe = () => {
             ...recipeData,
             sastojci: recipeData.sastojci || []
           });
+
+          // 🔥 PREVEDI AKO JEZIK NIJE HRVATSKI
+          const currentLang = (i18n.language || 'hr').split('-')[0].toLowerCase();
+          if (currentLang !== 'hr') {
+            translateRecipe(recipeData, currentLang);
+          }
         } else {
           throw new Error(data.error || 'Recept nije pronađen');
         }
-        
+
         setLoading(false);
       } catch (error) {
         console.error('❌ Greška:', error);
         setLoading(false);
       }
     };
-    
+
     if (id) {
       fetchRecipe();
     } else {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, i18n.language]); // 🔥 DODANO i18n.language
 
   // ============================================================
   // ⏱️ TIMER LOGIKA
@@ -497,13 +536,17 @@ const AIRecipe = () => {
     setLoadingSommelier(true);
     setSommelierError(null);
     try {
+      // 🔥 UZMI JEZIK IZ i18n
+      const currentLang = (i18n.language || 'hr').split('-')[0].toLowerCase();
+
       const res = await fetch(`${API_URL}/api/ai-sommelier`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           naziv: recipe?.naziv,
           sastojci: recipe?.sastojci,
-          receptId: recipe?.id
+          receptId: recipe?.id,
+          jezik: currentLang  // 🔥 DODANO
         })
       });
       const data = await res.json();
@@ -515,6 +558,13 @@ const AIRecipe = () => {
       setLoadingSommelier(false);
     }
   };
+
+  // ============================================================
+  // 🔥 PRIKAZ - koristi prevedeni recept ako postoji
+  // ============================================================
+  const displayRecipe = translatedRecipe
+    ? { ...recipe, ...translatedRecipe }
+    : recipe;
 
   // ============================================================
   // 🖥️ RENDER - LOADING
@@ -560,9 +610,9 @@ const AIRecipe = () => {
   // ============================================================
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
-      <SEO 
-        title={recipe.naziv}
-        description={recipe.opis}
+      <SEO
+        title={displayRecipe.naziv}
+        description={displayRecipe.opis}
         url={`https://os-zdravlja.vercel.app/ai-recipe/${id}`}
       />
 
@@ -574,14 +624,14 @@ const AIRecipe = () => {
         >
           ⬅️ {t('common.back')}
         </button>
-        <Link 
-          to="/ai-chef" 
+        <Link
+          to="/ai-chef"
           className="text-purple-500 dark:text-purple-400 hover:underline flex items-center gap-2"
         >
           ✨ AI Chef
         </Link>
-        <Link 
-          to="/recipes" 
+        <Link
+          to="/recipes"
           className="text-blue-500 dark:text-blue-400 hover:underline flex items-center gap-2"
         >
           📋 {t('recipe.all_recipes')}
@@ -592,7 +642,7 @@ const AIRecipe = () => {
       <div className="relative">
         <img
           src={recipe.slika || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=400&fit=crop'}
-          alt={recipe.naziv}
+          alt={displayRecipe.naziv}
           className="w-full h-64 object-cover rounded-xl mb-4"
         />
         <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
@@ -602,7 +652,7 @@ const AIRecipe = () => {
 
       {/* NASLOV I FAVORIT */}
       <div className="flex justify-between items-start">
-        <h1 className="text-3xl font-bold dark:text-white">{recipe.naziv}</h1>
+        <h1 className="text-3xl font-bold dark:text-white">{displayRecipe.naziv}</h1>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsFavorite(!isFavorite)}
@@ -614,7 +664,7 @@ const AIRecipe = () => {
       </div>
 
       {/* OPIS */}
-      <p className="text-gray-600 dark:text-gray-300 mt-2">{recipe.opis}</p>
+      <p className="text-gray-600 dark:text-gray-300 mt-2">{displayRecipe.opis}</p>
 
       {/* INFORMACIJE */}
       <div className="flex flex-wrap gap-4 mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
@@ -663,7 +713,7 @@ const AIRecipe = () => {
           📋 {t('recipe.ingredients')} ({t('recipe.for')} {osobe} {osobe === 1 ? t('recipe.person') : t('recipe.people')})
         </h2>
         <ul className="list-disc list-inside space-y-1">
-          {recipe.sastojci?.map((s, i) => (
+          {displayRecipe.sastojci?.map((s, i) => (
             <li key={i} className="text-gray-700 dark:text-gray-300">{s}</li>
           ))}
         </ul>
@@ -692,29 +742,29 @@ const AIRecipe = () => {
       <div className="mt-6">
         <h2 className="text-2xl font-bold dark:text-white mb-2">👨‍🍳 {t('recipe.instructions')}</h2>
         <ol className="list-decimal list-inside space-y-2">
-          {recipe.upute?.map((u, i) => (
+          {displayRecipe.upute?.map((u, i) => (
             <li key={i} className="text-gray-700 dark:text-gray-300">{u}</li>
           ))}
         </ol>
       </div>
 
       {/* NACIN PRIPREME */}
-      {recipe.nacin_pripreme && (
+      {displayRecipe.nacin_pripreme && (
         <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-xl">
           <h3 className="font-bold dark:text-white mb-2">📝 {t('recipe.preparation')}</h3>
-          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{recipe.nacin_pripreme}</p>
+          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{displayRecipe.nacin_pripreme}</p>
         </div>
       )}
 
       {/* DUGMAD */}
       <div className="mt-6 flex flex-wrap gap-3">
-        <button 
+        <button
           onClick={() => window.print()}
           className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition dark:text-white"
         >
           🖨️ {t('recipe.print')}
         </button>
-        <button 
+        <button
           onClick={shareRecipe}
           className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition dark:text-white"
         >
@@ -724,7 +774,7 @@ const AIRecipe = () => {
 
       {/* SOCIAL MEDIA */}
       <div className="mt-4 flex flex-wrap gap-3">
-        <button 
+        <button
           onClick={() => {
             const url = encodeURIComponent(window.location.href);
             window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
@@ -733,7 +783,7 @@ const AIRecipe = () => {
         >
           📘 Facebook
         </button>
-        <button 
+        <button
           onClick={() => {
             const text = encodeURIComponent(`${recipe?.naziv} - ${window.location.href}`);
             window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
@@ -782,7 +832,7 @@ const AIRecipe = () => {
       {/* GLASOVNO KUHANJE */}
       {user?.premium ? (
         <div className="mt-6">
-          <VoiceRecipeReader recipe={recipe} />
+          <VoiceRecipeReader recipe={displayRecipe} />
         </div>
       ) : (
         <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 text-center">
@@ -816,8 +866,8 @@ const AIRecipe = () => {
 
       {/* BACK */}
       <div className="mt-8 text-center">
-        <Link 
-          to="/ai-chef" 
+        <Link
+          to="/ai-chef"
           className="inline-flex items-center gap-2 text-purple-600 dark:text-purple-400 hover:underline font-medium"
         >
           <span>←</span> Nazad na AI Chef
