@@ -5860,22 +5860,39 @@ app.post('/api/ai-chef-groq', async (req, res) => {
     }
     
     const results = (aiData.recepti || []).map((r, index) => ({
-      ...r,
-      id: `groq-${Date.now()}-${index}`,
-      _ai_generated: true,
-      _source: 'groq',
-      alergeni: restrikcije || []
-    }));
-    
-    console.log(`✅ Groq generisao ${results.length} recepata`);
-    
-    if (results.length === 0) {
-      return res.status(404).json({ 
-        error: 'Nema recepata za ove sastojke. Pokušajte sa drugom kombinacijom.' 
-      });
-    }
-    
-    res.json(results);
+  ...r,
+  id: `groq-${Date.now()}-${index}`,
+  _ai_generated: true,
+  _source: 'groq',
+  alergeni: restrikcije || []
+}));
+
+console.log(`✅ Groq generisao ${results.length} recepata`);
+
+if (results.length === 0) {
+  return res.status(404).json({ 
+    error: 'Nema recepata za ove sastojke. Pokušajte sa drugom kombinacijom.' 
+  });
+}
+
+// 🔥 SAČUVAJ U KEŠ (DA BI POSLIJE MOGLI DOHVATITI PO ID-u)
+try {
+  const sortedInput = tekst
+    .split(',')
+    .map(s => s.trim().toLowerCase())
+    .filter(s => s.length > 0)
+    .sort()
+    .join(', ');
+  
+  const textHash = generateHash(sortedInput, 'tekst');
+  
+  await saveToCache(textHash, 'tekst', results);
+  console.log(`💾 Groq recepti sačuvani u keš: ${results.length}`);
+} catch (cacheError) {
+  console.error('⚠️ Greška pri spremanju u keš:', cacheError);
+}
+
+res.json(results);
     
   } catch (error) {
     console.error('❌ Groq greška:', error);
