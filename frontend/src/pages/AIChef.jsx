@@ -981,8 +981,11 @@ if (!data || data.length === 0) {
       
       if (groqData && groqData.length > 0) {
         const processedData = groqData.map(recipe => {
+          let processed = recipe;
+          
+          // 🔥 PRIMIJENI PREVOD AKO POSTOJI
           if (recipe.prevod && currentLang !== 'hr') {
-            return {
+            processed = {
               ...recipe,
               naziv: recipe.prevod.naziv || recipe.naziv,
               opis: recipe.prevod.opis || recipe.opis,
@@ -991,10 +994,18 @@ if (!data || data.length === 0) {
               nacin_pripreme: recipe.prevod.nacin_pripreme || recipe.nacin_pripreme
             };
           }
-          return recipe;
+          
+          // 🔥 OSIGURAJ DA RECEPT IMA IZBJEGAVA POLJE
+          return {
+            ...processed,
+            izbjegava: processed.izbjegava || [],
+            _ai_generated: true,
+            _source: 'groq'
+          };
         });
         
         console.log('📊 Procesirani podaci:', processedData.length);
+        console.log('📊 Prvi recept:', processedData[0]);
         
         // 🔥 POSTAVI SVE STATE-OVE
         setRezultati(processedData);
@@ -1387,36 +1398,52 @@ setRezultati(processedData);
     }
   }, [slika, user, dailyLimit, videoWatched, i18n.language, t, fetchDailyLimit, cestePretrage, loading, tekst]);
 
-  // ============================================================
-  // FILTRIRAJ REZULTATE SA RESTRIKCIJAMA
-  // ============================================================
-  useEffect(() => {
-    let filtered = rezultati;
+ // ============================================================
+// FILTRIRAJ REZULTATE SA RESTRIKCIJAMA
+// ============================================================
+useEffect(() => {
+  let filtered = rezultati;
+  
+  if (filteri.vrsta) {
+    filtered = filtered.filter(r => r.vrsta === filteri.vrsta);
+  }
+  if (filteri.vrijeme) {
+    filtered = filtered.filter(r => r.vrijeme === filteri.vrijeme);
+  }
+  if (filteri.tezina) {
+    filtered = filtered.filter(r => r.tezina === filteri.tezina);
+  }
+  
+  if (profil?.izbjegava && profil.izbjegava.length > 0) {
+    // 🔥 LISTA "BEZ RESTRIKCIJA" ZA SVE JEZIKE
+    const bezRestrikcija = [
+      'Bez restrikcija',           // HR
+      'No restrictions',           // EN
+      'Keine Einschränkungen',     // DE
+      'Aucune restriction',        // FR
+      'Nessuna restrizione',       // IT
+      'Sin restricciones',         // ES
+      'Brez omejitev'              // SL
+    ];
     
-    if (filteri.vrsta) {
-      filtered = filtered.filter(r => r.vrsta === filteri.vrsta);
-    }
-    if (filteri.vrijeme) {
-      filtered = filtered.filter(r => r.vrijeme === filteri.vrijeme);
-    }
-    if (filteri.tezina) {
-      filtered = filtered.filter(r => r.tezina === filteri.tezina);
-    }
+    const restrikcije = profil.izbjegava.filter(r => 
+      !bezRestrikcija.includes(r)
+    );
     
-    if (profil?.izbjegava && profil.izbjegava.length > 0) {
-      const restrikcije = profil.izbjegava.filter(r => 
-        r !== 'Bez restrikcija' && r !== 'No restrictions' && r !== 'Keine Einschränkungen'
-      );
-      if (restrikcije.length > 0) {
-        filtered = filtered.filter(recipe => {
-          const izbjegava = recipe.izbjegava || [];
-          return restrikcije.every(r => izbjegava.includes(r));
-        });
-      }
+    if (restrikcije.length > 0) {
+      filtered = filtered.filter(recipe => {
+        // 🔥 AKO RECEPT NEMA IZBJEGAVA POLJE, PROPUSTI GA
+        if (!recipe.izbjegava || recipe.izbjegava.length === 0) {
+          return true;
+        }
+        const izbjegava = recipe.izbjegava || [];
+        return restrikcije.every(r => izbjegava.includes(r));
+      });
     }
-    
-    setFilteredRezultati(filtered);
-  }, [filteri, rezultati, profil]);
+  }
+  
+  setFilteredRezultati(filtered);
+}, [filteri, rezultati, profil]);
 
   // ============================================================
   // 🔥 GLASOVNA PRETRAGA - KORISTI WEB SPEECH API ZA SVE
