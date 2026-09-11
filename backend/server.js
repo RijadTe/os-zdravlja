@@ -723,12 +723,13 @@ async function analyzeImage(imagePath) {
 // ============================================================
 // AI SOMELIJER CACHE FUNKCIJE
 // ============================================================
-async function checkSommelierCache(receptId) {
+async function checkSommelierCache(receptId, jezik = 'hr') {
   try {
     const { data, error } = await supabase
       .from('ai_sommelier_cache')
-      .select('zacini, pice, prilog, vrijeme_jela, created_at')
+      .select('zacini, pice, prilog, vrijeme_jela, created_at, jezik')
       .eq('recept_id', receptId)
+      .eq('jezik', jezik)  // 🔥 DODANO!
       .gte('expires_at', new Date().toISOString())
       .maybeSingle();
 
@@ -743,26 +744,30 @@ async function checkSommelierCache(receptId) {
   }
 }
 
-async function saveSommelierCache(receptId, data) {
+async function saveSommelierCache(receptId, data, jezik = 'hr') {
   try {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
 
+    // 🔥 UPSERT - ako već postoji za taj jezik, zamijeni
     const { error } = await supabase
       .from('ai_sommelier_cache')
-      .insert([{
+      .upsert({
         recept_id: receptId,
+        jezik: jezik,  // 🔥 DODANO!
         zacini: data.zacini,
         pice: data.pice,
         prilog: data.prilog,
         vrijeme_jela: data.vrijeme_jela,
         expires_at: expiresAt.toISOString()
-      }]);
+      }, {
+        onConflict: 'recept_id,jezik'  // 🔥 DODANO!
+      });
 
     if (error) {
       console.error('❌ Greška pri spremanju u Sommelier keš:', error);
     } else {
-      console.log('✅ Sačuvano u Sommelier keš za recept:', receptId);
+      console.log(`✅ Sačuvano u Sommelier keš: recept=${receptId}, jezik=${jezik}`);
     }
   } catch (error) {
     console.error('❌ Greška pri spremanju u Sommelier keš:', error);
@@ -4605,25 +4610,27 @@ app.post('/api/ai-sommelier', async (req, res) => {
   console.log('\n🍷 === AI SOMELIJER ===');
   console.log('📦 Recept:', req.body.naziv);
   console.log('📦 Recept ID:', req.body.receptId);
+  console.log('🌍 Jezik:', req.body.jezik || 'hr');
   
   try {
     const { naziv, sastojci, receptId, jezik = 'hr' } = req.body;
 
     if (receptId) {
-      const cached = await checkSommelierCache(receptId);
+      // 🔥 PROVJERI KEŠ ZA TAJ JEZIK
+      const cached = await checkSommelierCache(receptId, jezik);
       if (cached) {
-        console.log('✅ Keš pronađen za recept:', receptId);
+        console.log(`✅ Keš pronađen: recept=${receptId}, jezik=${jezik}`);
         return res.json({
           zacini: cached.zacini,
           pice: cached.pice,
           prilog: cached.prilog,
           vrijeme_jela: cached.vrijeme_jela,
           _cached: true,
-          _cached_at: cached.created_at
+          _cached_at: cached.created_at,
+          _jezik: cached.jezik
         });
       }
     }
-
     console.log('🔄 Nema keša, generišem odgovor...');
 
     let result = {
@@ -4728,8 +4735,8 @@ const prompt = `Za jelo "${naziv}" sa sastojcima: ${sastojci?.join(', ') || 'nep
 
     // 🔥 SAČUVAJ U KEŠ (AKO IMA RECEPT ID)
     if (receptId && aiSuccess) {
-      await saveSommelierCache(receptId, result);
-      console.log('✅ Sačuvano u keš za recept:', receptId);
+      await saveSommelierCache(receptId, result, jezik);
+      console.log(`✅ Sačuvano u keš: recept=${receptId}, jezik=${jezik}`);
     }
 
     res.json({
