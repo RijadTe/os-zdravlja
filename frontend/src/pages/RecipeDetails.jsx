@@ -133,7 +133,7 @@ const VoiceRecipeReader = ({ recipe }) => {
           if (nextStep < steps.length) {
             setCurrentStep(nextStep);
             currentStepRef.current = nextStep;
-            setTimeout(() => speakStep(nextStep), 500);
+            setTimeout(() => speakStep(nextStep), 90000);
           } else {
             setIsReading(false);
             setCurrentStep(0);
@@ -167,7 +167,7 @@ const VoiceRecipeReader = ({ recipe }) => {
         if (nextStep < steps.length) {
           setCurrentStep(nextStep);
           currentStepRef.current = nextStep;
-          setTimeout(() => speakStep(nextStep), 500);
+          setTimeout(() => speakStep(nextStep), 90000);
         } else {
           setIsReading(false);
           setCurrentStep(0);
