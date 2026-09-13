@@ -4,14 +4,11 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createBannerAd } from "@/ads/AdsManager.jsx";
 import { isNative } from '../utils/platform';
-// 🔥 UKLONI OVE LINIJE:
-// const { Share } = await import('@capacitor/share');
-// import { TextToSpeech } from '@capacitor-community/text-to-speech';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ============================================================
-// VOICE RECIPE READER KOMPONENTA (SA NATIVE PODRŠKOM)
+// VOICE RECIPE READER — RADI U PWA (Web Speech) + NATIVE (Plugin)
 // ============================================================
 const VoiceRecipeReader = ({ recipe }) => {
   const { t, i18n } = useTranslation();
@@ -20,40 +17,75 @@ const VoiceRecipeReader = ({ recipe }) => {
   const [isPaused, setIsPaused] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
   const utteranceRef = useRef(null);
+
+  // 🔥 REF-OVI (rješavaju stale closure u async funkcijama)
+  const isReadingRef = useRef(false);
+  const isPausedRef = useRef(false);
+  const currentStepRef = useRef(0);
+
   const steps = recipe?.upute || [];
 
- const getSpeechLang = () => {
-  const langCode = (i18n.language || 'hr').split('-')[0].toLowerCase();
-  
-  const langMap = {
-    'hr': 'hr-HR',
-    'en': 'en-US',
-    'de': 'de-DE',
-    'fr': 'fr-FR',
-    'it': 'it-IT',
-    'es': 'es-ES',
-    'sl': 'sl-SI'
-  };
-  
-  const result = langMap[langCode] || 'hr-HR';
-  console.log('🎤 Speech language:', langCode, '→', result);
-  return result;
-};
+  // 🔥 Sinhronizacija ref-ova sa state-om
+  useEffect(() => { isReadingRef.current = isReading; }, [isReading]);
+  useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
+  useEffect(() => { currentStepRef.current = currentStep; }, [currentStep]);
 
+  // ============================================================
+  // JEZIK GOVORA
+  // ============================================================
+  const getSpeechLang = () => {
+    const langCode = (i18n.language || 'hr').split('-')[0].toLowerCase();
+
+    const langMap = {
+      'hr': 'hr-HR',
+      'en': 'en-US',
+      'de': 'de-DE',
+      'fr': 'fr-FR',
+      'it': 'it-IT',
+      'es': 'es-ES',
+      'sl': 'sl-SI'
+    };
+
+    const result = langMap[langCode] || 'hr-HR';
+    console.log('🎤 Speech language:', langCode, '→', result);
+    return result;
+  };
+
+  // ============================================================
+  // PROVJERA DOSTUPNOSTI — Native plugin ili Web Speech API
+  // ============================================================
   useEffect(() => {
-    if (!isNative && !('speechSynthesis' in window)) {
-      setSpeechSupported(false);
+    if (isNative) {
+      const TTS = window.Capacitor?.Plugins?.TextToSpeech;
+      setSpeechSupported(!!TTS);
+      console.log('🎤 Native TTS dostupan:', !!TTS);
+    } else {
+      const webSupported =
+        typeof window !== 'undefined' &&
+        'speechSynthesis' in window &&
+        'SpeechSynthesisUtterance' in window;
+      setSpeechSupported(webSupported);
+      console.log('🎤 Web Speech API dostupan:', webSupported);
     }
   }, []);
 
+  // ============================================================
+  // CLEANUP pri unmount-u
+  // ============================================================
   useEffect(() => {
     return () => {
-      if (!isNative && window.speechSynthesis) {
+      if (isNative) {
+        const TTS = window.Capacitor?.Plugins?.TextToSpeech;
+        if (TTS) TTS.stop().catch(() => {});
+      } else if (window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
     };
   }, []);
 
+  // ============================================================
+  // 🔥 GOVORI KORAK
+  // ============================================================
   const speakStep = async (stepIndex) => {
     if (!speechSupported) {
       alert(t('common.error'));
@@ -63,149 +95,241 @@ const VoiceRecipeReader = ({ recipe }) => {
     if (stepIndex >= steps.length) {
       setIsReading(false);
       setCurrentStep(0);
+      isReadingRef.current = false;
+      currentStepRef.current = 0;
       return;
     }
 
     const text = `${t('recipe.step')} ${stepIndex + 1}: ${steps[stepIndex]}`;
 
+    // ============================================================
+    // NATIVE TTS — direktan pristup preko window.Capacitor
+    // ============================================================
     if (isNative) {
-      // 🔥 NATIVE TEXT-TO-SPEECH - DINAMIČKI IMPORT
       try {
-        const { TextToSpeech } = await import('@capacitor-community/text-to-speech');
-        await TextToSpeech.speak({
+        const TTS = window.Capacitor?.Plugins?.TextToSpeech;
+
+        if (!TTS) {
+          console.error('❌ TTS plugin nije dostupan');
+          alert('Glasovno čitanje nije dostupno');
+          setIsReading(false);
+          isReadingRef.current = false;
+          setCurrentStep(0);
+          return;
+        }
+
+        await TTS.speak({
           text: text,
           lang: getSpeechLang(),
           rate: 0.85,
           pitch: 1.0,
-          volume: 1.0
+          volume: 1.0,
+          category: 'ambient'
         });
 
-        if (isReading && !isPaused) {
+        // 🔥 Koristi REF-ove (ne state) — izbjegava stale closure
+        if (isReadingRef.current && !isPausedRef.current) {
           const nextStep = stepIndex + 1;
           if (nextStep < steps.length) {
             setCurrentStep(nextStep);
+            currentStepRef.current = nextStep;
             setTimeout(() => speakStep(nextStep), 500);
           } else {
             setIsReading(false);
             setCurrentStep(0);
+            isReadingRef.current = false;
+            currentStepRef.current = 0;
             alert(t('recipe.finished'));
           }
         }
       } catch (error) {
-        console.error('Native TTS error:', error);
+        console.error('❌ Native TTS error:', error);
+        console.error('❌ Message:', error?.message);
         setIsReading(false);
+        isReadingRef.current = false;
         setCurrentStep(0);
       }
-    } else {
-      // 🔥 WEB TEXT-TO-SPEECH
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = getSpeechLang();
-      utterance.rate = 0.85;
-      utterance.pitch = 1;
-      utteranceRef.current = utterance;
-
-      utterance.onend = () => {
-        if (isReading && !isPaused) {
-          const nextStep = stepIndex + 1;
-          if (nextStep < steps.length) {
-            setCurrentStep(nextStep);
-            setTimeout(() => speakStep(nextStep), 500);
-          } else {
-            setIsReading(false);
-            setCurrentStep(0);
-            alert(t('recipe.finished'));
-          }
-        }
-      };
-
-      utterance.onerror = () => {
-        setIsReading(false);
-        setCurrentStep(0);
-      };
-
-      window.speechSynthesis.speak(utterance);
+      return;
     }
+
+    // ============================================================
+    // WEB SPEECH API (PWA)
+    // ============================================================
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = getSpeechLang();
+    utterance.rate = 0.85;
+    utterance.pitch = 1;
+    utteranceRef.current = utterance;
+
+    utterance.onend = () => {
+      if (isReadingRef.current && !isPausedRef.current) {
+        const nextStep = stepIndex + 1;
+        if (nextStep < steps.length) {
+          setCurrentStep(nextStep);
+          currentStepRef.current = nextStep;
+          setTimeout(() => speakStep(nextStep), 500);
+        } else {
+          setIsReading(false);
+          setCurrentStep(0);
+          isReadingRef.current = false;
+          currentStepRef.current = 0;
+          alert(t('recipe.finished'));
+        }
+      }
+    };
+
+    utterance.onerror = (e) => {
+      console.error('❌ Web TTS error:', e);
+      setIsReading(false);
+      isReadingRef.current = false;
+      setCurrentStep(0);
+    };
+
+    window.speechSynthesis.speak(utterance);
   };
 
-  const startReading = () => {
+  // ============================================================
+  // ▶️ START / RESUME
+  // ============================================================
+  const startReading = async () => {
     if (steps.length === 0) {
       alert(t('recipe.no_steps'));
       return;
     }
 
-    if (isReading) {
-      if (isPaused) {
-        if (isNative) {
-          setIsPaused(false);
-          speakStep(currentStep);
-        } else {
-          window.speechSynthesis.resume();
-          setIsPaused(false);
-        }
+    // 🔥 Provjera dostupnosti
+    if (isNative) {
+      const TTS = window.Capacitor?.Plugins?.TextToSpeech;
+      if (!TTS) {
+        alert('Glasovno čitanje nije dostupno na ovom uređaju');
+        return;
+      }
+    } else {
+      if (!('speechSynthesis' in window)) {
+        alert('Glasovno čitanje nije podržano u ovom pregledniku');
+        return;
+      }
+    }
+
+    // Resume iz pauze
+    if (isReading && isPaused) {
+      setIsPaused(false);
+      isPausedRef.current = false;
+
+      if (isNative) {
+        speakStep(currentStepRef.current);
+      } else {
+        window.speechSynthesis.resume();
       }
       return;
     }
 
+    if (isReading) return;
+
+    // Novi start
     setIsReading(true);
     setIsPaused(false);
     setCurrentStep(0);
+    isReadingRef.current = true;
+    isPausedRef.current = false;
+    currentStepRef.current = 0;
+
     speakStep(0);
   };
 
-  const pauseReading = () => {
-    if (isReading && !isPaused) {
-      if (isNative) {
-        setIsPaused(true);
-        import('@capacitor-community/text-to-speech').then(({ TextToSpeech }) => {
-          TextToSpeech.stop();
-        }).catch(() => {});
-      } else {
-        window.speechSynthesis.pause();
-        setIsPaused(true);
+  // ============================================================
+  // ⏸️ PAUZA
+  // ============================================================
+  const pauseReading = async () => {
+    if (!isReading || isPaused) return;
+
+    if (isNative) {
+      try {
+        const TTS = window.Capacitor?.Plugins?.TextToSpeech;
+        if (TTS) await TTS.stop();
+      } catch (e) {
+        console.error('TTS pause error:', e);
       }
+      setIsPaused(true);
+      isPausedRef.current = true;
+    } else {
+      window.speechSynthesis.pause();
+      setIsPaused(true);
+      isPausedRef.current = true;
     }
   };
 
-  const stopReading = () => {
+  // ============================================================
+  // ⏹️ STOP
+  // ============================================================
+  const stopReading = async () => {
     if (isNative) {
-      import('@capacitor-community/text-to-speech').then(({ TextToSpeech }) => {
-        TextToSpeech.stop();
-      }).catch(() => {});
+      try {
+        const TTS = window.Capacitor?.Plugins?.TextToSpeech;
+        if (TTS) await TTS.stop();
+      } catch (e) {
+        console.error('TTS stop error:', e);
+      }
     } else {
       window.speechSynthesis.cancel();
     }
     setIsReading(false);
     setIsPaused(false);
     setCurrentStep(0);
+    isReadingRef.current = false;
+    isPausedRef.current = false;
+    currentStepRef.current = 0;
   };
 
-  const skipStep = () => {
-    if (isReading) {
-      if (!isNative) {
-        window.speechSynthesis.cancel();
-      }
-      const nextStep = currentStep + 1;
-      if (nextStep < steps.length) {
-        setCurrentStep(nextStep);
-        setIsPaused(false);
-        setTimeout(() => speakStep(nextStep), 300);
-      } else {
-        stopReading();
-        alert(t('recipe.finished'));
-      }
+  // ============================================================
+  // ⏭️ SLJEDEĆI KORAK
+  // ============================================================
+  const skipStep = async () => {
+    if (!isReading) return;
+
+    if (isNative) {
+      try {
+        const TTS = window.Capacitor?.Plugins?.TextToSpeech;
+        if (TTS) await TTS.stop();
+      } catch (e) {}
+    } else {
+      window.speechSynthesis.cancel();
     }
-  };
 
-  const prevStep = () => {
-    if (isReading && currentStep > 0) {
-      if (!isNative) {
-        window.speechSynthesis.cancel();
-      }
-      const prev = currentStep - 1;
-      setCurrentStep(prev);
+    const nextStep = currentStepRef.current + 1;
+    if (nextStep < steps.length) {
+      setCurrentStep(nextStep);
+      currentStepRef.current = nextStep;
       setIsPaused(false);
-      setTimeout(() => speakStep(prev), 300);
+      isPausedRef.current = false;
+      setTimeout(() => speakStep(nextStep), 300);
+    } else {
+      stopReading();
+      alert(t('recipe.finished'));
     }
+  };
+
+  // ============================================================
+  // ⏮️ PRETHODNI KORAK
+  // ============================================================
+  const prevStep = async () => {
+    if (!isReading || currentStepRef.current <= 0) return;
+
+    if (isNative) {
+      try {
+        const TTS = window.Capacitor?.Plugins?.TextToSpeech;
+        if (TTS) await TTS.stop();
+      } catch (e) {}
+    } else {
+      window.speechSynthesis.cancel();
+    }
+
+    const prev = currentStepRef.current - 1;
+    setCurrentStep(prev);
+    currentStepRef.current = prev;
+    setIsPaused(false);
+    isPausedRef.current = false;
+    setTimeout(() => speakStep(prev), 300);
   };
 
   if (!recipe || steps.length === 0) {
@@ -223,7 +347,8 @@ const VoiceRecipeReader = ({ recipe }) => {
           {!isReading ? (
             <button
               onClick={startReading}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-semibold transition flex items-center gap-2 text-sm"
+              disabled={!speechSupported}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-semibold transition flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               🔊 {t('recipe.start_reading')}
             </button>
@@ -330,104 +455,93 @@ const RecipeDetails = () => {
   const [loadingSommelier, setLoadingSommelier] = useState(false);
   const [sommelierError, setSommelierError] = useState(null);
 
- // ============================================================
-// 📊 PRERAČUNAJ SASTOJKE ZA BROJ OSOBA (POBOLJŠANO)
-// ============================================================
-const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
-  if (!sastojci || sastojci.length === 0) return sastojci;
-  if (originalneOsobe === noveOsobe) return sastojci;
+  // ============================================================
+  // 📊 PRERAČUNAJ SASTOJKE ZA BROJ OSOBA
+  // ============================================================
+  const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
+    if (!sastojci || sastojci.length === 0) return sastojci;
+    if (originalneOsobe === noveOsobe) return sastojci;
 
-  const faktor = noveOsobe / originalneOsobe;
-  console.log(`🔄 Prilagođavam sastojke: ${originalneOsobe} → ${noveOsobe} (faktor: ${faktor})`);
+    const faktor = noveOsobe / originalneOsobe;
+    console.log(`🔄 Prilagođavam sastojke: ${originalneOsobe} → ${noveOsobe} (faktor: ${faktor})`);
 
-  return sastojci.map(sastojak => {
-    // 🔥 PROŠIRENI REGEX - hvata više formata
-    // Primjeri: "500g", "500 g", "2 kašike", "1.5 šolje", "1/2 kašičice", "2-3 čehna"
-    const match = sastojak.match(
-      /^(\d+(?:[.,]\d+)?(?:\s*\/\s*\d+)?)\s*(?:-\s*\d+(?:[.,]\d+)?)?\s*(g|kg|ml|l|dl|dcl|kom|komad|komada|šolja|šolje|kašika|kašike|kašičica|kašičice|kafena kašika|kafene kašike|prstohvat|prstohvata|češnja|češnja|češnje|glavica|glavice|list|lista|listova|kriška|kriške|kocka|kocke)?/i
-    );
+    return sastojci.map(sastojak => {
+      const match = sastojak.match(
+        /^(\d+(?:[.,]\d+)?(?:\s*\/\s*\d+)?)\s*(?:-\s*\d+(?:[.,]\d+)?)?\s*(g|kg|ml|l|dl|dcl|kom|komad|komada|šolja|šolje|kašika|kašike|kašičica|kašičice|kafena kašika|kafene kašike|prstohvat|prstohvata|češnja|češnja|češnje|glavica|glavice|list|lista|listova|kriška|kriške|kocka|kocke)?/i
+      );
 
-    if (match) {
-      let kolicinaStr = match[1];
-      const jedinica = match[2] || '';
+      if (match) {
+        let kolicinaStr = match[1];
+        const jedinica = match[2] || '';
 
-      // 🔥 PODRŠKA ZA RAZLOMKE (npr. "1/2")
-      let kolicina;
-      if (kolicinaStr.includes('/')) {
-        const [brojilac, imenilac] = kolicinaStr.split('/').map(s => parseFloat(s.trim()));
-        kolicina = brojilac / imenilac;
-      } else {
-        kolicina = parseFloat(kolicinaStr.replace(',', '.'));
+        let kolicina;
+        if (kolicinaStr.includes('/')) {
+          const [brojilac, imenilac] = kolicinaStr.split('/').map(s => parseFloat(s.trim()));
+          kolicina = brojilac / imenilac;
+        } else {
+          kolicina = parseFloat(kolicinaStr.replace(',', '.'));
+        }
+
+        if (isNaN(kolicina)) return sastojak;
+
+        const novaKolicina = kolicina * faktor;
+
+        let prikazKolicine;
+        if (novaKolicina < 0.1) {
+          prikazKolicine = 'prstohvat';
+        } else if (novaKolicina < 1) {
+          if (novaKolicina >= 0.5) prikazKolicine = '1/2';
+          else if (novaKolicina >= 0.33) prikazKolicine = '1/3';
+          else if (novaKolicina >= 0.25) prikazKolicine = '1/4';
+          else prikazKolicine = novaKolicina.toFixed(2);
+        } else if (Number.isInteger(novaKolicina)) {
+          prikazKolicine = novaKolicina.toString();
+        } else {
+          prikazKolicine = (Math.round(novaKolicina * 10) / 10).toString();
+        }
+
+        const originalMatchLength = match[0].length;
+        const ostatak = sastojak.substring(originalMatchLength).trim();
+
+        if (jedinica) {
+          return `${prikazKolicine} ${jedinica}${ostatak ? ' ' + ostatak : ''}`;
+        } else {
+          return `${prikazKolicine}${ostatak ? ' ' + ostatak : ''}`;
+        }
       }
 
-      if (isNaN(kolicina)) return sastojak;
-
-      // 🔥 IZRAČUNAJ NOVU KOLIČINU
-      const novaKolicina = kolicina * faktor;
-
-      // 🔥 FORMATIRAJ LIJEPO
-      let prikazKolicine;
-      if (novaKolicina < 0.1) {
-        prikazKolicine = 'prstohvat';
-      } else if (novaKolicina < 1) {
-        // Za male količine koristi razlomke
-        if (novaKolicina >= 0.5) prikazKolicine = '1/2';
-        else if (novaKolicina >= 0.33) prikazKolicine = '1/3';
-        else if (novaKolicina >= 0.25) prikazKolicine = '1/4';
-        else prikazKolicine = novaKolicina.toFixed(2);
-      } else if (Number.isInteger(novaKolicina)) {
-        prikazKolicine = novaKolicina.toString();
-      } else {
-        // Zaokruži na 1 decimalu
-        prikazKolicine = (Math.round(novaKolicina * 10) / 10).toString();
-      }
-
-      // 🔥 IZVADI OSTATAK TEKSTA (naziv sastojka)
-      const originalMatchLength = match[0].length;
-      const ostatak = sastojak.substring(originalMatchLength).trim();
-
-      // 🔥 SASTAVI NOVI STRING
-      if (jedinica) {
-        return `${prikazKolicine} ${jedinica}${ostatak ? ' ' + ostatak : ''}`;
-      } else {
-        return `${prikazKolicine}${ostatak ? ' ' + ostatak : ''}`;
-      }
-    }
-
-    // Ako nema broja, vrati original
-    return sastojak;
-  });
-};
+      return sastojak;
+    });
+  };
 
   // ============================================================
   // 🔄 AŽURIRAJ SASTOJKE KADA SE PROMIJENI BROJ OSOBA
   // ============================================================
   useEffect(() => {
-  if (originalRecipe && originalRecipe.sastojci) {
-    // 🔥 AKO JE BROJ OSOBA ISTI, VRATI ORIGINALNE SASTOJKE
-    if (osobe === originalneOsobe) {
+    if (originalRecipe && originalRecipe.sastojci) {
+      if (osobe === originalneOsobe) {
+        setRecipe({
+          ...originalRecipe,
+          sastojci: originalRecipe.sastojci
+        });
+        return;
+      }
+
+      const prilagodjeniSastojci = prilagodiSastojke(
+        originalRecipe.sastojci,
+        originalneOsobe || 4,
+        osobe
+      );
+
       setRecipe({
         ...originalRecipe,
-        sastojci: originalRecipe.sastojci
+        sastojci: prilagodjeniSastojci
       });
-      return;
     }
-
-    const prilagodjeniSastojci = prilagodiSastojke(
-      originalRecipe.sastojci,
-      originalneOsobe || 4,
-      osobe
-    );
-
-    setRecipe({
-      ...originalRecipe,
-      sastojci: prilagodjeniSastojci
-    });
-  }
-}, [osobe, originalRecipe, originalneOsobe]);
+  }, [osobe, originalRecipe, originalneOsobe]);
 
   // ============================================================
-  // 📤 SHARE RECIPE (SA NATIVE PODRŠKOM)
+  // 📤 SHARE RECIPE — radi u PWA + Native
   // ============================================================
   const shareRecipe = async () => {
     try {
@@ -438,9 +552,14 @@ const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
       };
 
       if (isNative) {
-        // 🔥 NATIVE SHARE - DINAMIČKI IMPORT
+        // 🔥 DIREKTAN PRISTUP — bez import()
         try {
-          const { Share } = await import('@capacitor/share');
+          const Share = window.Capacitor?.Plugins?.Share;
+
+          if (!Share) {
+            throw new Error('Share plugin nije dostupan');
+          }
+
           await Share.share({
             title: shareData.title,
             text: shareData.text,
@@ -491,11 +610,11 @@ const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
       try {
         setLoading(true);
         console.log('🔍 Dohvatam recept ID:', id);
-        
+
         const res = await fetch(`${API_URL}/api/recepti/${id}`);
         const data = await res.json();
         console.log('📊 Recept dohvaćen:', data);
-        
+
         setOriginalRecipe(data);
         setOriginalneOsobe(4);
         setRecipe({
@@ -503,14 +622,11 @@ const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
           sastojci: data.sastojci || []
         });
 
-        // 🔥 UZMI SAMO PRVI DIO JEZIKA (npr. 'de-DE' → 'de')
         const currentLang = (i18n.language || 'hr').split('-')[0].toLowerCase();
 
         if (currentLang !== 'hr') {
           try {
-            // 🔥 PROVJERI DA LI JE AI RECEPT
             if (data.id?.startsWith('groq-') || data.id?.startsWith('ai-')) {
-              // 🔥 KORISTI AI PREVOD
               console.log('🤖 AI recept - koristim AI prevod');
               const translateRes = await fetch(`${API_URL}/api/recepti/groq/translate`, {
                 method: 'POST',
@@ -526,7 +642,6 @@ const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
                 console.log('✅ AI prevod dohvaćen:', translateData._source);
               }
             } else {
-              // 🔥 OBIČNI RECEPT
               console.log('📋 Obični recept - koristim standardni prevod');
               const translateRes = await fetch(`${API_URL}/api/recepti/translate`, {
                 method: 'POST',
@@ -558,7 +673,7 @@ const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
         setLoading(false);
       }
     };
-    
+
     if (id) {
       fetchRecipe();
     } else {
@@ -597,13 +712,12 @@ const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
   };
 
   // ============================================================
-  // 🍷 AI SOMELIJER SA KEŠIRANJEM!
+  // 🍷 AI SOMELIJER SA KEŠIRANJEM
   // ============================================================
   const fetchSommelier = async () => {
     setLoadingSommelier(true);
     setSommelierError(null);
     try {
-      // 🔥 UZMI JEZIK IZ i18n
       const currentLang = (i18n.language || 'hr').split('-')[0].toLowerCase();
 
       const res = await fetch(`${API_URL}/api/ai-sommelier`, {
@@ -613,18 +727,18 @@ const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
           naziv: recipe?.naziv,
           sastojci: recipe?.sastojci,
           receptId: recipe?.id,
-          jezik: currentLang  // 🔥 DODANO
+          jezik: currentLang
         })
       });
       const data = await res.json();
-      
+
       if (data._cached) {
         console.log('📦 Sommelier odgovor iz keša!');
       }
       if (data._fallback) {
         console.log('⚠️ Sommelier koristi fallback odgovor (bez AI)');
       }
-      
+
       setSommelierData(data);
     } catch (error) {
       console.error('Greška:', error);
@@ -635,9 +749,11 @@ const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
   };
 
   // ============================================================
-  // 🖥️ RENDER - PRIKAZ RECEPTA SA PREVODOM
+  // 🔥 PRIKAZ — spaja prilagođene sastojke s prevedenim tekstom
   // ============================================================
-  const displayRecipe = translatedRecipe || recipe;
+  const displayRecipe = translatedRecipe
+    ? { ...recipe, ...translatedRecipe, sastojci: recipe?.sastojci || translatedRecipe?.sastojci }
+    : recipe;
 
   // ============================================================
   // 🖥️ RENDER - LOADING
@@ -667,8 +783,8 @@ const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
           <p className="text-gray-500 dark:text-gray-400 mt-2">
             {t('recipe.not_found_desc')}
           </p>
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="mt-6 inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition"
           >
             🏠 {t('nav.home')}
@@ -691,14 +807,14 @@ const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
         >
           ⬅️ {t('common.back')}
         </button>
-        <Link 
-          to="/recipes" 
+        <Link
+          to="/recipes"
           className="text-blue-500 dark:text-blue-400 hover:underline flex items-center gap-2"
         >
           📋 {t('recipe.all_recipes')}
         </Link>
-        <Link 
-          to="/healthy-chef" 
+        <Link
+          to="/healthy-chef"
           className="text-purple-500 dark:text-purple-400 hover:underline flex items-center gap-2"
         >
           🌿 {t('healthychef.title')}
@@ -758,7 +874,7 @@ const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
 
       {/* REKLAMA 1 */}
       {createBannerAd(user?.premium)}
-  
+
       {/* TIP */}
       <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-xl border border-blue-200 dark:border-blue-700">
         <h3 className="font-semibold dark:text-white">💡 {t('recipe.tip')}</h3>
@@ -812,13 +928,13 @@ const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
 
       {/* DUGMAD */}
       <div className="mt-6 flex flex-wrap gap-3">
-        <button 
+        <button
           onClick={() => window.print()}
           className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition dark:text-white"
         >
           🖨️ {t('recipe.print')}
         </button>
-        <button 
+        <button
           onClick={() => {
             const subject = encodeURIComponent(recipe?.naziv || 'Recept');
             const body = encodeURIComponent(`${recipe?.naziv}\n\n📋 Sastojci: ${recipe?.sastojci?.join(', ')}\n\n👨‍🍳 Upute: ${recipe?.upute?.join('. ')}`);
@@ -828,7 +944,7 @@ const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
         >
           ✉️ {t('recipe.email')}
         </button>
-        <button 
+        <button
           onClick={shareRecipe}
           className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition dark:text-white"
         >
@@ -838,7 +954,7 @@ const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
 
       {/* SOCIAL MEDIA */}
       <div className="mt-4 flex flex-wrap gap-3">
-        <button 
+        <button
           onClick={() => {
             const url = encodeURIComponent(window.location.href);
             window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
@@ -847,7 +963,7 @@ const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
         >
           📘 Facebook
         </button>
-        <button 
+        <button
           onClick={() => {
             const text = encodeURIComponent(`${recipe?.naziv} - ${window.location.href}`);
             window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
@@ -856,7 +972,7 @@ const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
         >
           📱 WhatsApp
         </button>
-        <button 
+        <button
           onClick={() => {
             const url = encodeURIComponent(window.location.href);
             const text = encodeURIComponent(recipe?.naziv || 'Recept');
@@ -866,7 +982,7 @@ const prilagodiSastojke = (sastojci, originalneOsobe, noveOsobe) => {
         >
           📌 Pinterest
         </button>
-        <button 
+        <button
           onClick={() => {
             const url = encodeURIComponent(window.location.href);
             const text = encodeURIComponent(recipe?.naziv || 'Recept');
