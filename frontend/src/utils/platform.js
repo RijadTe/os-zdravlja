@@ -1,5 +1,10 @@
 // frontend/src/utils/platform.js
 
+// 🔥 Provjera da li smo na Vercelu
+const isVercelBuild = typeof process !== 'undefined' && 
+  (process.env?.VERCEL === 'true' || 
+   process.env?.NODE_ENV === 'production');
+
 // 🔥 Inicijalne vrijednosti (default - web)
 let isNative = false;
 let isAndroid = false;
@@ -7,39 +12,40 @@ let isIOS = false;
 let isWeb = true;
 let Capacitor = null;
 
-// 🔥 Detekcija platforme
-if (typeof window !== 'undefined') {
+// 🔥 SAMO NA KLIJENT STRANI - provjeri Capacitor
+if (typeof window !== 'undefined' && !isVercelBuild) {
   try {
-    // 🔥 Prvo probaj da učitaš Capacitor iz window objekta (native)
+    // Pokušaj učitati Capacitor iz window objekta
     const cap = window.Capacitor || window.capacitor;
-    
-    if (cap && typeof cap.isNativePlatform === 'function') {
+    if (cap) {
       Capacitor = cap;
-      isNative = cap.isNativePlatform();
-      const platform = typeof cap.getPlatform === 'function' ? cap.getPlatform() : 'web';
-      isAndroid = platform === 'android';
-      isIOS = platform === 'ios';
+      isNative = typeof cap.isNativePlatform === 'function' ? cap.isNativePlatform() : false;
+      isAndroid = typeof cap.getPlatform === 'function' ? cap.getPlatform() === 'android' : false;
+      isIOS = typeof cap.getPlatform === 'function' ? cap.getPlatform() === 'ios' : false;
       isWeb = !isNative;
-      
-      console.log('✅ Capacitor pronađen:', { isNative, isAndroid, isIOS, isWeb, platform });
+      console.log('✅ Capacitor pronađen:', { isNative, isAndroid, isIOS, isWeb });
     } else {
-      // 🔥 Web fallback - nema Capacitora
-      console.log('📦 Web mode (Capacitor nije prisutan)');
+      console.log('📦 Capacitor nije pronađen u window, web mode');
     }
   } catch (e) {
-    console.warn('⚠️ Greška pri detekciji platforme:', e.message);
+    console.warn('⚠️ Greška pri čitanju Capacitor:', e.message);
   }
+} else if (isVercelBuild) {
+  console.log('📦 Vercel build - web mode');
+} else {
+  console.log('📦 Web mode (fallback)');
 }
 
 // 🔥 EKSPORTIRAJ SVE
 export { isNative, isAndroid, isIOS, isWeb, Capacitor };
 
-// 🔥 Pomoćne funkcije
 export const isCapacitorAvailable = () => {
+  if (isVercelBuild) return false;
   return Capacitor !== null && isNative;
 };
 
 export const getPlatform = () => {
+  if (isVercelBuild) return 'vercel';
   if (isNative) return 'native';
   if (isWeb) return 'web';
   return 'unknown';
@@ -53,5 +59,6 @@ export default {
   isWeb,
   Capacitor,
   isCapacitorAvailable,
-  getPlatform
+  getPlatform,
+  isVercelBuild
 };
