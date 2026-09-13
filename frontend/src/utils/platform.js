@@ -1,31 +1,33 @@
 // frontend/src/utils/platform.js
-import { Capacitor } from '@capacitor/core';
 
-// 🔥 Inicijalne vrednosti
+// 🔥 Inicijalne vrijednosti (default - web)
 let isNative = false;
 let isAndroid = false;
 let isIOS = false;
 let isWeb = true;
+let Capacitor = null;
 
-// 🔥 Detekcija platforme preko Capacitora
-// Ovo radi i na webu (Vercel) i na native (Android/iOS)
+// 🔥 Detekcija platforme
 if (typeof window !== 'undefined') {
   try {
-    isNative = Capacitor.isNativePlatform();
-    const platform = Capacitor.getPlatform();
-    isAndroid = platform === 'android';
-    isIOS = platform === 'ios';
-    isWeb = platform === 'web';
-
-    console.log('✅ Platform detekcija:', {
-      isNative,
-      isAndroid,
-      isIOS,
-      isWeb,
-      platform
-    });
+    // 🔥 Prvo probaj da učitaš Capacitor iz window objekta (native)
+    const cap = window.Capacitor || window.capacitor;
+    
+    if (cap && typeof cap.isNativePlatform === 'function') {
+      Capacitor = cap;
+      isNative = cap.isNativePlatform();
+      const platform = typeof cap.getPlatform === 'function' ? cap.getPlatform() : 'web';
+      isAndroid = platform === 'android';
+      isIOS = platform === 'ios';
+      isWeb = !isNative;
+      
+      console.log('✅ Capacitor pronađen:', { isNative, isAndroid, isIOS, isWeb, platform });
+    } else {
+      // 🔥 Web fallback - nema Capacitora
+      console.log('📦 Web mode (Capacitor nije prisutan)');
+    }
   } catch (e) {
-    console.warn('⚠️ Capacitor greška:', e.message);
+    console.warn('⚠️ Greška pri detekciji platforme:', e.message);
   }
 }
 
@@ -34,7 +36,7 @@ export { isNative, isAndroid, isIOS, isWeb, Capacitor };
 
 // 🔥 Pomoćne funkcije
 export const isCapacitorAvailable = () => {
-  return Capacitor !== null && Capacitor !== undefined && isNative;
+  return Capacitor !== null && isNative;
 };
 
 export const getPlatform = () => {
