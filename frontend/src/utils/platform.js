@@ -5,8 +5,17 @@ import { Capacitor } from '@capacitor/core';
 // 🔥 DETEKCIJA PLATFORME (radi u PWA, Vercel buildu i Native)
 // ============================================================
 
-const platform = Capacitor.getPlatform(); // 'web' | 'android' | 'ios'
-const isNativePlatform = Capacitor.isNativePlatform();
+let platform = 'web';
+let isNativePlatform = false;
+
+try {
+  if (Capacitor && typeof Capacitor.getPlatform === 'function') {
+    platform = Capacitor.getPlatform();
+    isNativePlatform = Capacitor.isNativePlatform();
+  }
+} catch (e) {
+  console.warn('⚠️ Capacitor greška pri detekciji:', e.message);
+}
 
 const isNative = isNativePlatform;
 const isAndroid = platform === 'android';
@@ -25,7 +34,7 @@ const isVercel =
     window.location.hostname.includes('os-zdravlja'));
 
 // ============================================================
-// 🔥 DEBUG LOG (vidiš u konzoli)
+// 🔥 DEBUG LOG
 // ============================================================
 
 console.log('✅ Platform detekcija:', {
@@ -35,8 +44,7 @@ console.log('✅ Platform detekcija:', {
   isIOS,
   isWeb,
   isVercel,
-  CapacitorAvailable: !!Capacitor,
-  CapacitorVersion: Capacitor?.Plugins ? 'loaded' : 'not loaded'
+  CapacitorAvailable: !!Capacitor
 });
 
 // ============================================================
