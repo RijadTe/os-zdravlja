@@ -2,6 +2,7 @@ package com.smartkuhar.app;
 
 import android.os.Bundle;
 import android.view.View;
+import android.webkit.WebSettings;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
@@ -18,5 +19,11 @@ public class MainActivity extends BridgeActivity {
             View.SYSTEM_UI_FLAG_FULLSCREEN |
             View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
         );
+        
+        // 🔥 OMOGUĆI AUDIO (TTS) BEZ KORISNIČKE INTERAKCIJE
+        WebSettings settings = this.bridge.getWebView().getSettings();
+        settings.setMediaPlaybackRequiresUserGesture(false);
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
     }
 }

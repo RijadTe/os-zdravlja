@@ -41,3 +41,5 @@ echo  📱 Pokreni aplikaciju u Android Studiju
 echo ========================================
 echo.
 pause
+
+ovo koristim za azuriranje androida i promjena

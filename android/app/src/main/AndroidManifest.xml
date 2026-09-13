@@ -19,6 +19,10 @@
         <intent>
             <action android:name="android.speech.RecognitionService" />
         </intent>
+          <!-- 🔥 ZA TTS (čitanje recepata) -->
+    <intent>
+        <action android:name="android.intent.action.TTS_SERVICE" />
+    </intent>
     </queries>
 
     <!-- ============================================================ -->
