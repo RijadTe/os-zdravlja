@@ -1,6 +1,8 @@
 /* frontend/src/components/BottomNav.css
 
-/* ============ CSS VARIJABLE ============ */
+/* ============================================================
+   CSS VARIJABLE
+   ============================================================ */
 :root {
   --bead-accent: #22c55e;
   --bead-accent-light: #86efac;
@@ -19,7 +21,9 @@
   --bead-safe-right: env(safe-area-inset-right, 0px);
 }
 
-/* ============ DOCK WRAP ============ */
+/* ============================================================
+   DOCK WRAP - fiksno na dnu
+   ============================================================ */
 .bead-dock-wrap {
   position: fixed;
   bottom: calc(16px + var(--bead-safe-bottom));
@@ -39,7 +43,9 @@
   pointer-events: auto;
 }
 
-/* ============ DOCK ============ */
+/* ============================================================
+   DOCK
+   ============================================================ */
 .bead-dock {
   position: relative;
   display: flex;
@@ -79,7 +85,9 @@ html:not(.dark) .bead-dock {
     0 0 50px -10px rgba(var(--bead-glow-rgb), 0.4);
 }
 
-/* ============ SVG NOTCH ============ */
+/* ============================================================
+   SVG NOTCH
+   ============================================================ */
 .bead-dock-notch {
   position: absolute;
   inset: 0;
@@ -95,7 +103,9 @@ html:not(.dark) .bead-dock {
   overflow: visible;
 }
 
-/* ============ BEAD ============ */
+/* ============================================================
+   BEAD (balon)
+   ============================================================ */
 .bead {
   position: absolute;
   top: -36px;
@@ -230,7 +240,9 @@ html:not(.dark) .bead-dock {
   70%, 100% { transform: scale(1.4); opacity: 0; }
 }
 
-/* ============ IKONA U BALONU ============ */
+/* ============================================================
+   IKONA U BALONU
+   ============================================================ */
 .bead-icon-wrap {
   position: relative;
   z-index: 2;
@@ -277,7 +289,9 @@ html:not(.dark) .bead-dock {
   filter: blur(6px);
 }
 
-/* ============ ITEMS ============ */
+/* ============================================================
+   ITEMS
+   ============================================================ */
 .dock-item {
   position: relative;
   display: flex;
@@ -402,7 +416,9 @@ html:not(.dark) .bead-dock {
   100% { inset: -30%; opacity: 0; }
 }
 
-/* ============ TOOLTIP ============ */
+/* ============================================================
+   TOOLTIP
+   ============================================================ */
 .bead-tooltip {
   position: fixed;
   padding: 6px 12px;
@@ -448,7 +464,9 @@ html:not(.dark) .bead-dock {
   margin-top: -4px;
 }
 
-/* ============ SHOCKWAVE ============ */
+/* ============================================================
+   SHOCKWAVE
+   ============================================================ */
 .bead-shockwave {
   position: absolute;
   top: 50%;
@@ -471,7 +489,9 @@ html:not(.dark) .bead-dock {
   100% { width: 200px; height: 200px; opacity: 0; border-width: 1px; }
 }
 
-/* ============ TRAIL PARTICLES ============ */
+/* ============================================================
+   TRAIL PARTICLES
+   ============================================================ */
 .bead-trail-particle {
   position: fixed;
   top: 0;
@@ -493,74 +513,282 @@ html:not(.dark) .bead-dock {
   100% { transform: translate(-50%, -50%) scale(0) translateY(15px); opacity: 0; }
 }
 
-/* ============ RESPONSIVE ============ */
-@media (min-width: 768px) and (max-width: 1024px) {
-  .bead-dock-wrap { max-width: 600px; }
-  .bead-dock { padding: 0.85rem 1.1rem; border-radius: 26px; }
-  .dock-icon { width: 40px; height: 40px; }
-  .dock-item { height: 52px; }
-  .dock-item.active { height: 68px; }
-  .bead { width: 68px; height: 68px; top: -38px; }
-  .bead-icon-wrap { width: 44px; height: 44px; }
-  .dock-label { font-size: 0.6rem; }
-}
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 
+/* ============ ULTRA-WIDE (1920px+) ============ */
 @media (min-width: 1920px) {
-  .bead-dock-wrap { max-width: 640px; }
-  .dock-icon { width: 42px; height: 42px; }
-  .bead { width: 72px; height: 72px; top: -40px; }
-  .bead-icon-wrap { width: 48px; height: 48px; }
-  .dock-label { font-size: 0.62rem; }
+  .bead-dock-wrap {
+    max-width: 1000px;
+    padding-top: 75px;
+  }
+  .bead-dock {
+    padding: 1.1rem 3rem;
+    border-radius: 36px;
+    gap: 0.6rem;
+  }
+  .dock-icon {
+    width: 50px;
+    height: 50px;
+  }
+  .dock-item {
+    height: 64px;
+    gap: 5px;
+  }
+  .dock-item.active {
+    height: 86px;
+  }
+  .bead {
+    width: 84px;
+    height: 84px;
+    top: -46px;
+  }
+  .bead-icon-wrap {
+    width: 58px;
+    height: 58px;
+  }
+  .dock-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.6px;
+  }
 }
 
+/* ============ VELIKI DESKTOP (1440px - 1919px) ============ */
+@media (min-width: 1440px) and (max-width: 1919px) {
+  .bead-dock-wrap {
+    max-width: 900px;
+    padding-top: 70px;
+  }
+  .bead-dock {
+    padding: 1rem 2.5rem;
+    border-radius: 32px;
+    gap: 0.5rem;
+  }
+  .dock-icon {
+    width: 46px;
+    height: 46px;
+  }
+  .dock-item {
+    height: 58px;
+    gap: 4px;
+  }
+  .dock-item.active {
+    height: 78px;
+  }
+  .bead {
+    width: 76px;
+    height: 76px;
+    top: -42px;
+  }
+  .bead-icon-wrap {
+    width: 52px;
+    height: 52px;
+  }
+  .dock-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.5px;
+  }
+}
+
+/* ============ STANDARDNI DESKTOP (1024px - 1439px) ============ */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .bead-dock-wrap {
+    max-width: 760px;
+    padding-top: 65px;
+  }
+  .bead-dock {
+    padding: 0.95rem 2rem;
+    border-radius: 30px;
+    gap: 0.4rem;
+  }
+  .dock-icon {
+    width: 42px;
+    height: 42px;
+  }
+  .dock-item {
+    height: 54px;
+    gap: 3px;
+  }
+  .dock-item.active {
+    height: 72px;
+  }
+  .bead {
+    width: 70px;
+    height: 70px;
+    top: -39px;
+  }
+  .bead-icon-wrap {
+    width: 46px;
+    height: 46px;
+  }
+  .dock-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.4px;
+  }
+}
+
+/* ============ TABLETI (768px - 1023px) ============ */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .bead-dock-wrap {
+    max-width: 640px;
+  }
+  .bead-dock {
+    padding: 0.85rem 1.2rem;
+    border-radius: 26px;
+  }
+  .dock-icon {
+    width: 40px;
+    height: 40px;
+  }
+  .dock-item {
+    height: 52px;
+  }
+  .dock-item.active {
+    height: 68px;
+  }
+  .bead {
+    width: 68px;
+    height: 68px;
+    top: -38px;
+  }
+  .bead-icon-wrap {
+    width: 44px;
+    height: 44px;
+  }
+  .dock-label {
+    font-size: 0.6rem;
+  }
+}
+
+/* ============ MOBITEL (max 640px) ============ */
 @media (max-width: 640px) {
-  .bead-dock { padding: 0.65rem 0.7rem; border-radius: 22px; }
-  .dock-item { height: 46px; }
-  .dock-item.active { height: 60px; }
-  .dock-icon { width: 32px; height: 32px; }
-  .bead { width: 58px; height: 58px; top: -33px; }
-  .bead-icon-wrap { width: 38px; height: 38px; }
-  .dock-label { font-size: 0.52rem; }
+  .bead-dock {
+    padding: 0.65rem 0.7rem;
+    border-radius: 22px;
+  }
+  .dock-item {
+    height: 46px;
+  }
+  .dock-item.active {
+    height: 60px;
+  }
+  .dock-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .bead {
+    width: 58px;
+    height: 58px;
+    top: -33px;
+  }
+  .bead-icon-wrap {
+    width: 38px;
+    height: 38px;
+  }
+  .dock-label {
+    font-size: 0.52rem;
+  }
 }
 
+/* ============ MALI MOBITEL (max 420px) ============ */
 @media (max-width: 420px) {
-  .bead-dock { padding: 0.55rem 0.5rem; }
-  .dock-item { height: 42px; }
-  .dock-item.active { height: 56px; }
-  .dock-icon { width: 28px; height: 28px; }
-  .bead { width: 54px; height: 54px; top: -31px; }
-  .bead-icon-wrap { width: 34px; height: 34px; }
-  .dock-label { font-size: 0.48rem; letter-spacing: 0; }
+  .bead-dock {
+    padding: 0.55rem 0.5rem;
+  }
+  .dock-item {
+    height: 42px;
+  }
+  .dock-item.active {
+    height: 56px;
+  }
+  .dock-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .bead {
+    width: 54px;
+    height: 54px;
+    top: -31px;
+  }
+  .bead-icon-wrap {
+    width: 34px;
+    height: 34px;
+  }
+  .dock-label {
+    font-size: 0.48rem;
+    letter-spacing: 0;
+  }
   .bead-dock-wrap {
     bottom: calc(12px + var(--bead-safe-bottom));
     padding: 0 calc(10px + var(--bead-safe-left)) 0 calc(10px + var(--bead-safe-right));
   }
 }
 
+/* ============ JAKO MALI MOBITEL (max 360px) ============ */
 @media (max-width: 360px) {
-  .bead-dock { padding: 0.5rem 0.4rem; }
-  .dock-item { height: 40px; }
-  .dock-item.active { height: 52px; }
-  .dock-icon { width: 25px; height: 25px; }
-  .bead { width: 50px; height: 50px; top: -28px; }
-  .bead-icon-wrap { width: 30px; height: 30px; }
-  .dock-label { font-size: 0.44rem; }
+  .bead-dock {
+    padding: 0.5rem 0.4rem;
+  }
+  .dock-item {
+    height: 40px;
+  }
+  .dock-item.active {
+    height: 52px;
+  }
+  .dock-icon {
+    width: 25px;
+    height: 25px;
+  }
+  .bead {
+    width: 50px;
+    height: 50px;
+    top: -28px;
+  }
+  .bead-icon-wrap {
+    width: 30px;
+    height: 30px;
+  }
+  .dock-label {
+    font-size: 0.44rem;
+  }
 }
 
+/* ============ LANDSCAPE (mobitel vodoravno) ============ */
 @media (max-height: 500px) and (orientation: landscape) {
   .bead-dock-wrap {
     bottom: calc(8px + var(--bead-safe-bottom));
     padding-top: 40px;
   }
-  .bead-dock { padding: 0.5rem 0.8rem; border-radius: 18px; }
-  .dock-item { height: 38px; }
-  .dock-item.active { height: 46px; }
-  .dock-icon { width: 26px; height: 26px; }
-  .bead { width: 48px; height: 48px; top: -26px; }
-  .bead-icon-wrap { width: 30px; height: 30px; }
-  .dock-label { font-size: 0.45rem; }
+  .bead-dock {
+    padding: 0.5rem 0.8rem;
+    border-radius: 18px;
+  }
+  .dock-item {
+    height: 38px;
+  }
+  .dock-item.active {
+    height: 46px;
+  }
+  .dock-icon {
+    width: 26px;
+    height: 26px;
+  }
+  .bead {
+    width: 48px;
+    height: 48px;
+    top: -26px;
+  }
+  .bead-icon-wrap {
+    width: 30px;
+    height: 30px;
+  }
+  .dock-label {
+    font-size: 0.45rem;
+  }
 }
 
+/* ============ REDUCED MOTION ============ */
 @media (prefers-reduced-motion: reduce) {
   .bead-dock-wrap *,
   .bead-dock-wrap *::before,
