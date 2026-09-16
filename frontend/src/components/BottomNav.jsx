@@ -24,41 +24,11 @@ const BottomNav = () => {
 
   // ============ NAV ITEMS ============
   const navItems = [
-    {
-      path: '/',
-      page: 'pocetna',
-      label: t('nav.home'),
-      color: '#22c55e',
-      icon: 'home',
-    },
-    {
-      path: '/ai-chat',
-      page: 'ai-chat',
-      label: 'AI Chat',
-      color: '#ef4444',
-      icon: 'robot',
-    },
-    {
-      path: '/goals',
-      page: 'ciljevi',
-      label: t('nav.goals'),
-      color: '#f43f5e',
-      icon: 'target',
-    },
-    {
-      path: '/water',
-      page: 'voda',
-      label: t('nav.water'),
-      color: '#3b82f6',
-      icon: 'droplet',
-    },
-    {
-      path: '/micro-nutrients',
-      page: 'mikro',
-      label: 'Mikro',
-      color: '#10b981',
-      icon: 'chart',
-    },
+    { path: '/', page: 'pocetna', label: t('nav.home'), color: '#22c55e', icon: 'home' },
+    { path: '/ai-chat', page: 'ai-chat', label: 'AI Chat', color: '#ef4444', icon: 'robot' },
+    { path: '/goals', page: 'ciljevi', label: t('nav.goals'), color: '#f43f5e', icon: 'target' },
+    { path: '/water', page: 'voda', label: t('nav.water'), color: '#3b82f6', icon: 'droplet' },
+    { path: '/micro-nutrients', page: 'mikro', label: 'Mikro', color: '#10b981', icon: 'chart' },
   ];
 
   // ============ HAPTIC PATTERNS ============
@@ -95,11 +65,7 @@ const BottomNav = () => {
 
   const lighten = (hex, amount = 0.45) => {
     const { r, g, b } = hexToRgb(hex);
-    return rgbToHex(
-      r + (255 - r) * amount,
-      g + (255 - g) * amount,
-      b + (255 - b) * amount
-    );
+    return rgbToHex(r + (255 - r) * amount, g + (255 - g) * amount, b + (255 - b) * amount);
   };
 
   const darken = (hex, amount = 0.5) => {
@@ -148,29 +114,6 @@ const BottomNav = () => {
     gain.connect(ctx.destination);
     osc.start(time);
     osc.stop(time + 0.1);
-  };
-
-  const playSwoosh = () => {
-    const ctx = audioCtxRef.current;
-    if (!ctx) return;
-    const time = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    const filter = ctx.createBiquadFilter();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(180, time);
-    osc.frequency.exponentialRampToValueAtTime(520, time + 0.2);
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(400, time);
-    filter.frequency.exponentialRampToValueAtTime(2000, time + 0.2);
-    gain.gain.setValueAtTime(0, time);
-    gain.gain.linearRampToValueAtTime(0.02, time + 0.03);
-    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.25);
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(time);
-    osc.stop(time + 0.3);
   };
 
   const vibrate = (pattern) => {
@@ -346,7 +289,6 @@ const BottomNav = () => {
     (page, navigateTo = null) => {
       if (page === activePage) return;
 
-      // Dopusti brze klikove
       if (isAnimatingRef.current) {
         clearTimeout(moveTimerRef.current);
         isAnimatingRef.current = false;
@@ -361,7 +303,6 @@ const BottomNav = () => {
       applyColor(targetColor);
       ensureAudio();
       playClick();
-      setTimeout(playSwoosh, 40);
       vibrate(hapticPatterns[page] || [8, 20, 10]);
 
       const oldItem = document.querySelector('.dock-item.active');
@@ -401,7 +342,6 @@ const BottomNav = () => {
 
       setActivePage(page);
 
-      // Navigacija — React Router
       if (navigateTo) {
         navigate(navigateTo);
       }
@@ -413,7 +353,6 @@ const BottomNav = () => {
   useEffect(() => {
     const currentPage = getActivePage();
     if (currentPage !== activePage) {
-      // Promjena rute izvana (back button, direktan link)
       const item = document.querySelector(`.dock-item[data-page="${currentPage}"]`);
       if (item) {
         const targetColor = item.dataset.color || '#22c55e';
@@ -433,24 +372,6 @@ const BottomNav = () => {
 
   // ============ INIT ============
   useEffect(() => {
-    // Ambient particles
-    const container = document.getElementById('beadAmbientParticles');
-    if (container) {
-      const frag = document.createDocumentFragment();
-      for (let i = 0; i < 8; i++) {
-        const p = document.createElement('span');
-        p.style.left = Math.random() * 100 + '%';
-        p.style.animationDuration = 10 + Math.random() * 6 + 's';
-        p.style.animationDelay = Math.random() * 10 + 's';
-        p.style.opacity = 0.3 + Math.random() * 0.5;
-        const size = 2 + Math.random() * 3;
-        p.style.width = size + 'px';
-        p.style.height = size + 'px';
-        frag.appendChild(p);
-      }
-      container.appendChild(frag);
-    }
-
     // Početno pozicioniranje
     const initPage = getActivePage();
     const initItem = document.querySelector(`.dock-item[data-page="${initPage}"]`);
@@ -463,7 +384,6 @@ const BottomNav = () => {
         positionBead(initItem, false);
         setBeadIcon(initPage);
 
-        // Postavi početnu ikonu u aktivni layer
         const sourceSvg = initItem.querySelector('.dock-icon svg');
         if (sourceSvg && beadLayerActiveRef.current && beadLayerEnterRef.current) {
           const cloned = sourceSvg.cloneNode(true);
@@ -478,46 +398,6 @@ const BottomNav = () => {
         updateNotch();
       }, 50);
     }
-
-    // Cursor glow
-    const cursorGlow = document.getElementById('beadCursorGlow');
-    let glowX = window.innerWidth / 2;
-    let glowY = window.innerHeight / 2;
-    let mouseX = glowX;
-    let mouseY = glowY;
-    let glowRaf = null;
-    let glowActive = false;
-
-    const updateGlow = () => {
-      glowX += (mouseX - glowX) * 0.25;
-      glowY += (mouseY - glowY) * 0.25;
-      if (cursorGlow) {
-        cursorGlow.style.transform = `translate3d(${glowX - 160}px, ${glowY - 160}px, 0)`;
-      }
-      if (Math.abs(mouseX - glowX) > 0.5 || Math.abs(mouseY - glowY) > 0.5) {
-        glowRaf = requestAnimationFrame(updateGlow);
-      } else {
-        glowRaf = null;
-      }
-    };
-
-    const handleMouseMove = (e) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-      if (!glowActive && cursorGlow) {
-        glowActive = true;
-        cursorGlow.classList.add('active');
-      }
-      if (!glowRaf) glowRaf = requestAnimationFrame(updateGlow);
-    };
-
-    const handleMouseLeave = () => {
-      glowActive = false;
-      if (cursorGlow) cursorGlow.classList.remove('active');
-    };
-
-    document.addEventListener('mousemove', handleMouseMove, { passive: true });
-    document.addEventListener('mouseleave', handleMouseLeave);
 
     // Resize handler
     let rz;
@@ -549,11 +429,8 @@ const BottomNav = () => {
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseleave', handleMouseLeave);
       document.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('resize', handleResize);
-      if (glowRaf) cancelAnimationFrame(glowRaf);
       if (trailIntervalRef.current) clearInterval(trailIntervalRef.current);
       if (moveTimerRef.current) clearTimeout(moveTimerRef.current);
     };
@@ -646,8 +523,6 @@ const BottomNav = () => {
         </radialGradient>
       </defs>
       <ellipse cx="20" cy="37" rx="14" ry="1.5" fill="#000000" opacity="0.35" />
-      <circle className="home-smoke" cx="27" cy="6" r="1.8" fill="#cbd5e1" opacity="0" />
-      <circle className="home-smoke" cx="26" cy="3" r="2" fill="#cbd5e1" opacity="0" style={{ animationDelay: '1.5s' }} />
       <rect x="25" y="7" width="4" height="7" fill="url(#homeChimney)" rx="0.4" />
       <rect x="25" y="7" width="4" height="1.5" fill="#78716c" rx="0.4" />
       <path d="M3 19 L20 5 L20 8 L5 19 Z" fill="url(#homeRoofL)" />
@@ -704,7 +579,6 @@ const BottomNav = () => {
       <line x1="20" y1="3" x2="20" y2="7.5" stroke="#475569" strokeWidth="1.3" strokeLinecap="round" />
       <circle cx="20" cy="3" r="2.2" fill="#7f1d1d" />
       <circle cx="20" cy="3" r="1.7" fill="url(#robotEyeRed)" />
-      <circle cx="19.3" cy="2.4" r="0.6" fill="#fee2e2" opacity="0.9" />
       <circle cx="8" cy="14" r="1.8" fill="#7f1d1d" />
       <circle cx="8" cy="14" r="1.3" fill="url(#robotEyeRed)" />
       <circle cx="32" cy="14" r="1.8" fill="#7f1d1d" />
@@ -712,33 +586,19 @@ const BottomNav = () => {
       <rect x="10" y="7.5" width="20" height="13" rx="3.5" fill="url(#robotHeadG)" stroke="#334155" strokeWidth="0.6" />
       <rect x="11" y="8.5" width="18" height="2" rx="1" fill="#ffffff" opacity="0.6" />
       <rect x="11.5" y="10.5" width="17" height="7" rx="2" fill="url(#robotPlate)" />
-      <rect x="11.5" y="10.5" width="17" height="2.5" rx="2" fill="#000000" opacity="0.3" />
-      <g className="robot-eye">
-        <circle cx="16" cy="14" r="2" fill="#0a0a0a" />
-        <circle cx="16" cy="14" r="1.5" fill="url(#robotEyeBlue)" />
-        <circle cx="15.4" cy="13.4" r="0.6" fill="#ffffff" opacity="0.9" />
-      </g>
-      <g className="robot-eye" style={{ animationDelay: '0.05s' }}>
-        <circle cx="24" cy="14" r="2" fill="#0a0a0a" />
-        <circle cx="24" cy="14" r="1.5" fill="url(#robotEyeBlue)" />
-        <circle cx="23.4" cy="13.4" r="0.6" fill="#ffffff" opacity="0.9" />
-      </g>
+      <circle cx="16" cy="14" r="2" fill="#0a0a0a" />
+      <circle cx="16" cy="14" r="1.5" fill="url(#robotEyeBlue)" />
+      <circle cx="24" cy="14" r="2" fill="#0a0a0a" />
+      <circle cx="24" cy="14" r="1.5" fill="url(#robotEyeBlue)" />
       <rect x="15" y="17" width="10" height="1.3" rx="0.4" fill="#1e293b" />
       <rect x="17.5" y="20.5" width="5" height="2" fill="#334155" />
       <rect x="11" y="22.5" width="18" height="13" rx="2.5" fill="url(#robotBodyG)" stroke="#334155" strokeWidth="0.6" />
-      <rect x="12" y="23.5" width="16" height="2.5" rx="1.5" fill="#ffffff" opacity="0.5" />
-      <rect x="13" y="27" width="14" height="6" rx="1" fill="#1e293b" opacity="0.6" />
       <rect x="13.5" y="27.5" width="13" height="5" rx="0.8" fill="#0f172a" />
-      <circle cx="16" cy="30" r="1.1" fill="#14532d" />
       <circle cx="16" cy="30" r="0.8" fill="#22c55e" />
-      <circle cx="20" cy="30" r="1.1" fill="#7f1d1d" />
       <circle cx="20" cy="30" r="0.8" fill="#ef4444" />
-      <circle cx="24" cy="30" r="1.1" fill="#1e3a8a" />
       <circle cx="24" cy="30" r="0.8" fill="#3b82f6" />
       <rect x="7" y="24" width="3" height="2" rx="0.5" fill="#334155" />
-      <rect x="7" y="26.5" width="3" height="2" rx="0.5" fill="#334155" />
       <rect x="30" y="24" width="3" height="2" rx="0.5" fill="#334155" />
-      <rect x="30" y="26.5" width="3" height="2" rx="0.5" fill="#334155" />
     </svg>
   );
 
@@ -768,17 +628,12 @@ const BottomNav = () => {
       </defs>
       <ellipse cx="20" cy="36.5" rx="14" ry="1.8" fill="#000000" opacity="0.4" />
       <circle cx="20" cy="20" r="14" fill="url(#target1)" />
-      <path d="M8 13 A13.5 13.5 0 0 1 27 7" stroke="#fca5a5" strokeWidth="1" fill="none" opacity="0.7" strokeLinecap="round" />
       <circle cx="20" cy="20" r="10.5" fill="url(#target2)" />
       <circle cx="20" cy="20" r="7" fill="url(#target1)" />
       <circle cx="20" cy="20" r="3.8" fill="url(#target2)" />
-      <g className="target-center">
-        <circle cx="20" cy="20" r="2" fill="url(#target1)" />
-        <circle cx="20" cy="20" r="1" fill="#fca5a5" />
-      </g>
+      <circle cx="20" cy="20" r="2" fill="url(#target1)" />
       <line x1="32" y1="8" x2="22" y2="18" stroke="url(#arrowShaft)" strokeWidth="2" strokeLinecap="round" />
       <path d="M32 8 L28.5 13 L33.5 11.5 Z" fill="url(#arrowHead)" stroke="#78350f" strokeWidth="0.4" strokeLinejoin="round" />
-      <path d="M32 8 L28 10 L31 12 Z" fill="url(#arrowHead)" stroke="#78350f" strokeWidth="0.4" strokeLinejoin="round" />
     </svg>
   );
 
@@ -796,28 +651,11 @@ const BottomNav = () => {
           <stop offset="0.5" stopColor="#ffffff" stopOpacity="0.5" />
           <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
         </radialGradient>
-        <radialGradient id="waterDepth" cx="0.5" cy="0.85" r="0.5">
-          <stop offset="0" stopColor="#1e40af" stopOpacity="0.7" />
-          <stop offset="1" stopColor="#1e40af" stopOpacity="0" />
-        </radialGradient>
       </defs>
       <ellipse cx="20" cy="36" rx="8" ry="1.5" fill="#000000" opacity="0.35" />
-      <path
-        d="M20 4 C20 4, 7 18, 7 25 C7 31.5, 12.5 36, 20 36 C27.5 36, 33 31.5, 33 25 C33 18, 20 4, 20 4 Z"
-        fill="url(#waterMain)"
-      />
-      <path
-        d="M7 25 C7 31.5, 12.5 36, 20 36 C27.5 36, 33 31.5, 33 25 C33 28, 27, 33, 20 33 C13 33, 7 28, 7 25 Z"
-        fill="url(#waterDepth)"
-      />
-      <g className="water-shine">
-        <ellipse cx="14" cy="17" rx="3.5" ry="5" fill="url(#waterHighlight)" transform="rotate(-15 14 17)" />
-      </g>
-      <ellipse cx="26" cy="24" rx="1.5" ry="2.2" fill="#ffffff" opacity="0.55" transform="rotate(20 26 24)" />
-      <circle cx="24" cy="28" r="1.8" fill="#ffffff" opacity="0.4" />
+      <path d="M20 4 C20 4, 7 18, 7 25 C7 31.5, 12.5 36, 20 36 C27.5 36, 33 31.5, 33 25 C33 18, 20 4, 20 4 Z" fill="url(#waterMain)" />
+      <ellipse cx="14" cy="17" rx="3.5" ry="5" fill="url(#waterHighlight)" transform="rotate(-15 14 17)" />
       <circle cx="24" cy="28" r="1.2" fill="#ffffff" opacity="0.5" />
-      <circle cx="23.5" cy="27.5" r="0.5" fill="#ffffff" opacity="0.9" />
-      <circle cx="27" cy="25" r="1" fill="#ffffff" opacity="0.35" />
       <circle cx="17" cy="30" r="1.2" fill="#ffffff" opacity="0.3" />
     </svg>
   );
@@ -830,27 +668,15 @@ const BottomNav = () => {
           <stop offset="0.5" stopColor="#ef4444" />
           <stop offset="1" stopColor="#b91c1c" />
         </linearGradient>
-        <linearGradient id="bar1R" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#991b1b" />
-          <stop offset="1" stopColor="#7f1d1d" />
-        </linearGradient>
         <linearGradient id="bar2L" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0" stopColor="#fde68a" />
           <stop offset="0.5" stopColor="#f59e0b" />
           <stop offset="1" stopColor="#b45309" />
         </linearGradient>
-        <linearGradient id="bar2R" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#92400e" />
-          <stop offset="1" stopColor="#78350f" />
-        </linearGradient>
         <linearGradient id="bar3L" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0" stopColor="#86efac" />
           <stop offset="0.5" stopColor="#22c55e" />
           <stop offset="1" stopColor="#15803d" />
-        </linearGradient>
-        <linearGradient id="bar3R" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#14532d" />
-          <stop offset="1" stopColor="#052e16" />
         </linearGradient>
       </defs>
       <ellipse cx="20" cy="36.5" rx="13" ry="1.5" fill="#000000" opacity="0.4" />
@@ -858,24 +684,9 @@ const BottomNav = () => {
       <line x1="7" y1="13" x2="34" y2="13" stroke="#94a3b8" strokeWidth="0.3" opacity="0.3" />
       <line x1="7" y1="20" x2="34" y2="20" stroke="#94a3b8" strokeWidth="0.3" opacity="0.3" />
       <line x1="7" y1="27" x2="34" y2="27" stroke="#94a3b8" strokeWidth="0.3" opacity="0.3" />
-      <g className="chart-bar">
-        <rect x="9" y="23" width="5" height="10" rx="0.5" fill="url(#bar1L)" />
-        <rect x="14" y="23" width="1.5" height="10" rx="0.5" fill="url(#bar1R)" />
-        <ellipse cx="11.5" cy="23" rx="2.5" ry="0.5" fill="#fecaca" />
-        <circle cx="11.5" cy="22.5" r="0.8" fill="#fca5a5" />
-      </g>
-      <g className="chart-bar" style={{ animationDelay: '0.2s' }}>
-        <rect x="17" y="15" width="5" height="18" rx="0.5" fill="url(#bar2L)" />
-        <rect x="22" y="15" width="1.5" height="18" rx="0.5" fill="url(#bar2R)" />
-        <ellipse cx="19.5" cy="15" rx="2.5" ry="0.5" fill="#fef3c7" />
-        <circle cx="19.5" cy="14.5" r="0.8" fill="#fcd34d" />
-      </g>
-      <g className="chart-bar" style={{ animationDelay: '0.4s' }}>
-        <rect x="25" y="9" width="5" height="24" rx="0.5" fill="url(#bar3L)" />
-        <rect x="30" y="9" width="1.5" height="24" rx="0.5" fill="url(#bar3R)" />
-        <ellipse cx="27.5" cy="9" rx="2.5" ry="0.5" fill="#d1fae5" />
-        <circle cx="27.5" cy="8.5" r="0.8" fill="#86efac" />
-      </g>
+      <rect x="9" y="23" width="5" height="10" rx="0.5" fill="url(#bar1L)" />
+      <rect x="17" y="15" width="5" height="18" rx="0.5" fill="url(#bar2L)" />
+      <rect x="25" y="9" width="5" height="24" rx="0.5" fill="url(#bar3L)" />
     </svg>
   );
 
@@ -892,12 +703,6 @@ const BottomNav = () => {
 
   return (
     <>
-      {/* Cursor glow */}
-      <div className="bead-cursor-glow" id="beadCursorGlow"></div>
-
-      {/* Ambient particles */}
-      <div className="bead-ambient-particles" id="beadAmbientParticles"></div>
-
       {/* Tooltip */}
       <div className="bead-tooltip" ref={tooltipRef}></div>
 
