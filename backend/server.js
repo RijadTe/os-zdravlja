@@ -2775,53 +2775,21 @@ app.post('/api/weekly-plan', async (req, res) => {
         };
         const jezikNaziv = jezikMapa[jezik] || 'hrvatskom';
 
-        const prompt = `
-          KREIRAJ ${emptySlots.length} JELA za sedmični plan obroka.
-          
-          ⚠️ VAŽNO: Odgovori ISKLJUČIVO na ${jezikNaziv} jeziku!
-          Naziv jela, sastojci i sve ostalo MORA biti na ${jezikNaziv}!
-          
-          📊 NUTRITIVNI CILJEVI (po obroku):
-          - Kalorije: ${kalorijePoObroku} kcal
-          - Proteini: ${Math.round((proteini || 150) / 3)}g
-          - Ugljikohidrati: ${Math.round((ugljikohidrati || 250) / 3)}g
-          - Masti: ${Math.round((masti || 70) / 3)}g
-          
-          🔒 RESTRIKCIJE KORISNIKA:
-          ${restrikcijePrompt}
-          ${alergeniPrompt}
-          ${dijetnePrompt}
-          ${vrstaPrompt}
-          ${preferencijePrompt}
-          ${sastojciPrompt}
-          
-          ⚠️ VAŽNA UPOZORENJA (OBAVEZNO):
-          1. SVAKO jelo MORA BITI BEZ ALERGENA iz liste!
-          2. SVAKO jelo MORA ODGOVARATI DIJETNIM OZNAKAMA!
-          3. Ako korisnik ima "Gluten" - NEMA HRANE SA GLUTENOM!
-          4. Ako korisnik ima "Laktoza" - NEMA MLIJEČNIH PROIZVODA!
-          5. Ako korisnik ima "Jaja" - NEMA JAJA!
-          6. Ako korisnik ima "Orašasti" - NEMA ORAŠASTIH PLODOVA!
-          
-          📋 FORMAT:
-          Odgovori isključivo u JSON formatu sa listom jela:
-          {
-            "jela": [
-              {
-                "naziv": "Naziv jela",
-                "vrsta": "Slano",
-                "vrijeme": "Srednje (30-45 min)",
-                "tezina": "Srednji",
-                "kalorije": ${kalorijePoObroku},
-                "proteini": ${Math.round((proteini || 150) / 3)},
-                "ugljikohidrati": ${Math.round((ugljikohidrati || 250) / 3)},
-                "masti": ${Math.round((masti || 70) / 3)}
-              }
-            ]
-          }
-          
-          KREIRAJ TAČNO ${emptySlots.length} JELA.
-        `;
+         const prompt = `Kreiraj ${emptySlots.length} jela za sedmični plan obroka.
+
+Jezik odgovora: ${jezikNaziv}
+Kalorije po obroku: ${kalorijePoObroku} kcal
+Proteini: ${Math.round((proteini || 150) / 3)}g | Ugljikohidrati: ${Math.round((ugljikohidrati || 250) / 3)}g | Masti: ${Math.round((masti || 70) / 3)}g
+
+🔒 RESTRIKCIJE (OBAVEZNO POŠTUJ):
+${restrikcijePrompt}${alergeniPrompt}${dijetnePrompt}${vrstaPrompt}${preferencijePrompt}${sastojciPrompt}
+
+⚠️ SVAKO jelo MORA biti BEZ navedenih alergena!
+
+Vrati ISKLJUČIVO JSON:
+{"jela":[{"naziv":"...","vrsta":"Slano","vrijeme":"Srednje (30-45 min)","tezina":"Srednji","kalorije":${kalorijePoObroku},"proteini":${Math.round((proteini || 150) / 3)},"ugljikohidrati":${Math.round((ugljikohidrati || 250) / 3)},"masti":${Math.round((masti || 70) / 3)}}]}
+
+Kreiraj TAČNO ${emptySlots.length} jela.`;
 
         console.log('📝 Šaljem AI zahtjev za popunjavanje...');
 
