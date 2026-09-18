@@ -33,12 +33,9 @@ const PLACEHOLDER_IMAGES = {
 
 // ============================================================
 // MEAL CARD KOMPONENTA
-// Prima meal kao STRING ili OBJEKT
 // ============================================================
 const MealCard = ({ meal, type, icon, label, onClick, t }) => {
   const isEmpty = !meal || meal === '---';
-
-  // 🔥 PODRŽI OBA FORMATA
   const isObject = meal && typeof meal === 'object';
   const naziv = isObject ? meal.naziv : (meal?.replace('✨', '').replace('🤖', '').trim() || '');
   const isAI = isObject ? meal._ai === true : (typeof meal === 'string' && meal.includes('✨'));
@@ -49,12 +46,8 @@ const MealCard = ({ meal, type, icon, label, onClick, t }) => {
     return (
       <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 p-4 flex flex-col items-center justify-center min-h-[200px]">
         <span className="text-4xl mb-2 opacity-30">{icon}</span>
-        <span className="text-xs text-gray-400 dark:text-gray-500 italic">
-          {label}
-        </span>
-        <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-          — nije popunjeno
-        </span>
+        <span className="text-xs text-gray-400 dark:text-gray-500 italic">{label}</span>
+        <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">— nije popunjeno</span>
       </div>
     );
   }
@@ -64,7 +57,6 @@ const MealCard = ({ meal, type, icon, label, onClick, t }) => {
       onClick={() => onClick(meal, type)}
       className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all text-left hover:-translate-y-1 flex flex-col"
     >
-      {/* SLIKA */}
       <div className="relative h-32 overflow-hidden bg-gray-100 dark:bg-gray-700">
         <img
           src={slika}
@@ -74,7 +66,6 @@ const MealCard = ({ meal, type, icon, label, onClick, t }) => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
 
-        {/* ICON + LABEL */}
         <div className="absolute top-2 left-2 flex items-center gap-1 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-full px-2 py-1">
           <span className="text-sm">{icon}</span>
           <span className="text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase">
@@ -82,7 +73,6 @@ const MealCard = ({ meal, type, icon, label, onClick, t }) => {
           </span>
         </div>
 
-        {/* AI BADGE */}
         {isAI && (
           <div className="absolute top-2 right-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-lg flex items-center gap-0.5">
             <span>✨</span> AI
@@ -90,21 +80,18 @@ const MealCard = ({ meal, type, icon, label, onClick, t }) => {
         )}
       </div>
 
-      {/* NAZIV + INFO */}
       <div className="p-3 flex-1 flex flex-col">
         <p className="font-semibold text-sm text-gray-800 dark:text-white line-clamp-2 mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition flex-1">
           {naziv}
         </p>
-        
+
         <div className="flex items-center justify-between mt-auto">
           {isObject && kalorije > 0 ? (
             <span className="text-xs text-orange-500 dark:text-orange-400 font-semibold">
               🔥 {kalorije} kcal
             </span>
           ) : (
-            <span className="text-[10px] text-gray-400 dark:text-gray-500">
-              {label}
-            </span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500">{label}</span>
           )}
           <span className="text-xs text-emerald-500 dark:text-emerald-400 font-semibold opacity-0 group-hover:opacity-100 transition">
             {t('foodplanner.plan.view') || 'Vidi'} →
@@ -175,9 +162,11 @@ const FoodPlanner = () => {
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [fridgeItems, setFridgeItems] = useState([]);
   const [restrictions, setRestrictions] = useState([]);
-
-  // 🔥 MODAL STATE - čuva cijeli objekt jela
   const [selectedMeal, setSelectedMeal] = useState(null);
+
+  // 🔥 NOVO - state za spremanje u dnevnik
+  const [savingToDiary, setSavingToDiary] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // ============================================================
   // HELPER FUNKCIJE ZA DATUM
@@ -215,6 +204,31 @@ const FoodPlanner = () => {
   };
 
   // ============================================================
+  // 🔥 UKUPNO PO TIPU OBROKA
+  // ============================================================
+  const ukupnoPoTipu = useMemo(() => {
+    const rezultat = {
+      'Doručak': { kalorije: 0, proteini: 0, ugljikohidrati: 0, masti: 0, broj: 0 },
+      'Ručak': { kalorije: 0, proteini: 0, ugljikohidrati: 0, masti: 0, broj: 0 },
+      'Večera': { kalorije: 0, proteini: 0, ugljikohidrati: 0, masti: 0, broj: 0 },
+      'Užina': { kalorije: 0, proteini: 0, ugljikohidrati: 0, masti: 0, broj: 0 }
+    };
+
+    obroci.forEach(obrok => {
+      const tip = obrok.tip || 'Ručak';
+      if (rezultat[tip]) {
+        rezultat[tip].kalorije += obrok.kalorije || 0;
+        rezultat[tip].proteini += obrok.proteini || 0;
+        rezultat[tip].ugljikohidrati += obrok.ugljikohidrati || 0;
+        rezultat[tip].masti += obrok.masti || 0;
+        rezultat[tip].broj += 1;
+      }
+    });
+
+    return rezultat;
+  }, [obroci]);
+
+  // ============================================================
   // FILTRIRAJ RECEPTE NA OSNOVU RESTRIKCIJA
   // ============================================================
   const filterRecipesByRestrictions = useCallback((recipes) => {
@@ -244,8 +258,6 @@ const FoodPlanner = () => {
       setSearchingRecipes(true);
       const res = await fetch(`${API_URL}/api/recepti`);
       const data = await res.json();
-
-      // 🔥 Podrži i novi format { success, data } i stari array
       const recipesArray = Array.isArray(data) ? data : (data.data || []);
 
       if (recipesArray.length > 0) {
@@ -406,7 +418,7 @@ const FoodPlanner = () => {
   };
 
   // ============================================================
-  // DODAJ OBROK
+  // DODAJ OBROK (ručno preko forme)
   // ============================================================
   const handleDodajObrok = useCallback(async (e) => {
     e.preventDefault();
@@ -539,10 +551,16 @@ const FoodPlanner = () => {
   };
 
   // ============================================================
-  // DODAJ JELO IZ PLANA U DNEVNIK
+  // 🔥 DODAJ JELO IZ PLANA U DNEVNIK - DIREKTNO SPREMA U BAZU
   // ============================================================
-  const addMealToDiary = () => {
+  const addMealToDiary = async () => {
     if (!selectedMeal) return;
+
+    const email = user?.email || localStorage.getItem('userEmail');
+    if (!email) {
+      alert(t('foodplanner.alerts.login_required'));
+      return;
+    }
 
     const tipMap = {
       dorucak: 'Doručak',
@@ -550,18 +568,46 @@ const FoodPlanner = () => {
       vecera: 'Večera'
     };
 
-    setNoviObrok({
-      naziv: selectedMeal.naziv,
-      kalorije: selectedMeal.kalorije || '',
-      proteini: selectedMeal.proteini || '',
-      ugljikohidrati: selectedMeal.ugljikohidrati || '',
-      masti: selectedMeal.masti || '',
-      tip: tipMap[selectedMeal.type] || 'Ručak'
-    });
+    setSavingToDiary(true);
+    try {
+      const res = await fetch(`${API_URL}/api/obroci`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          naziv: selectedMeal.naziv,
+          kalorije: parseFloat(selectedMeal.kalorije) || 0,
+          proteini: parseFloat(selectedMeal.proteini) || 0,
+          ugljikohidrati: parseFloat(selectedMeal.ugljikohidrati) || 0,
+          masti: parseFloat(selectedMeal.masti) || 0,
+          tip: tipMap[selectedMeal.type] || 'Ručak',
+          mood_before: '😐',
+          mood_after: '😐',
+          mood_note: selectedMeal._ai ? '🤖 AI preporuka' : '📅 Iz plana obroka',
+          datum: formatDateForAPI(selectedDate)
+        })
+      });
 
-    setSelectedMeal(null);
-    setActiveTab(0);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+      const data = await res.json();
+
+      // 🔥 DODAJ U LISTU - dnevni cilj se automatski ažurira
+      setObroci(prev => [data, ...prev]);
+
+      // ✅ Prikaži uspjeh
+      setSaveSuccess(true);
+      setTimeout(() => {
+        setSaveSuccess(false);
+        setSelectedMeal(null);
+        setActiveTab(0); // Prebaci na Dnevnik
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 1000);
+
+    } catch (error) {
+      console.error('❌ Greška pri spremanju:', error);
+      alert(t('foodplanner.alerts.add_error'));
+    } finally {
+      setSavingToDiary(false);
+    }
   };
 
   // ============================================================
@@ -711,10 +757,10 @@ const FoodPlanner = () => {
   }
 
   // ============================================================
-  // RENDER
+  // RENDER - GLAVNI UI
   // ============================================================
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
+    <div className="max-w-4xl mx-auto py-8 px-4 pb-32 dark:bg-gray-900 dark:text-white">
       <h1 className="text-3xl font-bold mb-6">{t('foodplanner.title')}</h1>
 
       {/* TABOVI */}
@@ -845,7 +891,7 @@ const FoodPlanner = () => {
             </div>
 
             {/* PROGRESS BAR */}
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-4">
               <div className="flex justify-between items-center">
                 <span className="font-semibold dark:text-white">{t('foodplanner.diary.consumed')}</span>
                 <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -878,6 +924,43 @@ const FoodPlanner = () => {
                 </div>
               </div>
             </div>
+
+            {/* 🔥 UKUPNO PO TIPU OBROKA */}
+            {obroci.length > 0 && (
+              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl p-4 mb-4 border border-emerald-200 dark:border-emerald-700">
+                <h3 className="font-semibold dark:text-white mb-3 flex items-center gap-2">
+                  📊 {t('foodplanner.diary.totals_by_meal') || 'Ukupno po obrocima'}
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {Object.entries(ukupnoPoTipu).map(([tip, data]) => {
+                    const icons = {
+                      'Doručak': '🌅',
+                      'Ručak': '☀️',
+                      'Večera': '🌙',
+                      'Užina': '🍿'
+                    };
+                    return (
+                      <div
+                        key={tip}
+                        className="bg-white dark:bg-gray-800 rounded-xl p-3 text-center"
+                      >
+                        <div className="text-2xl mb-1">{icons[tip]}</div>
+                        <div className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
+                          {tip}
+                        </div>
+                        <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                          {Math.round(data.kalorije)}
+                        </div>
+                        <div className="text-[10px] text-gray-400">kcal</div>
+                        <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
+                          {data.broj} {data.broj === 1 ? 'obrok' : 'obroka'}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* FORMA ZA UNOS */}
@@ -925,11 +1008,7 @@ const FoodPlanner = () => {
                     </div>
                   ) : searchTerm && !searchingRecipes && recipesLoaded ? (
                     <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 text-center text-gray-500 dark:text-gray-400">
-                      ❌ Nema recepata za "{searchTerm}" (provjeri restrikcije)
-                    </div>
-                  ) : searchTerm && searchingRecipes ? (
-                    <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 text-center text-gray-500 dark:text-gray-400">
-                      ⏳ Pretražujem recepte...
+                      ❌ Nema recepata za "{searchTerm}"
                     </div>
                   ) : null}
                 </>
@@ -1284,11 +1363,12 @@ const FoodPlanner = () => {
       )}
 
       {/* ============================================================
-          MODAL ZA DETALJE JELA - PRIKAZUJE SASTOJKE I UPUTE
+          MODAL ZA DETALJE JELA - zIndex 9999 (IZNAD NAVBAR-A)
           ============================================================ */}
       {selectedMeal && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+          style={{ zIndex: 9999 }}
           onClick={() => setSelectedMeal(null)}
         >
           <div
@@ -1314,6 +1394,15 @@ const FoodPlanner = () => {
 
             {/* SADRŽAJ */}
             <div className="p-6">
+              {/* 🔥 PORUKA USPJEHA */}
+              {saveSuccess && (
+                <div className="mb-4 p-3 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-xl text-center">
+                  <p className="text-sm font-semibold text-green-700 dark:text-green-300">
+                    ✅ Uspješno dodano u dnevnik!
+                  </p>
+                </div>
+              )}
+
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -1418,10 +1507,25 @@ const FoodPlanner = () => {
               <div className="flex gap-2 mt-6">
                 <button
                   onClick={addMealToDiary}
-                  className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25"
+                  disabled={savingToDiary || saveSuccess}
+                  className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 disabled:opacity-70 text-white py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25"
                 >
-                  <span>➕</span>
-                  {t('foodplanner.plan.add_to_diary') || 'Dodaj u dnevnik'}
+                  {savingToDiary ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Spremam...
+                    </>
+                  ) : saveSuccess ? (
+                    <>✅ Spremljeno!</>
+                  ) : (
+                    <>
+                      <span>➕</span>
+                      {t('foodplanner.plan.add_to_diary') || 'Dodaj u dnevnik'}
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={() => setSelectedMeal(null)}
