@@ -30,7 +30,7 @@ const dayMapping = {
 };
 
 const FoodPlanner = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState(0);
   const [user, setUser] = useState(null);
   const [profil, setProfil] = useState(null);
@@ -395,6 +395,9 @@ const FoodPlanner = () => {
     setLoadingPlan(true);
     try {
       const email = user?.email || localStorage.getItem('userEmail');
+      const jezik = i18n.language || 'hr';  // 🔥 DODANO
+      
+      console.log('🌐 Šaljem plan na jeziku:', jezik);
       
       const res = await fetch(`${API_URL}/api/weekly-plan`, {
         method: 'POST',
@@ -407,12 +410,14 @@ const FoodPlanner = () => {
           ugljikohidrati: dailyGoal.ugljikohidrati,
           masti: dailyGoal.masti,
           restrikcije: restrictions,
-          datum: formatDateForAPI(selectedDate)
+          datum: formatDateForAPI(selectedDate),
+          jezik: jezik  // 🔥 DODANO
         })
       });
       
       const data = await res.json();
       console.log('📡 Weekly Plan odgovor:', data);
+      console.log('🌐 Plan jezik:', data._jezik);
       setWeeklyPlan(data);
     } catch (error) {
       console.error('❌ Greška:', error);
@@ -1106,5 +1111,6 @@ const FoodPlanner = () => {
     </div>
   );
 };
+
 
 export default FoodPlanner;
