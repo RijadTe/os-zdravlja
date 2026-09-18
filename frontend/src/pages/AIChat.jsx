@@ -16,20 +16,20 @@ const AIChat = () => {
   // 🔥 RAZLIČITI LIMITI ZA FREE I PREMIUM
   const FREE_LIMIT = 10;
   const PREMIUM_LIMIT = 25;
-  
+
   const email = localStorage.getItem('userEmail');
 
   useEffect(() => {
     const fetchUserStatus = async () => {
       if (!email) return;
-      
+
       try {
         const response = await fetch(`${API_URL}/api/profil/${email}`);
         const data = await response.json();
-        
+
         if (data.success && data.data) {
           setIsPremium(data.data.premium || false);
-          
+
           const today = new Date().toISOString().split('T')[0];
           if (data.data.ai_chat_date === today) {
             setChatCount(data.data.ai_chat_count || 0);
@@ -55,7 +55,7 @@ const AIChat = () => {
 
     // 🔥 Provjera limita prema statusu
     const maxLimit = isPremium ? PREMIUM_LIMIT : FREE_LIMIT;
-    
+
     if (chatCount >= maxLimit) {
       alert(t('ai_chat.limit_reached', { limit: maxLimit }));
       return;
@@ -74,17 +74,17 @@ const AIChat = () => {
       });
 
       const data = await response.json();
-      
+
       if (data.error) {
         alert('❌ ' + data.error);
         setLoading(false);
         return;
       }
-      
+
       const aiMessage = { role: 'assistant', content: data.response };
       setMessages(prev => [...prev, aiMessage]);
       setChatCount(prev => prev + 1);
-      
+
     } catch (error) {
       console.error('❌ Greška:', error);
       alert(t('common.error'));
@@ -123,19 +123,19 @@ const AIChat = () => {
             🤖 {t('ai_chat.title')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {isPremium 
-              ? `⭐ ${t('ai_chat.premium_user')} (${PREMIUM_LIMIT} poruka/dan)` 
-              : `📩 ${t('ai_chat.free_user')} (${FREE_LIMIT} poruka/dan)`
+            {isPremium
+              ? `⭐ ${t('ai_chat.premium_user')} (${t('ai_chat.messages_per_day', { count: PREMIUM_LIMIT })})`
+              : `📩 ${t('ai_chat.free_user')} (${t('ai_chat.messages_per_day', { count: FREE_LIMIT })})`
             }
           </p>
         </div>
         <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${
-          isPremium 
+          isPremium
             ? 'bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border-yellow-200 dark:border-yellow-700'
             : 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700'
         }`}>
           <span className={`text-sm font-medium ${
-            isPremium 
+            isPremium
               ? 'text-yellow-600 dark:text-yellow-400'
               : 'text-blue-600 dark:text-blue-400'
           }`}>
@@ -160,14 +160,14 @@ const AIChat = () => {
                 </p>
                 <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-700 rounded-xl max-w-sm">
                   <p className="text-sm text-gray-700 dark:text-gray-300">
-                    {isPremium 
-                      ? `Premium korisnik: ${PREMIUM_LIMIT} poruka dnevno`
-                      : `Free korisnik: ${FREE_LIMIT} poruka dnevno`
+                    {isPremium
+                      ? `${t('ai_chat.premium_user')}: ${t('ai_chat.messages_per_day_long', { count: PREMIUM_LIMIT })}`
+                      : `${t('ai_chat.free_user')}: ${t('ai_chat.messages_per_day_long', { count: FREE_LIMIT })}`
                     }
                   </p>
                   {!isPremium && (
                     <a href="/premium" className="inline-block mt-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">
-                      ⭐ Postani Premium za 25 poruka dnevno →
+                      ⭐ {t('ai_chat.become_premium_cta', { count: PREMIUM_LIMIT })} →
                     </a>
                   )}
                 </div>
@@ -235,7 +235,7 @@ const AIChat = () => {
                   {t('ai_chat.limit_reached_message', { limit: maxLimit })}
                   {!isPremium && (
                     <a href="/premium" className="inline-block ml-2 font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">
-                      ⭐ Postani Premium
+                      ⭐ {t('ai_chat.become_premium')}
                     </a>
                   )}
                 </p>
@@ -243,14 +243,14 @@ const AIChat = () => {
             )}
             <div className="mt-2 text-center">
               <p className="text-[10px] text-gray-400 dark:text-gray-500">
-                {isPremium 
-                  ? `⭐ Premium: ${remainingMessages}/${PREMIUM_LIMIT} poruka preostalo`
-                  : `📩 Free: ${remainingMessages}/${FREE_LIMIT} poruka preostalo`
+                {isPremium
+                  ? `⭐ ${t('ai_chat.premium_label')}: ${remainingMessages}/${PREMIUM_LIMIT} ${t('ai_chat.messages_remaining')}`
+                  : `📩 ${t('ai_chat.free_label')}: ${remainingMessages}/${FREE_LIMIT} ${t('ai_chat.messages_remaining')}`
                 }
                 {!isPremium && (
                   <span className="ml-2">
                     <a href="/premium" className="text-emerald-500 dark:text-emerald-400 hover:underline font-medium">
-                      ⭐ Upgrade na Premium
+                      ⭐ {t('ai_chat.upgrade_premium')}
                     </a>
                   </span>
                 )}
