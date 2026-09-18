@@ -347,6 +347,34 @@ const FoodPlanner = () => {
     }
   }, [user, fetchObroci, selectedDate]);
 
+
+// ============================================================
+// 🔥 DOHVATI SPREMLJENI PLAN (ako postoji)
+// ============================================================
+useEffect(() => {
+  const fetchSavedPlan = async () => {
+    const email = user?.email || localStorage.getItem('userEmail');
+    if (!email) return;
+    
+    try {
+      console.log('📥 Provjeravam spremljeni plan...');
+      const res = await fetch(`${API_URL}/api/weekly-plan/${encodeURIComponent(email)}`);
+      const data = await res.json();
+      
+      if (data.success && data.dani) {
+        console.log(`✅ Spremljeni plan pronađen (star ${data._starost_dana} dana)`);
+        setWeeklyPlan(data);
+      } else {
+        console.log('ℹ️ Nema spremljenog plana:', data.message || '');
+      }
+    } catch (error) {
+      console.error('❌ Greška pri dohvatu spremljenog plana:', error);
+    }
+  };
+  
+  fetchSavedPlan();
+}, [user]);
+
   // ============================================================
   // ODABERI RECEPT IZ DROPDOWNA
   // ============================================================

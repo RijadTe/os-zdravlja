@@ -2870,6 +2870,7 @@ app.post('/api/weekly-plan', async (req, res) => {
           ciljevi: { kalorije, proteini, ugljikohidrati, masti },
           restrikcije: restrikcije || [],
           izvor: baseRecipesCount >= 21 ? 'baza' : 'kombinovan',
+          jezik: jezik,  // 🔥 DODANO
           created_at: new Date().toISOString()
         }, { onConflict: 'korisnik_email, datum' });
       console.log('✅ Plan sačuvan u bazu');
@@ -2908,6 +2909,92 @@ app.post('/api/weekly-plan', async (req, res) => {
       ],
       _izvor: 'error'
     });
+  }
+});
+
+// ============================================================
+// 19b. 🔥 DOHVATI SPREMLJENI PLAN (7 DANA RETENCIJA)
+// ============================================================
+app.get('/api/weekly-plan/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const { datum } = req.query;
+    
+    console.log(`📥 Dohvatam plan za: ${email}`, datum ? `(datum: ${datum})` : '');
+    
+    let query = supabase
+      .from('planovi_obroka')
+      .select('*')
+      .eq('korisnik_email', email)
+      .order('created_at', { ascending: false });
+    
+    if (datum) {
+      query = query.eq('datum', datum);
+    }
+    
+    const { data, error } = await query.limit(1).maybeSingle();
+    
+    if (error) {
+      console.error('❌ Greška pri dohvatu plana:', error);
+      return res.status(500).json({ error: error.message });
+    }
+    
+    if (!data) {
+      console.log('ℹ️ Nema spremljenog plana');
+      return res.json({ 
+        success: false, 
+        plan: null,
+        message: 'Nema spremljenog plana' 
+      });
+    }
+    
+    // 🔥 PROVJERI DA LI JE PLAN STARIJI OD 7 DANA
+    const createdAt = new Date(data.created_at);
+    const sada = new Date();
+    const razlikaDana = Math.floor((sada - createdAt) / (1000 * 60 * 60 * 24));
+    
+    console.log(`📊 Plan star ${razlikaDana} dana (${data.izvor})`);
+    
+    if (razlikaDana > 7) {
+      console.log(`⚠️ Plan stariji od 7 dana, brišem ga...`);
+      
+      await supabase
+        .from('planovi_obroka')
+        .delete()
+        .eq('id', data.id);
+      
+      return res.json({ 
+        success: false, 
+        plan: null,
+        message: 'Plan je istekao (stariji od 7 dana)' 
+      });
+    }
+    
+    // 🔥 PREBROJ STVARNE BROJEVE
+    const totalMeals = data.plan.dani.flatMap(d => [d.dorucak, d.rucak, d.vecera])
+      .filter(j => j && j !== '---').length;
+    const aiMeals = data.plan.dani.flatMap(d => [d.dorucak, d.rucak, d.vecera])
+      .filter(j => j && j.includes('✨')).length;
+    const baseMeals = totalMeals - aiMeals;
+    
+    console.log(`✅ Plan pronađen (${totalMeals}/21, ${baseMeals} baza, ${aiMeals} AI)`);
+    
+    res.json({
+      success: true,
+      dani: data.plan.dani,
+      _izvor: data.izvor,
+      _broj_iz_baze: baseMeals,
+      _broj_iz_ai: aiMeals,
+      _ukupno: totalMeals,
+      _datum: data.datum,
+      _created_at: data.created_at,
+      _starost_dana: razlikaDana,
+      _jezik: data.jezik || 'hr'
+    });
+    
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
