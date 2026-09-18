@@ -543,7 +543,8 @@
       "loading": "⏳ Chargement des repas...",
       "no_meals": "Aucun repas enregistré pour aujourd'hui.",
       "add_first": "Ajoutez votre premier repas !",
-      "delete": "Supprimer le repas"
+      "delete": "Supprimer le repas",
+      "totals_by_meal": "Totaux par repas"
     },
     "analytics": {
       "title": "📈 Analyses",

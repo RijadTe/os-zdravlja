@@ -543,7 +543,8 @@
       "loading": "⏳ Cargando comidas...",
       "no_meals": "No hay comidas registradas para hoy.",
       "add_first": "¡Añade tu primera comida!",
-      "delete": "Eliminar comida"
+      "delete": "Eliminar comida",
+      "totals_by_meal": "Totales por comida"
     },
     "analytics": {
       "title": "📈 Análisis",

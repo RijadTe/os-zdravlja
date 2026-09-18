@@ -543,7 +543,8 @@
       "loading": "⏳ Caricamento pasti...",
       "no_meals": "Nessun pasto registrato per oggi.",
       "add_first": "Aggiungi il tuo primo pasto!",
-      "delete": "Elimina pasto"
+      "delete": "Elimina pasto",
+      "totals_by_meal": "Totali per pasto"
     },
     "analytics": {
       "title": "📈 Analisi",

@@ -147,6 +147,7 @@ const FoodPlanner = () => {
   const [moodAfter, setMoodAfter] = useState('');
   const [moodNote, setMoodNote] = useState('');
 
+  // 🔥 6 EMOJIJA - MANJE ZA MOBITEL
   const moodOptions = [
     { emoji: '😊', label: t('foodplanner.moods.happy') },
     { emoji: '😐', label: t('foodplanner.moods.neutral') },
@@ -154,8 +155,6 @@ const FoodPlanner = () => {
     { emoji: '😡', label: t('foodplanner.moods.angry') },
     { emoji: '😴', label: t('foodplanner.moods.tired') },
     { emoji: '🤩', label: t('foodplanner.moods.excited') },
-    { emoji: '😌', label: t('foodplanner.moods.relaxed') },
-    { emoji: '🤔', label: t('foodplanner.moods.thoughtful') },
   ];
 
   const [weeklyPlan, setWeeklyPlan] = useState(null);
@@ -164,7 +163,7 @@ const FoodPlanner = () => {
   const [restrictions, setRestrictions] = useState([]);
   const [selectedMeal, setSelectedMeal] = useState(null);
 
-  // 🔥 NOVO - state za spremanje u dnevnik
+  // 🔥 State za spremanje u dnevnik
   const [savingToDiary, setSavingToDiary] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -204,7 +203,7 @@ const FoodPlanner = () => {
   };
 
   // ============================================================
-  // 🔥 UKUPNO PO TIPU OBROKA
+  // UKUPNO PO TIPU OBROKA
   // ============================================================
   const ukupnoPoTipu = useMemo(() => {
     const rezultat = {
@@ -305,7 +304,7 @@ const FoodPlanner = () => {
   }, [filteredRecipes, searchTerm, recipesLoaded]);
 
   // ============================================================
-  // DOHVATI PROFIL
+  // DOHVATI PROFIL - UVIJEK SVIEŽI S BACKENDA
   // ============================================================
   useEffect(() => {
     const fetchProfile = async () => {
@@ -323,7 +322,13 @@ const FoodPlanner = () => {
           const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
           const data = await response.json();
           if (data.success && data.data) {
+            // 🔥 Postavi svježe podatke iz baze
             setProfil(data.data);
+            setUser(data.data);
+            
+            // 🔥 Ažuriraj localStorage s svježim podacima
+            localStorage.setItem('user', JSON.stringify(data.data));
+            
             const restrikcije = data.data.izbjegava || [];
             setRestrictions(restrikcije);
             console.log('🔒 Restrikcije korisnika:', restrikcije);
@@ -506,7 +511,7 @@ const FoodPlanner = () => {
   };
 
   // ============================================================
-  // OTVORI MODAL ZA JELO - prima OBJECT ili STRING
+  // OTVORI MODAL ZA JELO
   // ============================================================
   const openMealModal = (meal, type) => {
     if (!meal || meal === '---') return;
@@ -522,7 +527,6 @@ const FoodPlanner = () => {
       vecera: '🌙'
     };
 
-    // Ako je objekt (nova verzija) - spremi sve
     if (typeof meal === 'object') {
       setSelectedMeal({
         ...meal,
@@ -533,7 +537,6 @@ const FoodPlanner = () => {
       return;
     }
 
-    // Fallback - stari string format
     setSelectedMeal({
       naziv: meal.replace('✨', '').replace('🤖', '').trim(),
       type,
@@ -551,7 +554,7 @@ const FoodPlanner = () => {
   };
 
   // ============================================================
-  // 🔥 DODAJ JELO IZ PLANA U DNEVNIK - DIREKTNO SPREMA U BAZU
+  // DODAJ JELO IZ PLANA U DNEVNIK - DIREKTNO SPREMA U BAZU
   // ============================================================
   const addMealToDiary = async () => {
     if (!selectedMeal) return;
@@ -589,16 +592,13 @@ const FoodPlanner = () => {
       });
 
       const data = await res.json();
-
-      // 🔥 DODAJ U LISTU - dnevni cilj se automatski ažurira
       setObroci(prev => [data, ...prev]);
 
-      // ✅ Prikaži uspjeh
       setSaveSuccess(true);
       setTimeout(() => {
         setSaveSuccess(false);
         setSelectedMeal(null);
-        setActiveTab(0); // Prebaci na Dnevnik
+        setActiveTab(0);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }, 1000);
 
@@ -890,14 +890,17 @@ const FoodPlanner = () => {
               )}
             </div>
 
-            {/* PROGRESS BAR */}
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-4">
-              <div className="flex justify-between items-center">
-                <span className="font-semibold dark:text-white">{t('foodplanner.diary.consumed')}</span>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
+            {/* 🔥 PROGRESS BAR - RESPONSIVE */}
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 sm:p-4 mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-semibold text-sm sm:text-base dark:text-white">
+                  {t('foodplanner.diary.consumed')}
+                </span>
+                <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">
                   {Math.round(ukupno.kalorije)} / {dailyGoal.kalorije} kcal
                 </span>
               </div>
+              
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mt-2">
                 <div
                   className={`h-2.5 rounded-full transition-all duration-500 ${
@@ -906,21 +909,49 @@ const FoodPlanner = () => {
                   style={{ width: `${Math.min(progress.kalorije, 100)}%` }}
                 />
               </div>
-              <div className="grid grid-cols-3 gap-2 mt-2 text-sm text-gray-500 dark:text-gray-400">
-                <div className="flex items-center gap-1">
-                  <span className="text-blue-500">🥩</span>
-                  <span>{Math.round(ukupno.proteini)}/{dailyGoal.proteini}g</span>
-                  <span className="text-xs">({Math.round(progress.proteini)}%)</span>
+              
+              {/* 🔥 MAKRONUTRIJENTI - RESPONSIVE GRID */}
+              <div className="grid grid-cols-3 gap-2 mt-3">
+                {/* PROTEINI */}
+                <div className="flex flex-col items-center bg-white dark:bg-gray-700/50 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <span className="text-sm">🥩</span>
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold">
+                      {Math.round(progress.proteini)}%
+                    </span>
+                  </div>
+                  <span className="text-[10px] sm:text-xs font-bold text-gray-700 dark:text-gray-200">
+                    {Math.round(ukupno.proteini)}
+                    <span className="text-gray-400 dark:text-gray-500 font-normal">/{dailyGoal.proteini}g</span>
+                  </span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-green-500">🍞</span>
-                  <span>{Math.round(ukupno.ugljikohidrati)}/{dailyGoal.ugljikohidrati}g</span>
-                  <span className="text-xs">({Math.round(progress.ugljikohidrati)}%)</span>
+                
+                {/* UGLJIKOHIDRATI */}
+                <div className="flex flex-col items-center bg-white dark:bg-gray-700/50 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <span className="text-sm">🍞</span>
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold">
+                      {Math.round(progress.ugljikohidrati)}%
+                    </span>
+                  </div>
+                  <span className="text-[10px] sm:text-xs font-bold text-gray-700 dark:text-gray-200">
+                    {Math.round(ukupno.ugljikohidrati)}
+                    <span className="text-gray-400 dark:text-gray-500 font-normal">/{dailyGoal.ugljikohidrati}g</span>
+                  </span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-yellow-500">🧈</span>
-                  <span>{Math.round(ukupno.masti)}/{dailyGoal.masti}g</span>
-                  <span className="text-xs">({Math.round(progress.masti)}%)</span>
+                
+                {/* MASTI */}
+                <div className="flex flex-col items-center bg-white dark:bg-gray-700/50 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <span className="text-sm">🧈</span>
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold">
+                      {Math.round(progress.masti)}%
+                    </span>
+                  </div>
+                  <span className="text-[10px] sm:text-xs font-bold text-gray-700 dark:text-gray-200">
+                    {Math.round(ukupno.masti)}
+                    <span className="text-gray-400 dark:text-gray-500 font-normal">/{dailyGoal.masti}g</span>
+                  </span>
                 </div>
               </div>
             </div>
@@ -929,7 +960,7 @@ const FoodPlanner = () => {
             {obroci.length > 0 && (
               <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl p-4 mb-4 border border-emerald-200 dark:border-emerald-700">
                 <h3 className="font-semibold dark:text-white mb-3 flex items-center gap-2">
-                  📊 {t('foodplanner.diary.totals_by_meal') || 'Ukupno po obrocima'}
+                  📊 {t('foodplanner.diary.totals_by_meal')}
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {Object.entries(ukupnoPoTipu).map(([tip, data]) => {
@@ -1036,7 +1067,7 @@ const FoodPlanner = () => {
               </select>
             </div>
 
-            {/* EMOJI UNOS */}
+            {/* EMOJI UNOS - 6 EMOJIJA */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
               <div>
                 <label className="text-xs font-semibold text-gray-600 dark:text-gray-300">{t('foodplanner.diary.mood_before')}</label>
@@ -1350,7 +1381,7 @@ const FoodPlanner = () => {
             <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-2xl">
               <p className="text-5xl mb-4">🍽️</p>
               <p className="text-gray-500 dark:text-gray-400">
-                {t('foodplanner.plan.no_plan') || 'Kliknite "Generiši plan" da kreirate sedmični plan obroka'}
+                {t('foodplanner.plan.no_plan')}
               </p>
             </div>
           )}
@@ -1394,7 +1425,7 @@ const FoodPlanner = () => {
 
             {/* SADRŽAJ */}
             <div className="p-6">
-              {/* 🔥 PORUKA USPJEHA */}
+              {/* PORUKA USPJEHA */}
               {saveSuccess && (
                 <div className="mb-4 p-3 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-xl text-center">
                   <p className="text-sm font-semibold text-green-700 dark:text-green-300">
@@ -1523,7 +1554,7 @@ const FoodPlanner = () => {
                   ) : (
                     <>
                       <span>➕</span>
-                      {t('foodplanner.plan.add_to_diary') || 'Dodaj u dnevnik'}
+                      {t('foodplanner.plan.add_to_diary')}
                     </>
                   )}
                 </button>
@@ -1531,7 +1562,7 @@ const FoodPlanner = () => {
                   onClick={() => setSelectedMeal(null)}
                   className="px-6 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition text-gray-700 dark:text-gray-200 font-medium"
                 >
-                  {t('common.close') || 'Zatvori'}
+                  {t('common.close')}
                 </button>
               </div>
             </div>

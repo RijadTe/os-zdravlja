@@ -543,7 +543,8 @@
       "loading": "⏳ Loading meals...",
       "no_meals": "No meals logged for today yet.",
       "add_first": "Add your first meal!",
-      "delete": "Delete meal"
+      "delete": "Delete meal",
+      "totals_by_meal": "Totals by meal"
     },
     "analytics": {
       "title": "📈 Analytics",

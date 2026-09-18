@@ -543,7 +543,8 @@
       "loading": "⏳ Učitavanje obroka...",
       "no_meals": "Još nema unesenih obroka za danas.",
       "add_first": "Dodajte svoj prvi obrok!",
-      "delete": "Obriši obrok"
+      "delete": "Obriši obrok",
+      "totals_by_meal": "Ukupno po obrocima"
     },
     "analytics": {
       "title": "📈 Analitika",

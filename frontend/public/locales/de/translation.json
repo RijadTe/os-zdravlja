@@ -543,7 +543,8 @@
       "loading": "⏳ Lade Mahlzeiten...",
       "no_meals": "Noch keine Mahlzeiten für heute eingetragen.",
       "add_first": "Fügen Sie Ihre erste Mahlzeit hinzu!",
-      "delete": "Mahlzeit löschen"
+      "delete": "Mahlzeit löschen",
+      "totals_by_meal": "Summen nach Mahlzeit"
     },
     "analytics": {
       "title": "📈 Analysen",
