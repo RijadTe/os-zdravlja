@@ -2735,168 +2735,137 @@ app.post('/api/weekly-plan', async (req, res) => {
     // 🔥 PRATI IZVOR AI-a
     let aiSourceResult = null;
 
-    // ============================================================
-    // 7. POPUNI PRAZNA MJESTA SA AI (OPENAI → GROQ FALLBACK)
-    // ============================================================
-    if (baseRecipesCount < 21 && (openai || groqChef)) {
-      console.log(`⚠️ Premalo recepata u bazi (${baseRecipesCount}/21), popunjavam AI...`);
-      
-      const emptySlots = [];
-      plan.forEach((day, dayIndex) => {
-        ['dorucak', 'rucak', 'vecera'].forEach(meal => {
-          if (day[meal] === '---') {
-            emptySlots.push({ dayIndex, meal });
-          }
-        });
-      });
-      
-      console.log(`🔄 Potrebno popuniti ${emptySlots.length} praznih mjesta`);
-      
-      try {
-        let restrikcijePrompt = 'Nema posebnih restrikcija.';
-        let alergeniPrompt = '';
-        let dijetnePrompt = '';
-        
-        if (restrikcije && restrikcije.length > 0 && !hasNoRestrictions(restrikcije)) {
-          const alergeniList = ['gluten', 'laktoza', 'jaja', 'orašasti', 'orasasti', 'soja', 'kikiriki', 'morski plodovi', 'školjke', 'riba'];
-          const alergeni = [];
-          const dijetne = [];
-          
-          restrikcije.forEach(r => {
-            const rLower = r.toLowerCase();
-            const jeAlergen = alergeniList.some(a => rLower.includes(a));
-            if (jeAlergen) {
-              alergeni.push(r);
-            } else {
-              dijetne.push(r);
-            }
-          });
-          
-          if (alergeni.length > 0) {
-            alergeniPrompt = `\n⚠️ ALERGENI KOJE MORATE IZBJEĆI: ${alergeni.join(', ')}.\nSVAKO jelo MORA biti BEZ ovih sastojaka!`;
-          }
-          if (dijetne.length > 0) {
-            dijetnePrompt = `\n🥗 DIJETNE OZNAKE: ${dijetne.join(', ')}.\nSVAKO jelo MORA odgovarati ovim dijetnim zahtjevima.`;
-          }
-          
-          restrikcijePrompt = `Korisnik IZBJEGAVA: ${restrikcije.join(', ')}.`;
-        }
-
-        let vrstaPrompt = '';
-        if (korisnikVrsta && korisnikVrsta.length > 0) {
-          const vrste = korisnikVrsta.filter(v => v !== 'Svejedno');
-          if (vrste.length > 0) {
-            vrstaPrompt = `\n🍽️ PREFERIRANE VRSTE JELA: ${vrste.join(', ')}.`;
-          }
-        }
-
-        let preferencijePrompt = '';
-        if (korisnikPreferencije && korisnikPreferencije.length > 0) {
-          const prefs = korisnikPreferencije.filter(p => p !== 'Svejedno');
-          if (prefs.length > 0) {
-            preferencijePrompt = `\n💪 NUTRICIONE PREFERENCIJE: ${prefs.join(', ')}.`;
-          }
-        }
-
-        let sastojciPrompt = '';
-        if (sastojci && sastojci.length > 0) {
-          sastojciPrompt = `\n📦 DOSTUPNE NAMIRNICE (koristi ih ako je moguće): ${sastojci.join(', ')}.`;
-        }
-
-        // 🔥 MAPIRANJE JEZIKA
-        const jezikMapa = {
-          'hr': 'hrvatskom',
-          'en': 'engleskom',
-          'de': 'njemačkom',
-          'fr': 'francuskom',
-          'it': 'talijanskom',
-          'es': 'španjolskom',
-          'sl': 'slovenskom'
-        };
-        const jezikNaziv = jezikMapa[jezik] || 'hrvatskom';
-
-         const prompt = `Kreiraj ${emptySlots.length} jela za sedmični plan obroka.
-
-Jezik odgovora: ${jezikNaziv}
-Kalorije po obroku: ${kalorijePoObroku} kcal
-Proteini: ${Math.round((proteini || 150) / 3)}g | Ugljikohidrati: ${Math.round((ugljikohidrati || 250) / 3)}g | Masti: ${Math.round((masti || 70) / 3)}g
-
-🔒 RESTRIKCIJE (OBAVEZNO POŠTUJ):
-${restrikcijePrompt}${alergeniPrompt}${dijetnePrompt}${vrstaPrompt}${preferencijePrompt}${sastojciPrompt}
-
-⚠️ SVAKO jelo MORA biti BEZ navedenih alergena!
-
-📋 FORMAT - Svako jelo MORA imati:
-- naziv: Naziv jela
-- opis: Kratak opis (1-2 rečenice)
-- sastojci: Lista sastojaka s količinama (npr. "500g piletine", "2 glavice luka")
-- upute: Detaljni koraci pripreme (5-8 koraka)
-- kalorije, proteini, ugljikohidrati, masti: brojevi
-- vrijeme: Vrijeme pripreme
-- tezina: Početnik/Srednji/Profesionalac
-- vrsta: Slano/Deserti/Dijetalni recepti/Napitci
-
-Vrati ISKLJUČIVO JSON:
-{
-  "jela": [
-    {
-      "naziv": "...",
-      "opis": "...",
-      "sastojci": ["...", "..."],
-      "upute": ["...", "..."],
-      "kalorije": ${kalorijePoObroku},
-      "proteini": ${Math.round((proteini || 150) / 3)},
-      "ugljikohidrati": ${Math.round((ugljikohidrati || 250) / 3)},
-      "masti": ${Math.round((masti || 70) / 3)},
-      "vrijeme": "30 min",
-      "tezina": "Srednji",
-      "vrsta": "Slano"
-    }
-  ]
-}
-
-Kreiraj TAČNO ${emptySlots.length} jela.`;
-
-        console.log('📝 Šaljem AI zahtjev za popunjavanje...');
-
-        const { data: aiData, source: aiSource } = await callAIForWeeklyPlan(prompt, 0.4);
-        
-        aiSourceResult = aiSource;
-
-        if (aiData && aiData.jela) {
-          const aiJela = aiData.jela || [];
-          console.log(`✅ ${aiSource.toUpperCase()} generisao ${aiJela.length} jela`);
-
-          let aiIndex = 0;
-          for (const slot of emptySlots) {
-            if (aiIndex < aiJela.length) {
-              const jelo = aiJela[aiIndex];
-              plan[slot.dayIndex][slot.meal] = {
-                id: `ai-${Date.now()}-${aiIndex}`,
-                naziv: jelo.naziv,
-                opis: jelo.opis || '',
-                sastojci: jelo.sastojci || [],
-                upute: jelo.upute || [],
-                slika: null,
-                kalorije: jelo.kalorije || kalorijePoObroku,
-                proteini: jelo.proteini || Math.round((proteini || 150) / 3),
-                ugljikohidrati: jelo.ugljikohidrati || Math.round((ugljikohidrati || 250) / 3),
-                masti: jelo.masti || Math.round((masti || 70) / 3),
-                vrijeme: jelo.vrijeme || '30 min',
-                tezina: jelo.tezina || 'Srednji',
-                vrsta: jelo.vrsta || 'Slano',
-                _ai: true
-              };
-              aiIndex++;
-            }
-          }
-          
-          console.log(`✅ Plan popunjen sa ${aiSource.toUpperCase()}`);
-        }
-      } catch (aiError) {
-        console.error('⚠️ Greška pri popunjavanju plana putem AI:', aiError);
+  // ============================================================
+// 7. POPUNI PRAZNA MJESTA SA AI (BATCH - 7 jela po pozivu)
+// ============================================================
+if (baseRecipesCount < 21 && (openai || groqChef)) {
+  console.log(`⚠️ Premalo recepata u bazi (${baseRecipesCount}/21), popunjavam AI...`);
+  
+  const emptySlots = [];
+  plan.forEach((day, dayIndex) => {
+    ['dorucak', 'rucak', 'vecera'].forEach(meal => {
+      if (day[meal] === '---') {
+        emptySlots.push({ dayIndex, meal });
       }
+    });
+  });
+  
+  console.log(`🔄 Potrebno popuniti ${emptySlots.length} praznih mjesta (u batchevima po 7)`);
+  
+  // 🔥 PRIPREMI ZAJEDNIČKI PROMPT DIO
+  let restrikcijePrompt = 'Nema posebnih restrikcija.';
+  let alergeniPrompt = '';
+  let dijetnePrompt = '';
+  
+  if (restrikcije && restrikcije.length > 0 && !hasNoRestrictions(restrikcije)) {
+    const alergeniList = ['gluten', 'laktoza', 'jaja', 'orašasti', 'orasasti', 'soja', 'kikiriki', 'morski plodovi', 'školjke', 'riba'];
+    const alergeni = [];
+    const dijetne = [];
+    
+    restrikcije.forEach(r => {
+      const rLower = r.toLowerCase();
+      const jeAlergen = alergeniList.some(a => rLower.includes(a));
+      if (jeAlergen) {
+        alergeni.push(r);
+      } else {
+        dijetne.push(r);
+      }
+    });
+    
+    if (alergeni.length > 0) {
+      alergeniPrompt = `\nALERGENI (IZBJEGAVAJ): ${alergeni.join(', ')}.`;
     }
+    if (dijetne.length > 0) {
+      dijetnePrompt = `\nDIJETE: ${dijetne.join(', ')}.`;
+    }
+    
+    restrikcijePrompt = `Korisnik NE SMIJE: ${restrikcije.join(', ')}.`;
+  }
+
+  const jezikMapa = {
+    'hr': 'hrvatskom', 'en': 'engleskom', 'de': 'njemačkom',
+    'fr': 'francuskom', 'it': 'talijanskom', 'es': 'španjolskom', 'sl': 'slovenskom',
+    'hr-HR': 'hrvatskom', 'en-US': 'engleskom', 'sl-SI': 'slovenskom'
+  };
+  const jezikNaziv = jezikMapa[jezik] || 'hrvatskom';
+
+  // 🔥 BATCH - po 7 jela
+  const BATCH_SIZE = 7;
+  const totalBatches = Math.ceil(emptySlots.length / BATCH_SIZE);
+  let allAiMeals = [];
+  let aiSourceResult = null;
+
+  for (let batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
+    const batchSlots = emptySlots.slice(batchIdx * BATCH_SIZE, (batchIdx + 1) * BATCH_SIZE);
+    console.log(`📦 Batch ${batchIdx + 1}/${totalBatches}: tražim ${batchSlots.length} jela...`);
+    
+    const batchPrompt = `Kreiraj ${batchSlots.length} jela na ${jezikNaziv} jeziku.
+
+Cilj/jelo: ${kalorijePoObroku} kcal | P: ${Math.round((proteini || 150) / 3)}g | U: ${Math.round((ugljikohidrati || 250) / 3)}g | M: ${Math.round((masti || 70) / 3)}g
+${restrikcijePrompt}${alergeniPrompt}${dijetnePrompt}
+
+Vrati JSON:
+{"jela":[{"naziv":"...","opis":"kratko","sastojci":["100g X","2 kom Y"],"upute":["korak 1","korak 2"],"kalorije":${kalorijePoObroku},"proteini":${Math.round((proteini || 150) / 3)},"ugljikohidrati":${Math.round((ugljikohidrati || 250) / 3)},"masti":${Math.round((masti || 70) / 3)},"vrijeme":"30 min","tezina":"Srednji","vrsta":"Slano"}]}
+
+Kreiraj TOČNO ${batchSlots.length} jela.`;
+
+    try {
+      const { data: aiData, source: aiSource } = await callAIForWeeklyPlan(batchPrompt, 0.4);
+      
+      if (!aiSourceResult && aiSource && aiSource !== 'none') {
+        aiSourceResult = aiSource;
+      }
+      
+      if (aiData && aiData.jela && aiData.jela.length > 0) {
+        console.log(`✅ Batch ${batchIdx + 1}: ${aiSource.toUpperCase()} vratio ${aiData.jela.length} jela`);
+        allAiMeals.push(...aiData.jela);
+      } else {
+        console.warn(`⚠️ Batch ${batchIdx + 1}: AI nije vratio jela`);
+      }
+      
+      // Kratka pauza između batcheva (da ne preoptereti API)
+      if (batchIdx < totalBatches - 1) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+    } catch (batchError) {
+      console.error(`❌ Batch ${batchIdx + 1} greška:`, batchError.message);
+    }
+  }
+
+  console.log(`✅ Ukupno AI jela: ${allAiMeals.length}/${emptySlots.length}`);
+
+  // 🔥 POPUNI PLAN
+  let aiIndex = 0;
+  for (const slot of emptySlots) {
+    if (aiIndex < allAiMeals.length) {
+      const jelo = allAiMeals[aiIndex];
+      plan[slot.dayIndex][slot.meal] = {
+        id: `ai-${Date.now()}-${aiIndex}`,
+        naziv: jelo.naziv,
+        opis: jelo.opis || '',
+        sastojci: jelo.sastojci || [],
+        upute: jelo.upute || [],
+        slika: null,
+        kalorije: jelo.kalorije || kalorijePoObroku,
+        proteini: jelo.proteini || Math.round((proteini || 150) / 3),
+        ugljikohidrati: jelo.ugljikohidrati || Math.round((ugljikohidrati || 250) / 3),
+        masti: jelo.masti || Math.round((masti || 70) / 3),
+        vrijeme: jelo.vrijeme || '30 min',
+        tezina: jelo.tezina || 'Srednji',
+        vrsta: jelo.vrsta || 'Slano',
+        _ai: true
+      };
+      aiIndex++;
+    }
+  }
+  
+  console.log(`✅ Plan popunjen sa ${aiIndex} AI jela (${aiSourceResult || 'none'})`);
+} else if (baseRecipesCount < 21 && !openai && !groqChef) {
+  console.log('⚠️ Ni OpenAI ni Groq nisu dostupni, plan djelimičan');
+} else {
+  console.log('✅ Plan u potpunosti popunjen iz baze!');
+}
 
     // ============================================================
     // 8. SAČUVAJ PLAN U BAZU
