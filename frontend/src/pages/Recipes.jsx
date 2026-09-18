@@ -378,9 +378,9 @@ const filterTranslations = {
         className="w-full p-3 border rounded-xl bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition text-sm"
       >
         <option value="">{t('recipes.all_time')}</option>
-        <option value="Kratko (15-30 min)">{t('recipes.short')}</option>
-        <option value="Srednje (30-45 min)">{t('recipes.medium')}</option>
-        <option value="Duže (45-60+ min)">{t('recipes.long')}</option>
+        <option value="Kratko (15-30 min)">⚡ {t('recipes.short')}</option>
+        <option value="Srednje (30-45 min)">⏱️ {t('recipes.medium')}</option>
+        <option value="Duže (45-60+ min)">🕐 {t('recipes.long')}</option>
       </select>
     </div>
 
@@ -393,9 +393,9 @@ const filterTranslations = {
         className="w-full p-3 border rounded-xl bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition text-sm"
       >
         <option value="">{t('recipes.all_levels')}</option>
-        <option value="Početnik">{t('recipes.beginner')}</option>
-        <option value="Srednji">{t('recipes.intermediate')}</option>
-        <option value="Profesionalac">{t('recipes.professional')}</option>
+        <option value="Početnik">🟢 {t('recipes.beginner')}</option>
+        <option value="Srednji">🟡 {t('recipes.intermediate')}</option>
+        <option value="Profesionalac">🔴 {t('recipes.professional')}</option>
       </select>
     </div>
 
@@ -408,9 +408,9 @@ const filterTranslations = {
         className="w-full p-3 border rounded-xl bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600 focus:ring-2 focus:ring-blue-400 focus:outline-none transition text-sm"
       >
         <option value="">{t('recipes.filters.all_preferences')}</option>
-        <option value="Visokoproteinski">{t('recipes.high_protein')}</option>
-        <option value="Bogat vlaknima">{t('recipes.high_fiber')}</option>
-        <option value="Bogat ugljikohidratima">{t('recipes.high_carb')}</option>
+        <option value="Visokoproteinski">🥩 {t('recipes.high_protein')}</option>
+        <option value="Bogat vlaknima">🌾 {t('recipes.high_fiber')}</option>
+        <option value="Bogat ugljikohidratima">🍞 {t('recipes.high_carb')}</option>
       </select>
     </div>
 
