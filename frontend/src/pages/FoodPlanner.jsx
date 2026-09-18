@@ -1,13 +1,4 @@
 // frontend/src/pages/FoodPlanner.jsx
-
- {
-      <SEO 
-        title="Food Planner"
-        description="Pratite svoje obroke, analizirajte ishranu i planirajte sedmicu uz AI asistenta. Dnevnik ishrane sa emojijima!"
-        url="https://os-zdravlja.vercel.app/food-planner"
-      />
-};
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -19,7 +10,9 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-// 🔥 MAPPING ZA DANE U SEDMICI
+// ============================================================
+// MAPPING ZA DANE U SEDMICI
+// ============================================================
 const dayMapping = {
   'Pon': 'mon', 'Uto': 'tue', 'Sri': 'wed', 'Čet': 'thu',
   'Pet': 'fri', 'Sub': 'sat', 'Ned': 'sun',
@@ -27,6 +20,85 @@ const dayMapping = {
   'Fri': 'fri', 'Sat': 'sat', 'Sun': 'sun',
   'Mo': 'mon', 'Di': 'tue', 'Mi': 'wed', 'Do': 'thu',
   'Fr': 'fri', 'Sa': 'sat', 'So': 'sun'
+};
+
+// ============================================================
+// PLACEHOLDER SLIKE PO TIPU OBROKA
+// ============================================================
+const PLACEHOLDER_IMAGES = {
+  dorucak: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=400&h=300&fit=crop',
+  rucak:   'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop',
+  vecera:  'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=300&fit=crop'
+};
+
+// ============================================================
+// MEAL CARD KOMPONENTA
+// ============================================================
+const MealCard = ({ meal, type, icon, label, onClick, t }) => {
+  const isEmpty = !meal || meal === '---';
+  const isAI = meal?.includes('✨');
+  const cleanName = meal?.replace('✨', '').replace('🤖', '').trim() || '';
+
+  if (isEmpty) {
+    return (
+      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 p-4 flex flex-col items-center justify-center min-h-[180px]">
+        <span className="text-4xl mb-2 opacity-30">{icon}</span>
+        <span className="text-xs text-gray-400 dark:text-gray-500 italic">
+          {label}
+        </span>
+        <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          —
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => onClick(cleanName, isAI)}
+      className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all text-left hover:-translate-y-1"
+    >
+      {/* SLIKA */}
+      <div className="relative h-32 overflow-hidden">
+        <img
+          src={PLACEHOLDER_IMAGES[type]}
+          alt={cleanName}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+
+        {/* ICON + LABEL */}
+        <div className="absolute top-2 left-2 flex items-center gap-1 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-full px-2 py-1">
+          <span className="text-sm">{icon}</span>
+          <span className="text-[10px] font-semibold text-gray-700 dark:text-gray-200 uppercase">
+            {label}
+          </span>
+        </div>
+
+        {/* AI BADGE */}
+        {isAI && (
+          <div className="absolute top-2 right-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-lg flex items-center gap-0.5">
+            <span>✨</span> AI
+          </div>
+        )}
+      </div>
+
+      {/* NAZIV */}
+      <div className="p-3">
+        <p className="font-semibold text-sm text-gray-800 dark:text-white line-clamp-2 mb-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition">
+          {cleanName}
+        </p>
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] text-gray-400 dark:text-gray-500">
+            {label}
+          </span>
+          <span className="text-xs text-emerald-500 dark:text-emerald-400 font-semibold opacity-0 group-hover:opacity-100 transition">
+            {t('foodplanner.plan.view') || 'Vidi'} →
+          </span>
+        </div>
+      </div>
+    </button>
+  );
 };
 
 const FoodPlanner = () => {
@@ -38,7 +110,7 @@ const FoodPlanner = () => {
   const [loading, setLoading] = useState(false);
   const [loadingObroci, setLoadingObroci] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  
+
   // 🔥 DNEVNI CILJ
   const [dailyGoal, setDailyGoal] = useState({
     kalorije: 2200,
@@ -47,8 +119,8 @@ const FoodPlanner = () => {
     masti: 70
   });
   const [editingGoal, setEditingGoal] = useState(false);
-  
-  // 🔥 RECEPTI - LAZY LOAD (NE DOHVAĆAJU SE ODMAH!)
+
+  // 🔥 RECEPTI - LAZY LOAD
   const [allRecipes, setAllRecipes] = useState([]);
   const [filteredRecipes, setFilteredRecipes] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -57,7 +129,7 @@ const FoodPlanner = () => {
   const [searchingRecipes, setSearchingRecipes] = useState(false);
   const [recipesLoaded, setRecipesLoaded] = useState(false);
   const searchTimeoutRef = useRef(null);
-  
+
   const [noviObrok, setNoviObrok] = useState({
     naziv: '',
     kalorije: '',
@@ -86,9 +158,10 @@ const FoodPlanner = () => {
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [fridgeItems, setFridgeItems] = useState([]);
   const [restrictions, setRestrictions] = useState([]);
+  const [selectedMeal, setSelectedMeal] = useState(null);
 
   // ============================================================
-  // HELPER FUNKCIJE ZA DATUM - BINARNI FORMAT (DD.MM.YYYY)
+  // HELPER FUNKCIJE ZA DATUM
   // ============================================================
   const formatDate = (date) => {
     const day = String(date.getDate()).padStart(2, '0');
@@ -124,40 +197,37 @@ const FoodPlanner = () => {
   };
 
   // ============================================================
-  // 🔥 FILTRIRAJ RECEPTE NA OSNOVU RESTRIKCIJA - POPRAVLJENO!
+  // FILTRIRAJ RECEPTE NA OSNOVU RESTRIKCIJA
   // ============================================================
   const filterRecipesByRestrictions = useCallback((recipes) => {
     if (!recipes || recipes.length === 0) return [];
     if (!restrictions || restrictions.length === 0) return recipes;
-    
-    // 🔥 PROVJERI DA LI KORISNIK IMA "BEZ RESTRIKCIJA"
-    const hasNoRestrictions = restrictions.some(r => 
+
+    const hasNoRestrictions = restrictions.some(r =>
       r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
     );
-    
+
     if (hasNoRestrictions) return recipes;
-    
-    // 🔥 POPRAVLJENO - KORISTI izbjegava!
+
     return recipes.filter(recipe => {
       const izbjegava = recipe.izbjegava || [];
-      // Recept prolazi ako SVE restrikcije postoje u izbjegava
       return restrictions.every(r => izbjegava.includes(r));
     });
   }, [restrictions]);
 
   // ============================================================
-  // 🔥 DOHVATI RECEPTE - SAMO KAD JE POTREBNO (LAZY LOAD)
+  // DOHVATI RECEPTE - LAZY LOAD
   // ============================================================
   const fetchRecipes = useCallback(async () => {
     if (recipesLoaded) return;
-    
+
     try {
       setSearchingRecipes(true);
       console.log('📡 Dohvatam recepte (prvi put)...');
-      
+
       const res = await fetch(`${API_URL}/api/recepti`);
       const data = await res.json();
-      
+
       if (Array.isArray(data)) {
         setAllRecipes(data);
         const filtered = filterRecipesByRestrictions(data);
@@ -174,46 +244,43 @@ const FoodPlanner = () => {
   }, [filterRecipesByRestrictions, recipesLoaded]);
 
   // ============================================================
-  // 🔥 SEARCH - SA DEBOUNCE (ČEKA 500ms NAKON PRESTANKA KUCANJA)
+  // SEARCH - SA DEBOUNCE
   // ============================================================
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
     setShowRecipeDropdown(true);
-    
+
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-    
+
     if (!value.trim()) {
       setShowRecipeDropdown(false);
       return;
     }
-    
+
     searchTimeoutRef.current = setTimeout(() => {
       fetchRecipes();
     }, 500);
   };
 
-  // ============================================================
-  // 🔥 SEARCH REZULTATI - FILTRIRAJ LOKALNO
-  // ============================================================
   const searchResults = useMemo(() => {
     if (!searchTerm.trim() || !recipesLoaded) return [];
     const term = searchTerm.toLowerCase();
-    return filteredRecipes.filter(r => 
+    return filteredRecipes.filter(r =>
       r.naziv?.toLowerCase().includes(term)
     ).slice(0, 15);
   }, [filteredRecipes, searchTerm, recipesLoaded]);
 
   // ============================================================
-  // DOHVATI PROFIL (BEZ RECEPATA!)
+  // DOHVATI PROFIL
   // ============================================================
   useEffect(() => {
     const fetchProfile = async () => {
       const userData = JSON.parse(localStorage.getItem('user'));
       const email = localStorage.getItem('userEmail');
-      
+
       if (userData) {
         setUser(userData);
       } else if (email) {
@@ -227,7 +294,7 @@ const FoodPlanner = () => {
           if (data.success && data.data) {
             console.log('✅ Profil dohvaćen za FoodPlanner:', data.data);
             setProfil(data.data);
-            
+
             const restrikcije = data.data.izbjegava || [];
             setRestrictions(restrikcije);
             console.log('🔒 Restrikcije korisnika:', restrikcije);
@@ -281,7 +348,7 @@ const FoodPlanner = () => {
   }, [user, fetchObroci, selectedDate]);
 
   // ============================================================
-  // 🔥 ODABERI RECEPT IZ DROPDOWNA
+  // ODABERI RECEPT IZ DROPDOWNA
   // ============================================================
   const handleSelectRecipe = (recipe) => {
     setSelectedRecipe(recipe);
@@ -298,11 +365,11 @@ const FoodPlanner = () => {
   };
 
   // ============================================================
-  // DODAJ OBROK (U BAZU)
+  // DODAJ OBROK
   // ============================================================
   const handleDodajObrok = useCallback(async (e) => {
     e.preventDefault();
-    
+
     if (!noviObrok.naziv || !noviObrok.kalorije) {
       alert(t('foodplanner.alerts.fill_fields'));
       return;
@@ -378,9 +445,6 @@ const FoodPlanner = () => {
     }), { kalorije: 0, proteini: 0, ugljikohidrati: 0, masti: 0 });
   }, [obroci]);
 
-  // ============================================================
-  // PROGRESS ZA SVAKI MAKRO
-  // ============================================================
   const progress = {
     kalorije: Math.min((ukupno.kalorije / dailyGoal.kalorije) * 100, 100),
     proteini: Math.min((ukupno.proteini / dailyGoal.proteini) * 100, 100),
@@ -389,16 +453,40 @@ const FoodPlanner = () => {
   };
 
   // ============================================================
-  // 🔥 WEEKLY PLAN - KOMBINOVANI (BAZA + AI FALLBACK)
+  // OTVORI MODAL ZA JELO
+  // ============================================================
+  const openMealModal = (name, type, isAI) => {
+    const labels = {
+      dorucak: t('foodplanner.diary.breakfast'),
+      rucak: t('foodplanner.diary.lunch'),
+      vecera: t('foodplanner.diary.dinner')
+    };
+    const icons = {
+      dorucak: '🌅',
+      rucak: '☀️',
+      vecera: '🌙'
+    };
+
+    setSelectedMeal({
+      name,
+      type,
+      isAI,
+      label: labels[type],
+      icon: icons[type]
+    });
+  };
+
+  // ============================================================
+  // WEEKLY PLAN - KOMBINOVANI (BAZA + AI FALLBACK)
   // ============================================================
   const generateWeeklyPlan = async () => {
     setLoadingPlan(true);
     try {
       const email = user?.email || localStorage.getItem('userEmail');
-      const jezik = i18n.language || 'hr';  // 🔥 DODANO
-      
+      const jezik = i18n.language || 'hr';
+
       console.log('🌐 Šaljem plan na jeziku:', jezik);
-      
+
       const res = await fetch(`${API_URL}/api/weekly-plan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -411,10 +499,10 @@ const FoodPlanner = () => {
           masti: dailyGoal.masti,
           restrikcije: restrictions,
           datum: formatDateForAPI(selectedDate),
-          jezik: jezik  // 🔥 DODANO
+          jezik: jezik
         })
       });
-      
+
       const data = await res.json();
       console.log('📡 Weekly Plan odgovor:', data);
       console.log('🌐 Plan jezik:', data._jezik);
@@ -446,18 +534,18 @@ const FoodPlanner = () => {
     const labels = [];
     const dataPoints = [];
     const goalData = [];
-    
+
     for (let i = 6; i >= 0; i--) {
       const date = new Date(selectedDate);
       date.setDate(date.getDate() - i);
-      labels.push(date.toLocaleDateString('hr', { weekday: 'short' }));
-      
+      labels.push(date.toLocaleDateString(i18n.language || 'hr', { weekday: 'short' }));
+
       const dayMeals = obroci.filter(o => o.datum === formatDateForAPI(date));
       const totalCal = dayMeals.reduce((sum, m) => sum + (m.kalorije || 0), 0);
       dataPoints.push(totalCal);
       goalData.push(dailyGoal.kalorije);
     }
-    
+
     return {
       labels: labels,
       datasets: [
@@ -478,7 +566,7 @@ const FoodPlanner = () => {
         },
       ],
     };
-  }, [obroci, selectedDate, dailyGoal.kalorije]);
+  }, [obroci, selectedDate, dailyGoal.kalorije, i18n.language, t]);
 
   const doughnutData = useMemo(() => ({
     labels: [t('foodplanner.chart.protein'), t('foodplanner.chart.carbs'), t('foodplanner.chart.fat')],
@@ -567,12 +655,11 @@ const FoodPlanner = () => {
       {activeTab === 0 && (
         <div>
           <div className="mb-6">
-            {/* KALENDAR NAVIGACIJA */}
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <h2 className="text-xl font-bold dark:text-white">
                 📅 {formatDate(selectedDate)}
               </h2>
-              
+
               <div className="flex items-center gap-2">
                 <button
                   onClick={goToPreviousDay}
@@ -598,7 +685,7 @@ const FoodPlanner = () => {
                 </button>
               </div>
             </div>
-            
+
             {/* DNEVNI CILJ */}
             <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-4">
               <div className="flex justify-between items-center mb-2">
@@ -610,7 +697,7 @@ const FoodPlanner = () => {
                   {editingGoal ? '💾 ' + t('common.save') : '✏️ ' + t('common.edit')}
                 </button>
               </div>
-              
+
               {editingGoal ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   <div>
@@ -681,10 +768,10 @@ const FoodPlanner = () => {
                 </span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mt-2">
-                <div 
+                <div
                   className={`h-2.5 rounded-full transition-all duration-500 ${
                     progress.kalorije > 100 ? 'bg-red-500' : 'bg-blue-600'
-                  }`} 
+                  }`}
                   style={{ width: `${Math.min(progress.kalorije, 100)}%` }}
                 />
               </div>
@@ -708,11 +795,10 @@ const FoodPlanner = () => {
             </div>
           </div>
 
-          {/* 🔥 FORMA ZA UNOS - SA LAZY LOAD RECEPTIMA */}
+          {/* FORMA ZA UNOS */}
           <form onSubmit={handleDodajObrok} className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-700">
             <h3 className="font-bold dark:text-white mb-2">{t('foodplanner.diary.add_meal')}</h3>
-            
-            {/* 🔥 PRETRAGA RECEPATA - SAMO LUPA 🔍 */}
+
             <div className="relative mb-2">
               <input
                 type="text"
@@ -726,15 +812,13 @@ const FoodPlanner = () => {
                 }}
                 className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
-              
-              {/* 🔥 INDIKATOR PRETRAGE */}
+
               {searchingRecipes && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
                 </div>
               )}
-              
-              {/* 🔥 DROPDOWN REZULTATI */}
+
               {showRecipeDropdown && (
                 <>
                   {searchResults.length > 0 ? (
@@ -869,7 +953,7 @@ const FoodPlanner = () => {
                 className="border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
             </div>
-            
+
             <button type="submit" disabled={loading} className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition disabled:opacity-50">
               {loading ? t('foodplanner.diary.sending') : t('foodplanner.diary.add_button')}
             </button>
@@ -929,7 +1013,7 @@ const FoodPlanner = () => {
       {activeTab === 1 && (
         <div>
           <h2 className="text-xl font-bold mb-4 dark:text-white">{t('foodplanner.analytics.title')}</h2>
-          
+
           {obroci.length === 0 ? (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <p className="text-4xl mb-2">📊</p>
@@ -940,30 +1024,30 @@ const FoodPlanner = () => {
             <div className="grid md:grid-cols-2 gap-6">
               <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md">
                 <h3 className="font-semibold text-center dark:text-white mb-2">{t('foodplanner.analytics.weekly_chart')}</h3>
-                <Line 
-                  data={lineData} 
-                  options={{ 
-                    responsive: true, 
-                    plugins: { 
-                      legend: { 
-                        labels: { color: document.documentElement.classList.contains('dark') ? '#fff' : '#000' } 
-                      } 
-                    } 
-                  }} 
+                <Line
+                  data={lineData}
+                  options={{
+                    responsive: true,
+                    plugins: {
+                      legend: {
+                        labels: { color: document.documentElement.classList.contains('dark') ? '#fff' : '#000' }
+                      }
+                    }
+                  }}
                 />
               </div>
               <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md">
                 <h3 className="font-semibold text-center dark:text-white mb-2">{t('foodplanner.analytics.macro_chart')}</h3>
-                <Doughnut 
-                  data={doughnutData} 
-                  options={{ 
-                    responsive: true, 
-                    plugins: { 
-                      legend: { 
-                        labels: { color: document.documentElement.classList.contains('dark') ? '#fff' : '#000' } 
-                      } 
-                    } 
-                  }} 
+                <Doughnut
+                  data={doughnutData}
+                  options={{
+                    responsive: true,
+                    plugins: {
+                      legend: {
+                        labels: { color: document.documentElement.classList.contains('dark') ? '#fff' : '#000' }
+                      }
+                    }
+                  }}
                 />
                 <div className="flex justify-center gap-4 mt-2 text-sm">
                   <span className="text-blue-500">🥩 {t('foodplanner.chart.protein')}</span>
@@ -973,8 +1057,8 @@ const FoodPlanner = () => {
               </div>
             </div>
           )}
-          
-          <button 
+
+          <button
             onClick={generatePDF}
             disabled={loading}
             className="mt-6 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg font-semibold transition flex items-center gap-2"
@@ -985,132 +1069,213 @@ const FoodPlanner = () => {
       )}
 
       {/* ============================================================ */}
-      {/* TAB 3: PLAN OBROKA - SA PRIKAZOM IZVORA I AI OZNAKAMA */}
+      {/* TAB 3: PLAN OBROKA - NOVI VIZUALNI PRIKAZ */}
       {/* ============================================================ */}
       {activeTab === 2 && (
         <div>
           <h2 className="text-xl font-bold mb-4 dark:text-white">{t('foodplanner.plan.title')}</h2>
-          
+
           <button
             onClick={generateWeeklyPlan}
             disabled={loadingPlan}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition mb-4 flex items-center gap-2 disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-4 py-3 rounded-xl font-semibold transition mb-6 flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-emerald-500/25"
           >
             {loadingPlan ? (
               <>
-                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
                 {t('foodplanner.plan.generating')}
               </>
             ) : (
-              '🤖 ' + t('foodplanner.plan.generate') + ` (${dailyGoal.kalorije} kcal)`
+              <>
+                <span>🤖</span>
+                {t('foodplanner.plan.generate')} ({dailyGoal.kalorije} kcal)
+              </>
             )}
           </button>
 
-          {/* 🔥🔥🔥 PRIKAZ PLANA SA INDIKATORIMA IZVORA 🔥🔥🔥 */}
+          {/* INDIKATOR IZVORA */}
           {weeklyPlan && (
             <>
-              {/* INDIKATOR IZVORA */}
               {weeklyPlan._izvor === 'baza' && (
-                <div className="bg-green-50 dark:bg-green-900/20 border-2 border-green-400 dark:border-green-600 rounded-xl p-3 mb-4">
-                  <p className="text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded-xl p-3 mb-4">
+                  <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
                     <span>✅</span>
                     Plan generiran iz baze ({weeklyPlan._broj_iz_baze || 21} recepata)
                   </p>
                 </div>
               )}
-              
+
               {weeklyPlan._izvor === 'kombinovan' && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-400 dark:border-blue-600 rounded-xl p-3 mb-4">
-                  <p className="text-sm text-blue-600 dark:text-blue-400 flex items-center gap-2 flex-wrap">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700 rounded-xl p-3 mb-4">
+                  <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2 flex-wrap">
                     <span>🔄</span>
                     Plan kombinovan: {weeklyPlan._broj_iz_baze || 0} iz baze + {weeklyPlan._broj_iz_ai || 0} sa AI
-                    {weeklyPlan._broj_iz_ai > 0 && (
-                      <span className="text-xs text-blue-400 dark:text-blue-300 ml-1">
-                        (✨ označava AI preporuke)
-                      </span>
-                    )}
                   </p>
                 </div>
               )}
-              
+
               {weeklyPlan._izvor === 'error' && (
-                <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-400 dark:border-red-600 rounded-xl p-3 mb-4">
-                  <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-2">
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-xl p-3 mb-4">
+                  <p className="text-sm text-red-700 dark:text-red-300 flex items-center gap-2">
                     <span>⚠️</span>
                     Greška pri generisanju plana. Pokušajte ponovo.
                   </p>
                 </div>
               )}
-
-              {/* PRIKAZ PLANA */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2">
-                {weeklyPlan.dani?.map((dan, i) => (
-                  <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-200 dark:border-gray-700">
-                    <h4 className="font-bold text-sm dark:text-white">{getTranslatedDay(dan.naziv)}</h4>
-                    
-                    {/* 🔥 PRIKAZ SA OZNAKOM ZA AI RECEPTE */}
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      🌅 {dan.dorucak?.includes('✨') ? (
-                        <span className="text-blue-500 dark:text-blue-400 font-medium">{dan.dorucak} 🤖</span>
-                      ) : (
-                        dan.dorucak || '---'
-                      )}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      ☀️ {dan.rucak?.includes('✨') ? (
-                        <span className="text-blue-500 dark:text-blue-400 font-medium">{dan.rucak} 🤖</span>
-                      ) : (
-                        dan.rucak || '---'
-                      )}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      🌙 {dan.vecera?.includes('✨') ? (
-                        <span className="text-blue-500 dark:text-blue-400 font-medium">{dan.vecera} 🤖</span>
-                      ) : (
-                        dan.vecera || '---'
-                      )}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              
-              {/* STATISTIKA */}
-              {weeklyPlan._broj_iz_baze !== undefined && (
-                <div className="mt-4 text-xs text-gray-400 dark:text-gray-500 text-center">
-                  {weeklyPlan._ukupno || 0}/21 obroka popunjeno
-                  {weeklyPlan._broj_iz_baze > 0 && ` (${weeklyPlan._broj_iz_baze} iz baze)`}
-                  {weeklyPlan._broj_iz_ai > 0 && `, ${weeklyPlan._broj_iz_ai} sa AI`}
-                </div>
-              )}
             </>
           )}
 
-          {/* KADA NEMA PLANA - PRIKAŽI PRAZNE KARTICE */}
-          {!weeklyPlan && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2">
-              {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map((dayKey) => (
-                <div key={dayKey} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 text-center border border-gray-200 dark:border-gray-700">
-                  <h4 className="font-bold text-sm dark:text-white">{t(`foodplanner.plan.days.${dayKey}`)}</h4>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">🌅 ---</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">☀️ ---</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">🌙 ---</p>
+          {/* PRIKAZ PLANA - DAN PO DAN */}
+          {weeklyPlan && weeklyPlan.dani && (
+            <div className="space-y-6">
+              {weeklyPlan.dani.map((dan, dayIndex) => (
+                <div key={dayIndex}>
+                  {/* HEADER DANA */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="flex-1 h-px bg-gradient-to-r from-emerald-500/50 to-transparent"></div>
+                    <h3 className="text-lg font-bold text-gray-800 dark:text-white uppercase tracking-wide">
+                      📅 {getTranslatedDay(dan.naziv)}
+                    </h3>
+                    <div className="flex-1 h-px bg-gradient-to-l from-emerald-500/50 to-transparent"></div>
+                  </div>
+
+                  {/* 3 KARTICE: DORUČAK / RUČAK / VEČERA */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                    <MealCard
+                      meal={dan.dorucak}
+                      type="dorucak"
+                      icon="🌅"
+                      label={t('foodplanner.diary.breakfast')}
+                      onClick={(name, isAI) => openMealModal(name, 'dorucak', isAI)}
+                      t={t}
+                    />
+                    <MealCard
+                      meal={dan.rucak}
+                      type="rucak"
+                      icon="☀️"
+                      label={t('foodplanner.diary.lunch')}
+                      onClick={(name, isAI) => openMealModal(name, 'rucak', isAI)}
+                      t={t}
+                    />
+                    <MealCard
+                      meal={dan.vecera}
+                      type="vecera"
+                      icon="🌙"
+                      label={t('foodplanner.diary.dinner')}
+                      onClick={(name, isAI) => openMealModal(name, 'vecera', isAI)}
+                      t={t}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
           )}
-          
+
+          {/* STATISTIKA */}
+          {weeklyPlan && weeklyPlan._broj_iz_baze !== undefined && (
+            <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {weeklyPlan._ukupno || 0}/21 obroka popunjeno
+                {weeklyPlan._broj_iz_baze > 0 && ` • ${weeklyPlan._broj_iz_baze} iz baze`}
+                {weeklyPlan._broj_iz_ai > 0 && ` • ${weeklyPlan._broj_iz_ai} sa AI`}
+              </p>
+            </div>
+          )}
+
+          {/* KADA NEMA PLANA */}
+          {!weeklyPlan && (
+            <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-2xl">
+              <p className="text-5xl mb-4">🍽️</p>
+              <p className="text-gray-500 dark:text-gray-400">
+                {t('foodplanner.plan.no_plan') || 'Kliknite "Generiši plan" da kreirate sedmični plan obroka'}
+              </p>
+            </div>
+          )}
+
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-4 text-center">
             🤖 Plan bira recepte iz baze, a ako nema dovoljno, AI popunjava prazna mjesta
             {restrictions.length > 0 && ` 🔒 Restrikcije: ${restrictions.join(', ')}`}
           </p>
         </div>
       )}
+
+      {/* MODAL ZA DETALJE JELA */}
+      {selectedMeal && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedMeal(null)}
+        >
+          <div
+            className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* SLIKA U MODALU */}
+            <div className="relative h-48 overflow-hidden">
+              <img
+                src={PLACEHOLDER_IMAGES[selectedMeal.type]}
+                alt={selectedMeal.name}
+                className="w-full h-full object-cover"
+              />
+              <button
+                onClick={() => setSelectedMeal(null)}
+                className="absolute top-3 right-3 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white transition"
+              >
+                ✕
+              </button>
+              {selectedMeal.isAI && (
+                <div className="absolute top-3 left-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
+                  <span>✨</span> AI
+                </div>
+              )}
+            </div>
+
+            {/* SADRŽAJ MODALA */}
+            <div className="p-5">
+              <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
+                {selectedMeal.name}
+              </h3>
+
+              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
+                <span>{selectedMeal.icon}</span>
+                <span className="capitalize">{selectedMeal.label}</span>
+              </div>
+
+              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                <p className="text-xs text-gray-400 dark:text-gray-500 italic">
+                  {t('foodplanner.plan.meal_details_hint') || 'Detalji recepta (sastojci, upute) bit će dostupni u sljedećoj verziji.'}
+                </p>
+              </div>
+
+              <div className="flex gap-2 mt-5">
+                <button
+                  onClick={() => {
+                    setNoviObrok({
+                      naziv: selectedMeal.name,
+                      kalorije: '',
+                      proteini: '',
+                      ugljikohidrati: '',
+                      masti: '',
+                      tip: selectedMeal.type === 'dorucak' ? 'Doručak' : selectedMeal.type === 'rucak' ? 'Ručak' : 'Večera'
+                    });
+                    setSelectedMeal(null);
+                    setActiveTab(0);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-2.5 rounded-xl font-medium transition flex items-center justify-center gap-2"
+                >
+                  <span>➕</span>
+                  {t('foodplanner.plan.add_to_diary') || 'Dodaj u dnevnik'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
-
 
 export default FoodPlanner;

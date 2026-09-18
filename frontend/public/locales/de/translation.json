@@ -555,19 +555,23 @@
       "generate_pdf": "PDF-Bericht generieren"
     },
     "plan": {
-      "title": "📅 Speiseplan",
-      "generate": "Wöchentlichen Plan generieren",
-      "generating": "Generiere...",
-      "days": {
-        "mon": "Mo",
-        "tue": "Di",
-        "wed": "Mi",
-        "thu": "Do",
-        "fri": "Fr",
-        "sat": "Sa",
-        "sun": "So"
-      },
-      "hint": "💡 Der Plan wird basierend auf den Zutaten in Ihrem Kühlschrank generiert"
+  "title": "📅 Essensplan",
+  "generate": "Wochenplan erstellen",
+  "generating": "Erstelle...",
+  "no_plan": "Klicke auf 'Plan erstellen', um deinen Wochenplan zu erstellen",
+  "view": "Ansehen",
+  "add_to_diary": "Zum Tagebuch hinzufügen",
+  "meal_details_hint": "Rezeptdetails (Zutaten, Anleitung) sind in der nächsten Version verfügbar.",
+  "days": {
+    "mon": "Montag",
+    "tue": "Dienstag",
+    "wed": "Mittwoch",
+    "thu": "Donnerstag",
+    "fri": "Freitag",
+    "sat": "Samstag",
+    "sun": "Sonntag"
+  },
+  "hint": "💡 Der Plan wird basierend auf deinen Kühlschrank-Zutaten erstellt"
     },
     "chart": {
       "week_labels": ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],

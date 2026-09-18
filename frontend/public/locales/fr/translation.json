@@ -555,19 +555,23 @@
       "generate_pdf": "Générer un rapport PDF"
     },
     "plan": {
-      "title": "📅 Plan de repas",
-      "generate": "Générer un plan hebdomadaire",
-      "generating": "Génération...",
-      "days": {
-        "mon": "Lun",
-        "tue": "Mar",
-        "wed": "Mer",
-        "thu": "Jeu",
-        "fri": "Ven",
-        "sat": "Sam",
-        "sun": "Dim"
-      },
-      "hint": "💡 Le plan est généré en fonction des ingrédients de votre réfrigérateur"
+  "title": "📅 Plan de repas",
+  "generate": "Générer le plan hebdomadaire",
+  "generating": "Génération...",
+  "no_plan": "Cliquez sur 'Générer le plan' pour créer votre plan de repas hebdomadaire",
+  "view": "Voir",
+  "add_to_diary": "Ajouter au journal",
+  "meal_details_hint": "Les détails de la recette (ingrédients, instructions) seront disponibles dans la prochaine version.",
+  "days": {
+    "mon": "Lundi",
+    "tue": "Mardi",
+    "wed": "Mercredi",
+    "thu": "Jeudi",
+    "fri": "Vendredi",
+    "sat": "Samedi",
+    "sun": "Dimanche"
+  },
+  "hint": "💡 Le plan est généré en fonction des ingrédients de votre frigo"
     },
     "chart": {
       "week_labels": ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],

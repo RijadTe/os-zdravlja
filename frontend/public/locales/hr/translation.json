@@ -555,19 +555,23 @@
       "generate_pdf": "Generiši PDF izvještaj"
     },
     "plan": {
-      "title": "📅 Plan obroka",
-      "generate": "Generiši sedmični plan",
-      "generating": "Generišem...",
-      "days": {
-        "mon": "Pon",
-        "tue": "Uto",
-        "wed": "Sri",
-        "thu": "Čet",
-        "fri": "Pet",
-        "sat": "Sub",
-        "sun": "Ned"
-      },
-      "hint": "💡 Plan se generiše na osnovu vaših namirnica u frižideru"
+  "title": "📅 Plan obroka",
+  "generate": "Generiši sedmični plan",
+  "generating": "Generišem...",
+  "no_plan": "Kliknite 'Generiši plan' da kreirate sedmični plan obroka",
+  "view": "Vidi",
+  "add_to_diary": "Dodaj u dnevnik",
+  "meal_details_hint": "Detalji recepta (sastojci, upute) bit će dostupni u sljedećoj verziji.",
+  "days": {
+    "mon": "Ponedjeljak",
+    "tue": "Utorak",
+    "wed": "Srijeda",
+    "thu": "Četvrtak",
+    "fri": "Petak",
+    "sat": "Subota",
+    "sun": "Nedjelja"
+  },
+  "hint": "💡 Plan se generiše na osnovu vaših namirnica u frižideru"
     },
     "chart": {
       "week_labels": ["Pon", "Uto", "Sri", "Čet", "Pet", "Sub", "Ned"],

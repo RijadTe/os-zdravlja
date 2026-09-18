@@ -555,19 +555,23 @@
       "generate_pdf": "Generiraj PDF poročilo"
     },
     "plan": {
-      "title": "📅 Načrt obrokov",
-      "generate": "Generiraj tedenski načrt",
-      "generating": "Generiram...",
-      "days": {
-        "mon": "Pon",
-        "tue": "Tor",
-        "wed": "Sre",
-        "thu": "Čet",
-        "fri": "Pet",
-        "sat": "Sob",
-        "sun": "Ned"
-      },
-      "hint": "💡 Načrt se generira na podlagi sestavin v vašem hladilniku"
+  "title": "📅 Načrt obrokov",
+  "generate": "Ustvari tedenski načrt",
+  "generating": "Ustvarjam...",
+  "no_plan": "Kliknite 'Ustvari načrt' za ustvarjanje tedenskega načrta obrokov",
+  "view": "Poglej",
+  "add_to_diary": "Dodaj v dnevnik",
+  "meal_details_hint": "Podrobnosti recepta (sestavine, navodila) bodo na voljo v naslednji različici.",
+  "days": {
+    "mon": "Ponedeljek",
+    "tue": "Torek",
+    "wed": "Sreda",
+    "thu": "Četrtek",
+    "fri": "Petek",
+    "sat": "Sobota",
+    "sun": "Nedelja"
+  },
+  "hint": "💡 Načrt se ustvari glede na sestavine v vašem hladilniku"
     },
     "chart": {
       "week_labels": ["Pon", "Tor", "Sre", "Čet", "Pet", "Sob", "Ned"],

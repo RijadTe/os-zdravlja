@@ -555,19 +555,23 @@
       "generate_pdf": "Generate PDF report"
     },
     "plan": {
-      "title": "📅 Meal Plan",
-      "generate": "Generate weekly plan",
-      "generating": "Generating...",
-      "days": {
-        "mon": "Mon",
-        "tue": "Tue",
-        "wed": "Wed",
-        "thu": "Thu",
-        "fri": "Fri",
-        "sat": "Sat",
-        "sun": "Sun"
-      },
-      "hint": "💡 The plan is generated based on the ingredients in your fridge"
+  "title": "📅 Meal Plan",
+  "generate": "Generate weekly plan",
+  "generating": "Generating...",
+  "no_plan": "Click 'Generate plan' to create your weekly meal plan",
+  "view": "View",
+  "add_to_diary": "Add to diary",
+  "meal_details_hint": "Recipe details (ingredients, instructions) will be available in the next version.",
+  "days": {
+    "mon": "Monday",
+    "tue": "Tuesday",
+    "wed": "Wednesday",
+    "thu": "Thursday",
+    "fri": "Friday",
+    "sat": "Saturday",
+    "sun": "Sunday"
+  },
+  "hint": "💡 Plan is generated based on your fridge items"
     },
     "chart": {
       "week_labels": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],

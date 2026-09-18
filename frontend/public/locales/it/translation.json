@@ -554,20 +554,24 @@
       "generating": "Generazione...",
       "generate_pdf": "Genera rapporto PDF"
     },
-    "plan": {
-      "title": "📅 Piano pasti",
-      "generate": "Genera piano settimanale",
-      "generating": "Generazione...",
-      "days": {
-        "mon": "Lun",
-        "tue": "Mar",
-        "wed": "Mer",
-        "thu": "Gio",
-        "fri": "Ven",
-        "sat": "Sab",
-        "sun": "Dom"
-      },
-      "hint": "💡 Il piano viene generato in base agli ingredienti nel tuo frigo"
+   "plan": {
+  "title": "📅 Piano dei pasti",
+  "generate": "Genera piano settimanale",
+  "generating": "Generazione...",
+  "no_plan": "Clicca su 'Genera piano' per creare il tuo piano dei pasti settimanale",
+  "view": "Visualizza",
+  "add_to_diary": "Aggiungi al diario",
+  "meal_details_hint": "I dettagli della ricetta (ingredienti, istruzioni) saranno disponibili nella prossima versione.",
+  "days": {
+    "mon": "Lunedì",
+    "tue": "Martedì",
+    "wed": "Mercoledì",
+    "thu": "Giovedì",
+    "fri": "Venerdì",
+    "sat": "Sabato",
+    "sun": "Domenica"
+  },
+  "hint": "💡 Il piano viene generato in base agli ingredienti nel tuo frigo"
     },
     "chart": {
       "week_labels": ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"],
