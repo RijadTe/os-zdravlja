@@ -439,6 +439,46 @@ function getRecipeName(recipe, jezik = 'hr') {
   return recipe.naziv || '---';
 }
 
+// ============================================================
+// 🔥 HELPER - Napravi objekt jela iz recepta iz baze
+// ============================================================
+function buildMealObject(recipe, jezik = 'hr') {
+  if (!recipe) return null;
+  
+  let naziv = recipe.naziv;
+  let opis = recipe.opis || '';
+  let sastojci = recipe.sastojci || [];
+  let upute = recipe.upute || [];
+  
+  // 🔥 Ako postoji prevod na odabranom jeziku, koristi ga
+  if (jezik !== 'hr' && recipe.prevod && Array.isArray(recipe.prevod)) {
+    const p = recipe.prevod.find(pr => pr.jezik === jezik);
+    if (p) {
+      naziv = p.naziv || naziv;
+      opis = p.opis || opis;
+      sastojci = p.sastojci || sastojci;
+      upute = p.upute || upute;
+    }
+  }
+  
+  return {
+    id: recipe.id,
+    naziv: naziv,
+    opis: opis,
+    sastojci: sastojci,
+    upute: upute,
+    slika: recipe.slika || null,
+    kalorije: parseInt(recipe.kalorije) || 0,
+    proteini: parseFloat(recipe.proteini) || 0,
+    ugljikohidrati: parseFloat(recipe.ugljikohidrati) || 0,
+    masti: parseFloat(recipe.masti) || 0,
+    vrijeme: recipe.vrijeme || '',
+    tezina: recipe.tezina || '',
+    vrsta: recipe.vrsta || '',
+    _ai: false
+  };
+}
+
 
 // ============================================================
 // 🔥🔥🔥 GROQ INICIJALIZACIJA - DVA KLJUČA! 🔥🔥🔥
@@ -2680,10 +2720,10 @@ app.post('/api/weekly-plan', async (req, res) => {
       }
       
       if (dayRecipes.length > 0) {
-        // 🔥 KORISTI PREVOD AKO POSTOJI
-        dayPlan.dorucak = getRecipeName(dayRecipes[0], jezik);
-        dayPlan.rucak = getRecipeName(dayRecipes[1], jezik);
-        dayPlan.vecera = getRecipeName(dayRecipes[2], jezik);
+        // 🔥 KORISTI PUNE OBJEKTE (s sastojcima i uputama)
+        dayPlan.dorucak = buildMealObject(dayRecipes[0], jezik);
+        dayPlan.rucak = buildMealObject(dayRecipes[1], jezik);
+        dayPlan.vecera = buildMealObject(dayRecipes[2], jezik);
       }
       
       plan.push(dayPlan);
@@ -2786,8 +2826,34 @@ ${restrikcijePrompt}${alergeniPrompt}${dijetnePrompt}${vrstaPrompt}${preferencij
 
 ⚠️ SVAKO jelo MORA biti BEZ navedenih alergena!
 
+📋 FORMAT - Svako jelo MORA imati:
+- naziv: Naziv jela
+- opis: Kratak opis (1-2 rečenice)
+- sastojci: Lista sastojaka s količinama (npr. "500g piletine", "2 glavice luka")
+- upute: Detaljni koraci pripreme (5-8 koraka)
+- kalorije, proteini, ugljikohidrati, masti: brojevi
+- vrijeme: Vrijeme pripreme
+- tezina: Početnik/Srednji/Profesionalac
+- vrsta: Slano/Deserti/Dijetalni recepti/Napitci
+
 Vrati ISKLJUČIVO JSON:
-{"jela":[{"naziv":"...","vrsta":"Slano","vrijeme":"Srednje (30-45 min)","tezina":"Srednji","kalorije":${kalorijePoObroku},"proteini":${Math.round((proteini || 150) / 3)},"ugljikohidrati":${Math.round((ugljikohidrati || 250) / 3)},"masti":${Math.round((masti || 70) / 3)}}]}
+{
+  "jela": [
+    {
+      "naziv": "...",
+      "opis": "...",
+      "sastojci": ["...", "..."],
+      "upute": ["...", "..."],
+      "kalorije": ${kalorijePoObroku},
+      "proteini": ${Math.round((proteini || 150) / 3)},
+      "ugljikohidrati": ${Math.round((ugljikohidrati || 250) / 3)},
+      "masti": ${Math.round((masti || 70) / 3)},
+      "vrijeme": "30 min",
+      "tezina": "Srednji",
+      "vrsta": "Slano"
+    }
+  ]
+}
 
 Kreiraj TAČNO ${emptySlots.length} jela.`;
 
@@ -2805,24 +2871,31 @@ Kreiraj TAČNO ${emptySlots.length} jela.`;
           for (const slot of emptySlots) {
             if (aiIndex < aiJela.length) {
               const jelo = aiJela[aiIndex];
-              plan[slot.dayIndex][slot.meal] = `${jelo.naziv} ✨`;
+              plan[slot.dayIndex][slot.meal] = {
+                id: `ai-${Date.now()}-${aiIndex}`,
+                naziv: jelo.naziv,
+                opis: jelo.opis || '',
+                sastojci: jelo.sastojci || [],
+                upute: jelo.upute || [],
+                slika: null,
+                kalorije: jelo.kalorije || kalorijePoObroku,
+                proteini: jelo.proteini || Math.round((proteini || 150) / 3),
+                ugljikohidrati: jelo.ugljikohidrati || Math.round((ugljikohidrati || 250) / 3),
+                masti: jelo.masti || Math.round((masti || 70) / 3),
+                vrijeme: jelo.vrijeme || '30 min',
+                tezina: jelo.tezina || 'Srednji',
+                vrsta: jelo.vrsta || 'Slano',
+                _ai: true
+              };
               aiIndex++;
             }
           }
           
           console.log(`✅ Plan popunjen sa ${aiSource.toUpperCase()}`);
-        } else {
-          console.log('⚠️ AI nije vratio podatke, plan ostaje djelimičan');
         }
-        
       } catch (aiError) {
-        console.error('❌ AI greška:', aiError.message);
-        console.log('ℹ️ Nastavljam sa djelimičnim planom iz baze');
+        console.error('⚠️ Greška pri popunjavanju plana putem AI:', aiError);
       }
-    } else if (baseRecipesCount < 21 && !openai && !groqChef) {
-      console.log('⚠️ Ni OpenAI ni Groq nisu dostupni, plan djelimičan');
-    } else {
-      console.log('✅ Plan u potpunosti popunjen iz baze!');
     }
 
     // ============================================================
@@ -2849,8 +2922,9 @@ Kreiraj TAČNO ${emptySlots.length} jela.`;
     // ============================================================
     // 9. VRATI PLAN
     // ============================================================
-    const aiCount = plan.flatMap(d => [d.dorucak, d.rucak, d.vecera]).filter(j => j && j.includes('✨')).length;
-    const totalFilled = plan.flatMap(d => [d.dorucak, d.rucak, d.vecera]).filter(j => j && j !== '---').length;
+    const aiCount = plan.flatMap(d => [d.dorucak, d.rucak, d.vecera]).filter(j => j && typeof j === 'object' && j._ai === true).length;
+const totalFilled = plan.flatMap(d => [d.dorucak, d.rucak, d.vecera]).filter(j => j && j !== '---').length;
+
 
     res.json({
       dani: plan,

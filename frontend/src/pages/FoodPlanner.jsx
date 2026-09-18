@@ -33,21 +33,27 @@ const PLACEHOLDER_IMAGES = {
 
 // ============================================================
 // MEAL CARD KOMPONENTA
+// Prima meal kao STRING ili OBJEKT
 // ============================================================
 const MealCard = ({ meal, type, icon, label, onClick, t }) => {
   const isEmpty = !meal || meal === '---';
-  const isAI = meal?.includes('✨');
-  const cleanName = meal?.replace('✨', '').replace('🤖', '').trim() || '';
+
+  // 🔥 PODRŽI OBA FORMATA
+  const isObject = meal && typeof meal === 'object';
+  const naziv = isObject ? meal.naziv : (meal?.replace('✨', '').replace('🤖', '').trim() || '');
+  const isAI = isObject ? meal._ai === true : (typeof meal === 'string' && meal.includes('✨'));
+  const kalorije = isObject ? (meal.kalorije || 0) : 0;
+  const slika = isObject && meal.slika ? meal.slika : PLACEHOLDER_IMAGES[type];
 
   if (isEmpty) {
     return (
-      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 p-4 flex flex-col items-center justify-center min-h-[180px]">
+      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 p-4 flex flex-col items-center justify-center min-h-[200px]">
         <span className="text-4xl mb-2 opacity-30">{icon}</span>
         <span className="text-xs text-gray-400 dark:text-gray-500 italic">
           {label}
         </span>
         <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-          —
+          — nije popunjeno
         </span>
       </div>
     );
@@ -55,14 +61,15 @@ const MealCard = ({ meal, type, icon, label, onClick, t }) => {
 
   return (
     <button
-      onClick={() => onClick(cleanName, isAI)}
-      className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all text-left hover:-translate-y-1"
+      onClick={() => onClick(meal, type)}
+      className="group bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all text-left hover:-translate-y-1 flex flex-col"
     >
       {/* SLIKA */}
-      <div className="relative h-32 overflow-hidden">
+      <div className="relative h-32 overflow-hidden bg-gray-100 dark:bg-gray-700">
         <img
-          src={PLACEHOLDER_IMAGES[type]}
-          alt={cleanName}
+          src={slika}
+          alt={naziv}
+          onError={(e) => { e.target.src = PLACEHOLDER_IMAGES[type]; }}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
@@ -83,15 +90,22 @@ const MealCard = ({ meal, type, icon, label, onClick, t }) => {
         )}
       </div>
 
-      {/* NAZIV */}
-      <div className="p-3">
-        <p className="font-semibold text-sm text-gray-800 dark:text-white line-clamp-2 mb-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition">
-          {cleanName}
+      {/* NAZIV + INFO */}
+      <div className="p-3 flex-1 flex flex-col">
+        <p className="font-semibold text-sm text-gray-800 dark:text-white line-clamp-2 mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition flex-1">
+          {naziv}
         </p>
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] text-gray-400 dark:text-gray-500">
-            {label}
-          </span>
+        
+        <div className="flex items-center justify-between mt-auto">
+          {isObject && kalorije > 0 ? (
+            <span className="text-xs text-orange-500 dark:text-orange-400 font-semibold">
+              🔥 {kalorije} kcal
+            </span>
+          ) : (
+            <span className="text-[10px] text-gray-400 dark:text-gray-500">
+              {label}
+            </span>
+          )}
           <span className="text-xs text-emerald-500 dark:text-emerald-400 font-semibold opacity-0 group-hover:opacity-100 transition">
             {t('foodplanner.plan.view') || 'Vidi'} →
           </span>
@@ -101,6 +115,9 @@ const MealCard = ({ meal, type, icon, label, onClick, t }) => {
   );
 };
 
+// ============================================================
+// GLAVNA KOMPONENTA
+// ============================================================
 const FoodPlanner = () => {
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState(0);
@@ -158,6 +175,8 @@ const FoodPlanner = () => {
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [fridgeItems, setFridgeItems] = useState([]);
   const [restrictions, setRestrictions] = useState([]);
+
+  // 🔥 MODAL STATE - čuva cijeli objekt jela
   const [selectedMeal, setSelectedMeal] = useState(null);
 
   // ============================================================
@@ -190,7 +209,6 @@ const FoodPlanner = () => {
     setSelectedDate(new Date());
   };
 
-  // 🔥 FUNKCIJA ZA PREVOD DANA
   const getTranslatedDay = (dayName) => {
     const key = dayMapping[dayName];
     return key ? t(`foodplanner.plan.days.${key}`) : dayName;
@@ -204,7 +222,8 @@ const FoodPlanner = () => {
     if (!restrictions || restrictions.length === 0) return recipes;
 
     const hasNoRestrictions = restrictions.some(r =>
-      r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen'
+      r === 'Bez restrikcija' || r === 'No restrictions' || r === 'Keine Einschränkungen' ||
+      r === 'Aucune restriction' || r === 'Sin restricciones' || r === 'Nessuna restrizione' || r === 'Brez omejitev'
     );
 
     if (hasNoRestrictions) return recipes;
@@ -223,18 +242,18 @@ const FoodPlanner = () => {
 
     try {
       setSearchingRecipes(true);
-      console.log('📡 Dohvatam recepte (prvi put)...');
-
       const res = await fetch(`${API_URL}/api/recepti`);
       const data = await res.json();
 
-      if (Array.isArray(data)) {
-        setAllRecipes(data);
-        const filtered = filterRecipesByRestrictions(data);
+      // 🔥 Podrži i novi format { success, data } i stari array
+      const recipesArray = Array.isArray(data) ? data : (data.data || []);
+
+      if (recipesArray.length > 0) {
+        setAllRecipes(recipesArray);
+        const filtered = filterRecipesByRestrictions(recipesArray);
         setFilteredRecipes(filtered);
         setRecipesLoaded(true);
-        console.log('✅ Dohvaćeno recepata:', data.length);
-        console.log('✅ Filtrirano recepata (bez restrikcija):', filtered.length);
+        console.log('✅ Dohvaćeno recepata:', recipesArray.length);
       }
     } catch (error) {
       console.error('❌ Greška pri dohvatu recepata:', error);
@@ -292,9 +311,7 @@ const FoodPlanner = () => {
           const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
           const data = await response.json();
           if (data.success && data.data) {
-            console.log('✅ Profil dohvaćen za FoodPlanner:', data.data);
             setProfil(data.data);
-
             const restrikcije = data.data.izbjegava || [];
             setRestrictions(restrikcije);
             console.log('🔒 Restrikcije korisnika:', restrikcije);
@@ -347,33 +364,29 @@ const FoodPlanner = () => {
     }
   }, [user, fetchObroci, selectedDate]);
 
+  // ============================================================
+  // DOHVATI SPREMLJENI PLAN
+  // ============================================================
+  useEffect(() => {
+    const fetchSavedPlan = async () => {
+      const email = user?.email || localStorage.getItem('userEmail');
+      if (!email) return;
 
-// ============================================================
-// 🔥 DOHVATI SPREMLJENI PLAN (ako postoji)
-// ============================================================
-useEffect(() => {
-  const fetchSavedPlan = async () => {
-    const email = user?.email || localStorage.getItem('userEmail');
-    if (!email) return;
-    
-    try {
-      console.log('📥 Provjeravam spremljeni plan...');
-      const res = await fetch(`${API_URL}/api/weekly-plan/${encodeURIComponent(email)}`);
-      const data = await res.json();
-      
-      if (data.success && data.dani) {
-        console.log(`✅ Spremljeni plan pronađen (star ${data._starost_dana} dana)`);
-        setWeeklyPlan(data);
-      } else {
-        console.log('ℹ️ Nema spremljenog plana:', data.message || '');
+      try {
+        const res = await fetch(`${API_URL}/api/weekly-plan/${encodeURIComponent(email)}`);
+        const data = await res.json();
+
+        if (data.success && data.dani) {
+          console.log(`✅ Spremljeni plan pronađen (star ${data._starost_dana} dana)`);
+          setWeeklyPlan(data);
+        }
+      } catch (error) {
+        console.error('❌ Greška pri dohvatu spremljenog plana:', error);
       }
-    } catch (error) {
-      console.error('❌ Greška pri dohvatu spremljenog plana:', error);
-    }
-  };
-  
-  fetchSavedPlan();
-}, [user]);
+    };
+
+    fetchSavedPlan();
+  }, [user]);
 
   // ============================================================
   // ODABERI RECEPT IZ DROPDOWNA
@@ -481,9 +494,11 @@ useEffect(() => {
   };
 
   // ============================================================
-  // OTVORI MODAL ZA JELO
+  // OTVORI MODAL ZA JELO - prima OBJECT ili STRING
   // ============================================================
-  const openMealModal = (name, type, isAI) => {
+  const openMealModal = (meal, type) => {
+    if (!meal || meal === '---') return;
+
     const labels = {
       dorucak: t('foodplanner.diary.breakfast'),
       rucak: t('foodplanner.diary.lunch'),
@@ -495,25 +510,68 @@ useEffect(() => {
       vecera: '🌙'
     };
 
+    // Ako je objekt (nova verzija) - spremi sve
+    if (typeof meal === 'object') {
+      setSelectedMeal({
+        ...meal,
+        type,
+        label: labels[type],
+        icon: icons[type]
+      });
+      return;
+    }
+
+    // Fallback - stari string format
     setSelectedMeal({
-      name,
+      naziv: meal.replace('✨', '').replace('🤖', '').trim(),
       type,
-      isAI,
       label: labels[type],
-      icon: icons[type]
+      icon: icons[type],
+      kalorije: 0,
+      proteini: 0,
+      ugljikohidrati: 0,
+      masti: 0,
+      sastojci: [],
+      upute: [],
+      opis: '',
+      _ai: meal.includes('✨')
     });
   };
 
   // ============================================================
-  // WEEKLY PLAN - KOMBINOVANI (BAZA + AI FALLBACK)
+  // DODAJ JELO IZ PLANA U DNEVNIK
+  // ============================================================
+  const addMealToDiary = () => {
+    if (!selectedMeal) return;
+
+    const tipMap = {
+      dorucak: 'Doručak',
+      rucak: 'Ručak',
+      vecera: 'Večera'
+    };
+
+    setNoviObrok({
+      naziv: selectedMeal.naziv,
+      kalorije: selectedMeal.kalorije || '',
+      proteini: selectedMeal.proteini || '',
+      ugljikohidrati: selectedMeal.ugljikohidrati || '',
+      masti: selectedMeal.masti || '',
+      tip: tipMap[selectedMeal.type] || 'Ručak'
+    });
+
+    setSelectedMeal(null);
+    setActiveTab(0);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // ============================================================
+  // WEEKLY PLAN
   // ============================================================
   const generateWeeklyPlan = async () => {
     setLoadingPlan(true);
     try {
       const email = user?.email || localStorage.getItem('userEmail');
       const jezik = i18n.language || 'hr';
-
-      console.log('🌐 Šaljem plan na jeziku:', jezik);
 
       const res = await fetch(`${API_URL}/api/weekly-plan`, {
         method: 'POST',
@@ -532,8 +590,7 @@ useEffect(() => {
       });
 
       const data = await res.json();
-      console.log('📡 Weekly Plan odgovor:', data);
-      console.log('🌐 Plan jezik:', data._jezik);
+      console.log('📡 Weekly Plan:', data);
       setWeeklyPlan(data);
     } catch (error) {
       console.error('❌ Greška:', error);
@@ -654,7 +711,7 @@ useEffect(() => {
   }
 
   // ============================================================
-  // RENDER - GLAVNI UI
+  // RENDER
   // ============================================================
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 dark:bg-gray-900 dark:text-white">
@@ -834,9 +891,7 @@ useEffect(() => {
                 value={searchTerm}
                 onChange={handleSearchChange}
                 onFocus={() => {
-                  if (searchTerm.trim()) {
-                    setShowRecipeDropdown(true);
-                  }
+                  if (searchTerm.trim()) setShowRecipeDropdown(true);
                 }}
                 className="w-full border rounded-lg px-4 py-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
               />
@@ -1097,7 +1152,7 @@ useEffect(() => {
       )}
 
       {/* ============================================================ */}
-      {/* TAB 3: PLAN OBROKA - NOVI VIZUALNI PRIKAZ */}
+      {/* TAB 3: PLAN OBROKA */}
       {/* ============================================================ */}
       {activeTab === 2 && (
         <div>
@@ -1156,12 +1211,11 @@ useEffect(() => {
             </>
           )}
 
-          {/* PRIKAZ PLANA - DAN PO DAN */}
+          {/* PRIKAZ PLANA */}
           {weeklyPlan && weeklyPlan.dani && (
             <div className="space-y-6">
               {weeklyPlan.dani.map((dan, dayIndex) => (
                 <div key={dayIndex}>
-                  {/* HEADER DANA */}
                   <div className="flex items-center gap-3 mb-3">
                     <div className="flex-1 h-px bg-gradient-to-r from-emerald-500/50 to-transparent"></div>
                     <h3 className="text-lg font-bold text-gray-800 dark:text-white uppercase tracking-wide">
@@ -1170,14 +1224,13 @@ useEffect(() => {
                     <div className="flex-1 h-px bg-gradient-to-l from-emerald-500/50 to-transparent"></div>
                   </div>
 
-                  {/* 3 KARTICE: DORUČAK / RUČAK / VEČERA */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <MealCard
                       meal={dan.dorucak}
                       type="dorucak"
                       icon="🌅"
                       label={t('foodplanner.diary.breakfast')}
-                      onClick={(name, isAI) => openMealModal(name, 'dorucak', isAI)}
+                      onClick={openMealModal}
                       t={t}
                     />
                     <MealCard
@@ -1185,7 +1238,7 @@ useEffect(() => {
                       type="rucak"
                       icon="☀️"
                       label={t('foodplanner.diary.lunch')}
-                      onClick={(name, isAI) => openMealModal(name, 'rucak', isAI)}
+                      onClick={openMealModal}
                       t={t}
                     />
                     <MealCard
@@ -1193,7 +1246,7 @@ useEffect(() => {
                       type="vecera"
                       icon="🌙"
                       label={t('foodplanner.diary.dinner')}
-                      onClick={(name, isAI) => openMealModal(name, 'vecera', isAI)}
+                      onClick={openMealModal}
                       t={t}
                     />
                   </div>
@@ -1230,72 +1283,151 @@ useEffect(() => {
         </div>
       )}
 
-      {/* MODAL ZA DETALJE JELA */}
+      {/* ============================================================
+          MODAL ZA DETALJE JELA - PRIKAZUJE SASTOJKE I UPUTE
+          ============================================================ */}
       {selectedMeal && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
           onClick={() => setSelectedMeal(null)}
         >
           <div
-            className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden"
+            className="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full shadow-2xl my-8 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* SLIKA U MODALU */}
-            <div className="relative h-48 overflow-hidden">
+            {/* SLIKA */}
+            {selectedMeal.slika ? (
               <img
-                src={PLACEHOLDER_IMAGES[selectedMeal.type]}
-                alt={selectedMeal.name}
-                className="w-full h-full object-cover"
+                src={selectedMeal.slika}
+                alt={selectedMeal.naziv}
+                className="w-full h-56 object-cover rounded-t-2xl"
               />
-              <button
-                onClick={() => setSelectedMeal(null)}
-                className="absolute top-3 right-3 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white transition"
-              >
-                ✕
-              </button>
-              {selectedMeal.isAI && (
-                <div className="absolute top-3 left-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
-                  <span>✨</span> AI
+            ) : (
+              <div className={`w-full h-44 rounded-t-2xl flex items-center justify-center ${
+                selectedMeal.type === 'dorucak' ? 'bg-gradient-to-br from-orange-200 to-amber-300 dark:from-orange-900/50 dark:to-amber-900/50' :
+                selectedMeal.type === 'rucak' ? 'bg-gradient-to-br from-emerald-200 to-teal-300 dark:from-emerald-900/50 dark:to-teal-900/50' :
+                'bg-gradient-to-br from-indigo-200 to-purple-300 dark:from-indigo-900/50 dark:to-purple-900/50'
+              }`}>
+                <span className="text-7xl">{selectedMeal.icon}</span>
+              </div>
+            )}
+
+            {/* SADRŽAJ */}
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <h2 className="text-2xl font-bold dark:text-white">{selectedMeal.naziv}</h2>
+                    {selectedMeal._ai && (
+                      <span className="text-xs bg-gradient-to-r from-purple-500 to-blue-500 text-white px-2 py-0.5 rounded-full">
+                        ✨ AI
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2 flex-wrap">
+                    <span>{selectedMeal.icon} {selectedMeal.label}</span>
+                    {selectedMeal.vrijeme && <span>· ⏱️ {selectedMeal.vrijeme}</span>}
+                    {selectedMeal.tezina && <span>· 👨‍🍳 {selectedMeal.tezina}</span>}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedMeal(null)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-2xl ml-2 flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* OPIS */}
+              {selectedMeal.opis && (
+                <p className="text-gray-600 dark:text-gray-300 mb-4 italic">
+                  {selectedMeal.opis}
+                </p>
+              )}
+
+              {/* MAKRONUTRIJENTI */}
+              {(selectedMeal.kalorije > 0 || selectedMeal.proteini > 0) && (
+                <div className="grid grid-cols-4 gap-2 mb-6">
+                  <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-3 text-center">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">🔥</div>
+                    <div className="font-bold dark:text-white text-lg">{selectedMeal.kalorije || 0}</div>
+                    <div className="text-[10px] text-gray-400">kcal</div>
+                  </div>
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 text-center">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">🥩</div>
+                    <div className="font-bold dark:text-white text-lg">{selectedMeal.proteini || 0}g</div>
+                  </div>
+                  <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-3 text-center">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">🍞</div>
+                    <div className="font-bold dark:text-white text-lg">{selectedMeal.ugljikohidrati || 0}g</div>
+                  </div>
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-3 text-center">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">🧈</div>
+                    <div className="font-bold dark:text-white text-lg">{selectedMeal.masti || 0}g</div>
+                  </div>
                 </div>
               )}
-            </div>
 
-            {/* SADRŽAJ MODALA */}
-            <div className="p-5">
-              <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
-                {selectedMeal.name}
-              </h3>
+              {/* SASTOJCI */}
+              {selectedMeal.sastojci && selectedMeal.sastojci.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-bold dark:text-white mb-3 flex items-center gap-2">
+                    📦 Sastojci
+                  </h3>
+                  <ul className="space-y-1.5 bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4">
+                    {selectedMeal.sastojci.map((s, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <span className="text-emerald-500 mt-0.5 flex-shrink-0">•</span>
+                        <span>{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
-                <span>{selectedMeal.icon}</span>
-                <span className="capitalize">{selectedMeal.label}</span>
-              </div>
+              {/* UPUTE */}
+              {selectedMeal.upute && selectedMeal.upute.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-bold dark:text-white mb-3 flex items-center gap-2">
+                    👨‍🍳 Priprema
+                  </h3>
+                  <ol className="space-y-2.5">
+                    {selectedMeal.upute.map((u, i) => (
+                      <li key={i} className="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs flex items-center justify-center font-bold">
+                          {i + 1}
+                        </span>
+                        <span className="pt-0.5 leading-relaxed">{u}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
 
-              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                <p className="text-xs text-gray-400 dark:text-gray-500 italic">
-                  {t('foodplanner.plan.meal_details_hint') || 'Detalji recepta (sastojci, upute) bit će dostupni u sljedećoj verziji.'}
-                </p>
-              </div>
+              {/* FALLBACK ako nema detalja */}
+              {(!selectedMeal.sastojci || selectedMeal.sastojci.length === 0) &&
+               (!selectedMeal.upute || selectedMeal.upute.length === 0) && (
+                <div className="text-center py-6 bg-gray-50 dark:bg-gray-900/50 rounded-xl mb-6">
+                  <p className="text-sm text-gray-400 dark:text-gray-500 italic">
+                    ℹ️ Detalji recepta nisu dostupni za ovo jelo.
+                  </p>
+                </div>
+              )}
 
-              <div className="flex gap-2 mt-5">
+              {/* DUGMAD */}
+              <div className="flex gap-2 mt-6">
                 <button
-                  onClick={() => {
-                    setNoviObrok({
-                      naziv: selectedMeal.name,
-                      kalorije: '',
-                      proteini: '',
-                      ugljikohidrati: '',
-                      masti: '',
-                      tip: selectedMeal.type === 'dorucak' ? 'Doručak' : selectedMeal.type === 'rucak' ? 'Ručak' : 'Večera'
-                    });
-                    setSelectedMeal(null);
-                    setActiveTab(0);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-2.5 rounded-xl font-medium transition flex items-center justify-center gap-2"
+                  onClick={addMealToDiary}
+                  className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25"
                 >
                   <span>➕</span>
                   {t('foodplanner.plan.add_to_diary') || 'Dodaj u dnevnik'}
+                </button>
+                <button
+                  onClick={() => setSelectedMeal(null)}
+                  className="px-6 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition text-gray-700 dark:text-gray-200 font-medium"
+                >
+                  {t('common.close') || 'Zatvori'}
                 </button>
               </div>
             </div>
