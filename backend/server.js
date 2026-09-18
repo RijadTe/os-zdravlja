@@ -2522,7 +2522,7 @@ async function callAIForWeeklyPlan(prompt, temperature = 0.4) {
           },
           { role: "user", content: prompt }
         ],
-        model: "whisper-large-v3-turbo",  // 🔥 Isti model kao u AI Chef
+        model: "groq/compound-mini",  // 🔥 Isti model kao u AI Chef
         temperature: temperature,
         max_tokens: 2048,
       });
