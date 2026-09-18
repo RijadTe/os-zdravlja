@@ -1274,25 +1274,37 @@
       "reset_failed": "❌ ¡Error al restablecer!"
     }
   },
-  "micro_nutrients": {
-    "title": "Micronutrientes",
-    "subtitle": "Ingrese su ingesta diaria de micronutrientes",
-    "daily_view": "Vista diaria",
-    "weekly_view": "Vista semanal",
-    "weekly_average": "Promedio semanal",
-    "weekly_average_label": "Promedio de la semana",
-    "vitamin_a": "Vitamina A",
-    "vitamin_c": "Vitamina C",
-    "vitamin_d": "Vitamina D",
-    "iron": "Hierro",
-    "magnesium": "Magnesio",
-    "calcium": "Calcio",
-    "zinc": "Zinc",
-    "saving": "Guardando...",
-    "success": "✅ ¡Micronutrientes guardados con éxito!",
-    "errors": {
-      "login_required": "❌ ¡No has iniciado sesión!",
-      "save_failed": "❌ ¡Error al guardar!"
+ "micro_nutrients": {
+  "title": "Micronutrientes",
+  "subtitle": "Introduce tu ingesta diaria de micronutrientes",
+  "daily_view": "Vista diaria",
+  "weekly_view": "Vista semanal",
+  "weekly_average": "Promedio semanal",
+  "weekly_average_label": "Promedio semanal",
+  "vitamin_a": "Vitamina A",
+  "vitamin_c": "Vitamina C",
+  "vitamin_d": "Vitamina D",
+  "iron": "Hierro",
+  "magnesium": "Magnesio",
+  "calcium": "Calcio",
+  "zinc": "Zinc",
+  "saving": "Guardando...",
+  "success": "✅ ¡Micronutrientes guardados con éxito!",
+  "days": {
+    "mon": "Lun",
+    "tue": "Mar",
+    "wed": "Mié",
+    "thu": "Jue",
+    "fri": "Vie",
+    "sat": "Sáb",
+    "sun": "Dom"
+  },
+  "avg_try_better": "💪 ¡Inténtalo mejor!",
+  "avg_good": "👍 ¡Bien!",
+  "avg_excellent": "🎉 ¡Excelente!",
+  "errors": {
+    "login_required": "❌ ¡No has iniciado sesión!",
+    "save_failed": "❌ ¡Error al guardar!"
     }
   }
 }

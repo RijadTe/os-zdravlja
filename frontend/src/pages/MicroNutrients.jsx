@@ -8,72 +8,72 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 // 1. DEFINICIJA NUTRIJENATA SA SVG IKONAMA I labelKey
 // ============================================================
 const NUTRIENT_DEFS = [
-  { 
-    id: 'vitaminA', 
+  {
+    id: 'vitaminA',
     key: 'vitaminA',
     dbKey: 'vitamin_a',
-    labelKey: 'micro_nutrients.vitamin_a',  // ← DODANO ZA PRIJEVOD
-    unit: 'µg', 
+    labelKey: 'micro_nutrients.vitamin_a',
+    unit: 'µg',
     target: 900,
     icon: 'vitamin-a',
     svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>`
   },
-  { 
-    id: 'vitaminC', 
+  {
+    id: 'vitaminC',
     key: 'vitaminC',
     dbKey: 'vitamin_c',
-    labelKey: 'micro_nutrients.vitamin_c',  // ← DODANO ZA PRIJEVOD
-    unit: 'mg', 
+    labelKey: 'micro_nutrients.vitamin_c',
+    unit: 'mg',
     target: 90,
     icon: 'vitamin-c',
     svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M4.93 19.07l1.41-1.41"/><path d="M17.66 6.34l1.41-1.41"/></svg>`
   },
-  { 
-    id: 'vitaminD', 
+  {
+    id: 'vitaminD',
     key: 'vitaminD',
     dbKey: 'vitamin_d',
-    labelKey: 'micro_nutrients.vitamin_d',  // ← DODANO ZA PRIJEVOD
-    unit: 'µg', 
+    labelKey: 'micro_nutrients.vitamin_d',
+    unit: 'µg',
     target: 15,
     icon: 'vitamin-d',
     svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></svg>`
   },
-  { 
-    id: 'iron', 
+  {
+    id: 'iron',
     key: 'iron',
     dbKey: 'zelezo',
-    labelKey: 'micro_nutrients.iron',  // ← DODANO ZA PRIJEVOD
-    unit: 'mg', 
+    labelKey: 'micro_nutrients.iron',
+    unit: 'mg',
     target: 14,
     icon: 'iron',
     svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 18c3.314 0 6-2.686 6-6s-2.686-6-6-6-6 2.686-6 6 2.686 6 6 6z"/><path d="M12 8v4l2 2"/></svg>`
   },
-  { 
-    id: 'magnesium', 
+  {
+    id: 'magnesium',
     key: 'magnesium',
     dbKey: 'magnezij',
-    labelKey: 'micro_nutrients.magnesium',  // ← DODANO ZA PRIJEVOD
-    unit: 'mg', 
+    labelKey: 'micro_nutrients.magnesium',
+    unit: 'mg',
     target: 400,
     icon: 'magnesium',
     svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M9 8h6"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>`
   },
-  { 
-    id: 'calcium', 
+  {
+    id: 'calcium',
     key: 'calcium',
     dbKey: 'kalcij',
-    labelKey: 'micro_nutrients.calcium',  // ← DODANO ZA PRIJEVOD
-    unit: 'mg', 
+    labelKey: 'micro_nutrients.calcium',
+    unit: 'mg',
     target: 1000,
     icon: 'calcium',
     svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>`
   },
-  { 
-    id: 'zinc', 
+  {
+    id: 'zinc',
     key: 'zinc',
     dbKey: 'cink',
-    labelKey: 'micro_nutrients.zinc',  // ← DODANO ZA PRIJEVOD
-    unit: 'mg', 
+    labelKey: 'micro_nutrients.zinc',
+    unit: 'mg',
     target: 11,
     icon: 'zinc',
     svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>`
@@ -92,7 +92,7 @@ const getDateForWeekday = (weekOffset = 0, dayOffset = 0) => {
   const now = new Date();
   const currentDay = now.getDay();
   const daysFromMonday = currentDay === 0 ? 6 : currentDay - 1;
-  
+
   const monday = new Date(now);
   monday.setDate(now.getDate() - daysFromMonday - (weekOffset * 7) + dayOffset);
   return monday.toISOString().split('T')[0];
@@ -108,7 +108,7 @@ const MicroNutrients = () => {
   const [selectedNutrient, setSelectedNutrient] = useState('vitaminA');
   const [weeklyData, setWeeklyData] = useState({});
   const [weeklyDates, setWeeklyDates] = useState([]);
-  
+
   const [nutrients, setNutrients] = useState({
     vitaminA: 0,
     vitaminC: 0,
@@ -139,25 +139,25 @@ const MicroNutrients = () => {
   }, []);
 
   // ============================================================
-  // 5. DOHVAĆANJE PODATAKA IZ SUABASE
+  // 5. DOHVAĆANJE PODATAKA IZ BAZE
   // ============================================================
   useEffect(() => {
     const fetchAllNutrients = async () => {
       if (!email) return;
-      
+
       try {
         setLoading(true);
-        
+
         const response = await fetch(`${API_URL}/api/micro-nutrients/${email}`);
         const result = await response.json();
-        
+
         if (result.success && result.data) {
           const allEntries = result.data;
-          
+
           // 5a. DANAŠNJE VRIJEDNOSTI
           const today = new Date().toISOString().split('T')[0];
           const todayEntry = allEntries.find(n => n.datum === today);
-          
+
           if (todayEntry) {
             setNutrients({
               vitaminA: todayEntry.vitamin_a || 0,
@@ -190,7 +190,7 @@ const MicroNutrients = () => {
           setWeeklyData(newWeekly);
         }
       } catch (error) {
-        console.error('❌ Greška:', error);
+        console.error('❌ Error:', error);
       } finally {
         setLoading(false);
       }
@@ -210,18 +210,18 @@ const MicroNutrients = () => {
   };
 
   // ============================================================
-  // 7. SPREMANJE U SUABASE
+  // 7. SPREMANJE U BAZU
   // ============================================================
   const handleSave = async () => {
     if (!email) {
-      alert(t('micro_nutrients.errors.login_required') || '❌ Niste prijavljeni!');
+      alert(t('micro_nutrients.errors.login_required'));
       return;
     }
 
     setLoading(true);
     try {
       const today = new Date().toISOString().split('T')[0];
-      
+
       const response = await fetch(`${API_URL}/api/micro-nutrients`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -239,37 +239,37 @@ const MicroNutrients = () => {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         // Ažuriraj tjedne podatke
         const todayIndex = getCurrentWeekday();
         const newWeekly = { ...weeklyData };
-        
+
         NUTRIENT_DEFS.forEach(n => {
           const value = nutrients[n.key] || 0;
           const pct = Math.min((value / n.target) * 100, 100);
           newWeekly[n.id][todayIndex] = Math.min(pct, 100);
         });
-        
+
         setWeeklyData(newWeekly);
-        
-        alert(t('micro_nutrients.success') || '✅ Mikronutrijenti uspješno sačuvani!');
+
+        alert(t('micro_nutrients.success'));
       } else {
-        alert(t('micro_nutrients.errors.save_failed') || '❌ Greška pri čuvanju!');
+        alert(t('micro_nutrients.errors.save_failed'));
       }
     } catch (error) {
-      console.error('❌ Greška:', error);
-      alert(t('micro_nutrients.errors.save_failed') || '❌ Greška pri čuvanju!');
+      console.error('❌ Error:', error);
+      alert(t('micro_nutrients.errors.save_failed'));
     } finally {
       setLoading(false);
     }
   };
 
   // ============================================================
-  // 8. RENDER - DNEVNI PRIKAZ (RESPONSIVE + SVG IKONE + PRIJEVODI)
+  // 8. RENDER - DNEVNI PRIKAZ
   // ============================================================
   const renderDaily = () => {
-    return NUTRIENT_DEFS.map((n, index) => {
+    return NUTRIENT_DEFS.map((n) => {
       const value = nutrients[n.key] || 0;
       const pct = Math.min((value / n.target) * 100, 100);
       const pctRounded = Math.round(pct);
@@ -322,7 +322,7 @@ const MicroNutrients = () => {
         >
           {/* SVG IKONA */}
           <div className={`w-12 h-12 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${iconColors[n.icon]}`}>
-            <span 
+            <span
               className="w-6 h-6"
               dangerouslySetInnerHTML={{ __html: n.svg }}
             />
@@ -331,7 +331,7 @@ const MicroNutrients = () => {
           <div className="flex-1 min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
               <span className="font-medium text-sm sm:text-base text-gray-800 dark:text-gray-200">
-                {t(n.labelKey)}  {/* ← KORISTI PRIJEVOD */}
+                {t(n.labelKey)}
               </span>
               <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                 <input
@@ -353,7 +353,7 @@ const MicroNutrients = () => {
               </div>
             </div>
             <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mt-1">
-              <div 
+              <div
                 className={`h-full rounded-full transition-all duration-300 ${barColor}`}
                 style={{ width: `${pct}%` }}
               />
@@ -365,22 +365,30 @@ const MicroNutrients = () => {
   };
 
   // ============================================================
-  // 9. RENDER - TJEDNI GRAF (RESPONSIVE + SVG IKONE + PRIJEVODI)
+  // 9. RENDER - TJEDNI GRAF
   // ============================================================
   const renderWeekly = () => {
-    const days = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'];
+    const days = [
+      t('micro_nutrients.days.mon'),
+      t('micro_nutrients.days.tue'),
+      t('micro_nutrients.days.wed'),
+      t('micro_nutrients.days.thu'),
+      t('micro_nutrients.days.fri'),
+      t('micro_nutrients.days.sat'),
+      t('micro_nutrients.days.sun')
+    ];
     const todayIndex = getCurrentWeekday();
-    
+
     const data = weeklyData[selectedNutrient] || [0, 0, 0, 0, 0, 0, 0];
     const nutrient = NUTRIENT_DEFS.find(n => n.id === selectedNutrient);
-    
+
     if (!nutrient) return null;
 
     let totalPct = 0;
     const bars = days.map((day, index) => {
       const pct = Math.min(data[index] || 0, 100);
       totalPct += pct;
-      
+
       let barColor = 'bg-emerald-500';
       if (pct < 30) barColor = 'bg-red-500';
       else if (pct < 60) barColor = 'bg-yellow-500';
@@ -398,7 +406,7 @@ const MicroNutrients = () => {
             <span className="text-gray-500 dark:text-gray-400">{Math.round(pct)}%</span>
           </div>
           <div className="w-full h-2 sm:h-2.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div 
+            <div
               className={`h-full rounded-full transition-all duration-500 ${barColor}`}
               style={{ width: `${pct}%` }}
             />
@@ -408,10 +416,15 @@ const MicroNutrients = () => {
     });
 
     const avg = Math.round(totalPct / 7);
-    let avgText = '💪 Pokušaj bolje!';
+    let avgText = t('micro_nutrients.avg_try_better');
     let avgColor = 'text-red-500';
-    if (avg >= 80) { avgText = '🎉 Odlično!'; avgColor = 'text-emerald-500'; }
-    else if (avg >= 50) { avgText = '👍 Dobro!'; avgColor = 'text-yellow-500'; }
+    if (avg >= 80) {
+      avgText = t('micro_nutrients.avg_excellent');
+      avgColor = 'text-emerald-500';
+    } else if (avg >= 50) {
+      avgText = t('micro_nutrients.avg_good');
+      avgColor = 'text-yellow-500';
+    }
 
     const iconColors = {
       'vitamin-a': 'text-amber-600 dark:text-amber-400',
@@ -429,7 +442,7 @@ const MicroNutrients = () => {
           onClick={() => setView('daily')}
           className="mb-4 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition flex items-center gap-1"
         >
-          ← {t('common.back') || 'Natrag'}
+          ← {t('common.back')}
         </button>
 
         <div className="flex items-center gap-3 mb-4">
@@ -438,10 +451,10 @@ const MicroNutrients = () => {
           </div>
           <div>
             <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-white">
-              {t(nutrient.labelKey)}  {/* ← KORISTI PRIJEVOD */}
+              {t(nutrient.labelKey)}
             </h3>
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-              {t('micro_nutrients.weekly_average') || 'Tjedni prosjek'}
+              {t('micro_nutrients.weekly_average')}
             </p>
           </div>
         </div>
@@ -452,7 +465,7 @@ const MicroNutrients = () => {
 
         <div className="p-3 sm:p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl text-center">
           <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-            {t('micro_nutrients.weekly_average_label') || 'Prosjek tjedna'}:
+            {t('micro_nutrients.weekly_average_label')}:
             <span className={`font-bold ml-1 ${avgColor}`}>{avg}%</span>
             <span className="ml-2">{avgText}</span>
           </p>
@@ -470,7 +483,7 @@ const MicroNutrients = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-400">
-            {t('common.loading') || 'Učitavanje...'}
+            {t('common.loading')}
           </p>
         </div>
       </div>
@@ -489,7 +502,7 @@ const MicroNutrients = () => {
             {t('micro_nutrients.title')}
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-            {t('micro_nutrients.subtitle') || 'Unesite dnevni unos mikronutrijenata'}
+            {t('micro_nutrients.subtitle')}
           </p>
         </div>
       </div>
@@ -504,7 +517,7 @@ const MicroNutrients = () => {
               : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
           }`}
         >
-          📊 {t('micro_nutrients.daily_view') || 'Dnevni prikaz'}
+          📊 {t('micro_nutrients.daily_view')}
         </button>
         <button
           onClick={() => setView('weekly')}
@@ -514,7 +527,7 @@ const MicroNutrients = () => {
               : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
           }`}
         >
-          📈 {t('micro_nutrients.weekly_view') || 'Tjedni prikaz'}
+          📈 {t('micro_nutrients.weekly_view')}
         </button>
       </div>
 
@@ -537,7 +550,7 @@ const MicroNutrients = () => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                   </svg>
-                  {t('micro_nutrients.saving') || 'Čuvanje...'}
+                  {t('micro_nutrients.saving')}
                 </>
               ) : (
                 <>

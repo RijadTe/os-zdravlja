@@ -1275,24 +1275,36 @@
     }
   },
   "micro_nutrients": {
-    "title": "Mikrohranila",
-    "subtitle": "Vnesite dnevni vnos mikrohranil",
-    "daily_view": "Dnevni prikaz",
-    "weekly_view": "Tedenski prikaz",
-    "weekly_average": "Tedensko povprečje",
-    "weekly_average_label": "Povprečje tedna",
-    "vitamin_a": "Vitamin A",
-    "vitamin_c": "Vitamin C",
-    "vitamin_d": "Vitamin D",
-    "iron": "Železo",
-    "magnesium": "Magnezij",
-    "calcium": "Kalcij",
-    "zinc": "Cink",
-    "saving": "Shranjevanje...",
-    "success": "✅ Mikrohranila uspešno shranjena!",
-    "errors": {
-      "login_required": "❌ Niste prijavljeni!",
-      "save_failed": "❌ Napaka pri shranjevanju!"
+  "title": "Mikrohranila",
+  "subtitle": "Vnesite dnevni vnos mikrohranil",
+  "daily_view": "Dnevni pogled",
+  "weekly_view": "Tedenski pogled",
+  "weekly_average": "Tedensko povprečje",
+  "weekly_average_label": "Tedensko povprečje",
+  "vitamin_a": "Vitamin A",
+  "vitamin_c": "Vitamin C",
+  "vitamin_d": "Vitamin D",
+  "iron": "Železo",
+  "magnesium": "Magnezij",
+  "calcium": "Kalcij",
+  "zinc": "Cink",
+  "saving": "Shranjevanje...",
+  "success": "✅ Mikrohranila uspešno shranjena!",
+  "days": {
+    "mon": "Pon",
+    "tue": "Tor",
+    "wed": "Sre",
+    "thu": "Čet",
+    "fri": "Pet",
+    "sat": "Sob",
+    "sun": "Ned"
+  },
+  "avg_try_better": "💪 Poskusi bolje!",
+  "avg_good": "👍 Dobro!",
+  "avg_excellent": "🎉 Odlično!",
+  "errors": {
+    "login_required": "❌ Niste prijavljeni!",
+    "save_failed": "❌ Napaka pri shranjevanju!"
     }
   }
 }

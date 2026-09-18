@@ -1275,24 +1275,36 @@
     }
   },
   "micro_nutrients": {
-    "title": "Mikronährstoffe",
-    "subtitle": "Geben Sie Ihre tägliche Mikronährstoffzufuhr ein",
-    "daily_view": "Tägliche Ansicht",
-    "weekly_view": "Wöchentliche Ansicht",
-    "weekly_average": "Wöchentlicher Durchschnitt",
-    "weekly_average_label": "Wochendurchschnitt",
-    "vitamin_a": "Vitamin A",
-    "vitamin_c": "Vitamin C",
-    "vitamin_d": "Vitamin D",
-    "iron": "Eisen",
-    "magnesium": "Magnesium",
-    "calcium": "Kalzium",
-    "zinc": "Zink",
-    "saving": "Speichern...",
-    "success": "✅ Mikronährstoffe erfolgreich gespeichert!",
-    "errors": {
-      "login_required": "❌ Sie sind nicht angemeldet!",
-      "save_failed": "❌ Fehler beim Speichern!"
+  "title": "Mikronährstoffe",
+  "subtitle": "Gib deine tägliche Mikronährstoffaufnahme ein",
+  "daily_view": "Tagesansicht",
+  "weekly_view": "Wochenansicht",
+  "weekly_average": "Wochendurchschnitt",
+  "weekly_average_label": "Wochendurchschnitt",
+  "vitamin_a": "Vitamin A",
+  "vitamin_c": "Vitamin C",
+  "vitamin_d": "Vitamin D",
+  "iron": "Eisen",
+  "magnesium": "Magnesium",
+  "calcium": "Kalzium",
+  "zinc": "Zink",
+  "saving": "Speichern...",
+  "success": "✅ Mikronährstoffe erfolgreich gespeichert!",
+  "days": {
+    "mon": "Mo",
+    "tue": "Di",
+    "wed": "Mi",
+    "thu": "Do",
+    "fri": "Fr",
+    "sat": "Sa",
+    "sun": "So"
+  },
+  "avg_try_better": "💪 Versuch es besser!",
+  "avg_good": "👍 Gut!",
+  "avg_excellent": "🎉 Ausgezeichnet!",
+  "errors": {
+    "login_required": "❌ Du bist nicht angemeldet!",
+    "save_failed": "❌ Fehler beim Speichern!"
     }
   }
 }
