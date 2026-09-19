@@ -2576,8 +2576,60 @@ app.post('/api/weekly-plan', async (req, res) => {
       masti, 
       restrikcije: restrikcijeBody,
       datum,
-      jezik = 'hr'  // 🔥 DODANO
+      jezik = 'hr'  
     } = req.body;
+
+
+    // ============================================================
+    // 🔥🔥🔥 KEŠIRANJE - PRVO PROVERI DA LI PLAN VEĆ POSTOJI
+    // ============================================================
+    const today = datum || new Date().toISOString().split('T')[0];
+    
+    const { data: existingPlan } = await supabase
+      .from('planovi_obroka')
+      .select('*')
+      .eq('korisnik_email', email)
+      .eq('datum', today)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existingPlan) {
+      const createdAt = new Date(existingPlan.created_at);
+      const razlikaDana = Math.floor((Date.now() - createdAt) / (1000 * 60 * 60 * 24));
+      
+      if (razlikaDana <= 7) {
+        console.log('✅ [KEŠ] Plan već postoji u bazi (star ' + razlikaDana + ' dana), vraćam ga BEZ AI');
+        
+        const totalMeals = existingPlan.plan.dani
+          .flatMap(d => [d.dorucak, d.rucak, d.vecera])
+          .filter(j => j && j !== '---').length;
+        
+        const aiMeals = existingPlan.plan.dani
+          .flatMap(d => [d.dorucak, d.rucak, d.vecera])
+          .filter(j => j && typeof j === 'object' && j._ai === true).length;
+        
+        const baseMeals = totalMeals - aiMeals;
+        
+        return res.json({
+          dani: existingPlan.plan.dani,
+          _izvor: existingPlan.izvor,
+          _broj_iz_baze: baseMeals,
+          _broj_iz_ai: aiMeals,
+          _ukupno: totalMeals,
+          _jezik: existingPlan.jezik || 'hr',
+          _cached: true,
+          _created_at: existingPlan.created_at,
+          _starost_dana: razlikaDana
+        });
+      } else {
+        console.log('⚠️ [KEŠ] Plan stariji od 7 dana, brišem i generišem novi...');
+        await supabase
+          .from('planovi_obroka')
+          .delete()
+          .eq('id', existingPlan.id);
+      }
+    }
     
     console.log('📊 Generišem sedmični plan (KOMBINOVANI)...');
     console.log('🌐 Jezik plana:', jezik);
