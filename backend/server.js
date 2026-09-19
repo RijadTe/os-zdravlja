@@ -4116,10 +4116,31 @@ app.get('/api/pdf/izvjestaj/:email', async (req, res) => {
     }), { kalorije: 0, proteini: 0, ugljikohidrati: 0, masti: 0 });
 
     const PDFDocument = require('pdfkit');
+    const path = require('path');
+    const fs = require('fs');
+    
+    // 🔥 PROVJERI DA LI FONT POSTOJI
+    const fontRegular = path.join(__dirname, 'fonts', 'DejaVuSans.ttf');
+    const fontBold = path.join(__dirname, 'fonts', 'DejaVuSans-Bold.ttf');
+    
+    const hasFont = fs.existsSync(fontRegular);
+    
+    if (!hasFont) {
+      console.warn('⚠️ DejaVu font nije pronađen u', fontRegular);
+      console.warn('   Koristim standardni font (bez kvačica)');
+    }
+    
     const doc = new PDFDocument({
       size: 'A4',
       margins: { top: 50, bottom: 50, left: 50, right: 50 }
     });
+    
+    // 🔥 REGISTRUJ FONT
+    if (hasFont) {
+      doc.registerFont('Regular', fontRegular);
+      doc.registerFont('Bold', fontBold);
+      doc.font('Regular');
+    }
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=izvjestaj-${email}-${new Date().toISOString().split('T')[0]}.pdf`);
@@ -4127,11 +4148,11 @@ app.get('/api/pdf/izvjestaj/:email', async (req, res) => {
     doc.pipe(res);
 
     // ============================================================
-    // HEADER - BEZ EMOJI
+    // HEADER
     // ============================================================
     doc.fontSize(24).fillColor('#2563eb').text('OS Zdravlja', { align: 'center' });
     doc.moveDown(0.5);
-    doc.fontSize(18).fillColor('#1f2937').text('Izvjestaj o ishrani', { align: 'center' });
+    doc.fontSize(18).fillColor('#1f2937').text('Izvještaj o ishrani', { align: 'center' });
     doc.moveDown(0.5);
     doc.fontSize(12).fillColor('#4b5563').text(`Korisnik: ${user?.ime || email}`, { align: 'center' });
     doc.text(`Email: ${email}`, { align: 'center' });
@@ -4139,7 +4160,6 @@ app.get('/api/pdf/izvjestaj/:email', async (req, res) => {
     doc.text(`Datum: ${datumIzvjestaja}`, { align: 'center' });
     doc.moveDown(1);
 
-    // Linija
     doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#e5e7eb').lineWidth(1).stroke();
     doc.moveDown(1);
 
@@ -4177,18 +4197,21 @@ app.get('/api/pdf/izvjestaj/:email', async (req, res) => {
     doc.fontSize(16).fillColor('#1f2937').text('Lista obroka', { underline: true });
     doc.moveDown(0.8);
 
-    // Table header
+    // ============================================================
+    // TABELA - RUČNO CRTANJE
+    // ============================================================
     const startX = 50;
-    const colWidths = [25, 150, 60, 50, 40, 50, 40, 40];
+    const colWidths = [25, 140, 60, 45, 40, 40, 40, 50];
     const rowHeight = 22;
     const tableWidth = colWidths.reduce((a, b) => a + b, 0);
     let y = doc.y;
 
-    // Header background
-    doc.rect(startX, y - 5, tableWidth, 25).fillColor('#f3f4f6').fill();
+    // ============================================================
+    // HEADER TABELE
+    // ============================================================
+    doc.rect(startX, y - 5, tableWidth, 25).fillColor('#2563eb').fill();
 
-    // Header text
-    doc.fillColor('#1f2937').fontSize(9);
+    doc.fillColor('#ffffff').fontSize(9).font('Bold');
     let x = startX + 5;
     doc.text('#', x, y, { width: colWidths[0], lineBreak: false });
     x += colWidths[0];
@@ -4208,7 +4231,11 @@ app.get('/api/pdf/izvjestaj/:email', async (req, res) => {
 
     y += 25;
 
-    // Rows
+    // ============================================================
+    // REDOVI TABELE
+    // ============================================================
+    doc.font('Regular');
+    
     obroci.forEach((obrok, index) => {
       if (y > 720) {
         doc.addPage();
@@ -4220,13 +4247,19 @@ app.get('/api/pdf/izvjestaj/:email', async (req, res) => {
         doc.rect(startX, y - 3, tableWidth, rowHeight).fillColor('#f9fafb').fill();
       }
 
-      doc.fillColor('#374151').fontSize(8);
+      doc.fillColor('#374151').fontSize(8).font('Regular');
       x = startX + 5;
       
-      // Skrati naziv ako je predugačak
-      const naziv = (obrok.naziv || '').substring(0, 25);
-      const tip = (obrok.tip || 'Rucak').substring(0, 10);
-      const mood = `${obrok.mood_before || 'N'}/${obrok.mood_after || 'N'}`;
+      // 🔥 SKRATI NAZIV NA 22 KARAKTERA
+      const naziv = (obrok.naziv || '').substring(0, 22);
+      const tip = (obrok.tip || 'Ručak').substring(0, 10);
+      
+      // 🔥 MOOD BEZ EMOJI - tekstualno
+      const moodBefore = obrok.mood_before || '-';
+      const moodAfter = obrok.mood_after || '-';
+      // Ukloni emoji iz mood-a (ako postoje)
+      const cleanMood = (str) => str.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim() || '-';
+      const mood = `${cleanMood(moodBefore)}/${cleanMood(moodAfter)}`;
 
       doc.text(`${index + 1}`, x, y, { width: colWidths[0], lineBreak: false });
       x += colWidths[0];
@@ -4247,13 +4280,15 @@ app.get('/api/pdf/izvjestaj/:email', async (req, res) => {
       y += rowHeight;
     });
 
-    // Footer
+    // ============================================================
+    // FOOTER
+    // ============================================================
     doc.moveDown(2);
     doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#e5e7eb').lineWidth(1).stroke();
     doc.moveDown(1);
 
     doc.fontSize(10).fillColor('#9ca3af')
-       .text(`Izvjestaj generisan: ${new Date().toLocaleString('hr')}`, { align: 'center' })
+       .text(`Izvještaj generisan: ${new Date().toLocaleString('hr')}`, { align: 'center' })
        .text('OS Zdravlja - Operativni sistem za tvoje zdravlje', { align: 'center' });
 
     doc.end();
