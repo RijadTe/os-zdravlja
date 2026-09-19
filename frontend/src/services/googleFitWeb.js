@@ -1,12 +1,23 @@
-// frontend/src/services/googleFitWeb.js 
+// frontend/src/services/googleFitWeb.js
 
-// 🔥 Google Fit - direktno preko browsera (BEZ INSTALACIJE!)
+// 🔥 Google Fit - radi i na PWA i na Native (Capacitor)
+
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
+import { App } from '@capacitor/app';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // Google OAuth Client ID - iz Google Cloud Console
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const REDIRECT_URI = `${window.location.origin}/fit-callback`;
+
+// 🔥 Redirect URI zavisi od platforme
+const NATIVE_REDIRECT_URI = 'com.smartkuhar.app://fit-callback';
+const getRedirectUri = () =>
+  Capacitor.isNativePlatform()
+    ? NATIVE_REDIRECT_URI
+    : `${window.location.origin}/fit-callback`;
+
 const SCOPES = [
   'https://www.googleapis.com/auth/fitness.activity.read',
   'https://www.googleapis.com/auth/fitness.body.read',
@@ -15,83 +26,138 @@ const SCOPES = [
 // ============================================================
 // 1. POVEZIVANJE - otvori Google OAuth
 // ============================================================
-export const connectGoogleFit = () => {
+export const connectGoogleFit = async () => {
   if (!CLIENT_ID) {
     console.error('❌ Google Client ID nije postavljen!');
     alert('⚠️ Google Fit nije konfigurisan. Molimo kontaktirajte podršku.');
     return;
   }
 
-  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token&scope=${SCOPES.join(' ')}&prompt=consent`;
-  
-  console.log('🔗 Otvaram Google OAuth...');
-  window.location.href = authUrl;
+  const isNative = Capacitor.isNativePlatform();
+  const REDIRECT_URI = getRedirectUri();
+
+  const authUrl =
+    `https://accounts.google.com/o/oauth2/v2/auth?` +
+    `client_id=${encodeURIComponent(CLIENT_ID)}` +
+    `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+    `&response_type=token` +
+    `&scope=${encodeURIComponent(SCOPES.join(' '))}` +
+    `&prompt=consent`;
+
+  console.log('🔗 Otvaram Google OAuth...', { isNative, REDIRECT_URI });
+
+  if (isNative) {
+    await Browser.open({ url: authUrl, windowName: '_system' });
+  } else {
+    window.location.href = authUrl;
+  }
 };
 
 // ============================================================
-// 2. DOHVATI TOKEN IZ URL-a (POPRAVLJENO ZA MOBILNE)
+// 2. DEEP LINK LISTENER (samo native) — pozovi JEDNOM u App.jsx
+// ============================================================
+let deepLinkInitialized = false;
+
+export const initGoogleFitDeepLink = () => {
+  if (!Capacitor.isNativePlatform()) return;
+  if (deepLinkInitialized) return;
+  deepLinkInitialized = true;
+
+  App.addListener('appUrlOpen', async (event) => {
+    console.log('🔗 Deep link primljen:', event.url);
+
+    if (!event.url.startsWith('com.smartkuhar.app://fit-callback')) return;
+
+    const hashPart = event.url.split('#')[1];
+    if (!hashPart) return;
+
+    const params = new URLSearchParams(hashPart);
+    const token = params.get('access_token');
+    const expiresIn = params.get('expires_in');
+    const tokenType = params.get('token_type');
+
+    if (token) {
+      console.log('✅ Google Fit token dobijen preko deep link-a!');
+      localStorage.setItem('google_fit_token', token);
+      localStorage.setItem('google_fit_token_type', tokenType || 'Bearer');
+      localStorage.setItem(
+        'google_fit_token_expires',
+        Date.now() + (parseInt(expiresIn) || 3600) * 1000
+      );
+
+      await Browser.close();
+
+      // Obavesti UI da se token promenio
+      window.dispatchEvent(new CustomEvent('google-fit-connected'));
+    }
+  });
+};
+
+// ============================================================
+// 3. DOHVATI TOKEN IZ URL-a (web) ILI IZ LOCALSTORAGE
 // ============================================================
 export const getTokenFromUrl = () => {
   console.log('🔍 getTokenFromUrl: Počinjem...');
-  console.log('🔍 window.location.href:', window.location.href);
-  console.log('🔍 window.location.hash:', window.location.hash);
-  console.log('🔍 window.location.search:', window.location.search);
-  
-  // 🔥 1. Pokušaj iz hash-a (standardno)
+
+  // 1. Iz hash-a
   let hash = window.location.hash;
   if (hash) {
     const params = new URLSearchParams(hash.substring(1));
     const token = params.get('access_token');
     const expiresIn = params.get('expires_in');
     const tokenType = params.get('token_type');
-    
+
     if (token) {
       console.log('✅ Google Fit token dobijen iz hash-a!');
       localStorage.setItem('google_fit_token', token);
       localStorage.setItem('google_fit_token_type', tokenType || 'Bearer');
-      localStorage.setItem('google_fit_token_expires', Date.now() + (parseInt(expiresIn) || 3600) * 1000);
-      
-      // Očisti URL od tokena
+      localStorage.setItem(
+        'google_fit_token_expires',
+        Date.now() + (parseInt(expiresIn) || 3600) * 1000
+      );
       window.history.replaceState({}, document.title, window.location.pathname);
       return token;
     }
   }
-  
-  // 🔥 2. Pokušaj iz search parametara (fallback za mobilne)
+
+  // 2. Iz search parametara
   const search = window.location.search;
   if (search) {
     const params = new URLSearchParams(search.substring(1));
     const token = params.get('access_token');
     const expiresIn = params.get('expires_in');
     const tokenType = params.get('token_type');
-    
+
     if (token) {
       console.log('✅ Google Fit token dobijen iz search parametara!');
       localStorage.setItem('google_fit_token', token);
       localStorage.setItem('google_fit_token_type', tokenType || 'Bearer');
-      localStorage.setItem('google_fit_token_expires', Date.now() + (parseInt(expiresIn) || 3600) * 1000);
-      
-      // Očisti URL od tokena
+      localStorage.setItem(
+        'google_fit_token_expires',
+        Date.now() + (parseInt(expiresIn) || 3600) * 1000
+      );
       window.history.replaceState({}, document.title, window.location.pathname);
       return token;
     }
   }
-  
-  // 🔥 3. Pokušaj iz localStorage (ako je već povezan)
+
+  // 3. Iz localStorage
   const savedToken = localStorage.getItem('google_fit_token');
-  const expires = parseInt(localStorage.getItem('google_fit_token_expires') || '0');
-  
+  const expires = parseInt(
+    localStorage.getItem('google_fit_token_expires') || '0'
+  );
+
   if (savedToken && expires > Date.now()) {
     console.log('✅ Google Fit token dobijen iz localStorage!');
     return savedToken;
   }
-  
-  console.log('❌ Nema tokena ni u hash-u, ni u search-u, ni u localStorage');
+
+  console.log('❌ Nema tokena');
   return null;
 };
 
 // ============================================================
-// 3. DOHVATI PODATKE SA GOOGLE FIT-a
+// 4. DOHVATI PODATKE SA GOOGLE FIT-a
 // ============================================================
 export const syncGoogleFitData = async () => {
   const token = getTokenFromUrl();
@@ -106,25 +172,28 @@ export const syncGoogleFitData = async () => {
   startOfDay.setHours(0, 0, 0, 0);
 
   try {
-    const response = await fetch('https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        aggregateBy: [
-          { dataTypeName: 'com.google.step_count.delta' },
-          { dataTypeName: 'com.google.sleep.segment' },
-          { dataTypeName: 'com.google.heart_rate.bpm' },
-          { dataTypeName: 'com.google.hydration' },
-          { dataTypeName: 'com.google.calories.expended' }
-        ],
-        bucketByTime: { durationMillis: 86400000 },
-        startTimeMillis: startOfDay.getTime(),
-        endTimeMillis: now.getTime()
-      })
-    });
+    const response = await fetch(
+      'https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          aggregateBy: [
+            { dataTypeName: 'com.google.step_count.delta' },
+            { dataTypeName: 'com.google.sleep.segment' },
+            { dataTypeName: 'com.google.heart_rate.bpm' },
+            { dataTypeName: 'com.google.hydration' },
+            { dataTypeName: 'com.google.calories.expended' },
+          ],
+          bucketByTime: { durationMillis: 86400000 },
+          startTimeMillis: startOfDay.getTime(),
+          endTimeMillis: now.getTime(),
+        }),
+      }
+    );
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -138,19 +207,19 @@ export const syncGoogleFitData = async () => {
     console.log('📊 Google Fit podaci:', data);
 
     let result = { steps: 0, sleep: 0, heartRate: 0, water: 0, calories: 0 };
-    
+
     if (data.bucket) {
-      data.bucket.forEach(bucket => {
-        bucket.dataset.forEach(dataset => {
+      data.bucket.forEach((bucket) => {
+        bucket.dataset.forEach((dataset) => {
           const point = dataset.point?.[0];
           if (point) {
             const value = point.value?.[0]?.fpVal || 0;
             const dataSource = dataset.dataSourceId || '';
-            
+
             if (dataSource.includes('step_count')) {
               result.steps = Math.round(value);
             } else if (dataSource.includes('sleep')) {
-              result.sleep = Math.round(value / 3600 * 10) / 10;
+              result.sleep = Math.round((value / 3600) * 10) / 10;
             } else if (dataSource.includes('heart_rate')) {
               result.heartRate = Math.round(value);
             } else if (dataSource.includes('hydration')) {
@@ -164,7 +233,6 @@ export const syncGoogleFitData = async () => {
     }
 
     return result;
-
   } catch (error) {
     console.error('❌ Google Fit greška:', error);
     throw error;
@@ -172,16 +240,18 @@ export const syncGoogleFitData = async () => {
 };
 
 // ============================================================
-// 4. PROVJERA DA LI JE KORISNIK POVEZAN
+// 5. PROVJERA DA LI JE KORISNIK POVEZAN
 // ============================================================
 export const isGoogleFitConnected = () => {
   const token = localStorage.getItem('google_fit_token');
-  const expires = parseInt(localStorage.getItem('google_fit_token_expires') || '0');
+  const expires = parseInt(
+    localStorage.getItem('google_fit_token_expires') || '0'
+  );
   return token && expires > Date.now();
 };
 
 // ============================================================
-// 5. ODJAVA SA GOOGLE FIT-a
+// 6. ODJAVA SA GOOGLE FIT-a
 // ============================================================
 export const disconnectGoogleFit = () => {
   localStorage.removeItem('google_fit_token');
@@ -191,13 +261,17 @@ export const disconnectGoogleFit = () => {
 };
 
 // ============================================================
-// POMOĆNA FUNKCIJA ZA DEBUG
+// DEBUG
 // ============================================================
 export const debugGoogleFit = () => {
   console.log('🔍 DEBUG GOOGLE FIT:');
-  console.log('  localStorage token:', localStorage.getItem('google_fit_token'));
-  console.log('  localStorage expires:', localStorage.getItem('google_fit_token_expires'));
-  console.log('  window.location.href:', window.location.href);
-  console.log('  window.location.hash:', window.location.hash);
-  console.log('  window.location.search:', window.location.search);
+  console.log('  platform:', Capacitor.getPlatform());
+  console.log('  isNative:', Capacitor.isNativePlatform());
+  console.log('  redirectUri:', getRedirectUri());
+  console.log('  clientId:', CLIENT_ID ? '✅ postavljen' : '❌ nije postavljen');
+  console.log('  token:', localStorage.getItem('google_fit_token'));
+  console.log('  expires:', localStorage.getItem('google_fit_token_expires'));
+  console.log('  href:', window.location.href);
+  console.log('  hash:', window.location.hash);
+  console.log('  search:', window.location.search);
 };

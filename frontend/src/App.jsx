@@ -36,6 +36,8 @@ import Goals from './pages/Goals';
 import WaterTracker from './pages/WaterTracker';
 import MicroNutrients from './pages/MicroNutrients';
 import { isNative } from './utils/platform';
+import { initGoogleFitDeepLink } from './services/googleFitWeb';
+import FitCallback from './pages/FitCallback';
 // 🔥 UKLONJENI DIREKTNI IMPORTI:
 // import { SplashScreen } from '@capacitor/splash-screen';
 // import { StatusBar, Style } from '@capacitor/status-bar';
@@ -57,6 +59,9 @@ function App() {
 // 🔥 NATIVE SETUP - PRIVREMENO ISKLJUČENO ZA TEST
 // ============================================================
 useEffect(() => {
+  // 🔥 GOOGLE FIT DEEP LINK (native)
+  initGoogleFitDeepLink();
+
   // 🔥 PRIVREMENO ISKLJUČI NATIVE SETUP
   // if (isNative) {
   //   setupNative();
@@ -496,6 +501,7 @@ useEffect(() => {
           <Route path="/healthy-chef/:kategorijaId/:fazaId" element={<HealthyChef />} />
           <Route path="/food-planner" element={<FoodPlanner />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/fit-callback" element={<FitCallback />} /> 
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
