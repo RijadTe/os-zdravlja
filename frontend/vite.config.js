@@ -58,12 +58,6 @@ export default defineConfig(({ mode }) => {
         external: (id) => {
           if (id.endsWith('.ts')) return true;
           if (id.endsWith('.tsx')) return true;
-          // 🔥 IZUZECI — ovi moduli MORAJU biti bundle-ovani
-          if (id === '@capacitor/core' ||
-              id === '@capacitor/browser' ||
-              id === '@capacitor/app') {
-            return false;
-          }
           if (isVercel) {
             if (id.includes('@capacitor') ||
                 id.includes('cordova-plugin') ||
@@ -144,14 +138,15 @@ export default defineConfig(({ mode }) => {
         '@capacitor',
         '@capacitor-community',
         'cordova-plugin',
-        // 🔥 OBRISANO: @capacitor/core, @capacitor/app, @capacitor/browser
-        // (moraju biti bundlovani zbog Google Fit)
+        '@capacitor/core',
         '@capacitor/android',
         '@capacitor/ios',
         '@capacitor/cli',
         '@capacitor-community/admob',
         '@capacitor-community/speech-recognition',
         '@capacitor-community/text-to-speech',
+        '@capacitor/app',
+        '@capacitor/browser',
         '@capacitor/camera',
         '@capacitor/filesystem',
         '@capacitor/geolocation',
@@ -177,11 +172,12 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: [
         // 🔥 EKSPLICITNI ALIASI ZA SVE CAPACITOR PAKETE
-        // (osim core/browser/app — oni MORAJU biti pravi moduli)
         { find: '@capacitor/share', replacement: '/src/utils/empty-mock.js' },
         { find: '@capacitor-community/text-to-speech', replacement: '/src/utils/empty-mock.js' },
         { find: '@capacitor-community/admob', replacement: '/src/utils/empty-mock.js' },
         { find: '@capacitor-community/speech-recognition', replacement: '/src/utils/empty-mock.js' },
+        { find: '@capacitor/app', replacement: '/src/utils/empty-mock.js' },
+        { find: '@capacitor/browser', replacement: '/src/utils/empty-mock.js' },
         { find: '@capacitor/camera', replacement: '/src/utils/empty-mock.js' },
         { find: '@capacitor/filesystem', replacement: '/src/utils/empty-mock.js' },
         { find: '@capacitor/geolocation', replacement: '/src/utils/empty-mock.js' },
@@ -191,9 +187,10 @@ export default defineConfig(({ mode }) => {
         { find: '@capacitor/status-bar', replacement: '/src/utils/empty-mock.js' },
         { find: '@capacitor/local-notifications', replacement: '/src/utils/empty-mock.js' },
         { find: '@capacitor/push-notifications', replacement: '/src/utils/empty-mock.js' },
-        // 🔥 REGEX ALIASI — isključuju core/browser/app (negative lookahead)
+        { find: '@capacitor/core', replacement: '/src/utils/empty-mock.js' },
+        // 🔥 REGEX ALIASI ZA SVE OSTALE
         {
-          find: /^@capacitor\/(?!core$|browser$|app$)(.*)$/,
+          find: /^@capacitor\/(.*)$/,
           replacement: '/src/utils/empty-mock.js'
         },
         {

@@ -2,26 +2,51 @@
 
 // 🔥 Google Fit - radi i na PWA i na Native (Capacitor)
 
-import { Capacitor } from '@capacitor/core';
-import { Browser } from '@capacitor/browser';
-import { App } from '@capacitor/app';
-
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
-// Google OAuth Client ID - iz Google Cloud Console
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 // 🔥 Redirect URI zavisi od platforme
 const NATIVE_REDIRECT_URI = 'com.smartkuhar.app://fit-callback';
-const getRedirectUri = () =>
-  Capacitor.isNativePlatform()
-    ? NATIVE_REDIRECT_URI
-    : `${window.location.origin}/fit-callback`;
 
 const SCOPES = [
   'https://www.googleapis.com/auth/fitness.activity.read',
   'https://www.googleapis.com/auth/fitness.body.read',
 ];
+
+// ============================================================
+// 🔥 LAZY LOAD CAPACITOR MODULA (radi i na webu i na native)
+// ============================================================
+
+const isNativePlatform = () => {
+  if (typeof window === 'undefined') return false;
+  if (window.Capacitor?.isNativePlatform) {
+    return window.Capacitor.isNativePlatform() === true;
+  }
+  return false;
+};
+
+const getBrowser = async () => {
+  try {
+    const mod = await import(/* @vite-ignore */ '@capacitor/browser');
+    return mod.Browser || { open: async () => {}, close: async () => {} };
+  } catch {
+    return { open: async () => {}, close: async () => {} };
+  }
+};
+
+const getApp = async () => {
+  try {
+    const mod = await import(/* @vite-ignore */ '@capacitor/app');
+    return mod.App || { addListener: () => ({ remove: async () => {} }) };
+  } catch {
+    return { addListener: () => ({ remove: async () => {} }) };
+  }
+};
+
+const getRedirectUri = () =>
+  isNativePlatform()
+    ? NATIVE_REDIRECT_URI
+    : `${window.location.origin}/fit-callback`;
 
 // ============================================================
 // 1. POVEZIVANJE - otvori Google OAuth
@@ -33,7 +58,7 @@ export const connectGoogleFit = async () => {
     return;
   }
 
-  const isNative = Capacitor.isNativePlatform();
+  const isNative = isNativePlatform();
   const REDIRECT_URI = getRedirectUri();
 
   const authUrl =
@@ -47,6 +72,7 @@ export const connectGoogleFit = async () => {
   console.log('🔗 Otvaram Google OAuth...', { isNative, REDIRECT_URI });
 
   if (isNative) {
+    const Browser = await getBrowser();
     await Browser.open({ url: authUrl, windowName: '_system' });
   } else {
     window.location.href = authUrl;
@@ -58,10 +84,12 @@ export const connectGoogleFit = async () => {
 // ============================================================
 let deepLinkInitialized = false;
 
-export const initGoogleFitDeepLink = () => {
-  if (!Capacitor.isNativePlatform()) return;
+export const initGoogleFitDeepLink = async () => {
+  if (!isNativePlatform()) return;
   if (deepLinkInitialized) return;
   deepLinkInitialized = true;
+
+  const App = await getApp();
 
   App.addListener('appUrlOpen', async (event) => {
     console.log('🔗 Deep link primljen:', event.url);
@@ -85,6 +113,7 @@ export const initGoogleFitDeepLink = () => {
         Date.now() + (parseInt(expiresIn) || 3600) * 1000
       );
 
+      const Browser = await getBrowser();
       await Browser.close();
 
       // Obavesti UI da se token promenio
@@ -265,8 +294,7 @@ export const disconnectGoogleFit = () => {
 // ============================================================
 export const debugGoogleFit = () => {
   console.log('🔍 DEBUG GOOGLE FIT:');
-  console.log('  platform:', Capacitor.getPlatform());
-  console.log('  isNative:', Capacitor.isNativePlatform());
+  console.log('  isNative:', isNativePlatform());
   console.log('  redirectUri:', getRedirectUri());
   console.log('  clientId:', CLIENT_ID ? '✅ postavljen' : '❌ nije postavljen');
   console.log('  token:', localStorage.getItem('google_fit_token'));
