@@ -562,6 +562,7 @@
   "title": "📅 Mahlzeitenplan",
   "generate": "Wochenplan generieren",
   "generating": "Wird generiert...",
+  "regenerate": "Neuen Plan generieren",
   "no_plan": "Klicken Sie auf 'Plan generieren', um einen Wochenplan zu erstellen",
   "view": "Ansehen",
   "add_to_diary": "Zum Tagebuch hinzufügen",

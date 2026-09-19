@@ -621,11 +621,13 @@ const FoodPlanner = () => {
   // ============================================================
   // WEEKLY PLAN
   // ============================================================
-  const generateWeeklyPlan = async () => {
+  const generateWeeklyPlan = async (force = false) => {
     setLoadingPlan(true);
     try {
       const email = user?.email || localStorage.getItem('userEmail');
       const jezik = i18n.language || 'hr';
+
+      console.log(`📡 [generateWeeklyPlan] force: ${force}`);
 
       const res = await fetch(`${API_URL}/api/weekly-plan`, {
         method: 'POST',
@@ -639,13 +641,21 @@ const FoodPlanner = () => {
           masti: dailyGoal.masti,
           restrikcije: restrictions,
           datum: formatDateForAPI(selectedDate),
-          jezik: jezik
+          jezik: jezik,
+          force: force
         })
       });
 
       const data = await res.json();
       console.log('📡 Weekly Plan:', data);
       setWeeklyPlan(data);
+
+      // 🔥 PORUKA
+      if (data._cached) {
+        console.log(`✅ Prikazujem keširan plan (star ${data._starost_dana} dana)`);
+      } else {
+        console.log('🎉 Novi plan generisan!');
+      }
     } catch (error) {
       console.error('❌ Greška:', error);
       alert(t('foodplanner.alerts.plan_error'));
@@ -724,47 +734,46 @@ const FoodPlanner = () => {
   // PDF IZVJEŠTAJ
   // ============================================================
   const generatePDF = async () => {
-  const email = user?.email || localStorage.getItem('userEmail');
-  if (!email) {
-    alert(t('foodplanner.alerts.login_required'));
-    return;
-  }
-
-  if (obroci.length === 0) {
-    alert(t('foodplanner.alerts.no_meals'));
-    return;
-  }
-
-  try {
-    setLoading(true);
-    const datum = formatDateForAPI(selectedDate);
-    const pdfUrl = `${API_URL}/api/pdf/izvjestaj/${encodeURIComponent(email)}?datum=${datum}`;
-
-    // 🔥 DETEKTUJ PLATFORMU
-    const isNative = typeof window !== 'undefined' && 
-                     window.Capacitor?.isNativePlatform?.() === true;
-
-    if (isNative) {
-      // 🔥 NATIVE: otvori u sistemskom browseru
-      try {
-        const { Browser } = await import(/* @vite-ignore */ '@capacitor/browser');
-        await Browser.open({ url: pdfUrl });
-        console.log('✅ PDF otvoren u sistemskom browseru');
-      } catch (err) {
-        console.error('❌ Greška pri otvaranju PDF-a:', err);
-        alert(t('foodplanner.alerts.pdf_error'));
-      }
-    } else {
-      // 🔥 WEB: otvori u novom tabu
-      window.open(pdfUrl, '_blank');
+    const email = user?.email || localStorage.getItem('userEmail');
+    if (!email) {
+      alert(t('foodplanner.alerts.login_required'));
+      return;
     }
-  } catch (error) {
-    console.error('❌ Greška:', error);
-    alert(t('foodplanner.alerts.pdf_error'));
-  } finally {
-    setLoading(false);
-  }
-};
+
+    if (obroci.length === 0) {
+      alert(t('foodplanner.alerts.no_meals'));
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const datum = formatDateForAPI(selectedDate);
+      const pdfUrl = `${API_URL}/api/pdf/izvjestaj/${encodeURIComponent(email)}?datum=${datum}`;
+
+      // 🔥 DETEKTUJ PLATFORMU
+      const isNative = typeof window !== 'undefined' && 
+                       window.Capacitor?.isNativePlatform?.() === true;
+
+      if (isNative) {
+        try {
+          const { Browser } = await import(/* @vite-ignore */ '@capacitor/browser');
+          await Browser.open({ url: pdfUrl });
+          console.log('✅ PDF otvoren u sistemskom browseru');
+        } catch (err) {
+          console.error('❌ Greška pri otvaranju PDF-a:', err);
+          alert(t('foodplanner.alerts.pdf_error'));
+        }
+      } else {
+        window.open(pdfUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('❌ Greška:', error);
+      alert(t('foodplanner.alerts.pdf_error'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ============================================================
   // RENDER - NIJE PREMIUM
   // ============================================================
@@ -994,7 +1003,6 @@ const FoodPlanner = () => {
                       'Užina': '🍿'
                     };
                     
-                    // 🔥 PREVOD TIPA OBROKA
                     const translatedTip = t(tipToKey[tip] || tip);
                     
                     return (
@@ -1297,8 +1305,9 @@ const FoodPlanner = () => {
         <div>
           <h2 className="text-xl font-bold mb-4 dark:text-white">{t('foodplanner.plan.title')}</h2>
 
+          {/* 🔥 DUGME - FORCE TRUE */}
           <button
-            onClick={generateWeeklyPlan}
+            onClick={() => generateWeeklyPlan(true)}
             disabled={loadingPlan}
             className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-4 py-3 rounded-xl font-semibold transition mb-6 flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-emerald-500/25"
           >
@@ -1312,8 +1321,11 @@ const FoodPlanner = () => {
               </>
             ) : (
               <>
-                <span>🤖</span>
-                {t('foodplanner.plan.generate')} ({dailyGoal.kalorije} kcal)
+                <span>{weeklyPlan ? '🔄' : '🤖'}</span>
+                {weeklyPlan 
+                  ? (t('foodplanner.plan.regenerate') || 'Generiši novi plan') 
+                  : t('foodplanner.plan.generate')
+                } ({dailyGoal.kalorije} kcal)
               </>
             )}
           </button>
@@ -1347,6 +1359,16 @@ const FoodPlanner = () => {
                   <p className="text-sm text-red-700 dark:text-red-300 flex items-center gap-2">
                     <span>⚠️</span>
                     {t('foodplanner.plan.error')}
+                  </p>
+                </div>
+              )}
+
+              {/* 🔥 INDIKATOR KEŠA */}
+              {weeklyPlan._cached && (
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-xl p-3 mb-4">
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300 flex items-center gap-2">
+                    <span>💾</span>
+                    Prikazujem keširan plan (star {weeklyPlan._starost_dana || 0} dana). Klikni "🔄 Generiši novi plan" za novi.
                   </p>
                 </div>
               )}

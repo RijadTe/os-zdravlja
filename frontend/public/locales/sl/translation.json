@@ -562,6 +562,7 @@
   "title": "📅 Načrt obrokov",
   "generate": "Ustvari tedenski načrt",
   "generating": "Ustvarjam...",
+  "regenerate": "Ustvari nov načrt",
   "no_plan": "Kliknite 'Ustvari načrt' za tedenski načrt obrokov",
   "view": "Poglej",
   "add_to_diary": "Dodaj v dnevnik",

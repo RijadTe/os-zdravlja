@@ -562,6 +562,7 @@
   "title": "📅 Plan de repas",
   "generate": "Générer un plan hebdomadaire",
   "generating": "Génération...",
+  "regenerate": "Générer un nouveau plan",
   "no_plan": "Cliquez sur 'Générer un plan' pour créer un plan hebdomadaire",
   "view": "Voir",
   "add_to_diary": "Ajouter au journal",

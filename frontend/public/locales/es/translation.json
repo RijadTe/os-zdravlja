@@ -562,6 +562,7 @@
   "title": "📅 Plan de comidas",
   "generate": "Generar plan semanal",
   "generating": "Generando...",
+  "regenerate": "Generar nuevo plan",
   "no_plan": "Haz clic en 'Generar plan' para crear un plan semanal",
   "view": "Ver",
   "add_to_diary": "Agregar al diario",

@@ -562,6 +562,7 @@
   "title": "📅 Meal plan",
   "generate": "Generate weekly plan",
   "generating": "Generating...",
+  "regenerate": "Generate new plan",
   "no_plan": "Click 'Generate plan' to create a weekly meal plan",
   "view": "View",
   "add_to_diary": "Add to diary",

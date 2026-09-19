@@ -562,6 +562,7 @@
   "title": "📅 Plan obroka",
   "generate": "Generiši sedmični plan",
   "generating": "Generišem...",
+  "regenerate": "Generiši novi plan",
   "no_plan": "Kliknite 'Generiši plan' da kreirate sedmični plan obroka",
   "view": "Vidi",
   "add_to_diary": "Dodaj u dnevnik",
