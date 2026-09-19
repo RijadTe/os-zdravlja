@@ -1,14 +1,14 @@
 // public/service-worker.js
-const CACHE_NAME = 'os-zdravlja-v3';
-const STATIC_CACHE = 'static-v3';
-const DYNAMIC_CACHE = 'dynamic-v3';
+const CACHE_NAME = 'os-zdravlja-v4';
+const STATIC_CACHE = 'static-v4';
+const DYNAMIC_CACHE = 'dynamic-v4';
 
 // Statički fajlovi – uvijek dostupni (uvijek se keširaju)
 const staticAssets = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/offline.html'  // ← DODAJ offline.html
+  '/offline.html'
 ];
 
 // ============================================================
@@ -23,7 +23,7 @@ self.addEventListener('install', event => {
         console.log('✅ Statički fajlovi keširani');
         return cache.addAll(staticAssets);
       })
-      .then(() => self.skipWaiting()) // Aktiviraj odmah
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -43,80 +43,91 @@ self.addEventListener('activate', event => {
           })
       );
     })
-    .then(() => self.clients.claim()) // Preuzmi kontrolu odmah
+    .then(() => self.clients.claim())
   );
 });
 
 // ============================================================
-// 📡 FETCH – prvo iz keša, pa sa interneta
+// 📡 FETCH – keširaj SAMO statičke fajlove
 // ============================================================
 self.addEventListener('fetch', event => {
   const request = event.request;
+  const url = new URL(request.url);
 
-  // Preskoči API pozive (ne keširamo ih)
-  if (request.url.includes('/api/')) {
-    event.respondWith(fetch(request));
+  // 🔥 1. PUSTI SVE API POZIVE — SW ne dira (bitno za PDF!)
+  if (url.pathname.startsWith('/api/')) {
     return;
   }
 
-  // Preskoči Cloudinary slike (ne keširamo)
-  if (request.url.includes('cloudinary.com') || request.url.includes('res.cloudinary.com')) {
-    event.respondWith(fetch(request));
+  // 🔥 2. PUSTI EXTERNE DOMENE (Cloudinary, Supabase, Render)
+  if (url.origin !== self.location.origin) {
     return;
   }
 
-  // Preskoči Supabase (ne keširamo)
-  if (request.url.includes('supabase.co')) {
-    event.respondWith(fetch(request));
+  // 🔥 3. PUSTI PDF DOWNLOAD
+  if (
+    url.pathname.endsWith('.pdf') ||
+    request.headers.get('accept')?.includes('application/pdf')
+  ) {
     return;
   }
 
+  // 🔥 4. PUSTI NON-GET (POST, PUT, DELETE)
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  // 🔥 5. Za statičke fajlove — cache-first
   event.respondWith(
     caches.match(request)
       .then(cachedResponse => {
-        // Ako postoji u kešu – vrati odmah
         if (cachedResponse) {
           console.log(`✅ Keš: ${request.url}`);
           return cachedResponse;
         }
 
-        // Ako nema u kešu – dohvati sa interneta
         return fetch(request)
           .then(networkResponse => {
-            // Spremi u dinamički keš (samo HTML, CSS, JS, slike)
+            // Keširaj samo uspešne response statičkih fajlova
             if (
-              request.url.endsWith('.html') ||
-              request.url.endsWith('.css') ||
-              request.url.endsWith('.js') ||
-              request.url.match(/\.(png|jpg|jpeg|gif|svg|webp|ico)$/)
+              networkResponse.ok &&
+              (
+                request.url.endsWith('.html') ||
+                request.url.endsWith('.css') ||
+                request.url.endsWith('.js') ||
+                request.url.match(/\.(png|jpg|jpeg|gif|svg|webp|ico)$/)
+              )
             ) {
-              return caches.open(DYNAMIC_CACHE).then(cache => {
-                cache.put(request, networkResponse.clone());
+              const clone = networkResponse.clone();
+              caches.open(DYNAMIC_CACHE).then(cache => {
+                cache.put(request, clone);
                 console.log(`💾 Dinamički keš: ${request.url}`);
-                return networkResponse;
               });
             }
 
             return networkResponse;
           })
           .catch(() => {
-            // Ako nema interneta i nema keša – prikaži offline stranicu
+            // Offline fallback
             console.log(`📡 Offline: ${request.url}`);
-            
-            // Ako je zahtjev za HTML stranicu, vrati offline.html
+
+            // Samo za HTML stranice vrati offline.html
             if (request.headers.get('accept')?.includes('text/html')) {
               return caches.match('/offline.html');
             }
-            
-            // Za sve ostale zahtjeve vrati offline.html
-            return caches.match('/offline.html');
+
+            // Za sve ostalo vrati prazan 503
+            return new Response('', {
+              status: 503,
+              statusText: 'Offline'
+            });
           });
       })
   );
 });
 
 // ============================================================
-// 🔔 PUSH NOTIFIKACIJE (ako želiš kasnije)
+// 🔔 PUSH NOTIFIKACIJE
 // ============================================================
 self.addEventListener('push', event => {
   const data = event.data.json();
