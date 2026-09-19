@@ -2992,7 +2992,7 @@ const totalFilled = plan.flatMap(d => [d.dorucak, d.rucak, d.vecera]).filter(j =
 // ============================================================
 app.get('/api/weekly-plan/:email', async (req, res) => {
   try {
-    const { email } = req.params;
+     const email = decodeURIComponent(req.params.email);
     const { datum } = req.query;
     
     console.log(`📥 Dohvatam plan za: ${email}`, datum ? `(datum: ${datum})` : '');
