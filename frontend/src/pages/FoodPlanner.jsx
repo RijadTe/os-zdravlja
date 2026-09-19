@@ -23,6 +23,16 @@ const dayMapping = {
 };
 
 // ============================================================
+// MAPPING ZA TIP OBROKA → i18n KEY
+// ============================================================
+const tipToKey = {
+  'Doručak': 'foodplanner.diary.breakfast',
+  'Ručak': 'foodplanner.diary.lunch',
+  'Večera': 'foodplanner.diary.dinner',
+  'Užina': 'foodplanner.diary.snack'
+};
+
+// ============================================================
 // PLACEHOLDER SLIKE PO TIPU OBROKA
 // ============================================================
 const PLACEHOLDER_IMAGES = {
@@ -47,7 +57,7 @@ const MealCard = ({ meal, type, icon, label, onClick, t }) => {
       <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 p-4 flex flex-col items-center justify-center min-h-[200px]">
         <span className="text-4xl mb-2 opacity-30">{icon}</span>
         <span className="text-xs text-gray-400 dark:text-gray-500 italic">{label}</span>
-        <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">— nije popunjeno</span>
+        <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">— {t('foodplanner.plan.not_filled')}</span>
       </div>
     );
   }
@@ -322,11 +332,9 @@ const FoodPlanner = () => {
           const response = await fetch(`${API_URL}/api/profil/${encodeURIComponent(email)}`);
           const data = await response.json();
           if (data.success && data.data) {
-            // 🔥 Postavi svježe podatke iz baze
             setProfil(data.data);
             setUser(data.data);
             
-            // 🔥 Ažuriraj localStorage s svježim podacima
             localStorage.setItem('user', JSON.stringify(data.data));
             
             const restrikcije = data.data.izbjegava || [];
@@ -554,7 +562,7 @@ const FoodPlanner = () => {
   };
 
   // ============================================================
-  // DODAJ JELO IZ PLANA U DNEVNIK - DIREKTNO SPREMA U BAZU
+  // DODAJ JELO IZ PLANA U DNEVNIK
   // ============================================================
   const addMealToDiary = async () => {
     if (!selectedMeal) return;
@@ -890,7 +898,7 @@ const FoodPlanner = () => {
               )}
             </div>
 
-            {/* 🔥 PROGRESS BAR - RESPONSIVE */}
+            {/* 🔥 PROGRESS BAR */}
             <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 sm:p-4 mb-4">
               <div className="flex justify-between items-center mb-2">
                 <span className="font-semibold text-sm sm:text-base dark:text-white">
@@ -910,9 +918,8 @@ const FoodPlanner = () => {
                 />
               </div>
               
-              {/* 🔥 MAKRONUTRIJENTI - RESPONSIVE GRID */}
+              {/* 🔥 MAKRONUTRIJENTI */}
               <div className="grid grid-cols-3 gap-2 mt-3">
-                {/* PROTEINI */}
                 <div className="flex flex-col items-center bg-white dark:bg-gray-700/50 rounded-lg p-2">
                   <div className="flex items-center gap-1 mb-0.5">
                     <span className="text-sm">🥩</span>
@@ -926,7 +933,6 @@ const FoodPlanner = () => {
                   </span>
                 </div>
                 
-                {/* UGLJIKOHIDRATI */}
                 <div className="flex flex-col items-center bg-white dark:bg-gray-700/50 rounded-lg p-2">
                   <div className="flex items-center gap-1 mb-0.5">
                     <span className="text-sm">🍞</span>
@@ -940,7 +946,6 @@ const FoodPlanner = () => {
                   </span>
                 </div>
                 
-                {/* MASTI */}
                 <div className="flex flex-col items-center bg-white dark:bg-gray-700/50 rounded-lg p-2">
                   <div className="flex items-center gap-1 mb-0.5">
                     <span className="text-sm">🧈</span>
@@ -956,7 +961,7 @@ const FoodPlanner = () => {
               </div>
             </div>
 
-            {/* 🔥 UKUPNO PO TIPU OBROKA */}
+            {/* 🔥 UKUPNO PO TIPU OBROKA - SA PREVODIMA */}
             {obroci.length > 0 && (
               <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl p-4 mb-4 border border-emerald-200 dark:border-emerald-700">
                 <h3 className="font-semibold dark:text-white mb-3 flex items-center gap-2">
@@ -970,6 +975,10 @@ const FoodPlanner = () => {
                       'Večera': '🌙',
                       'Užina': '🍿'
                     };
+                    
+                    // 🔥 PREVOD TIPA OBROKA
+                    const translatedTip = t(tipToKey[tip] || tip);
+                    
                     return (
                       <div
                         key={tip}
@@ -977,14 +986,16 @@ const FoodPlanner = () => {
                       >
                         <div className="text-2xl mb-1">{icons[tip]}</div>
                         <div className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
-                          {tip}
+                          {translatedTip}
                         </div>
                         <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
                           {Math.round(data.kalorije)}
                         </div>
                         <div className="text-[10px] text-gray-400">kcal</div>
                         <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
-                          {data.broj} {data.broj === 1 ? 'obrok' : 'obroka'}
+                          {data.broj} {data.broj === 1 
+                            ? t('foodplanner.diary.meal_singular') 
+                            : t('foodplanner.diary.meal_plural')}
                         </div>
                       </div>
                     );
@@ -1039,7 +1050,7 @@ const FoodPlanner = () => {
                     </div>
                   ) : searchTerm && !searchingRecipes && recipesLoaded ? (
                     <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 text-center text-gray-500 dark:text-gray-400">
-                      ❌ Nema recepata za "{searchTerm}"
+                      ❌ {t('foodplanner.diary.no_recipes_for')} "{searchTerm}"
                     </div>
                   ) : null}
                 </>
@@ -1067,7 +1078,7 @@ const FoodPlanner = () => {
               </select>
             </div>
 
-            {/* EMOJI UNOS - 6 EMOJIJA */}
+            {/* EMOJI UNOS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
               <div>
                 <label className="text-xs font-semibold text-gray-600 dark:text-gray-300">{t('foodplanner.diary.mood_before')}</label>
@@ -1173,7 +1184,7 @@ const FoodPlanner = () => {
                       <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="font-bold dark:text-white">{obrok.naziv}</h4>
                         <span className="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded-full text-gray-600 dark:text-gray-300">
-                          {obrok.tip}
+                          {t(tipToKey[obrok.tip] || obrok.tip)}
                         </span>
                         <span className="text-xs text-gray-400 dark:text-gray-500">{obrok.vrijeme}</span>
                         <span className="text-lg">{obrok.mood_before || '😐'} → {obrok.mood_after || '😐'}</span>
@@ -1296,7 +1307,7 @@ const FoodPlanner = () => {
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded-xl p-3 mb-4">
                   <p className="text-sm text-green-700 dark:text-green-300 flex items-center gap-2">
                     <span>✅</span>
-                    Plan generiran iz baze ({weeklyPlan._broj_iz_baze || 21} recepata)
+                    {t('foodplanner.plan.from_db', { count: weeklyPlan._broj_iz_baze || 21 })}
                   </p>
                 </div>
               )}
@@ -1305,7 +1316,10 @@ const FoodPlanner = () => {
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700 rounded-xl p-3 mb-4">
                   <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2 flex-wrap">
                     <span>🔄</span>
-                    Plan kombinovan: {weeklyPlan._broj_iz_baze || 0} iz baze + {weeklyPlan._broj_iz_ai || 0} sa AI
+                    {t('foodplanner.plan.combined', { 
+                      db: weeklyPlan._broj_iz_baze || 0, 
+                      ai: weeklyPlan._broj_iz_ai || 0 
+                    })}
                   </p>
                 </div>
               )}
@@ -1314,7 +1328,7 @@ const FoodPlanner = () => {
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-xl p-3 mb-4">
                   <p className="text-sm text-red-700 dark:text-red-300 flex items-center gap-2">
                     <span>⚠️</span>
-                    Greška pri generisanju plana. Pokušajte ponovo.
+                    {t('foodplanner.plan.error')}
                   </p>
                 </div>
               )}
@@ -1369,9 +1383,11 @@ const FoodPlanner = () => {
           {weeklyPlan && weeklyPlan._broj_iz_baze !== undefined && (
             <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl text-center">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {weeklyPlan._ukupno || 0}/21 obroka popunjeno
-                {weeklyPlan._broj_iz_baze > 0 && ` • ${weeklyPlan._broj_iz_baze} iz baze`}
-                {weeklyPlan._broj_iz_ai > 0 && ` • ${weeklyPlan._broj_iz_ai} sa AI`}
+                {t('foodplanner.plan.stats', {
+                  total: weeklyPlan._ukupno || 0,
+                  db: weeklyPlan._broj_iz_baze > 0 ? ` • ${weeklyPlan._broj_iz_baze} ${t('foodplanner.plan.from_db_short')}` : '',
+                  ai: weeklyPlan._broj_iz_ai > 0 ? ` • ${weeklyPlan._broj_iz_ai} ${t('foodplanner.plan.from_ai_short')}` : ''
+                })}
               </p>
             </div>
           )}
@@ -1387,13 +1403,13 @@ const FoodPlanner = () => {
           )}
 
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-4 text-center">
-            {restrictions.length > 0 && ` 🔒 Restrikcije: ${restrictions.join(', ')}`}
+            {restrictions.length > 0 && ` 🔒 ${t('foodplanner.plan.restrictions')}: ${restrictions.join(', ')}`}
           </p>
         </div>
       )}
 
       {/* ============================================================
-          MODAL ZA DETALJE JELA - zIndex 9999 (IZNAD NAVBAR-A)
+          MODAL ZA DETALJE JELA
           ============================================================ */}
       {selectedMeal && (
         <div
@@ -1424,11 +1440,10 @@ const FoodPlanner = () => {
 
             {/* SADRŽAJ */}
             <div className="p-6">
-              {/* PORUKA USPJEHA */}
               {saveSuccess && (
                 <div className="mb-4 p-3 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-xl text-center">
                   <p className="text-sm font-semibold text-green-700 dark:text-green-300">
-                    ✅ Uspješno dodano u dnevnik!
+                    ✅ {t('foodplanner.plan.saved_success')}
                   </p>
                 </div>
               )}
@@ -1457,14 +1472,12 @@ const FoodPlanner = () => {
                 </button>
               </div>
 
-              {/* OPIS */}
               {selectedMeal.opis && (
                 <p className="text-gray-600 dark:text-gray-300 mb-4 italic">
                   {selectedMeal.opis}
                 </p>
               )}
 
-              {/* MAKRONUTRIJENTI */}
               {(selectedMeal.kalorije > 0 || selectedMeal.proteini > 0) && (
                 <div className="grid grid-cols-4 gap-2 mb-6">
                   <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-3 text-center">
@@ -1487,11 +1500,10 @@ const FoodPlanner = () => {
                 </div>
               )}
 
-              {/* SASTOJCI */}
               {selectedMeal.sastojci && selectedMeal.sastojci.length > 0 && (
                 <div className="mb-6">
                   <h3 className="font-bold dark:text-white mb-3 flex items-center gap-2">
-                    📦 Sastojci
+                    📦 {t('foodplanner.plan.ingredients')}
                   </h3>
                   <ul className="space-y-1.5 bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4">
                     {selectedMeal.sastojci.map((s, i) => (
@@ -1504,11 +1516,10 @@ const FoodPlanner = () => {
                 </div>
               )}
 
-              {/* UPUTE */}
               {selectedMeal.upute && selectedMeal.upute.length > 0 && (
                 <div className="mb-6">
                   <h3 className="font-bold dark:text-white mb-3 flex items-center gap-2">
-                    👨‍🍳 Priprema
+                    👨‍🍳 {t('foodplanner.plan.preparation')}
                   </h3>
                   <ol className="space-y-2.5">
                     {selectedMeal.upute.map((u, i) => (
@@ -1523,17 +1534,15 @@ const FoodPlanner = () => {
                 </div>
               )}
 
-              {/* FALLBACK ako nema detalja */}
               {(!selectedMeal.sastojci || selectedMeal.sastojci.length === 0) &&
                (!selectedMeal.upute || selectedMeal.upute.length === 0) && (
                 <div className="text-center py-6 bg-gray-50 dark:bg-gray-900/50 rounded-xl mb-6">
                   <p className="text-sm text-gray-400 dark:text-gray-500 italic">
-                    ℹ️ Detalji recepta nisu dostupni za ovo jelo.
+                    ℹ️ {t('foodplanner.plan.no_details')}
                   </p>
                 </div>
               )}
 
-              {/* DUGMAD */}
               <div className="flex gap-2 mt-6">
                 <button
                   onClick={addMealToDiary}
@@ -1546,10 +1555,10 @@ const FoodPlanner = () => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Spremam...
+                      {t('foodplanner.plan.saving')}
                     </>
                   ) : saveSuccess ? (
-                    <>✅ Spremljeno!</>
+                    <>✅ {t('foodplanner.plan.saved')}</>
                   ) : (
                     <>
                       <span>➕</span>
