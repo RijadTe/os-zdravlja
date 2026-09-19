@@ -30,8 +30,25 @@ export const SpeechRecognition = {
 export const SplashScreen = { show: async () => {}, hide: async () => {} };
 export const StatusBar = { setStyle: async () => {}, setBackgroundColor: async () => {} };
 export const Style = { Dark: 'dark', Light: 'light' };
-export const App = { getInfo: async () => ({}), getState: async () => ({}) };
-export const Browser = { open: async () => {} };
+
+// 🔥 APP — dodato addListener + removeAllListeners
+export const App = {
+  getInfo: async () => ({}),
+  getState: async () => ({ isActive: true }),
+  addListener: () => ({
+    remove: async () => {},
+  }),
+  removeAllListeners: async () => {},
+};
+
+// 🔥 BROWSER — dodato close
+export const Browser = {
+  open: async () => {},
+  close: async () => {},
+  addListener: () => ({ remove: async () => {} }),
+  removeAllListeners: async () => {},
+};
+
 export const Camera = { getPhoto: async () => ({}) };
 export const Filesystem = { readFile: async () => ({}) };
 export const Geolocation = { getCurrentPosition: async () => ({}) };
