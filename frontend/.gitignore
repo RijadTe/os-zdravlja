@@ -24,3 +24,14 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# ============================================================
+# 🔥 ENVIRONMENT VARIABLES - OBAVEZNO!
+# ============================================================
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*

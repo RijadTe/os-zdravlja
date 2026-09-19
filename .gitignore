@@ -1,37 +1,44 @@
+# Dependencies
+node_modules/
+*/node_modules/
+**/node_modules/
+
+# Build output
+dist/
+*/dist/
+**/dist/
+build/
+*/build/
+**/build/
+
+# Capacitor
+android/.gradle/
+android/app/build/
+android/build/
+android/.idea/
+android/local.properties
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+
+# Env
+.env
+.env.local
+.env.production
+*.env
+backend/.env
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Vercel
+.vercel/
+
 # Logs
-logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# OS
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-.vercel
-
-# ============================================================
-# 🔥 ENVIRONMENT VARIABLES - OBAVEZNO!
-# ============================================================
-.env
-.env.*
-!.env.example
-backend/.env
-backend/.env.*
-frontend/.env
-frontend/.env.*
+Thumbs.db
