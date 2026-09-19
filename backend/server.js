@@ -3047,10 +3047,10 @@ app.get('/api/weekly-plan/:email', async (req, res) => {
     
     // 🔥 PREBROJ STVARNE BROJEVE
     const totalMeals = data.plan.dani.flatMap(d => [d.dorucak, d.rucak, d.vecera])
-      .filter(j => j && j !== '---').length;
-    const aiMeals = data.plan.dani.flatMap(d => [d.dorucak, d.rucak, d.vecera])
-      .filter(j => j && j.includes('✨')).length;
-    const baseMeals = totalMeals - aiMeals;
+  .filter(j => j && j !== '---').length;
+const aiMeals = data.plan.dani.flatMap(d => [d.dorucak, d.rucak, d.vecera])
+  .filter(j => j && typeof j === 'object' && j._ai === true).length;
+const baseMeals = totalMeals - aiMeals;
     
     console.log(`✅ Plan pronađen (${totalMeals}/21, ${baseMeals} baza, ${aiMeals} AI)`);
     
