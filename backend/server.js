@@ -4126,9 +4126,12 @@ app.get('/api/pdf/izvjestaj/:email', async (req, res) => {
 
     doc.pipe(res);
 
-    doc.fontSize(24).fillColor('#2563eb').text('🏥 OS Zdravlja', { align: 'center' });
+    // ============================================================
+    // HEADER - BEZ EMOJI
+    // ============================================================
+    doc.fontSize(24).fillColor('#2563eb').text('OS Zdravlja', { align: 'center' });
     doc.moveDown(0.5);
-    doc.fontSize(18).fillColor('#1f2937').text('📊 Izvještaj o ishrani', { align: 'center' });
+    doc.fontSize(18).fillColor('#1f2937').text('Izvjestaj o ishrani', { align: 'center' });
     doc.moveDown(0.5);
     doc.fontSize(12).fillColor('#4b5563').text(`Korisnik: ${user?.ime || email}`, { align: 'center' });
     doc.text(`Email: ${email}`, { align: 'center' });
@@ -4136,91 +4139,122 @@ app.get('/api/pdf/izvjestaj/:email', async (req, res) => {
     doc.text(`Datum: ${datumIzvjestaja}`, { align: 'center' });
     doc.moveDown(1);
 
+    // Linija
     doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#e5e7eb').lineWidth(1).stroke();
     doc.moveDown(1);
 
-    doc.fontSize(16).fillColor('#1f2937').text('📊 Statistika', { underline: true });
+    // ============================================================
+    // STATISTIKA
+    // ============================================================
+    doc.fontSize(16).fillColor('#1f2937').text('Statistika', { underline: true });
     doc.moveDown(0.5);
     doc.fontSize(12).fillColor('#4b5563')
-       .text(`📅 Ukupno obroka: ${obroci.length}`)
-       .text(`🔥 Ukupno kalorija: ${Math.round(ukupno.kalorije)} kcal`)
-       .text(`🥩 Proteini: ${Math.round(ukupno.proteini)}g`)
-       .text(`🍞 Ugljikohidrati: ${Math.round(ukupno.ugljikohidrati)}g`)
-       .text(`🧈 Masti: ${Math.round(ukupno.masti)}g`);
+       .text(`Ukupno obroka: ${obroci.length}`)
+       .text(`Ukupno kalorija: ${Math.round(ukupno.kalorije)} kcal`)
+       .text(`Proteini: ${Math.round(ukupno.proteini)}g`)
+       .text(`Ugljikohidrati: ${Math.round(ukupno.ugljikohidrati)}g`)
+       .text(`Masti: ${Math.round(ukupno.masti)}g`);
 
     doc.moveDown(0.5);
 
     const dani = [...new Set(obroci.map(o => o.datum))].length || 1;
-    doc.text(`📈 Dnevni prosjek kalorija: ${Math.round(ukupno.kalorije / dani)} kcal`);
+    doc.text(`Dnevni prosjek kalorija: ${Math.round(ukupno.kalorije / dani)} kcal`);
 
     const total = ukupno.proteini + ukupno.ugljikohidrati + ukupno.masti || 1;
     const procProteini = Math.round((ukupno.proteini / total) * 100);
     const procUglj = Math.round((ukupno.ugljikohidrati / total) * 100);
     const procMasti = Math.round((ukupno.masti / total) * 100);
 
-    doc.text(`🥧 Makronutrijenti: ${procProteini}% proteini, ${procUglj}% ugljikohidrati, ${procMasti}% masti`);
+    doc.text(`Makronutrijenti: ${procProteini}% proteini, ${procUglj}% ugljikohidrati, ${procMasti}% masti`);
     doc.moveDown(1);
 
     doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#e5e7eb').lineWidth(1).stroke();
     doc.moveDown(1);
 
-    doc.fontSize(16).fillColor('#1f2937').text('📋 Lista obroka', { underline: true });
-    doc.moveDown(0.5);
+    // ============================================================
+    // LISTA OBROKA
+    // ============================================================
+    doc.fontSize(16).fillColor('#1f2937').text('Lista obroka', { underline: true });
+    doc.moveDown(0.8);
 
+    // Table header
     const startX = 50;
-    const col1 = 30;
-    const col2 = 100;
-    const col3 = 120;
-    const col4 = 70;
-    const col5 = 70;
-    const col6 = 70;
-    const col7 = 70;
+    const colWidths = [25, 150, 60, 50, 40, 50, 40, 40];
+    const rowHeight = 22;
+    const tableWidth = colWidths.reduce((a, b) => a + b, 0);
     let y = doc.y;
 
-    doc.rect(startX, y - 5, 495, 25).fillColor('#f3f4f6').fill();
-    doc.fillColor('#1f2937').fontSize(10)
-       .text('RB', startX + 5, y)
-       .text('Naziv', startX + col1, y)
-       .text('Tip', startX + col1 + col2, y)
-       .text('🔥 kcal', startX + col1 + col2 + col3, y)
-       .text('🥩 P', startX + col1 + col2 + col3 + col4, y)
-       .text('🍞 U', startX + col1 + col2 + col3 + col4 + col5, y)
-       .text('🧈 M', startX + col1 + col2 + col3 + col4 + col5 + col6, y)
-       .text('😊', startX + col1 + col2 + col3 + col4 + col5 + col6 + col7, y);
+    // Header background
+    doc.rect(startX, y - 5, tableWidth, 25).fillColor('#f3f4f6').fill();
+
+    // Header text
+    doc.fillColor('#1f2937').fontSize(9);
+    let x = startX + 5;
+    doc.text('#', x, y, { width: colWidths[0], lineBreak: false });
+    x += colWidths[0];
+    doc.text('Naziv', x, y, { width: colWidths[1], lineBreak: false });
+    x += colWidths[1];
+    doc.text('Tip', x, y, { width: colWidths[2], lineBreak: false });
+    x += colWidths[2];
+    doc.text('kcal', x, y, { width: colWidths[3], lineBreak: false });
+    x += colWidths[3];
+    doc.text('P (g)', x, y, { width: colWidths[4], lineBreak: false });
+    x += colWidths[4];
+    doc.text('U (g)', x, y, { width: colWidths[5], lineBreak: false });
+    x += colWidths[5];
+    doc.text('M (g)', x, y, { width: colWidths[6], lineBreak: false });
+    x += colWidths[6];
+    doc.text('Mood', x, y, { width: colWidths[7], lineBreak: false });
 
     y += 25;
-    doc.moveDown(0.5);
 
+    // Rows
     obroci.forEach((obrok, index) => {
-      if (y > 750) {
+      if (y > 720) {
         doc.addPage();
         y = 50;
       }
 
+      // Alternating background
       if (index % 2 === 0) {
-        doc.rect(startX, y - 3, 495, 20).fillColor('#f9fafb').fill();
+        doc.rect(startX, y - 3, tableWidth, rowHeight).fillColor('#f9fafb').fill();
       }
 
-      doc.fillColor('#374151').fontSize(9)
-         .text(`${index + 1}`, startX + 5, y + 2)
-         .text(obrok.naziv.substring(0, 20), startX + col1, y + 2)
-         .text(obrok.tip || 'Ručak', startX + col1 + col2, y + 2)
-         .text(`${Math.round(obrok.kalorije || 0)}`, startX + col1 + col2 + col3, y + 2)
-         .text(`${Math.round(obrok.proteini || 0)}`, startX + col1 + col2 + col3 + col4, y + 2)
-         .text(`${Math.round(obrok.ugljikohidrati || 0)}`, startX + col1 + col2 + col3 + col4 + col5, y + 2)
-         .text(`${Math.round(obrok.masti || 0)}`, startX + col1 + col2 + col3 + col4 + col5 + col6, y + 2)
-         .text(`${obrok.mood_before || '😐'}→${obrok.mood_after || '😐'}`, startX + col1 + col2 + col3 + col4 + col5 + col6 + col7, y + 2);
+      doc.fillColor('#374151').fontSize(8);
+      x = startX + 5;
+      
+      // Skrati naziv ako je predugačak
+      const naziv = (obrok.naziv || '').substring(0, 25);
+      const tip = (obrok.tip || 'Rucak').substring(0, 10);
+      const mood = `${obrok.mood_before || 'N'}/${obrok.mood_after || 'N'}`;
 
-      y += 20;
+      doc.text(`${index + 1}`, x, y, { width: colWidths[0], lineBreak: false });
+      x += colWidths[0];
+      doc.text(naziv, x, y, { width: colWidths[1], lineBreak: false });
+      x += colWidths[1];
+      doc.text(tip, x, y, { width: colWidths[2], lineBreak: false });
+      x += colWidths[2];
+      doc.text(`${Math.round(obrok.kalorije || 0)}`, x, y, { width: colWidths[3], lineBreak: false });
+      x += colWidths[3];
+      doc.text(`${Math.round(obrok.proteini || 0)}`, x, y, { width: colWidths[4], lineBreak: false });
+      x += colWidths[4];
+      doc.text(`${Math.round(obrok.ugljikohidrati || 0)}`, x, y, { width: colWidths[5], lineBreak: false });
+      x += colWidths[5];
+      doc.text(`${Math.round(obrok.masti || 0)}`, x, y, { width: colWidths[6], lineBreak: false });
+      x += colWidths[6];
+      doc.text(mood, x, y, { width: colWidths[7], lineBreak: false });
+
+      y += rowHeight;
     });
 
-    doc.moveDown(1);
+    // Footer
+    doc.moveDown(2);
     doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#e5e7eb').lineWidth(1).stroke();
     doc.moveDown(1);
 
     doc.fontSize(10).fillColor('#9ca3af')
-       .text(`📄 Izvještaj generisan: ${new Date().toLocaleString('hr')}`, { align: 'center' })
-       .text('🏥 OS Zdravlja – Operativni sistem za tvoje zdravlje', { align: 'center' });
+       .text(`Izvjestaj generisan: ${new Date().toLocaleString('hr')}`, { align: 'center' })
+       .text('OS Zdravlja - Operativni sistem za tvoje zdravlje', { align: 'center' });
 
     doc.end();
 
