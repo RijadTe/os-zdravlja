@@ -1,14 +1,13 @@
 // public/service-worker.js
-const CACHE_NAME = 'os-zdravlja-v2';
-const STATIC_CACHE = 'static-v2';
-const DYNAMIC_CACHE = 'dynamic-v2';
+const CACHE_NAME = 'os-zdravlja-v3';
+const STATIC_CACHE = 'static-v3';
+const DYNAMIC_CACHE = 'dynamic-v3';
 
 // Statički fajlovi – uvijek dostupni (uvijek se keširaju)
 const staticAssets = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/vite.svg',
   '/offline.html'  // ← DODAJ offline.html
 ];
 
