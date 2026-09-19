@@ -724,29 +724,47 @@ const FoodPlanner = () => {
   // PDF IZVJEŠTAJ
   // ============================================================
   const generatePDF = async () => {
-    const email = user?.email || localStorage.getItem('userEmail');
-    if (!email) {
-      alert(t('foodplanner.alerts.login_required'));
-      return;
-    }
+  const email = user?.email || localStorage.getItem('userEmail');
+  if (!email) {
+    alert(t('foodplanner.alerts.login_required'));
+    return;
+  }
 
-    if (obroci.length === 0) {
-      alert(t('foodplanner.alerts.no_meals'));
-      return;
-    }
+  if (obroci.length === 0) {
+    alert(t('foodplanner.alerts.no_meals'));
+    return;
+  }
 
-    try {
-      setLoading(true);
-      const datum = formatDateForAPI(selectedDate);
-      window.open(`${API_URL}/api/pdf/izvjestaj/${encodeURIComponent(email)}?datum=${datum}`, '_blank');
-    } catch (error) {
-      console.error('❌ Greška:', error);
-      alert(t('foodplanner.alerts.pdf_error'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    const datum = formatDateForAPI(selectedDate);
+    const pdfUrl = `${API_URL}/api/pdf/izvjestaj/${encodeURIComponent(email)}?datum=${datum}`;
 
+    // 🔥 DETEKTUJ PLATFORMU
+    const isNative = typeof window !== 'undefined' && 
+                     window.Capacitor?.isNativePlatform?.() === true;
+
+    if (isNative) {
+      // 🔥 NATIVE: otvori u sistemskom browseru
+      try {
+        const { Browser } = await import(/* @vite-ignore */ '@capacitor/browser');
+        await Browser.open({ url: pdfUrl });
+        console.log('✅ PDF otvoren u sistemskom browseru');
+      } catch (err) {
+        console.error('❌ Greška pri otvaranju PDF-a:', err);
+        alert(t('foodplanner.alerts.pdf_error'));
+      }
+    } else {
+      // 🔥 WEB: otvori u novom tabu
+      window.open(pdfUrl, '_blank');
+    }
+  } catch (error) {
+    console.error('❌ Greška:', error);
+    alert(t('foodplanner.alerts.pdf_error'));
+  } finally {
+    setLoading(false);
+  }
+};
   // ============================================================
   // RENDER - NIJE PREMIUM
   // ============================================================
