@@ -1387,7 +1387,6 @@ const FoodPlanner = () => {
           )}
 
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-4 text-center">
-            🤖 Plan bira recepte iz baze, a ako nema dovoljno, AI popunjava prazna mjesta
             {restrictions.length > 0 && ` 🔒 Restrikcije: ${restrictions.join(', ')}`}
           </p>
         </div>
